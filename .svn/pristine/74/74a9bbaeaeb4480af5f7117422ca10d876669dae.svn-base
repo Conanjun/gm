@@ -1,0 +1,211 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class ExpenseModel extends Model
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    //参与项目和执派项目union('select pid from ot_taskpart where uid='.$uid)
+    public function projectList()
+    {
+        $uid = UID;
+        $project = M('takepart')
+            ->field('pid')
+            ->union('select pid from ot_project_service where assigneduid =' . $uid)
+            ->where(array('uid' => $uid))
+            ->select();
+        $pids = $this->arrToStr($project);
+        $result = M('project')->field('pid,name,uid,pmuid')->where('pid in(' . $pids . ")")->order('addtime desc')->select();
+        return $result;
+    }
+
+    public function expense_insert($data)
+    {
+        $result = M('expense')->add($data);
+        return $result;
+    }
+
+    public function expense_list($where, $order)
+    {
+        $result = M('expense')
+            ->alias('e')
+            ->field('e.uid,p.name as pname,d.d_key,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+            ->join('ot_project  p on p.pid=e.pid', 'left')
+            ->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'', 'left')
+            ->where(['e.uid' => UID])
+            ->where($where)
+            ->where(['e.delete' => 0])
+            ->order($order)
+            ->select();
+        return $result;
+    }
+
+    public function file_insert($fileList)
+    {
+        $result = M('file')->add($fileList);
+        return $result;
+    }
+
+    public function getExpenseInfo($eid)
+    {
+        $result = M('expense')->field('p1.name as pname1,e.uid,e.unit_id,f.name,f.savepath,d.d_key,f.ext,e.eid,e.pid,e.state,e.fileid,e.code,e.unit,e.account,e.bank,e.amount,e.innum,e.description,e.type')
+            ->alias('e')
+            ->join('ot_file f on f.fileid=e.fileid', 'left')
+            ->join('ot_dictionary d on  d.d_value=e.state and d.d_code=\'Reimbursement_static\'', 'left')
+            ->join("ot_project p1 on p1.pid=e.pid", "left")
+            ->where(['e.eid' => $eid])->find();
+        return $result;
+    }
+
+    public function projectExpense($eid)
+    {
+        $result = M('expense')
+            ->alias('e')
+            ->field('p.contract,e.uid,p.name as pname,p.pid,d.d_key as status,f.name as fname,f.ext,f.savepath,e.account,e.fileid,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,d1.d_key,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+            ->join('ot_project  p on p.pid=e.pid', 'left')
+            ->join('ot_file f on f.fileid=e.fileid', 'left')
+            ->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'', 'left')
+            ->join('ot_dictionary d1 on d1.d_value=e.type  and d1.d_code=\'expense_type\'', 'left')
+            ->where(['e.eid' => $eid])
+            ->find();
+        return $result;
+    }
+
+    public function getExpenseSub($eid)
+    {
+        $result = M('expense_sub')->field('esid,feecode,feetype,feecate,catecode,eid,money,note,invoicenum')
+            ->where(['eid' => $eid])
+            ->select();
+        return $result;
+    }
+
+    public function expenseDel($id)
+    {
+        $result = M('expense')->where(['eid' => $id])->save(['delete' => 1]);
+        return $result;
+    }
+
+    public function expensesubdel($esid)
+    {
+        $result = M('expense_sub')->where(['esid' => $esid])->delete();
+        return $result;
+    }
+
+    public function expenseUpdate($data)
+    {
+        $res = M('expense')->where(['eid' => $data['eid']])->save($data);
+        return $res;
+    }
+
+    public function expense_update($eid)
+    {
+        $res = M('expense_sub')->where(['eid' => $eid])->sum('money');
+        $innum = M('expense_sub')->where(['eid' => $eid])->sum('invoicenum');
+        $result = M('expense')->where(['eid' => $eid])->save(['amount' => $res, 'innum' => $innum]);
+
+        return $result;
+    }
+
+    public function submitCheck($eid)
+    {
+//       检查是否有明细
+        $res_sub = M('expense_sub')->where(['eid' => $eid])->select();
+        //检查状态
+        $res_state = M('expense')->field('state,pid')->where(['eid' => $eid,])->find();
+        if (($res_state['state'] == 1 && $res_sub) || $res_state['state'] == -1) {
+            return $res_state;
+        } else {
+            return false;
+        }
+    }
+
+    //    将数组转换成字符串并用逗号相连
+    function arrToStr($res)
+    {
+        $pid = "";
+        $length = count($res);
+        foreach ($res as $k => $vo) {
+            $pid .= $vo['pid'];
+            if ($k < $length - 1) {
+                $pid .= ',';
+            }
+        }
+        return $pid;
+
+    }
+
+    /**
+     * 通过主键获取报销单: LGW
+     *
+     * @param $id
+     * @return mixed
+     */
+    public function getExpense($id)
+    {
+        $map['ex.eid'] = $id;
+        $parent = $this->alias('ex')
+            ->field('ex.state,ex.amount,ex.eid,ex.uname as username,ex.addtime as created,m.email,
+            ex.uname as project_type,p.name as project_id,p.contract,
+            d.d_key as cost_type,ex.unit as company,ex.account,ex.bank')
+            ->join('ot_ucenter_member as m on ex.uid = m.id', 'INNER')
+            ->join('ot_project as p on ex.pid = p.pid', 'INNER')
+            ->join('ot_dictionary as d on d.d_value = ex.state and d.d_code =\'expense_type\' ', 'LEFT')
+            ->where($map)
+            ->find();
+
+        // 找出费用明细
+        $condition['s.eid'] = $parent['eid'];
+        $sub = M('Expense_sub')->alias('s')
+            ->field('feecode as type,catecode as sub_type,s.money,s.invoicenum as receipt,s.note as remark')
+            ->where($condition)
+            ->select();
+        $parent['details'] = $sub;
+
+        if (empty($parent['details'])) return '10012'; // 费用明细为空
+        if ($parent['amount'] == 0.00) return '10013'; //金额为空
+        if ($parent['state'] != 3) return '10014'; // 不是已生效
+        unset($parent['eid']);
+        unset($parent['amount']);
+        unset($parent['state']);
+        return $parent;
+
+    }
+
+    /**
+     * 通过项目获取报销
+     *
+     * @param $pid
+     */
+    public function getExpenseByPid($pid)
+    {
+        $map = [];
+        $map['e.pid'] = $pid;
+        $list = $this->field('e.type,e.code,e.uname,e.state,e.innum,e.amount,e.addtime,d.d_key,d1.d_key as states')
+            ->alias('e')
+            ->join('ot_dictionary d on d.d_value=e.type and d.d_code=\'expense_type\'')
+            ->join('ot_dictionary d1 on d1.d_value=e.state and d1.d_code=\'Reimbursement_static\'')
+            ->where($map)
+            ->select();
+        return $list;
+    }
+
+
+}

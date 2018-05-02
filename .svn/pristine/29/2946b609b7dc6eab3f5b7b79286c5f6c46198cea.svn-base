@@ -1,0 +1,137 @@
+<extend name="Public/base" />
+<block name="btnarea">
+<li class="right"><a href="{:U('Dictionary/add')}"><i
+		class="icon-plus"></i>&nbsp;新增字典</a></li>
+</block>
+
+<block name="body">
+<style>
+.outer .side {
+    width: 192px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+.panel{border: 0;}
+</style>
+	<include file="Public/search" />
+    <!-- 数据列表 -->
+      <div style="position: relative;">
+    	<div class="side">
+		<div class="side-body">
+			<div class="panel panel-sm">
+				<div class="panel-heading nobr">
+					<i class="icon-sitemap"></i>
+					<strong>字典类型</strong>
+				</div>
+				<ul id="report-list" class="list-group" style="overflow:auto;height:100%;position: absolute;width: 100%;left: 0px;
+padding-bottom: 35px">
+                    <foreach name="dicnav" item="vo">
+                       <a style="white-space:nowrap;overflow: hidden;padding-right: 20px;
+width: 190px;    text-overflow: ellipsis;" href="{:U('dictionary/index?dcode='.$vo['d_code'].'&dtid='.$vo['d_tid'])}"   
+                       <if condition="$vo['d_tid'] eq $dtid">class="list-group-item active" <else/> class="list-group-item"</if>>{$vo.d_code}</a>
+                    </foreach>
+				</ul>
+			</div>
+		</div>
+	</div>
+    <div class="main">
+
+
+    <div class="data-table table-striped">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable">
+    <thead>
+        <tr>
+		<th width="10px">
+				</th>
+		<th style="text-align: left"><span class="sort" ectype="order_by" fieldname="d_code">字典编码</span></th>
+		<th style="text-align: left">字典名称</th>
+		<th style="text-align: left">字典值</th>
+		<th style="width: 80px"><span class="sort" ectype="order_by" fieldname="d_del">是否生效</span></th>
+		<th  style="width: 80px"><span class="sort" ectype="order_by" fieldname="d_order">序号</span></th>
+		<th  style="width: 60px;text-align: center;">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td class="cell-id"><input class="ids" type="checkbox" name="id[]"
+					value="{$vo.d_tid}" />
+				</td>
+			<td style="text-align: left">{$vo.d_code} </td>
+			<td>{$vo.d_key}</td>
+			<td>{$vo.d_value}</td>
+			<td style="text-align: center;"><eq name="vo.d_del" value="1">
+				是
+				<else />
+				否</eq></td>
+			<td style="text-align: center;">{$vo.d_order}</td>
+			<td style="text-align: center;">
+				<a href="{:U('Dictionary/edit?id='.$vo['d_tid'])}"
+						>编辑</a>
+				<!--<a href="{:U('Dictionary/deletedata?id='.$vo['d_tid'])}"-->
+					<!--class="confirm ajax-get">删除</a>-->
+                </td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="7" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+        <notempty name="_list">
+            <tfoot>
+            <tr>
+                <td colspan='7'>
+                    <!--<div class="table-actions clearfix">-->
+                    <!--<div class="checkbox btn">-->
+                    <!--<label><input type="checkbox" data-scope=""-->
+                    <!--class="rows-selector"> 选择</label>-->
+                    <!--</div>-->
+                    <!--<button class="btn btn-default ajax-post confirm"-->
+                    <!--url="{:U('Dictionary/deletedata')}"-->
+                    <!--target-form="ids">删 除</button>-->
+                    <!---->
+                    <!--</div>-->
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+        </notempty>
+    </table>
+	</div>
+        </div></div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Dictionary/index')}");
+	</script>
+</block>

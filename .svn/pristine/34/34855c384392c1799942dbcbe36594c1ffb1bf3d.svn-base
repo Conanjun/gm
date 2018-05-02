@@ -1,0 +1,201 @@
+<?php
+
+namespace Studio\Controller;
+use Think\Page;
+use Common\Common\Super\Order;
+/**
+ * 任务管理-财务确认：fhc
+ *
+ */
+class OrderTaskCwController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('OrderTask');    // 订单任务
+	}
+	//首页
+	public function index(){
+        $stuid = Order::get_stuid(UID);    // 工作室id
+        $where = "1=1 and o.stuid = {$stuid}";
+
+        $filter= '';
+
+        $order_sn = empty($_GET['order_sn'])?'':trim($_GET['order_sn']);//订单编号
+        if($order_sn){
+            $filter .= " and o.order_sn like '%{$order_sn}%'";
+        }
+
+        $tname = empty($_GET['tname'])?'':trim($_GET['tname']);//任务名称
+        if($tname){
+            $filter .= " and t.tname like '%{$tname}%'";
+        }
+
+        $finishname = empty($_GET['finishname'])?'':trim($_GET['finishname']);//完成人
+        if($finishname){
+            $filter .= " and m.nickname like '%{$finishname}%'";
+        }
+
+
+        $state = empty($_GET['state'])?'':trim($_GET['state']);//任务状态
+        if($state){
+            $filter .= " and t.state = '{$state}'";
+        }
+
+        $isurgent = empty($_GET['isurgent'])?'':trim($_GET['isurgent']);//是否加急
+        $isurgent == 1 and  $filter .= " and t.isurgent = 1";
+        $isurgent == 2 and  $filter .= " and t.isurgent = 0";
+
+        $where .= $filter;
+        $count = $this->model->alias('t')->join("ot_order o on t.oid = o.order_id")->join("ot_member m on m.uid = t.finishuid","left")->count($where);
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('t')
+            ->join("ot_order o on t.oid = o.order_id")
+            ->join("ot_member m on m.uid = t.finishuid","left")
+            ->where($where)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+        $this->display();
+	}
+    //财务确认
+	public function confirm(){
+        $oid = empty($_POST['oid'])?0:$_POST['oid'];
+        if(empty($oid)){
+            $this->json_error ( L('S_TASK_ERROR_1'), false );
+        }
+        if(Order::checkorder($oid)==0){
+            $this->json_error ( L('S_TASK_ERROR_1'), false );
+        }
+        $order = M("order")->where("order_id=".$oid)->find();
+        if($order['state']!=Order::CONFIRMED){
+            $this->json_error ( L('S_TASK_CW_ERROR_2'), false );
+        }
+        if(IS_POST){//确认处理
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+            $item = empty($_POST['item'])?'':$_POST['item'];
+            if(empty($item)){//直接处理
+                //给客户发消息
+                $title = "您的订单".$order['order_sn'].'状态已变更';
+                $content = "工作室".$order['stuname']."将订单为".$order['order_sn'].'的订单状态改为'.L('COST_CONFIRMED');
+                $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => '','title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$oid));
+                if($order['hasmaking']==1){//需要生成打印任务
+                    $tname = '订单'.$order['order_sn'].'模型待打印';
+                    $tid = Order::add_task(array('oid' => $oid, 'tname' =>$tname, 'tasktype' => 'STUDIO_TASK_SD', 'uid' => '' ,'note'=>$tname));
+                }
+                //写入订单操作记录
+                $log_id = Order::action_order_log(array('oid' => $oid, 'uid' =>'', 'addtime' => '', 'state' => Order::COST_CONFIRMED ,'note'=>''));
+                //更改订单状态
+                $result = M('Order')->where("order_id=".$oid)->save(array('state'=>Order::COST_CONFIRMED));
+                if($order['hasmaking']==1){
+                    if($msg_id&&$tid&&$log_id&&$result){
+                        $this->json_result ( array(),L('S_TASK_CW_SUC'), false );
+                        $Model->commit(); // 成功则提交事务
+                    } else {
+                        $Model->rollback(); // 否则将事务回滚
+                        $this->json_error ( L('S_TASK_CW_ERROR'), false );
+                    }
+                }else{
+                    if($msg_id&&$log_id&&$result){
+                        $this->json_result ( array(),L('S_TASK_CW_SUC'), false );
+                        $Model->commit(); // 成功则提交事务
+                    } else {
+                        $Model->rollback(); // 否则将事务回滚
+                        $this->json_error ( L('S_TASK_CW_ERROR'), false );
+                    }
+                }
+            }else{
+                if(Order::checkdent($oid)==1){//现付用户
+                    $m = M("order_pay")->where("oid=".$oid)->sum('money');
+                    $m1 = M("order_pay")->where("oid=".$oid)->sum('money1');
+
+                    //给客户发消息
+                    $title = "您的订单".$order['order_sn'].'费用已变更';
+                    $content = "工作室".$order['stuname']."将订单为".$order['order_sn'].'的费用改为'.L('COST_CONFIRMED');
+                    $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => '','title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$oid));
+                }else{//月付用户
+                    //修改支付明细
+
+                    //给客户发消息
+                    $title = "您的订单".$order['order_sn'].'状态已变更';
+                    $content = "工作室".$order['stuname']."将订单为".$order['order_sn'].'的订单状态改为'.L('COST_CONFIRMED');
+                    $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => '','title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$oid));
+                    if($order['hasmaking']==1){//需要生成打印任务
+                        $tname = '订单'.$order['order_sn'].'模型待打印';
+                        $tid = Order::add_task(array('oid' => $oid, 'tname' =>$tname, 'tasktype' => 'STUDIO_TASK_SD', 'uid' => '' ,'note'=>$tname));
+                    }
+                    //写入订单操作记录
+                    $log_id = Order::action_order_log(array('oid' => $oid, 'uid' =>'', 'addtime' => '', 'state' => Order::COST_CONFIRMED ,'note'=>''));
+                    //更改订单状态
+                    $result = M('Order')->where("order_id=".$oid)->save(array('state'=>Order::COST_CONFIRMED));
+                    if($order['hasmaking']==1){
+                        if($msg_id&&$tid&&$log_id&&$result){
+                            $this->json_result ( array(),L('S_TASK_CW_SUC'), false );
+                            $Model->commit(); // 成功则提交事务
+                        } else {
+                            $Model->rollback(); // 否则将事务回滚
+                            $this->json_error ( L('S_TASK_CW_ERROR'), false );
+                        }
+                    }else{
+                        if($msg_id&&$log_id&&$result){
+                            $this->json_result ( array(),L('S_TASK_CW_SUC'), false );
+                            $Model->commit(); // 成功则提交事务
+                        } else {
+                            $Model->rollback(); // 否则将事务回滚
+                            $this->json_error ( L('S_TASK_CW_ERROR'), false );
+                        }
+                    }
+                }
+            }
+
+        }else{//提示所有费用
+            $pays = M("order_pay")->where("oid=".$oid)->select();
+            $this->assign("pays",$pays);
+            $m = M("order_pay")->where("oid=".$oid)->sum('money');
+            $m1 = M("order_pay")->where("oid=".$oid)->sum('money1');
+            $this->assign("money",$m);
+            $this->assign("money1",$m1);
+            $this->display();
+        }
+    }
+    //删除费用明细
+    public function delpay(){
+        //删除pay记录并且重新计算费用并更新入订单主表
+        $pid = empty($_POST['pid'])?0:$_POST['pid'];
+        $pay = M("order_pay")->where("opid=".$pid.' and state=0')->find();
+        if(empty($pay)){
+            $this->json_error ( L('S_TASK_CW_ERROR_3'), false );
+        }
+        $Model = M(); // 实例化一个空对象
+        $Model->startTrans(); // 开启事务
+        $result = M("order_pay")->where("opid=".$pid)->delete();
+        $pays = M("order_pay")->where("oid=".$pay['oid'].' and state=0')->select();
+        $m =0;
+        $m1=0;
+        foreach ($pays as $p){
+            $m +=$p['money'];
+            $m1 +=$p['money1'];
+        }
+        $data = array();
+        $data['amount'] = $m;
+        $data['amount1'] = $m1;
+        $data['payamount'] = $m;
+        $data['payamount1'] = $m1;
+        $result1 = M("order")->where("order_id=".$pay['oid'])->save($data);
+        if (!empty($result) && !empty($result1)) {
+            $this->json_result ( array(),L('DELETE_SUC'), false );
+            $Model->commit(); // 成功则提交事务
+        } else {
+            $Model->rollback(); // 否则将事务回滚
+            $this->json_error ( L('DELETE_ERROR'), false );
+        }
+    }
+}

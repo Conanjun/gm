@@ -1,0 +1,1513 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+use Admin\Common\Super\Api;
+
+/**
+ * 待审核管理控制器
+ */
+class DexaController extends AdminController
+{
+    private $meta_title;
+
+    private function getofferpdfpath($id = 0)
+    {
+
+    }
+
+    /**
+     *待审核管理首页
+     *
+     */
+    public function index()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Dexa/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '业务类型', 'fieldname' => 'ot_exprocess.type', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "报价单审核" => "报价单审核", "报销单审核" => "报销单审核", "任务审核" => "任务审核"))
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        $map['checkid'] = UID;
+        $map['ot_exprocess.state'] = 0;
+        $map ['_string'] .= " AND IF(ot_exprocess.type='申请项目经理审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE) and not EXISTS (select ee.id from ot_exprocess ee where ee.exid=ot_exprocess.exid and ee.order<ot_exprocess.order and (ee.state=0 or ee.state=-1) AND ee.type=ot_exprocess.type )";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "ot_exprocess.addtime desc,ot_exprocess.id desc";
+        }
+        $count = M("Exprocess")->join("ot_offer on ot_offer.oid=ot_exprocess.exid", "left")
+            ->join("ot_task on ot_task.tid=ot_exprocess.exid", "left")
+            ->join("ot_project on ot_project.pid=ot_task.pid", "left")
+            ->join("ot_expense on ot_expense.eid=ot_exprocess.exid", "left")
+            ->join("ot_project p1 on p1.pid=ot_expense.pid", "left")
+            ->join("ot_customer on ot_customer.cid=ot_offer.cid", "left")
+            ->field("ot_offer.*,ot_exprocess.*,ot_exprocess.type as stype,ot_customer.shortsign,ot_task.title as tasktitle,ot_project.name as proname")
+            ->where($map)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = M("Exprocess")->join("ot_offer on ot_offer.oid=ot_exprocess.exid", "left")
+            ->join("ot_task on ot_task.tid=ot_exprocess.exid", "left")
+            ->join("ot_project on ot_project.pid=ot_task.pid", "left")
+            ->join("ot_expense on ot_expense.eid=ot_exprocess.exid", "left")
+            ->join("ot_project p1 on p1.pid=ot_expense.pid", "left")
+            ->join("ot_customer on ot_customer.cid=ot_offer.cid", "left")
+            ->field("p1.name as pname1,ot_expense.code as code1,ot_expense.*,ot_offer.*,ot_exprocess.*,ot_exprocess.type as stype,ot_customer.shortsign,ot_task.title as tasktitle,ot_project.name as proname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+
+
+        $this->assign('_list', $list);
+        $this->meta_title = '待审';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批-待审', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+
+    /**
+     *审核管理首页
+     *
+     */
+    public function index1()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Dexa/index1",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '业务类型', 'fieldname' => 'ot_exprocess.type', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "报价单审核" => "报价单审核", "报销单审核" => "报销单审核", "任务审核" => "任务审核"))
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        $map['checkid'] = UID;
+        $map ['_string'] .= " and (ot_exprocess.state=1 or ot_exprocess.state=-1)  AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报销单审核' AND ot_offer.oid is NULL,FALSE,TRUE) ";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "ot_exprocess.addtime desc,ot_exprocess.id desc";
+        }
+        $count = M("Exprocess")->join("ot_offer on ot_offer.oid=ot_exprocess.exid", "left")
+            ->join("ot_task on ot_task.tid=ot_exprocess.exid", "left")
+            ->join("ot_project on ot_project.pid=ot_task.pid", "left")
+            ->join("ot_expense on ot_expense.eid=ot_exprocess.exid", "left")
+            ->join("ot_project p1 on p1.pid=ot_expense.pid", "left")
+            ->join("ot_customer on ot_customer.cid=ot_offer.cid", "left")
+            ->field("p1.name as pname1,ot_expense.code as code1,ot_expense.*,ot_offer.*,ot_exprocess.*,ot_exprocess.type as stype,ot_customer.shortsign,ot_task.title as tasktitle,ot_project.name as proname")
+            ->where($map)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = M("Exprocess")->join("ot_offer on ot_offer.oid=ot_exprocess.exid", "left")
+            ->join("ot_task on ot_task.tid=ot_exprocess.exid", "left")
+            ->join("ot_project on ot_project.pid=ot_task.pid", "left")
+            ->join("ot_expense on ot_expense.eid=ot_exprocess.exid", "left")
+            ->join("ot_project p1 on p1.pid=ot_expense.pid", "left")
+            ->join("ot_customer on ot_customer.cid=ot_offer.cid", "left")
+            ->field("p1.name as pname1,ot_expense.code as code1,ot_expense.*,ot_offer.*,ot_exprocess.*,ot_exprocess.type as stype,ot_customer.shortsign,if(ot_exprocess.state=1,ot_exprocess.checktime,ot_exprocess.refusetime) as checktime1,ot_task.title as tasktitle,ot_project.name as proname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $this->assign('_list', $list);
+        $this->meta_title = '已审';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批-已审', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function index2()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Dexa/index2",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '业务类型', 'fieldname' => 'x.type', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "报价单审核" => "报价单审核", "报销单审核" => "报销单审核", "任务审核" => "任务审核"))
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "x.addtime desc,x.id desc";
+        }
+        $Model = new \Think\Model();
+
+        $count = $Model->query("select count(1) as c from (
+(select ot_expense.code as code1,p1.name as pname1,ot_offer.code,ot_offer.projectname,ot_exprocess.*,ot_customer.shortsign,if(ot_exprocess.state=1,ot_exprocess.checktime,ot_exprocess.refusetime) as checktime1,ot_task.title as tasktitle,ot_project.name as proname
+from ot_exprocess 
+left join ot_task on ot_task.tid=ot_exprocess.exid
+left join ot_project on ot_project.pid=ot_task.pid
+
+left join ot_expense on ot_expense.eid=ot_exprocess.exid
+left join ot_project p1 on p1.pid=ot_expense.pid
+
+left join ot_offer on ot_offer.oid=ot_exprocess.exid left join ot_customer on ot_customer.cid=ot_offer.cid
+where ot_exprocess.checkid='" . UID . "' and ot_exprocess.state=0 AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='任务审核' AND ot_task.tid is NULL,FALSE,TRUE) and not EXISTS (select ee.id from ot_exprocess ee where ee.exid=ot_exprocess.exid and ee.order<ot_exprocess.order and (ee.state=0 or ee.state=-1) AND ee.type=ot_exprocess.type ))
+UNION ALL
+(select ot_expense.code as code1,p1.name as pname1,ot_offer.code,ot_offer.projectname,ot_exprocess.*,ot_customer.shortsign,if(ot_exprocess.state=1,ot_exprocess.checktime,ot_exprocess.refusetime) as checktime1,ot_task.title as tasktitle,ot_project.name as proname
+from ot_exprocess 
+left join ot_task on ot_task.tid=ot_exprocess.exid
+left join ot_project on ot_project.pid=ot_task.pid
+
+left join ot_expense on ot_expense.eid=ot_exprocess.exid
+left join ot_project p1 on p1.pid=ot_expense.pid
+
+left join ot_offer on ot_offer.oid=ot_exprocess.exid left join ot_customer on ot_customer.cid=ot_offer.cid
+ where ot_exprocess.checkid='" . UID . "' and (ot_exprocess.state=1 or ot_exprocess.state=-1) AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='任务审核' AND ot_task.tid is NULL,FALSE,TRUE) )) x
+				where $map[_string] ");
+        $Page = new \Think\Page ($count[0]['c'], 20);
+
+
+        $list = $Model->query("select x.* from (
+(select ot_expense.code as code1,p1.name as pname1,ot_offer.code,ot_offer.projectname,ot_exprocess.*,ot_customer.shortsign,if(ot_exprocess.state=1,ot_exprocess.checktime,ot_exprocess.refusetime) as checktime1,ot_task.title as tasktitle,ot_project.name as proname,ot_exprocess.type as etype
+from ot_exprocess 
+left join ot_task on ot_task.tid=ot_exprocess.exid
+left join ot_project on ot_project.pid=ot_task.pid
+
+left join ot_expense on ot_expense.eid=ot_exprocess.exid
+left join ot_project p1 on p1.pid=ot_expense.pid
+
+left join ot_offer on ot_offer.oid=ot_exprocess.exid left join ot_customer on ot_customer.cid=ot_offer.cid
+where ot_exprocess.checkid='" . UID . "' and ot_exprocess.state=0 AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='任务审核' AND ot_task.tid is NULL,FALSE,TRUE) and not EXISTS (select ee.id from ot_exprocess ee where ee.exid=ot_exprocess.exid and ee.order<ot_exprocess.order and (ee.state=0 or ee.state=-1) AND ee.type=ot_exprocess.type )) 
+UNION ALL 
+(select ot_expense.code as code1,p1.name as pname1,ot_offer.code,ot_offer.projectname,ot_exprocess.*,ot_customer.shortsign,if(ot_exprocess.state=1,ot_exprocess.checktime,ot_exprocess.refusetime) as checktime1,ot_task.title as tasktitle,ot_project.name as proname,ot_exprocess.type as etype
+from ot_exprocess 
+left join ot_task on ot_task.tid=ot_exprocess.exid
+left join ot_project on ot_project.pid=ot_task.pid
+
+left join ot_expense on ot_expense.eid=ot_exprocess.exid
+left join ot_project p1 on p1.pid=ot_expense.pid
+
+left join ot_offer on ot_offer.oid=ot_exprocess.exid left join ot_customer on ot_customer.cid=ot_offer.cid
+ where ot_exprocess.checkid='" . UID . "' and (ot_exprocess.state=1 or ot_exprocess.state=-1) AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE)  AND IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='任务审核' AND ot_task.tid is NULL,FALSE,TRUE) )) x
+ where $map[_string] order by $order limit  $Page->firstRow,$Page->listRows");
+        $this->assign('_list', $list);
+        $this->meta_title = '待审';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    // 报价单审核
+    public function offerview($info)
+    {
+        $this->assign('info', $info);
+        $oid = $info['exid'];
+
+        if (empty($oid)) {
+            $this->error("报价单数据不存在");
+        }
+        $omod = M('Offer');
+        $offer = $omod->field('o.*,d.name as disoff_name,m1.shortsign as cname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')->where("oid = " . $oid)->find();
+
+        if (empty($offer)) {
+            $this->error("报价单数据不存在");
+        }
+        $old = offerOld($offer['oid']);
+        // 判断原数据和新数据的差异
+        $html = '';
+        $old and $html = offerDiff($old, $offer);
+        $html and $this->assign('html', $html);
+        if ($info['checkid'] == UID && $info['state'] == 0) {
+            $this->assign('showcheck', 1);
+        }
+
+        //获取附件
+        $res_files = M('offer_file')->alias('of')->field('f.name,f.savepath,f.uid,f.fileid')
+            ->join('ot_file f on f.fileid=of.fileid')->where(array('of.oid' => $oid))->order('of.fileid desc')->select();
+        if ($res_files) {
+            $this->assign('file', $res_files);
+        }
+
+        $this->assign('offer', $offer);
+        $old = offerOld($offer['oid']);
+        // 判断原数据和新数据的差异
+        $html = '';
+        $old and $html = offerDiff($old, $offer);
+        $html and $this->assign('html', $html);
+        $logs = M("Log")->where(array("outtype" => "ot_offer", "outkey" => $oid))->order("addtime asc")->select();
+        $newdata = [];
+        $olddata = [];
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name('ot_offer', $vv['field']);
+                        switch ($vv['field']) {
+                            case "cid":
+                                $oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['name'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['name'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "signtime":
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "starttime":
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "rate":
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "possible":
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "datafrom":
+                                if ($vv['olddata'] == 0) {
+                                    $hs[$kk]['olddata'] = "标准库引入";
+                                } else if ($vv['olddata'] == 1) {
+                                    $hs[$kk]['olddata'] = "手动填写";
+                                }
+                                break;
+                            case "static":
+                                $mod = M("Dictionary");
+                                $orow = $mod->field("d_key")->where("d_code='offer_static' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='offer_static' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $where['_string'] = "  os.oid='{$oid}'";
+        $offersub = M("OfferSub")->field(array('os.*', 'os.name as sname', 'm.name as o_name',
+            's.description',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            's.name as s_name',
+            '(select count(1) from ot_service_doc sd where sd.sid = os.sid) as sdc',
+            'm1.name as remid_name', 'os.required as r1', 'p.name as pname', 'p.pid as pid'))
+            ->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where($where)->order("os.osid desc")->select();
+        $jcbj = 0;
+
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                if ($v['sid']) {
+                    $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                    $sdescription = $stemp['description'];
+                    $smid = $stemp['mid'];
+                    $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                    if ($sdescription || $smh) {
+                        $offersub[$k]['bulb'] = 1;
+                    }
+                }
+                $jcbj += floatval($v['amount']);
+            }
+        }
+
+        $this->assign('jcbj', $jcbj);
+        $this->assign('offers', $offersub);
+
+        $this->assign('s', floatval($offer['amount_tax'] - $offer['amount_notax']));
+        $disoff = intval($offer['disoff']);
+        $this->assign('zk', empty($disoff) ? 0 : 100 - $offer['disoff']);
+        $this->assign('zkm', empty($disoff) ? 0 : floatval($offer['amount_tax'] * (100 - $offer['disoff']) / 100));
+        //折扣提示
+        $check_result = M('offer_sub')->where(array('oid' => $oid))->find();
+        if ($check_result) {
+            //判断标准和非标准
+            $offerClass = new OfferController;
+            $check_res = M('offer_sub')->where(array('sid' => 0, 'oid' => $oid))->find();
+            if (empty($check_res)) {
+                $title = "标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html1 = $offerClass->promat(1, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                } else {
+                    $grade = $offerClass->roleGrade($offer['disoff'], $offer['amount'], $prompt = 1);
+                    $html1 = $offerClass->promat($grade, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                }
+            } else {
+                $title = "非标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html = $offerClass->promat(1, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                } else {
+                    $grade = $offerClass->nonStandard($offer['oid'], $offer['amount'], $prompt = 1);
+                    $html = $offerClass->promat($grade, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                }
+            }
+        } else {
+            //没有报价明细
+            $title = "";
+            $this->assign('title', $title);
+        }
+        $nlist = [];
+        foreach ($offersub as $k => $v) {
+            $nlist[$v['pid']]['mid'] = $v['pid'];
+            $nlist[$v['pid']]['mname'] = $v['pname'];
+            $nlist[$v['pid']]['list'][] = $v;
+        }
+
+        // 根据oid查询出原来的数据
+        $old = oldOffer($oid);
+
+        // 判断原数据和新数据的差异
+        $offersub and $array = offerDiversity($old, $offersub);
+
+        if ($array) {
+            $nlist = [];    // 新数据
+            $delList = [];  // 显示出删除的
+            if ($offersub) {
+                // 新的数据
+                foreach ($array['offersub'] as $k => $v) {
+                    $nlist[$v['pid']]['mid'] = $v['pid'];
+                    $nlist[$v['pid']]['mname'] = $v['pname'];
+                    $nlist[$v['pid']]['list'][] = $v;
+                }
+
+                // 删除的数据
+                foreach ($array['del'] as $k => $v) {
+                    $delList[$v['pid']]['mid'] = $v['pid'];
+                    $delList[$v['pid']]['mname'] = $v['pname'];
+                    $delList[$v['pid']]['list'][] = $v;
+                }
+
+            }
+        }
+
+
+        $this->assign('offers', $nlist); // 新数据
+        $this->assign('olds', $old); // 老数据
+        $this->assign('dels', $delList); //删除的数据
+
+        $this->assign("logs", $logs);
+
+        $versions = M("Offer_version")->alias('v')
+            ->join("ot_file f on v.file_id=f.fileid", "left")
+            ->field(array("v.*", "f.name", "f.savepath"))->where('oid=' . $oid)
+            ->order('v.version asc')->select();
+        $this->assign('versions', $versions);
+
+        if ($versions) {
+            $e = end($versions);
+            $this->assign('version', $e['version']);
+        }
+
+        $process = M("exprocess")->alias('e')->where("exid='" . $oid . "' and e.type='报价单审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批', 'url' => U('Dexa/index'));
+        $root_mbx[] = array('title' => '报价单审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display("offerview");
+    }
+
+    public function offerview1($info)
+    {
+        $this->assign('info', $info);
+        $oid = $info['exid'];
+
+        if (empty($oid)) {
+            $this->error("报价单数据不存在");
+        }
+        $omod = M('Offer');
+        $offer = $omod->field('o.*,d.name as disoff_name,m1.shortsign as cname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')->where("oid = " . $oid)->find();
+
+        if (empty($offer)) {
+            $this->error("报价单数据不存在");
+        }
+
+        if ($info['checkid'] == UID && $info['state'] == 0) {
+            $this->assign('showcheck', 1);
+        }
+
+
+        if ($offer['file_id']) {
+            $f = M("File")->where(array('fileid' => $offer['file_id']))->find();
+            $this->assign('f', $f);
+        }
+
+        $this->assign('offer', $offer);
+        $old = offerOld($offer['oid']);
+        $html = '';
+        // 判断原数据和新数据的差异
+        $old and $html = offerDiff($old, $offer);
+        $html and $this->assign('html', $html);
+        $logs = M("Log")->where(array("outtype" => "ot_offer", "outkey" => $oid))->order("addtime asc")->select();
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_offer", $vv['field']);
+                    }
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $where['_string'] = "  os.oid='{$oid}'";
+        $offersub = M("OfferSub")->field(array('os.*', 'os.name as sname', 'm.name as o_name',
+            's.description',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            '(select count(1) from ot_service_doc sd where sd.sid = os.sid) as sdc',
+            'm1.name as remid_name', 'os.required as r1', 'p.name as pname', 'p.pid as pid'))
+            ->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where($where)->order("os.osid desc")->select();
+        $jcbj = 0;
+
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                if ($v['sid']) {
+                    $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                    $sdescription = $stemp['description'];
+                    $smid = $stemp['mid'];
+                    $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                    if ($sdescription || $smh) {
+                        $offersub[$k]['bulb'] = 1;
+                    }
+                }
+                $jcbj += floatval($v['amount']);
+            }
+        }
+
+        $this->assign('jcbj', $jcbj);
+        $this->assign('s', floatval($offer['amount_tax'] - $offer['amount_notax']));
+        $disoff = intval($offer['disoff']);
+        $this->assign('zk', empty($disoff) ? 0 : 100 - $offer['disoff']);
+        $this->assign('zkm', empty($disoff) ? 0 : floatval($offer['amount_tax'] * (100 - $offer['disoff']) / 100));
+        //折扣提示
+        $check_result = M('offer_sub')->where(array('oid' => $oid))->find();
+        if ($check_result) {
+            //判断标准和非标准
+            $offerClass = new OfferController;
+            $check_res = M('offer_sub')->where(array('sid' => 0, 'oid' => $oid))->find();
+            if (empty($check_res)) {
+                $title = "标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html1 = $offerClass->promat(1, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                } else {
+                    $grade = $offerClass->roleGrade($offer['disoff'], $offer['amount'], $prompt = 1);
+                    $html1 = $offerClass->promat($grade, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                }
+            } else {
+                $title = "非标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html = $offerClass->promat(1, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                } else {
+                    $grade = $offerClass->nonStandard($offer['oid'], $offer['amount'], $prompt = 1);
+                    $html = $offerClass->promat($grade, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                }
+            }
+        } else {
+            //没有报价明细
+            $title = "";
+            $this->assign('title', $title);
+        }
+        $nlist = array();
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                $nlist[$v['pid']]['pid'] = $v['pid'];
+                $nlist[$v['pid']]['mname'] = $v['pname'];
+                $nlist[$v['pid']]['list'][] = $v;
+            }
+        }
+
+        // 根据oid查询出原来的数据 : LGW
+        $old = oldOffer($oid);
+        // 判断原数据和新数据的差异
+        $offersub and $array = offerDiversity($old, $offersub);
+        if ($array) {
+            $nlist = [];    // 新数据
+            $delList = [];  // 显示出删除的
+            if ($offersub) {
+                // 新的数据
+                foreach ($array['offersub'] as $k => $v) {
+                    $nlist[$v['pid']]['mid'] = $v['pid'];
+                    $nlist[$v['pid']]['mname'] = $v['pname'];
+                    $nlist[$v['pid']]['list'][] = $v;
+                }
+
+                // 删除的数据
+                foreach ($array['del'] as $k => $v) {
+                    $delList[$v['pid']]['mid'] = $v['pid'];
+                    $delList[$v['pid']]['mname'] = $v['pname'];
+                    $delList[$v['pid']]['list'][] = $v;
+                }
+            }
+        }
+        $this->assign('offers', $nlist); // 新数据
+        $this->assign('olds', $old); // 老数据
+        $this->assign('dels', $delList); //删除的数据
+        $this->assign("logs", $logs);
+
+        $versions = M("Offer_version")->alias('v')
+            ->join("ot_file f on v.file_id=f.fileid", "left")
+            ->field(array("v.*", "f.name", "f.savepath"))->where('oid=' . $oid)
+            ->order('v.version asc')->select();
+        $this->assign('versions', $versions);
+
+        if ($versions) {
+            $e = end($versions);
+            $this->assign('version', $e['version']);
+        }
+
+        $process = M("exprocess")->alias('e')->where("exid='" . $oid . "' and e.type='报价单审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批', 'url' => U('Dexa/index'));
+        $root_mbx[] = array('title' => '报价单审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display("offerview");
+    }
+
+    // 报销单
+    public function exview($info)
+    {
+
+        $this->assign('info1', $info);
+        $id = $info['exid'];
+        if (empty($id)) {
+            $this->error("报销单数据不存在");
+        }
+        $mod = D("Expense");
+        $type = array();
+        $types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+        foreach ($types as $value) {
+            $type[$value['d_value']] = $value['d_key'];
+        }
+        $result = $mod->getExpenseSub($id);
+        $costType = array();
+        $costTypes = apiRead(Api::COST_TYPES, Api::DXY_OA);  // 费用类型信息 : LGW
+        foreach ($costTypes['data'] as $value) {
+            $costType[$value['id']] = $value['type'];
+        }
+        $this->assign('costType', $costType);
+        foreach ($result as &$vo) {
+            $vo['feetype'] = $costType[$vo['feecode']];
+        }
+        $res = $mod->projectExpense($id);
+
+        $logs = M("Log")->where(array("outtype" => "ot_expense", "outkey" => $id))->order("addtime asc")->select();
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_expense", $vv['field']);
+                        switch ($vv['field']) {
+                            case "state":
+                                $mod = M("Dictionary");
+                                $orow = $mod->field("d_key")->where("d_code='Reimbursement_static' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='Reimbursement_static' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                        }
+                    }
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+
+        if ($info['checkid'] == UID && $info['state'] == 0) {
+            $this->assign('showcheck', 1);
+        }
+        //审核信息
+        $exprocess = M("exprocess")->where("exid='" . $id . "' and type ='报销单审核'")->order("`order` asc")->select();
+        $this->assign('exprocess', $exprocess);
+        $this->assign('projectExpense', $res);
+        $this->assign('expenlist', $result);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批', 'url' => U('Dexa/index'));
+        $root_mbx[] = array('title' => '报销单审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display("expenseview");
+
+    }
+
+    public function taskview($info)
+    {
+        $this->assign('info1', $info);
+        $id = $info['exid'];
+
+        if (empty($id)) {
+            $this->error("任务数据不存在");
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')->field("t.*,d2.d_key,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+        join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+            ->join("ot_service s on s.sid=t.sid", 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+
+        $doc = M("doc")->where("tid=$id")
+            ->join('ot_file f on d.fileid=f.fileid  and f.delete=0', 'left')
+            ->join('ot_doc_type t on d.dtid=t.dtid', 'left')
+            ->field(array(
+                'd.docid',
+                'd.uid',
+                't.name as tname',
+                'f.name as dname',
+                'savepath',
+                'size', 'views', 'd.uname', 'd.addtime', 'note', 'f.fileid,d.url,d.urlname'
+            ))->order('addtime desc')->select(array('alias' => 'd'));
+
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+        }
+        $this->assign('doc', $doc);
+
+        $task['finishcontent'] = strip_tags($task['finishcontent']);
+        $task['finishcontent'] = trim($task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\t", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace(" ", "", $task['finishcontent']);
+
+        $this->assign('info', $task);
+
+
+        $wlist = array();//提醒数据
+        $rlist = array();//评论数据
+        $wlist = M("TaskWarn")->where("tid='{$id}'")->order("addtime desc")->select();
+        $rlist = M("TaskComment")->where("tid='{$id}'")->order("addtime desc")->select();
+
+        $this->assign('wlist', $wlist);
+        $this->assign('rlist', $rlist);
+
+        if ($info['checkid'] == UID && $info['state'] == 0) {
+            $this->assign('showcheck', 1);
+        }
+        //审核进程
+        $process = M("exprocess")->alias('e')->where("exid='" . $id . "' and type='任务审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $logs = M("Log")->where(array("outtype" => "ot_task", "outkey" => $id))->order("addtime asc")->select();
+
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_task", $vv['field']);
+                    }
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批', 'url' => U('Dexa/index'));
+        $root_mbx[] = array('title' => '任务审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display("taskview");
+    }
+
+    public function view()
+    {
+
+        $id = I("id", '');
+        if (empty($id)) {
+            $this->error("审核数据不存在");
+        }
+        $this->assign('cname', CONTROLLER_NAME);
+        $exmod = M("Exprocess");
+        $info = $exmod->where("id='{$id}'")->find();
+
+        if (empty($info)) {
+            $this->error("审核数据不存在");
+        }
+        $type = $info['type'];
+        if ($type == "报价单审核") {
+            $this->offerview($info);
+        }
+        if ($type == "任务审核") {
+            $this->taskview($info);
+        }
+        if ($type == "报销单审核") {
+            $this->exview($info);
+        }
+        if ($type == "申请项目经理审核") {
+            $this->offerview1($info);
+        }
+    }
+
+
+    public function check1()
+    {
+        if (!IS_POST) {
+            $id = array_unique(( array )I('id', 0));
+            if (!is_array($id)) {
+                $id[] = $id;
+            }
+
+            if (empty ($id)) {
+                $this->error('请选择要操作的数据!');
+            }
+            $this->assign('id', implode(',', $id));
+            $this->display("check1");
+        } else {
+            $id = explode(",", I('id', ''));
+            $type = I("type", 'refuse');
+            $nr = I("nr", '');
+            if ($id) {
+                $Model = M(); // 实例化一个空对象
+                $Model->startTrans(); // 开启事务
+                try {
+                    $exmodel = D("Exprocess");
+                    foreach ($id as $v) {
+
+                        //批量审核处理
+                        $thisyw = $exmodel->where("id='{$v}'")->find();
+                        if (empty($thisyw)) {
+                            $this->json_error("数据已不存在", false);
+                        }
+                        if ($thisyw['checkid'] != UID) {
+                            $this->json_error("您不能审核此数据", false);
+                        }
+                        if ($thisyw['state'] == 1 || $thisyw['state'] == -1) {
+                            $this->json_error("已经审核过此数据", false);
+                        }
+
+                        //判断审核顺序
+                        $hasr = $exmodel->where("`order`<'{$thisyw['order']}' and (state=0 or state=-1) and exid='{$thisyw['exid']}' and type='{$thisyw['type']}'")->select();
+
+                        if ($hasr) {
+                            $this->json_error("您暂时还不能审核这条数据", false);
+                        }
+
+                        if ($type == 'agree') {
+
+                            //报价单审核类型
+                            if ($thisyw['type'] == "报价单审核") {
+
+                                //审核完成
+                                $savedata = array("id" => "{$v}", 'state' => 1, 'checktime' => time(), 'checknote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+
+                                //如果已全部审核完成则操作业务数据
+                                $nocheck = $exmodel->where("exid='{$thisyw['exid']}' and (state=0 or state=-1) and type='{$thisyw['type']}'")->select();
+                                if (!$nocheck) {
+                                    //已生成项目的报价单处理
+                                    $off = M('Offer')->where("oid='" . $thisyw['exid'] . "'")->find();
+                                    if ($off['pid'] > 0) {
+                                        $pro = M('Project')->where("pid='" . $off['pid'] . "'")->find();
+                                        if ($pro['state'] != -1 && $pro['state'] != 2) {
+                                            $os = M('Offer_sub')
+                                                ->field(array('os.*', 'f.disoff', 'm.mid', 'm.role', 'm.pid as m_pid'))
+                                                ->alias('os')->join('ot_offer f on os.oid = f.oid')
+                                                ->join('ot_service s on os.sid = s.sid', "left")
+                                                ->join("ot_module m on m.mid=s.mid", "left")
+                                                ->where("os.oid='" . $thisyw['exid'] . "'")->select();
+                                            /* enterLog($thisyw['exid']);*/
+                                            $ps = M('Project_service')->field(array('osid', 'sid'))->where("pid='" . $off['pid'] . "' and amount>0 and osid !=0")->select();
+                                            $newarr = array();//新增
+                                            $deletearr = array();//删除
+                                            foreach ($os as $key => $vo) {
+                                                if ($vo['sid']) {
+                                                    $has = false;
+                                                    foreach ($ps as $k => $v) {
+                                                        if ($vo['sid'] == $vo['sid']) {
+                                                            $has = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$has) {
+                                                        $newarr[$k] = $vo;
+                                                    }
+                                                } else {
+                                                    $has = false;
+                                                    foreach ($ps as $k => $v) {
+                                                        if ($vo['osid'] == $v['osid']) {
+                                                            $has = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$has) {
+                                                        $newarr[$k] = $vo;
+                                                    }
+                                                }
+                                            }
+                                            foreach ($ps as $key => $vo) {
+                                                if ($vo['sid']) {
+                                                    $has = false;
+                                                    foreach ($os as $k => $v) {
+                                                        if ($vo['sid'] == $v['sid']) {
+                                                            $has = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$has) {
+                                                        $deletearr[$key] = $vo;
+                                                    }
+                                                } else {
+                                                    $has = false;
+                                                    foreach ($os as $k => $v) {
+                                                        if ($vo['osid'] == $v['osid']) {
+                                                            $has = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$has) {
+                                                        $deletearr[$key] = $vo;
+                                                    }
+                                                }
+                                            }
+
+                                            //删除
+                                            if ($deletearr) {
+                                                foreach ($deletearr as $v) {
+                                                    $data = array();
+                                                    $data['op_text'] = '删除';
+                                                    M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $v['osid'] . "'")->save();
+                                                }
+                                            }
+                                            //新增
+                                            foreach ($newarr as $val) {
+                                                $data = array();
+                                                $data['pid'] = $off['pid'];
+                                                $data['pcid'] = $val['m_pid'] ?: 0;
+                                                $data['groupid'] = $val['role'] ?: 0;
+                                                $data['mid'] = $val['mid'] ?: 0;
+                                                $data['sid'] = $val['sid'] ?: 0;
+                                                $data['osid'] = $val['osid'] ?: 0;
+                                                $data['title'] = $val['name'] ?: '';
+                                                $data['days'] = $val['days'] ?: 0;
+                                                $data['hours'] = ($val['hour'] ?: 0);
+                                                $data['quans'] = $val['quantity'] ?: 0;
+                                                if ($val['disoff'] > 0) {
+                                                    $data['amount'] = $val['amount'] * $val['disoff'] / 100;
+                                                } else {
+                                                    $data['amount'] = $val['amount'];
+                                                }
+                                                $data['description'] = $val['note'];
+                                                $data['sort_order'] = $val['osid'];
+                                                $data['delivery'] = 1;
+                                                $data['op_text'] = '新增';
+                                                M('project_service')->add($data);
+                                            }
+                                            foreach ($os as $key => $val) {
+                                                if ($val['sid']) {
+                                                    foreach ($ps as $k => $v) {
+                                                        if ($val['sid'] == $v['sid']) {
+                                                            $data = array();
+                                                            $data['days'] = (int)$val['days'];
+                                                            $data['hours'] = (int)$val['hour'];
+                                                            if ($val['disoff'] > 0) {
+                                                                $data['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                                            } else {
+                                                                $data['amount'] = $val['amount'];
+                                                            }
+                                                            $data['quans'] = $val['quantity'];
+                                                            $data['op_text'] = '编辑';
+                                                            M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->save();
+
+                                                            $service = M('project_service')->field(array('state', 'psid'))->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->find();
+                                                            if ($service['state'] == 1) {
+                                                                $data1 = array();
+                                                                $data1['days'] = (int)$val['days'];
+                                                                $data1['hours'] = (int)$val['hour'];
+                                                                if ($val['disoff'] > 0) {
+                                                                    $data1['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                                                } else {
+                                                                    $data1['amount'] = $val['amount'];
+                                                                }
+                                                                M('Task')->data($data1)->where("pid='" . $off['pid'] . "' and psid='" . $service['psid'] . "'")->save();
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    foreach ($ps as $k => $v) {
+                                                        if ($val['osid'] == $v['osid']) {
+                                                            $data = array();
+                                                            $data['days'] = (int)$val['days'];
+                                                            $data['hours'] = (int)$val['hour'];
+                                                            if ($val['disoff'] > 0) {
+                                                                $data['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                                            } else {
+                                                                $data['amount'] = $val['amount'];
+                                                            }
+                                                            $data['quans'] = $val['quantity'];
+                                                            $data['op_text'] = '编辑';
+                                                            M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->save();
+
+                                                            $service = M('project_service')->field(array('state', 'psid'))->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->find();
+                                                            if ($service['state'] == 1) {
+                                                                $data1 = array();
+                                                                $data1['days'] = (int)$val['days'];
+                                                                $data1['hours'] = (int)$val['hour'];
+                                                                if ($val['disoff'] > 0) {
+                                                                    $data1['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                                                } else {
+                                                                    $data1['amount'] = $val['amount'];
+                                                                }
+                                                                M('Task')->data($data1)->where("pid='" . $off['pid'] . "' and psid='" . $service['psid'] . "'")->save();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    update_project($off['pid']);
+                                    //回更项目金额
+                                    M('Project')->where("pid='{$off['pid']}'")->save(array('money' => $off['amount']));
+
+                                    $sd = array('static' => '3', 'oid' => "{$thisyw['exid']}");
+                                    if (D("Offer")->save($sd) === false) {
+
+                                        $savedata = array("id" => "{$v}", 'state' => 0, 'checktime' => '', 'checknote' => "");
+                                        $exmodel->save($savedata);
+                                        $this->json_error("审核失败，请重新操作", false);
+                                    };
+
+                                    $fileid = 0;
+                                    $versionmod = M("OfferVersion");
+                                    $row = $versionmod->where("oid='{$thisyw['exid']}'")->order("version desc")->find();
+                                    if ($row) {
+                                        $version = intval($row['version'] + 1);
+                                    } else {
+                                        $version = 1;
+                                    }
+
+                                    $url = C('OFFER_PRINT_URL') . $thisyw['exid'] . '.html';
+                                    $path = topdf($url);
+                                    if ($path) {
+                                        $fileid = M("File")->add(array("name" => "报价单预览_D" . $version, "savepath" => $path, "ext" => "pdf", "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID)));
+                                    }
+
+                                    $data = array("file_id" => $fileid, "uid" => UID, "uname" => get_nickname(UID), "addtime" => time(), "oid" => $thisyw['exid'], "version" => $version);
+                                    $versionmod->add($data);
+
+                                    // 报价单有新的版本写入log  : LGW
+                                    enterLog($thisyw['exid']);
+                                    // 记录报价单主表的数据 : LGW
+                                    enterOfferLog($off['oid']);
+                                    // 回写报价单信息
+                                    $cost = D('Offer')->getQuotation($off['oid']);
+                                    apiRead(Api::OFFER_BACK, Api::DXY_CRM, $cost);
+                                    // 发给提交人 时间点：报价单审核通过  LGW
+                                    $dynamic = [
+                                        'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                        'email' => get_email($thisyw['adduid']),
+                                    ];
+                                    $url = "Offer/veiw/id/".$thisyw['exid'];
+                                    $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                    $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+                                } else {
+                                    $offer = M('Offer')->alias('o')
+                                        ->field('o.*,c.shortsign')
+                                        ->join("ot_customer c on c.cid=o.cid", "left")
+                                        ->where("o.oid=" . $thisyw['exid'])
+                                        ->find();
+                                    $order = $exmodel->alias('e')
+                                        ->where("e.exid='{$thisyw['exid']}' and (e.state=0 or e.state=-1) and e.type='{$thisyw['type']}'")
+                                        ->min('e.order');
+                                    $check = $exmodel->alias('e')
+                                        ->where("e.exid='{$thisyw['exid']}' and (e.state=0 or e.state=-1) and e.order='{$order}' and e.type='{$thisyw['type']}'")
+                                        ->find();
+                                    // 给下一个审批人发送消息
+                                    // 发给审批人 时间点：报价单审核发给下一个审核人  LGW
+                                    $dynamic = [
+                                        'a' => $check['addname'],
+                                        'b' => '报价单审核',
+                                        'c' => $offer['shortsign'] . '-' . $offer['projectname'] . '-' . $offer['code'],
+                                        'email' => get_email($check['checkid']),
+                                    ];
+                                    $url = "Dexa/view/id/".$v;
+                                    $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                                    $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+                                }
+                            }
+                            //其他类型
+                            if ($thisyw['type'] == "任务审核") {
+                                $taskmod = M("Task");
+                                $task = $taskmod->where("tid='{$thisyw['exid']}'")->find();
+                                if (empty($task)) {
+                                    $this->json_error("任务信息已不存在", false);
+                                }
+                                if ($task['state'] != 4) {
+                                    $this->json_error("此任务现在不能审核", false);
+                                }
+                                if ($task['checkuid'] != UID) {
+                                    $this->json_error("您不能审核此数据", false);
+                                }
+                                //审核完成
+                                $savedata = array("id" => "{$v}", 'state' => 1, 'checktime' => time(), 'checknote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+                                $data = array("checkuid" => UID, "checkuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "checktime" => time(), "etime" => time(), "tid" => $thisyw['exid'], "state" => 3, "finishtime" => time());
+
+                                if ($taskmod->save($data) === false) {
+                                    $this->error("操作失败，请重新操作");
+                                }
+                                $amounts = M('Task')->alias('t')
+                                    ->field("ifnull(SUM(r.price*ts.finishours),0) as amount,SUM(ts.finishours) as finishours,ps.type as type1")
+                                    ->join('ot_task_sub ts on ts.tid=t.tid', 'left')
+                                    ->join('ot_member m on m.uid=ts.finishuid', 'left')
+                                    ->join('ot_auth_group_access a on m.uid=a.uid', 'left')
+                                    ->join('ot_role_level r on a.rlid=r.rlid', 'left')
+                                    ->join('ot_project_service ps on ps.psid = t.psid', 'left')
+                                    ->where("t.groupid='{$task['groupid']}' and t.pid = '{$task['pid']}'")
+                                    ->group("ps.type")
+                                    ->select();
+                                $pbudgetmod = M("Projectbudget");
+                                $groupName = M('Group')->where("groupid='{$task['groupid']}'")->getField('name');
+                                // 更新发生金额 : LGW
+                                foreach ($amounts as $k => $v) {
+                                    $map = [];
+                                    $map['type'] = "人力成本";
+                                    $map['outid'] = $task['groupid'];
+                                    $map['pid'] = $task['pid'];
+                                    $map['type1'] = $v['type1'];    // 人力成本分预算内 预算外（包含测试） 变更
+                                    $row = $pbudgetmod->where($map)->find();
+                                    if ($row) {
+                                        // 编辑
+                                        $data = array('type1' => $row['type1'], "pbid" => $row['pbid'], "cost" => $v['amount'], "finishours" => $v['finishours'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+                                        if ($pbudgetmod->save($data) === false) {
+                                            $this->error("操作失败，请重新操作");
+                                        }
+                                    } else {
+                                        // 新增
+                                        $data = array("type1" => $v['type1'], "type" => "人力成本", "outitem" => $groupName, "outid" => $task['groupid'], "cost" => $v['amount'], "finishours" => $v['finishours'], "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pid" => $task['pid'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+                                        if ($pbudgetmod->add($data) === false) {
+                                            $this->error("操作失败，请重新操作");
+                                        }
+                                    }
+                                }
+                                update_project($task['pid']);
+                                action_log_new(array('outtype' => 'ot_task', 'outkey' => $thisyw['exid'], 'action' => 'checked', 'comment' => $nr, 'history' => array(array('field' => "state", 'olddata' => "4", 'newdata' => "3"))));
+
+                                // 发给提交人 时间点：任务通过  LGW
+                                $dynamic = [
+                                    'a' => $task['checkuname'],
+                                    'email' => get_email($thisyw['adduid']),
+                                ];
+                                $url = 'Task/view/id/'.$thisyw['exid'];
+                                $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+
+                                updateprocess($thisyw['exid']);
+
+                                if (M('Milestone')->where(array('tid' => $task['psid'], 'pid' => $task['pid']))->find()) {
+                                    M('Milestone')->where(array('tid' => $task['psid'], 'pid' => $task['pid']))->save(array('completion' => 100, "etime" => time()));
+                                }
+                            }
+
+                            if ($thisyw['type'] == "报销单审核") {
+
+                                $expense = M("Expense");
+                                $ex = $expense->alias('e')
+                                    ->field('e.*,p.name as pname')
+                                    ->join('ot_project  p on p.pid=e.pid', 'left')
+                                    ->where("e.eid='{$thisyw['exid']}'")
+                                    ->find();
+                                if (empty($ex)) {
+                                    $this->json_error("报销单已不存在", false);
+                                }
+                                if ($ex['state'] != 2) {
+                                    $this->json_error("此报销单现在不能审核", false);
+                                }
+
+                                //审核完成
+                                $savedata = array("id" => "{$v}", 'state' => 1, 'checktime' => time(), 'checknote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+
+                                //如果已全部审核完成则操作业务数据
+                                $nocheck = $exmodel->where("exid='{$thisyw['exid']}' and (state=0 or state=-1) and type='{$thisyw['type']}' ")->select();
+                                if (!$nocheck) {
+                                    if ($expense->save(array("checkedtime" => time(), "eid" => $thisyw['exid'], "state" => 3)) === false) {
+                                        $this->error("操作失败，请重新操作");
+                                    }
+
+                                    //获取报销单费用项目
+                                    $sub = M("ExpenseSub")->where(array("eid" => $thisyw['exid']))->select();
+                                    if ($sub) {
+                                        foreach ($sub as $v) {
+                                            $pbudgetmod = M("Projectbudget");
+                                            $row = $pbudgetmod->where(array("type" => "现金成本", "outitem" => $v["feetype"], "pid" => $ex["pid"]))->find();
+
+                                            if ($row) {
+
+                                                $data = array("cost" => ($row['cost'] + $v['money']), "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pbid" => $row['pbid']);
+                                                if ($pbudgetmod->save($data) === false) {
+                                                    $this->error("操作失败，请重新操作");
+                                                }
+                                            } else {
+                                                $data = array("type" => "现金成本", "outitem" => $v['feetype'], "cost" => $v['money'], "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pid" => $ex['pid'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+                                                if ($pbudgetmod->add($data) === false) {
+                                                    $this->error("操作失败，请重新操作");
+                                                }
+                                            }
+
+                                        }
+                                        //更新项目信息
+                                        update_project($ex['pid']);
+                                        // 审核通过后调用OA
+                                        exprocessBack($ex['eid']);
+
+                                    }
+                                    // 发给提交人 时间点：报销单审核通过  LGW
+                                    $dynamic = [
+                                        'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                        'email' => get_email($thisyw['adduid']),
+                                    ];
+                                    $url = 'Expense/expenseproject/eid/'.$thisyw['exid'];
+                                    $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                    $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+                                    action_log_new(array('outtype' => 'ot_expense', 'outkey' => $thisyw['exid'], 'action' => 'checked', 'comment' => $nr, 'history' => array(array('field' => "state", 'olddata' => "2", 'newdata' => "3"))));
+                                } else {
+                                    // 给下一个审批人发送消息
+                                    $check = $exmodel->alias('e')
+                                        ->where("e.exid='{$thisyw['exid']}' and e.order = 2 and e.type='{$thisyw['type']}' ")->find();
+                                    // 发给审批人 时间点：报销单审核发给下一个审核人  LGW
+                                    $dynamic = [
+                                        'a' => $check['addname'],
+                                        'b' => '报销单审核',
+                                        'c' => $ex['pname'] . '-' . $ex['code'],
+                                        'email' => get_email($check['checkid']),
+                                    ];
+                                    $url = "Dexa/view/id/".$v;
+                                    $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                                    $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    $Model->rollback(); // 否则将事务回滚
+                    $this->json_error("审核失败", false);
+                }
+                $Model->commit(); // 成功则提交事务
+                $this->json_result(array(), "", false);
+            } else {
+                $this->json_error("数据不正确", false);
+            }
+        }
+    }
+
+    public function check2()
+    {
+        if (!IS_POST) {
+            $id = array_unique(( array )I('id', 0));
+            if (!is_array($id)) {
+                $id[] = $id;
+            }
+
+            if (empty ($id)) {
+                $this->error('请选择要操作的数据!');
+            }
+            $this->assign('id', implode(',', $id));
+            $this->display("check2");
+        } else {
+
+            $id = explode(",", I('id', ''));
+            $type = I("type", 'refuse');
+            $nr = I("nr", '');
+            if ($id) {
+                try {
+                    $exmodel = D("Exprocess");
+                    foreach ($id as $v) {
+
+                        //批量审核处理
+                        $thisyw = $exmodel->where("id='{$v}'")->find();
+                        if (empty($thisyw)) {
+                            $this->json_error("数据已不存在", false);
+                        }
+                        if ($thisyw['checkid'] != UID) {
+                            $this->json_error("您不能审核此数据", false);
+                        }
+                        if ($thisyw['state'] == 1 || $thisyw['state'] == -1) {
+                            $this->json_error("已经审核过此数据", false);
+                        }
+
+                        //判断审核顺序
+                        $hasr = $exmodel->where("`order`<'{$thisyw['order']}' and (state=0 or state=-1) and exid='{$thisyw['exid']}'")->select();
+                        if ($hasr) {
+                            $this->json_error("您暂时还不能审核这条数据", false);
+                        }
+
+                        if ($type == 'refuse') {
+                            //批量拒绝
+                            if (empty($nr)) {
+                                $this->json_error("拒绝请填写审核备注", false);
+                            }
+
+                            //报价单审核类型
+                            if ($thisyw['type'] == "报价单审核") {
+
+                                $savedata = array("id" => "{$v}", 'state' => -1, 'refusetime' => time(), 'refusenote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+
+                                $sd = array('static' => '-1', 'oid' => "{$thisyw['exid']}");
+                                if (D("Offer")->save($sd) === false) {
+
+                                    $savedata = array("id" => "{$v}", 'state' => 0, 'refusetime' => '', 'refusenote' => "");
+                                    $exmodel->save($savedata);
+                                    $this->json_error("审核失败，请重新操作", false);
+                                };
+                                // 发给提交人 时间点：报价单拒绝  LGW
+                                $dynamic = [
+                                    'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                    'email' => get_email($thisyw['adduid']),
+                                ];
+                                $url = "Offer/veiw/id/".$thisyw['exid'];
+                                $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+                            }
+                            //其他类型
+                            if ($thisyw['type'] == "任务审核") {
+
+                                $taskmod = M("Task");
+                                $task = $taskmod->where("tid='{$thisyw['exid']}'")->find();
+                                if (empty($task)) {
+                                    $this->json_error("任务信息已不存在", false);
+                                }
+                                if ($task['state'] != 4) {
+                                    $this->json_error("此任务现在不能审核", false);
+                                }
+                                if ($task['checkuid'] != UID) {
+                                    $this->json_error("您不能审核此数据", false);
+                                }
+                                //审核完成
+                                $savedata = array("id" => "{$v}", 'state' => -1, 'refusetime' => time(), 'refusenote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+
+                                if ($taskmod->save(array("etime" => 0, "tid" => $thisyw['exid'], "state" => 2, "finishtime" => 0, "finishcontent" => "", "finishuid" => 0, "finishuname" => "")) === false) {
+                                    $this->error("操作失败，请重新操作");
+                                }
+                                action_log_new(array('outtype' => 'ot_task', 'outkey' => $thisyw['exid'], 'action' => 'refuse', 'comment' => $nr, 'history' => array(array('field' => "state", 'olddata' => "4", 'newdata' => "2"))));
+                                // 发给提交人 时间点：任务拒绝  LGW
+                                $dynamic = [
+                                    'a' => $task['checkuname'],
+                                    'email' => get_email($thisyw['adduid']),
+                                ];
+                                $url = 'Task/view/id/'.$thisyw['exid'];
+                                $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+                            }
+
+                            if ($thisyw['type'] == "报销单审核") {
+
+                                $expense = M("Expense");
+                                $ex = $expense->where("eid='{$thisyw['exid']}'")->find();
+                                if (empty($ex)) {
+                                    $this->json_error("报销单已不存在", false);
+                                }
+                                if ($ex['state'] != 2) {
+                                    $this->json_error("此报销单现在不能审核", false);
+                                }
+
+                                //审核完成
+                                $savedata = array("id" => "{$v}", 'state' => -1, 'refusetime' => time(), 'refusenote' => "{$nr}");
+                                if ($exmodel->save($savedata) === false) {
+                                    $this->json_error("审核失败，请重新操作", false);
+                                }
+
+                                if ($expense->save(array("checkedtime" => time(), "eid" => $thisyw['exid'], "state" => -1)) === false) {
+                                    $this->error("操作失败，请重新操作");
+                                }
+
+                                action_log_new(array('outtype' => 'ot_expense', 'outkey' => $thisyw['exid'], 'action' => 'refuse', 'comment' => $nr, 'history' => array(array('field' => "state", 'olddata' => "2", 'newdata' => "-1"))));
+                                // 发给提交人 时间点：报销单拒绝  LGW
+                                $dynamic = [
+                                    'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                    'email' => get_email($thisyw['adduid']),
+                                ];
+                                $url = 'Expense/expenseproject/eid/'.$thisyw['exid'];
+                                $cost = sendTemplate($dynamic, 'dexa_add',$url);
+                                $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给提交人 : LGW
+                            }
+
+                        }
+                    }
+
+                } catch (Exception $e) {
+                    $this->json_error("审核失败", false);
+                }
+
+                $this->json_result(array(), "", false);
+            } else {
+                $this->json_error("数据不正确", false);
+            }
+        }
+    }
+
+    public function check3()
+    {
+        if (!IS_POST) {
+            $id = array_unique(( array )I('id', 0));
+            if (!is_array($id)) {
+                $id[] = $id;
+            }
+
+            if (empty ($id)) {
+                $this->error('请选择要操作的数据!');
+            }
+            $this->assign('id', implode(',', $id));
+            $this->display("check2");
+        } else {
+
+        }
+    }
+
+    public function checkpm()
+    {
+        $id = I('get.id', 0);
+        if (!IS_POST) {
+            if (empty ($id)) {
+                $this->error('请选择要操作的数据!');
+            }
+            $this->assign('id', $id);
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('pm', $pm);
+            $this->assign('id', $id);
+
+            $this->display();
+        } else {
+            $pmid = I('post.pmid');
+            $pm = get_nickname($pmid);
+            $exmodel = M('Exprocess');
+            $thisyw = $exmodel->where('id = ' . $id)->find();
+            $expense = M("Offer");
+            $ex = $expense->where("oid='{$thisyw['exid']}'")->find();
+            if (empty($ex)) {
+                $this->json_error("报价单已不存在", false);
+            }
+            //审核完成
+            $savedata = array("id" => "{$id}", 'state' => 1, 'checktime' => time(), 'checknote' => "");
+            if ($exmodel->save($savedata) === false) {
+                $this->json_error("审核失败，请重新操作", false);
+            }
+            $expense->where('oid=' . $thisyw['exid'])->save(array('pm' => $pm, 'pmid' => $pmid));
+            action_log_new(array('outtype' => 'ot_offer', 'outkey' => $thisyw['exid'], 'action' => 'aspm', 'comment' => '',
+                'history' => array(array('field' => "pm", 'olddata' => "", 'newdata' => "$pm")
+                    /*array('field'=>"pmid",'olddata'=>"0",'newdata'=>"$pmid")*/)));
+            echo "<script>window.parent.renovate(true);</script>";
+        }
+    }
+
+
+}

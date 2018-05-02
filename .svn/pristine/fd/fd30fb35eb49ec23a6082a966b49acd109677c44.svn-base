@@ -1,0 +1,44 @@
+<?php
+
+namespace Studio\Controller;
+use Think\Page;
+/**
+ * 任务管理-3D打印 ：fhc
+ *
+ */
+class OrderTaskSdController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('OrderTask');    // 订单任务
+	}
+	//首页
+	public function index(){
+		$this->display();
+	}
+	//异步上传图片
+	public function uploadPic($files = "")
+	{
+		$c = C('DOWNLOAD_UPLOAD');
+		$uploader = new \Think\Upload($c);// 实例化上传类
+		$method = $_SERVER["REQUEST_METHOD"];
+		$filename = I('get.filename');
+		if ($method == "POST") {
+			header("Content-Type: text/plain");
+			if($files===''){
+				$files  =   $_FILES;
+			}
+			$info = $uploader->upload($files);
+			$result['success'] = true;
+			$result['uploadName'] = $c['rootPath'].$info['qqfile']['savepath'].$info['qqfile']['savename'];
+			echo json_encode($result);
+		} else {
+			header("HTTP/1.0 405 Method Not Allowed");
+		}
+		
+	}
+}

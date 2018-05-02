@@ -1,0 +1,220 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+        .navul {
+            margin: 0;
+            padding: 0
+        }
+
+        .navul li {
+            list-style: none;
+        }
+
+        .navul li a {
+            display: block;
+            float: left;
+            font-size: 14px;
+            color: #999999;
+            padding: 0 15px 10px 15px;
+            margin-bottom: 5px;
+            margin-right: 5px;
+            text-align: center;
+        }
+
+        .outer.with-side #featurebar, .outer.with-side #titlebar {
+            margin-bottom: 10px;
+        }
+
+        .navul li.active a {
+            display: block;
+            float: left;
+            color: #000;
+            padding: 0 15px 10px 15px;
+            margin-bottom: 5px;
+            margin-right: 5px;
+            text-align: center;
+            border-bottom: 3px solid #FF7F24
+        }
+
+        .outer.with-side #featurebar, .outer.with-side #titlebar {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle"/>
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+                <if condition="cando('ProjectNew/takepart',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('ProjectNew/takepart?id='.$p['pid'])}" class="btn"><i class="icon-edit"></i>编辑</a>
+                </if>
+
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+          
+    </div>
+    <div class="fnavbox">
+    <div>
+        <include file="Public:newfourtitle"/></div>
+         <div class="actions">
+			<div class="btn-group">
+				接下来请根据项目范围确定的任务进行人员指派，已经明确执行人的可以直接在「编辑」状态下指派给执行人，未明确执行人的可以指派给负责人，由负责人进行具体指派。<br>在这个阶段，你将完成对项目整体资源的规划，确定项目团队人员，为召开内部启动会做准备。
+		</div>
+		</div>
+		<div class="clearfix"></div>
+		</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+        <div style="float: none">
+            <ul class="navul">
+                <li><a style=" width: 60px;padding: 2px" href="{:U('ResourcePlan/resourceplan?id='.$p['pid'])}">任务</a>
+                </li>
+                <li class="active"><a style=" width: 60px;padding: 2px"
+                                      href="{:U('ProjectNew/takepartindex?id='.$p['pid'])}">成员</a></li>
+            </ul>
+        </div>
+        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+               style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px">
+                </th>
+                <th r="1" width="100px" class="text-left"><span class="sort" ectype="order_by"
+                                                                fieldname="tp.uname">参与人</span></th>
+                <th width="100px" class="text-left"><span class="sort" ectype="order_by" fieldname="pr.name">角色</span>
+                </th>
+
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="tp.description">备注</span>
+                </th>
+                <!--<th r="1" class="oop" width="100px">操作</th>-->
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="list">
+                <volist name="list" id="vo">
+                    <tr>
+                        <td r="1" class="cell-id">
+                            <input class="ids" type="checkbox" name="id[]" value="{$vo.tpid}"/>
+                        </td>
+
+                        <td class="text-left">{$vo['nickname']}</td>
+                        <td class="text-left">{$vo['name']}</td>
+                        <td class="text-left">{$vo['description']}</td>
+
+                        <!--<td>-->
+                        <!--<a href="javascript:;" onclick='deletedata(this,"{:U('takedelete?id='.$vo['tpid'])}")'>删除</a>-->
+                        <!--</td>-->
+                    </tr>
+                </volist>
+                <else/>
+                <tr>
+                    <td r="1" colspan="4" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                </tr>
+            </notempty>
+            </tbody>
+            <notempty name="list">
+                <tfoot class="scrolled">
+                <tr>
+                    <td r="1" colspan='4' id="colspan_1">
+                        <!--<div class="table-actions clearfix">-->
+                        <!--<div class="checkbox btn">-->
+                        <!--<label><input type="checkbox" data-scope=""-->
+                        <!--class="rows-selector"> 选择</label>-->
+                        <!--</div>-->
+                        <!--<button class="btn btn-default ajax-post confirm"-->
+                        <!--url="{:U('ProjectNew/takedelete')}"-->
+                        <!--target-form="ids">删 除-->
+                        <!--</button>-->
+                        <!--</div>-->
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                </tr>
+                </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+
+        function deletedata(obj, url) {
+            if (confirm("确定要删除数据吗？")) {
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            $(obj).parent().parent().remove();
+//                            deleteItem(obj);
+                        } else {
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+
+        var ajaxurl = "{:U('Offer/ajax_col')}";
+
+        function resizetable() {
+            var w = $(window).width();
+            if (w < 1400) {
+                $("#taskList").find("th[r!=1]").hide();
+                $("#taskList").find("td[r!=1]").hide();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th[r=1]").size());
+            } else {
+                $("#taskList").find("th[r!=1]").show();
+                $("#taskList").find("td[r!=1]").show();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th").size());
+            }
+        }
+
+        $(function () {
+            setTimeout(function () {
+                fixedTfootAction('#projectTaskForm')
+            }, 100);
+            setTimeout(function () {
+                fixedTheadOfList('#taskList')
+            }, 100);
+
+            //resizetable();
+
+            $(window).resize(function () {
+                //resizetable();
+            });
+
+
+            if ($(".oop").size() == 1) {
+                $(".oop").width("40px");
+            } else {
+                $(".oop").each(function () {
+                    if ($(this).find("em").size() == 0) {
+                        $(this).width(max);
+                    }
+                });
+            }
+        });
+    </script>
+</block>

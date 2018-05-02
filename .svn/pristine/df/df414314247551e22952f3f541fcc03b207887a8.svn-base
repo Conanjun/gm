@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Empty Page</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!-- plugin css -->
+    <link href="../css/plugins/chosen/chosen.css" rel="stylesheet">
+    <link href="../css/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <link href="../css/animate.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <link href="../css/stylesheet.css" rel="stylesheet">
+    <link href="../css/iviews-order.css" rel="stylesheet">
+
+</head>
+
+<body class="">
+
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="../img/profile_small.jpg" />
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">David Williams</strong>
+                                    </span>
+                                    <span class="text-muted text-xs block">Art Director
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                    <a href="profile.html">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="contacts.html">Contacts</a>
+                                </li>
+                                <li>
+                                    <a href="mailbox.html">Mailbox</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="login.html">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>切换语言</span>
+                        <div class="nav-language-list">
+                            <a href="" class="nav-language-cn">
+                                <span>汉语</span>
+                            </a>
+                            <a href="" class="nav-language-en">
+                                <span>英语 </span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">系统管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">牙医管理</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="">
+                            <i class="fa fa-envelope"></i>
+                            <span class="nav-label">订单管理 </span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li>
+                                <a href="javascript:void(0);">
+                                    <i class="fa fa-diamond"></i>植牙订单
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>矫正订单
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>待处理订单
+                                    <span class="label label-warning pull-right">16/24</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>订单消息
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">物流管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">财务管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">投诉建议</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">数据分析</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="搜索" class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">欢迎: 管理员</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> 退出
+                            </a>
+                        </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <!-- content begin -->
+            <div class="wrapper wrapper-content animated fadeInRight">
+
+                <div class="row">
+                    <div class="col-sm-12">
+
+                        <!-- page-heading -->
+                        <div class="wrapper white-bg page-heading">
+                            <h2>订单详情</h2>
+                            <ol class="breadcrumb">
+                                <li>
+                                    <a href="">首页</a>
+                                </li>
+                                <li>
+                                    <a href="">植牙订单</a>
+                                </li>
+                                <li class="active">
+                                    <strong>E1205525</strong>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="iviews-order">
+
+                            <div class="row iviews-steps steps">
+                                <ul>
+                                    <li class="active">
+                                        1. 选择服务类型
+                                    </li>
+                                    <li class="active">
+                                        2. 选择服务内容
+                                    </li>
+                                    <li class="active">
+                                        3. 填写客服信息
+                                    </li>
+                                    <li class="active">
+                                        4. 填写患者信息
+                                    </li>
+                                    <li class="active">
+                                        5. 牙位标记
+                                    </li>
+                                    <li class="active">
+                                        6. 病例资料
+                                    </li>
+                                    <li>
+                                        7. 提交订单
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="iviews-order-content iviews-order-step7">
+
+                                <div class="ibox-content iviews-folder">
+                                    
+                                    <button class="iviews-folder-button">上传</button>
+
+                                    <div class="iviews-folder-header clearfix">
+                                        <div class="pull-left iviews-folder-header-nav">
+                                            <a href="">返回上一级</a>
+                                            <nav>
+                                                <a href="">全部文件</a>
+                                                <span>图片文件夹</span>
+                                            </nav>
+                                        </div>
+                                        <span class="pull-right">已全部加载,共5个</span>
+                                    </div>
+
+                                    <div class="iviews-folder-bodyer">
+                                        <div>
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left" width="40%">文件名</th>
+                                                        <th>文件类型</th>
+                                                        <th>大小</th>
+                                                        <th>上传日期</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="iviews-type-folder">设计方案</span>
+                                                        </td>
+                                                        <td>文件夹</td>
+                                                        <td></td>
+                                                        <td>2018-02-12 14:23</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="iviews-type-zip">设计方案</span>
+                                                        </td>
+                                                        <td>文件夹</td>
+                                                        <td>zip</td>
+                                                        <td>2018-02-12 14:23</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="iviews-type-jpg">设计方案</span>
+                                                        </td>
+                                                        <td>文件夹</td>
+                                                        <td>jpg</td>
+                                                        <td>2018-02-12 14:23</td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- content -->
+
+
+                    </div>
+                </div>
+
+            </div>
+            <!-- content end -->
+
+            <div class="footer">
+                <div>
+                    <strong>Copyright</strong> 该美牙科 &copy; 2018-2019
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="../js/jquery-2.1.1.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="../js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Scojs -->
+    <script src="../js/plugins/scojs/js/sco.modal.js"></script>
+    <script src="../js/plugins/scojs/js/sco.confirm.js"></script>
+    <script src="../js/plugins/scojs/js/sco.message.js"></script>
+
+    <!-- plugin -->
+    <script src="../js/plugins/chosen/chosen.jquery.js"></script>
+    <script src="../js/plugins/iCheck/icheck.min.js"></script>
+
+    <!-- vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+
+        // jquery
+        // 算高
+        $(function () {
+            var $minHeight = 0,
+                $winHeight = $(window).height(),
+                $navHeight = $('.navbar').height(),
+                $fooHeight = $('.footer').height(),
+                $padHeight = 120,
+                $pahHeight = $('.page-heading').height();
+
+            $('#page-wrapper').css('min-height', $winHeight);
+            $('.iviews-order').css('min-height', $winHeight - $navHeight - $fooHeight - $padHeight - $pahHeight);
+        })
+
+
+    </script>
+
+
+</body>
+
+</html>

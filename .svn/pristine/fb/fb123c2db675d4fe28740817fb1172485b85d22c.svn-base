@@ -1,0 +1,64 @@
+<extend name="Public/base_choose" />
+<block name="body">
+<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        #cke_content {
+            width: 640px !important;
+        }
+    </style>
+			<table align="center" class="table table-form" style="border:0px">
+				<tbody>
+				<tr>
+					<th style="width: 80px" class="thtop">备注</th>
+					<td  colspan="2">
+						<textarea id="content" name="content" style="width: 610px;height: 200px" class="ckeditor"></textarea>
+
+					</td>
+				</tr>
+				<tr>
+					<th ></th>
+					<td class="form-condensed">
+						<div class="rightdiv">
+						<span style="float:left;display:inline-block;margin-top:5px;color:red">『任务有执行人、并设置了开始时间和结束时间才可启动』</span>
+							<a href="javascript:;" id="submit" class="btn btn-primary" onclick="choose()" ><i class="icon-random"></i> 启动</a>
+						</div>
+					</td>
+					<td width="50px"></td>
+				</tr>
+				</tbody>
+			</table>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose() {
+			 var pid = "{$pid}";
+            var content=CKEDITOR.instances.content.getData();
+            if(content){
+                 window.parent.workbreak(content,pid);
+            }else{
+                  $("#cke_content").css('border','1px solid red');
+                  return;
+            }
+
+
+			/*$.ajax({
+				type: "POST",
+				url: "{:U('ProjectNew/workbreak')}",
+				data: {content:content,pid:pid},
+				dataType: "json",
+				success: function(data){
+					if(data.done){
+						window.parent.choose();
+					}else {
+						alert(data.msg);
+					}
+				}
+			});*/
+		}
+	</script>
+</block>

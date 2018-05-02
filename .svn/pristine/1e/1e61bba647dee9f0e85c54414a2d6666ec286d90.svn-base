@@ -1,0 +1,227 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('ORDER_MANAGE')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Studio/OrderTaskCp/index"/>
+                                    <table id="tt_1">
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('TASK_LIST_NAME')}</label>
+                                                <input class="form-control" type="text" name="tname" value="{$Think.get.tname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_SN')}</label>
+                                                <input class="form-control" type="text" name="order_sn" value="{$Think.get.order_sn}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('FINISHMAN')}</label>
+                                                <input class="form-control" type="text" name="finishname" value="{$Think.get.finishname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('TASK_STATE')}</label>
+                                                <select name="state" class="form-control" style="width: 180px">
+                                                    <option value="">{:L(PLEASE_SELECT)}</option>
+                                                    <option value="1" <if condition="$Think.get.state eq 1">selected</if>>{:L('FINISH')}</option>
+                                                    <option value="2" <if condition="$Think.get.state eq 2">selected</if>>{:L('NOFINISH')} </option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('ISURGENT')}</label>
+                                                <select name="isurgent" class="form-control" style="width: 180px">
+                                                    <option value="">{:L(PLEASE_SELECT)}</option>
+                                                    <option value="1" <if condition="$Think.get.isurgent eq 1">selected</if>>{:L('YES')}</option>
+                                                    <option value="2" <if condition="$Think.get.isurgent eq 2">selected</if>>{:L('NO')} </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('TASK_SEND_TIME')}</label>
+                                                <input style="width: 110px;" class="form-control" type="text"  id="start_addtime" name="start_addtime" value="{$Think.get.start_addtime}">
+                                                <input style="width: 110px;" class="form-control" type="text" id="end_addtime" name="end_addtime" value="{$Think.get.end_addtime}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('FINISHTIME')}</label>
+                                                <input style="width: 110px;" class="form-control" type="text" id="start_finishtime" name="start_finishtime" value="{$Think.get.start_finishtime}">
+                                                <input style="width: 110px;" class="form-control" type="text" id="end_finishtime" name="end_finishtime" value="{$Think.get.end_finishtime}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('OrderTaskCp/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th>{:L('TASK_LIST_NAME')} </th>
+                                    <th>{:L('TASK_ORDER')} </span></th>
+                                    <th style="width: 100px"><span ectype="order_by" fieldname="t.isurgent">{:L('ISURGENT')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 100px">{:L('TASK_STATE')}</th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="t.addtime">{:L('TASK_SEND_TIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="t.finishtime">{:L('FINISHTIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 80px">{:L('FINISHMAN')}</th>
+                                    <th style="width: 120px">{:L('HANDLE')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td style="text-align: left">{$vo['tname']}</td>
+                                            <td>
+                                                <a href="{:U('PlatOrder/view?id='.$vo['oid'])}">{$vo.order_sn}-{:L($vo['str_state'])}</a>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['task_isurgent']">
+                                                    <img src="__IMG__/prompt.png"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png"/>
+                                                </if>
+                                            </td>
+                                            <td><if condition="$vo['task_state'] eq 1">{:L(FINISH)}<else/>{:L(NOFINISH)}</if></td>
+                                            <td>
+                                                <if condition="$vo['task_addtime']">{$vo['task_addtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['task_finishtime']">{$vo['task_finishtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td><if condition="$vo['task_finishuid'] gt 0">{$vo.task_finishman}<else/>-</if></td>
+                                            <td>
+                                                <if condition="$vo['task_state'] eq 0">
+                                                    <a href="javascript:;"  onclick="reply({$vo['tastkid']})" class="btn btn-xs btn-primary">{:L('FINISH_HANDEL')}</a>
+                                                </if>
+                                                <if condition="$vo.prompt eq 1"><span class="red">{:L('S_NOPAY')}</span></if>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    <else />
+                                    <tr>
+                                        <td colspan="9">{:L('NOCONCENT')}</td>
+                                    </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal fade" id="edit-form">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <a class="close" href="#" data-dismiss="modal">×</a>
+                                        <h3>{:L('S_TASK_TASK_SPEC')}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{:U('OrderTaskCp/confirm')}" class="form-horizontal" id="task_form" method='post' enctype="multipart/form-data">
+                                            <input type="hidden" name="tid" id="task_id" value="" >
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">{:L('S_TASK_TASK_SPEC')}</label>
+                                                <div class="col-sm-10">
+                                                    <textarea  name="finishnote" class="form-control" style="width: 400px;height: 170px;"></textarea>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+                                        <a href="javascript:void(0);"  id="save" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        {:L('sysnotice')}
+                    </h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            var error_box = $("#errorModal");
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+            $("#save").click(function () {
+                var tid=$("#task_id").val() ;
+                var finishnote = $("#finishnote").val() ;
+                $.ajax({
+                    url: base.url + $('#task_form').attr('action') ,
+                    type: 'POST' ,
+                    data: {'tid':tid,'finishnote':finishnote},
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+
+                })
+            })
+        });
+        function reply(id) {
+            $('.ui-select').chosen();
+            $('#task_id').val(id);
+            modal.open('#edit-form');
+        }
+    </script>
+</block>
+

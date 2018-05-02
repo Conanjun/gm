@@ -1,0 +1,136 @@
+<extend name="Public/base" />
+<block name="navhead">
+	<li data-id="list" class=""><a id="currentItem"
+								   href="javascript:showSearchMenu()">{:cookie('project_name')}
+		<span class="icon-caret-down"></span>
+	</a>
+		<div id="dropMenu">
+		</div>
+	</li>
+</block>
+<block name="btnarea">
+	<li class="right"><a href="{:U('Project/add')}"><i
+			class="icon-plus"></i>&nbsp;添加项目</a>
+	</li>
+</block>
+
+<block name="body">
+	<include file="Public/search" />
+<!-- 数据列表 -->
+<div class="data-table table-striped">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+		style="text-align: center">
+		<thead>
+			<tr>
+				<th width="40px"></th>
+				<th class="">项目名称</th>
+				<th class="">编号</th>
+				<th class="">类型</th>
+				<th class="">金额</th>
+				<th class="">合同号</th>
+				<th class="">客户</th>
+				<th class="">项目部门</th>
+				<th class="">项目经理</th>
+				<th class="">销售</th>
+				<th class="">结束时间</th>
+				<th class="">状态</th>
+				<th class="">计划工时</th>
+				<th class="">进度</th>
+				<th class="">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<notempty name="_list">
+			<volist name="_list" id="vo">
+			<tr>
+				<td class="cell-id"><input class="ids" type="checkbox"
+					name="id[]" value="{$vo.pid}" /></td>
+				<td>{$vo.name}</td>
+				<td>{$vo.code}</td>
+				<td>{$vo.type}</td>
+				<td>{$vo.money|fomatprice}</td>
+				<td>{$vo.contract}</td>
+				<td>{$vo.cname}</td>
+				<td>{$vo.dname}</td>
+				<td>{$vo.pm}</td>
+				<td>{$vo.mname}</td>
+				<td>{$vo.petime|time_format}</td>
+				<td>{$vo.sname}</td>
+				<td>{$vo.days}</td>
+				<td class="text-left">
+					<if condition="$vo['progress']">
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo.progress}">
+						<else/>
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+					</if>
+					<small>{$vo.progress}%</small>
+				</td>
+				<td><a href="{:U('Project/edit?id='.$vo['pid'])}">编辑</a> <a
+					href="{:U('Project/delete?id='.$vo['pid'])}"
+					class="confirm ajax-get">删除</a></td>
+			</tr>
+			</volist>
+				<else />
+			<td colspan="15" class="text-center table_nodata">aOh! 暂时还没有内容!</td>
+			</notempty>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan='15'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+						<button class="btn btn-default ajax-post confirm"
+							url="{:U('Project/delete')}" target-form="ids">删 除</button>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+</block>
+
+<block name="script"> <script
+	src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+	type="text/javascript">
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+        //导航高亮
+        highlight_subnav("{:U('Project/index')}");
+		var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'project'))}";
+
+        var ajaxurl="{:U('Project/ajax_col')}";
+
+        function tijiao(id,es_eid){
+            if(confirm("确认提交吗？"))
+                $.post(
+                        "{:U('Project/present')}",
+                        {'id':id,'eid':es_eid},
+                        function(data){
+                            window.location.href = window.location.href;
+                        }
+                );
+        }
+    </script> </block>

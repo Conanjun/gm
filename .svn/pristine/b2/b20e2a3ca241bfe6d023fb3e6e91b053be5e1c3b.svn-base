@@ -1,0 +1,138 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+		tbody.sortable > tr.drag-shadow {display: none}
+		tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+		tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+		tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+		tbody.sortable-sorting {cursor: move;}
+		tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+		tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+		tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+		tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+        #fourheading a
+         {
+             color: #333;
+         }
+        #fourheading .active
+        {
+            color: #7865c7;
+        }
+
+	</style>
+    <script language="Javascript">orderBy = "{$orderBy}";pid="{$p['pid']}"</script>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+                <if condition="cando('ProjectNew/commplanedit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('ProjectNew/commplanedit?id='.$p['pid'])}" class="btn"><i class="icon-edit"></i>创建/编辑</a>
+                </if>
+
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    </div>
+    <!-- 数据列表 -->
+    <div id="projectTaskForm">
+         <div class="fnavbox">
+         <div>
+             <include file="Public:newfourtitle" />
+        </div>
+			<div class="actions">
+              <if condition="empty($list)">
+			<div class="btn-group">
+			   制定沟通计划的目的是及时与项目干系人同步项目关键信息，解决当前阶段的主要问题。可以是与客户之间的沟通，也可以是项目组内部的沟通，最小单位为周
+            </div>
+            <else/>
+                <div class="btn-group">
+			  沟通计划已确定，你可以继续编辑沟通计划信息，也可以开始进行<!--<a href="{:U('ProjectNew/budgetindex?id='.$p['pid'])}"  style="float:none" class="btn">成本预算</a>-->「成本预算」
+            </div>
+            </if>
+			</div>
+		<div class="clearfix"></div></div>
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px"></th>
+                <th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="pc.frequency">沟通频率</span></th>
+                <th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="pc.type">沟通方式</span></th>
+                <th class="text-left" ><span class="sort" ectype="order_by" fieldname="pc.person1">客户参与人员</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="pc.person2">DXY参与人员</span></th>
+                <th class="text-left" r="1"><span class="sort" ectype="order_by" fieldname="pc.note">沟通说明</span></th>
+            </tr>
+            </thead>
+            <tbody >
+            <notempty name="list">
+                <volist name="list" id="vo">
+                    <tr >
+                        <td r="1" class="cell-id"></td>
+                        <td style="text-align:center">{$vo.frequency}</td>
+                        <td style="text-align:center">{$vo.type}</td>
+                        <td style="text-align:left">{$vo.person1}</td>
+                        <td style="text-align:left">{$vo.person2}</td>
+                        <td style="text-align:left">{$vo.note}</td>
+                    </tr>
+                </volist>
+                <else/>
+                <tr>
+                    <td colspan="6" class="text-center table_nodata" id="colspan_2">暂时还没有内容!</td>
+                </tr>
+            </notempty>
+            </tbody>
+            <notempty name="list">
+            <tfoot class="scrolled">
+            <tr>
+                <td r="1" colspan='6' id="colspan_1">
+                <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+        $(function(){
+            setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+            setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+            //resizetable();
+
+            $(window).resize(function(){
+                //resizetable();
+            });
+
+
+            if($(".oop").size()==1){
+                $(".oop").width("40px");
+            }else{
+                $(".oop").each(function(){
+                    if($(this).find("em").size()==0){
+                        $(this).width(max);
+                    }
+                });
+            }
+        });
+    </script>
+</block>
+

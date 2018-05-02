@@ -1,0 +1,77 @@
+<extend name="Public/base_choose"/>
+<block name="body">
+    <style>
+        #titlebar1{
+            background: #f8fafe;
+            border-bottom: 1px solid #e5e5e5;
+            min-height: 46px;
+            min-height: 20px\0;
+            padding: 0 10px ;
+            vertical-align: bottom;
+            position: relative;
+            margin-top: -20px;
+        }
+        .btn-group a{
+            margin-top: 5px;
+            border: 0;
+            color: #7865c7;
+            background-color:#f8fafe ;
+            text-decoration: none;
+        }
+       /* .heading .ben-group a:active,a:focus,a:hover{
+            color: #fff;
+            background-color: #7865c7;
+            border-color: #9e9e9e;
+            -webkit-box-shadow: 0 2px 1px rgba(0, 0, 0, .1);
+            box-shadow: 0 2px 1px rgba(0, 0, 0, .1);
+        }*/
+    </style>
+    <div class="outer">
+        <div id="titlebar1">
+            <div class="heading" style="text-align: center;line-height: 46px">
+                <strong style="font-size: 18px">
+                    {$list['title']} <span style="font-weight:normal; font-size: 12px;">{$list['nickname']} {$list['addtime']|time_format=###,'Y-m-d'}</span>
+                </strong>
+                <div class="btn-group" style="float:right;margin-right: -9px">
+                    <a href="javascript:history.go(-1);" class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                </div>
+            </div>
+
+        </div>
+        <div class="row-table">
+            <div class="col-main">
+                <div class="main" style="margin-left:0;padding: 10px">
+                        <div class="content">
+                            {$list['content']}
+                       </div>
+                    <fieldset>
+                    <legend>相关文档</legend>
+
+                    <if condition="$doc">
+                        <div class="content">
+                            <notempty name="doc">
+                                <volist name="doc" id="vo">
+                                    <span style="display:inline-block;padding:5px 5px">{$vo.name}</span>
+                                    <a href="{:U('doc/download?fid='.$vo['fileid'])}" target="_blank" title="点击下载文件">下载</a>
+                                    <a href="{:U('doc/view?fid='.$vo['fileid'])}" target="_blank"  title="{$vo.name} 预览">
+                                        <span class="download">预览</span></a></br>
+                                </volist>
+                                <else/>
+                            </notempty>
+                        </div>
+                    </if>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Notice/index')}");
+    </script>
+</block>

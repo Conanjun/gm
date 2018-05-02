@@ -1,0 +1,194 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<!--<script language="Javascript">browseType = "unclosed";</script>-->
+    <style>
+        #sonModule,#moduleBox>span>input,#moduleBox>table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table+.col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+        .img{
+            background-image:url('__THEME__/default/images/forbid.png');
+        }
+        .form-control{
+                height: 30px;
+                padding: 5px 10px;
+                font-size: 12px;
+                line-height: 1.5;
+                border-radius: 0;
+        }
+         th{
+             margin-left:-10px;
+         }
+    </style>
+    <!--<div id="featurebar">-->
+	    <!--<ul class="nav">-->
+			<!--<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>-->
+		<!--</ul>-->
+        <!--<include file="Public/search" />-->
+    <!--</div>-->
+    <form action="/index.php"  method='get' class="form-condensed" >
+        <input type="hidden" name="s" value="/Admin/Doc/index.html"/>
+    <table class="table-form mytable table" style="max-width: 1000px; margin: 0 auto;padding:10px;margin-top:-10px;margin-bottom:10px;border:none" >
+        <tr>
+            <th>项目名称</th>
+            <td style="padding:0px">
+
+                    <input type="text" name="name"  value="{$srname}" class="form-control" autocomplete="off" style="width: 120px;float: none;">
+
+            </td>
+            <th>项目经理</th>
+            <td style="padding:0px">
+
+                    <input type="text" name="pm"  value="{$srpm}" class="form-control" autocomplete="off" style="width: 120px;float: none">
+
+            </td>
+            <th>药品名称</th>
+            <td style="padding:0px">
+                    <input type="text" name="drug_name" id="signtime" value="{$srdrug_name}" class="form-control" autocomplete="off"
+                           style="width: 120px;float: none">
+            </td>
+             <th>服务类型</th>
+            <td style="padding:0px">
+                  <input type="text" name="type" id="signtime" value="{$srtype}" class="form-control" autocomplete="off" style="width: 120px;float: none">
+            </td>
+        <th>治疗领域</th>
+            <td style="padding:0px">
+                <div style="width: 120px;">
+								<select name="therapy_area" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="therapy_areas" id="vo">
+                                        <option value="{$vo.d_value}" <if condition="$srtherapy_area eq $vo['d_key']">selected</if>>{$vo.d_key}</option>
+									</volist>
+								</select>
+							</div>
+            </td>
+
+    <td><button type="button" id="btnsubmit" class="btn btn-primary">搜索</button>
+                <button type="button" class="btn btn-default" onclick="resetForm(this)">重置</button></td>
+
+        </tr>
+    </table>
+</form>
+
+
+<div class="data-table table-striped" id="projectTaskForm">
+	<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+		<thead>
+			<tr>
+				<th class="text-left" style="padding-left:10px;"><span class="sort" ectype="order_by" fieldname="name">项目</span></th>
+				<th width="80px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+				<th style="text-align:center" width="90px"><span class="sort" ectype="order_by" fieldname="progress">进度</span></th>
+                <foreach name="docTypes" item="docType">
+                    	<th class="text-center" width="70px">{$docType.name}</a></th>
+                </foreach>
+                <th class="text-center" width="60px" >操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<notempty name="projectList">
+			<volist name="projectList" id="vo">
+			<tr>
+                <td style="text-align:left;padding-left:10px;" ><a href="{:U('doc/attach?pid='.$vo['pid'])}"><if condition="$vo['shortsign']">{$vo.shortsign}-</if>{$vo.name}</a></td>
+				<td>{$vo.d_key}</td>
+				<td style="text-align:left"><if condition="$vo['progress']">
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['progress']/2}">
+						<else/>
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+					</if>
+					<small>{$vo.progress}%</small>
+                </td>
+				<foreach name="docTypes" key="k" item="docType">
+                    <td class="dt">
+					<foreach name="pdfs" item="pdf">
+						<if condition=" $vo['pid'] eq $pdf['pid'] and $docType['dtid'] eq $pdf['dtid']">
+                            <a href="{:U('doc/attach?dtid='.$docType['dtid'].'&pid='.$vo['pid'])}"> {$pdf['sum']}</a>
+						</if>
+					</foreach>
+						</td>
+				</foreach>
+                  <td>
+                      <a href="{:U('add?pid='.$vo['pid'])}">上传</a>
+                  </td>
+			</tr>
+			</volist>
+                <else />
+	        	<td colspan="{$num+4}" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+		</tbody>
+        <notempty name="projectList">
+		<tfoot>
+        <tr>
+				<td colspan="{$num+4}">
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+        </notempty>
+	</table>
+</div>
+
+    <script>
+        $(function(){
+        	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+        	
+            var content=$('.dt').size();
+               for(var i=0;i<content;i++){
+                   var vo=$('.dt').eq(i).text();
+                     if(vo<1){
+                         $('.dt').eq(i).html("<img src='__THEME__/default/images/forbid.png' width='10px'>");
+
+                     }
+
+                   }
+        })
+        function resetForm(obj) {
+           var drug_name=$("[name='drug_name']").val();
+           var name=$("[name='name']").val();
+           var pm=$("[name='pm']").val();
+           var type=$("[name='type']").val();
+           var therapy_area=$("select option:selected").val();
+           if(drug_name){
+               $("[name='drug_name']").val('');
+           }
+           if(name){
+               $("[name='name']").val('');
+           }
+            if(pm){
+               $("[name='pm']").val('');
+           }
+           if(type){
+               $("[name='type']").val('');
+           }
+           if(therapy_area){
+              $("select option:selected").val('');
+           }
+            $('form').submit();
+        }
+        $("form").keydown(function (e) {
+            var curKey = e.which;
+            if (curKey == 13) {
+                $("form").submit();
+            }
+        });
+      $('#btnsubmit').click(function(){
+          $('form').submit();
+      })
+    </script>
+</block>
+
+<block name="script">
+	<script>
+        //导航高亮
+        highlight_subnav("{:U('Doc/index')}");
+
+    </script>
+</block>

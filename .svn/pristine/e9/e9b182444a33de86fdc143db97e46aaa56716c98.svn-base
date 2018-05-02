@@ -1,0 +1,434 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+        #fourheading a {
+            color: #333;
+        }
+
+        #fourheading .active {
+            color: #7865c7;
+        }
+    </style>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle"/>
+
+        <div class="actions">
+            <div class="btn-group">
+                <if condition="cando('ProjectNew/updateBudget',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="javascript:;" class="btn icon-refresh" style="float: none" onclick='upBudget("{:U('updateBudget?id='.$p['pid'])}")' data-loading="稍候..." >从项目范围引入</a>
+                </if>
+                <if condition="cando('ProjectNew/budget',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('ProjectNew/budget?id='.$p['pid'])}" class="btn" style="float: none"><i class="icon-plus"></i>自定义</a>
+                </if>
+            </div>
+        </div>
+
+    </div>
+    <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;">
+            <div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+    <!-- 数据列表 -->
+    <div id="projectTaskForm">
+        <div class="fnavbox">
+            <div>
+                <include file="Public:newfourtitle"/>
+            </div>
+            <div class="actions">
+                <if condition="empty($cashs)">
+
+                    <div class="btn-group">
+                        项目成本预算需要依据项目范围、任务结构分解、工期进度计划制定。主要包括人力成本和费用预算成本，人力成本根据不同任务对应的角色单人成本和预估工时制定，由系统根据项目范围自动生成；费用预算成本依据公司财务报销系统中的费用类别分别进行预算。
+                    </div>
+                    <else/>
+
+                    <div class="btn-group">
+                        项目成本预算已完成，你可以点击 「编辑」，继续维护成本预算信息，也可以进行下一步，准备 「铁三角启动会」
+                    </div>
+                </if>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px">
+                </th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="pb.outitem">费用项目</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.price">单价</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.quantity">数量</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.budget">预算金额</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cost">发生金额</span></th>
+                <th r="1" width="70px"><span class="sort" ectype="order_by" fieldname="pb.b1">占比</span></th>
+                <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="pb.addtime">预算时间</span></th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="pb.explain">预算说明</span></th>
+                <th r="1" width="60px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <h2 style="font-size: 14px;margin-top:0;color: #21841d">费用预算</h2>
+            <notempty name="cashs">
+                <volist name="cashs" id="vo">
+                    <tr>
+                        <td r="1" class="cell-id">
+                            <!--<input class="ids" type="checkbox" name="id[]" value="{$vo['pbid']}"/>--></td>
+                        <td class="text-left">{$vo['outitem']}</td>
+                        <td>{$vo['price']|fomatprice}</td>
+                        <td>{$vo['quantity']}</td>
+                        <td class="text-right">{$vo['budget']|fomatprice}</td>
+                        <td class="text-right">
+                            <if condition="$vo['cost'] gt $vo['budget']">
+                                <span class='textr'>{$vo['cost']|fomatprice} </span>
+                                <else/>
+                                {$vo['cost']|fomatprice}
+                            </if>
+                        </td>
+                        <td>{$vo['bl']?$vo['bl']:0}%</td>
+                        <td>{$vo['addtime']|time_format}</td>
+                        <td class="text-left">{$vo['explain']}</td>
+                        <td><a href="{:U('bx_cost',array('pid'=>$vo['pid'],'id'=>$vo['outitem']))}"
+                               title="{$vo['outitem']}" data-width="1100" data-height="600" style="border-left:0px"
+                               class=" iframe">详情 </a></td>
+                    </tr>
+                </volist>
+                <else/>
+                <tr>
+                    <td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                </tr>
+            </notempty>
+            </tbody>
+            <notempty name="cashs">
+                <tfoot class="scrolled">
+                <tr>
+                    <td r="1" width="10px"></td>
+                    <td r="1" class="text-left"><span>合计</span></td>
+                    <td r="1" colspan="2"></td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$cashTotal.budget|fomatprice}</span>
+                    </td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500"> {$cashTotal.cost|fomatprice}</span>
+                    </td>
+                    <td r="1" colspan="4"></td>
+                </tr>
+                </tfoot>
+            </notempty>
+        </table>
+            <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th r="1" width="10px"></th>
+                    <th class="text-left"><span class="sort" ectype="order_by" fieldname="pb.outitem">费用项目</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.chours">预计工时</span></th>
+                    <th r="1" width="80px"><span class="sort" ectype="order_by" fieldname="pb.finishours">实际工时</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cbudget">预算金额</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cost">发生金额</span></th>
+                    <th r="1" width="70px"><span class="sort" ectype="order_by" fieldname="pb.b2">占比</span></th>
+                    <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="pb.addtime">预算时间</span></th>
+                    <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="pb.explain">预算说明</span></th>
+                    <th r="1" width="60px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <h2 style="font-size: 14px;margin-top:40px;color: #21841d">工时预算</h2>
+                <notempty name="inbudget.list">
+                    <volist name="inbudget.list" id="vo">
+                        <tr>
+                            <td r="1" class="cell-id">
+                                <!--<input class="ids" type="checkbox" name="id[]" value="{$vo['pbid']}"/>--></td>
+                            <td class="text-left">{$vo['outitem']}</td>
+                            <td class="text-right">{$vo['chours']?$vo['chours']:''}</td>
+                            <td class="text-right">{$vo['finishours']?$vo['finishours']:''}</td>
+                            <td class="text-right">{$vo['cbudget']|fomatprice2}</td>
+                            <td class="text-right">
+                                <if condition="$vo['cost'] gt $vo['cbudget']">
+                                    <span class='textr'>{$vo['cost']|fomatprice2} </span>
+                                    <else/>
+                                    {$vo['cost']|fomatprice2}
+                                </if>
+                            </td>
+                            <td>{$vo['b2']?$vo['b2']:0}%</td>
+                            <td>{$vo['addtime']|time_format}</td>
+                            <td>{$vo['explain']} </td>
+                            <td>
+                                <if condition="$vo['type'] == '人力成本' && $vo['outitem'] == '项目质量'">
+                                    <a href="{:U('bug_cost',array('pid'=>$vo['pid']))}" style="border-left:0px"
+                                       class=" iframe" data-width="1100" data-height="600" title="{$vo['outitem']}">详情</a>
+                                    <else/>
+                                    <a href="{:U('human_cost',array('pid'=>$vo['pid'],'id'=>$vo['outid'],'type'=>$vo['type1']))}"
+                                       style="border-left:0px" class=" iframe" data-width="1100" data-height="600"
+                                       title="{$vo['outitem']}">详情</a>
+                                </if>
+                            </td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr>
+                        <td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                    </tr>
+                </notempty>
+
+                </tbody>
+                <notempty name="inbudget.list">
+                    <tfoot class="scrolled">
+                    <tr>
+                        <td r="1" width="10px"></td>
+                        <td r="1" class="text-left"><span>合计</span></td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$inbudget.total.chours}h</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$inbudget.total.finishours}h</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$inbudget.total.cbudget|fomatprice2}</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$inbudget.total.cost|fomatprice2}</span>
+                        </td>
+                        <td r="1" colspan="4"></td>
+                    </tr>
+                    </tfoot>
+                </notempty>
+            </table>
+       <!-- <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px"></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="pb.outitem">费用项目</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.chours">预计工时</span></th>
+                <th r="1" width="80px"><span class="sort" ectype="order_by" fieldname="pb.finishours">实际工时</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cbudget">预算金额</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cost">发生金额</span></th>
+                <th r="1" width="50px"><span class="sort" ectype="order_by" fieldname="pb.b2">占比</span></th>
+                <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="pb.addtime">预算时间</span></th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="pb.explain">预算说明</span></th>
+                <th r="1" width="60px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <h2 style="font-size: 14px;margin-top:40px;color: #21841d">预算外人力成本</h2>
+            <notempty name="offbudget.list">
+                <volist name="offbudget.list" id="vo">
+                    <tr>
+                        <td r="1" class="cell-id">
+                            &lt;!&ndash;<input class="ids" type="checkbox" name="id[]" value="{$vo['pbid']}"/>&ndash;&gt;</td>
+                        <td class="text-left">{$vo['outitem']}</td>
+                        <td class="text-right">{$vo['chours']?$vo['chours']:''}</td>
+                        <td class="text-right">{$vo['finishours']?$vo['finishours']:''}</td>
+                        <td class="text-right">{$vo['cbudget']|fomatprice2}</td>
+                        <td class="text-right">
+                            <if condition="$vo['cost'] gt $vo['cbudget']">
+                                <span class='textr'>{$vo['cost']|fomatprice2} </span>
+                                <else/>
+                                {$vo['cost']|fomatprice2}
+                            </if>
+                        </td>
+                        <td>{$vo['b2']?$vo['b2']:0}%</td>
+                        <td>{$vo['addtime']|time_format}</td>
+                        <td>{$vo['explain']}</td>
+                        <td>
+                            <if condition="$vo['type'] == '人力成本' && $vo['outitem'] == '项目质量'">
+                                <a href="{:U('bug_cost',array('pid'=>$vo['pid']))}" style="border-left:0px"
+                                   class=" iframe" data-width="1100" data-height="600" title="{$vo['outitem']}">详情</a>
+                                <else/>
+                                <a href="{:U('human_cost',array('pid'=>$vo['pid'],'id'=>$vo['outid'],'type'=>$vo['type1']))}"
+                                   style="border-left:0px" class=" iframe" data-width="1100" data-height="600"
+                                   title="{$vo['outitem']}">详情</a>
+                            </if>
+                        </td>
+                    </tr>
+                </volist>
+                <else/>
+                <tr>
+                    <td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                </tr>
+            </notempty>
+
+            </tbody>
+            <notempty name="offbudget.list">
+                <tfoot class="scrolled">
+                <tr>
+                    <td r="1" width="10px"></td>
+                    <td r="1" class="text-left"><span>合计</span></td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$offbudget.total.chours}h</span>
+                    </td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$offbudget.total.finishours}h</span>
+                    </td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$offbudget.total.cbudget|fomatprice2}</span>
+                    </td>
+                    <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$offbudget.total.cost|fomatprice2}</span>
+                    </td>
+                    <td r="1" colspan="4"></td>
+                </tr>
+                </tfoot>
+            </notempty>
+        </table>-->
+       <!--     <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th r="1" width="10px"></th>
+                    <th class="text-left"><span class="sort" ectype="order_by" fieldname="pb.outitem">费用项目</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.chours">预计工时</span></th>
+                    <th r="1" width="80px"><span class="sort" ectype="order_by" fieldname="pb.finishours">实际工时</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cbudget">预算金额</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cost">发生金额</span></th>
+                    <th r="1" width="50px"><span class="sort" ectype="order_by" fieldname="pb.b2">占比</span></th>
+                    <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="pb.addtime">预算时间</span></th>
+                    <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="pb.explain">预算说明</span></th>
+                    <th r="1" width="60px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <h2 style="font-size: 14px;margin-top:40px;color: #21841d">变更人力成本</h2>
+                <notempty name="chbudget.list">
+                    <volist name="chbudget.list" id="vo">
+                        <tr>
+                            <td r="1" class="cell-id">
+                                &lt;!&ndash;<input class="ids" type="checkbox" name="id[]" value="{$vo['pbid']}"/>&ndash;&gt;</td>
+                            <td class="text-left">{$vo['outitem']}</td>
+                            <td class="text-right">{$vo['chours']?$vo['chours']:''}</td>
+                            <td class="text-right">{$vo['finishours']?$vo['finishours']:''}</td>
+                            <td class="text-right">{$vo['cbudget']|fomatprice2}</td>
+                            <td class="text-right">
+                                <if condition="$vo['cost'] gt $vo['cbudget']">
+                                    <span class='textr'>{$vo['cost']|fomatprice2} </span>
+                                    <else/>
+                                    {$vo['cost']|fomatprice2}
+                                </if>
+                            </td>
+                            <td>{$vo['b2']?$vo['b2']:0}%</td>
+                            <td>{$vo['addtime']|time_format}</td>
+                            <td>{$vo['explain']}</td>
+                            <td>
+                                <if condition="$vo['type'] == '人力成本' && $vo['outitem'] == '项目质量'">
+                                    <a href="{:U('bug_cost',array('pid'=>$vo['pid']))}" style="border-left:0px"
+                                       class=" iframe" data-width="1100" data-height="600" title="{$vo['outitem']}">详情</a>
+                                    <else/>
+                                    <a href="{:U('human_cost',array('pid'=>$vo['pid'],'id'=>$vo['outid'],'type'=>$vo['type1']))}"
+                                       style="border-left:0px" class=" iframe" data-width="1100" data-height="600"
+                                       title="{$vo['outitem']}">详情</a>
+                                </if>
+                            </td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr>
+                        <td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                    </tr>
+                </notempty>
+
+                </tbody>
+                <notempty name="chbudget.list">
+                    <tfoot class="scrolled">
+                    <tr>
+                        <td r="1" width="10px"></td>
+                        <td r="1" class="text-left"><span>合计</span></td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$chbudget.total.chours}h</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$chbudget.total.finishours}h</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$chbudget.total.cbudget|fomatprice2}</span>
+                        </td>
+                        <td r="1" colspan="1" class="text-right"><span style="font-size: 16px;color: #FF4500">{$chbudget.total.cost|fomatprice2}</span>
+                        </td>
+                        <td r="1" colspan="4"></td>
+                    </tr>
+                    </tfoot>
+                </notempty>
+            </table>-->
+        <div style="margin-top:10px;line-height: 27px;margin-right:10px;font-size:14px;font-weight:bold;">
+            <span style="font-size: 14px;margin-top:40px;color: #21841d">总预算: </span><span style="font-size: 18px;color: #FF4500;">{$total|fomatprice}</span>
+            <div>
+            <span style="font-size: 14px;margin-top:40px;color: #21841d">总发生: </span><span style="font-size: 18px;color: #FF4500;">{$costtotal|fomatprice}</span>
+            </div>
+        </div>
+        <div style="clear:both"></div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+
+
+        // 更新预算 : LGW
+        function upBudget(url) {
+            if (confirm("确定要从项目范围引入吗？")) {
+                $("#loadertip").show();
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            window.location.href = location.href;
+                        } else {
+                            alert(response.msg);
+                            $("#loadertip").hide();
+                        }
+                    }
+                });
+            }
+        }
+
+        var ajaxurl = "{:U('Offer/ajax_col')}";
+
+        function resizetable() {
+            var w = $(window).width();
+            if (w < 1400) {
+                $("#taskList").find("th[r!=1]").hide();
+                $("#taskList").find("td[r!=1]").hide();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th[r=1]").size());
+            } else {
+                $("#taskList").find("th[r!=1]").show();
+                $("#taskList").find("td[r!=1]").show();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th").size());
+            }
+        }
+
+        $(function () {
+            setTimeout(function () {
+                //fixedTfootAction('#projectTaskForm')
+            }, 100);
+            setTimeout(function () {
+                //fixedTheadOfList('#taskList')
+            }, 100);
+
+            //resizetable();
+
+            $(window).resize(function () {
+                //resizetable();
+            });
+
+
+            if ($(".oop").size() == 1) {
+                $(".oop").width("40px");
+            } else {
+                $(".oop").each(function () {
+                    if ($(this).find("em").size() == 0) {
+                        $(this).width("80px");
+                    }
+                });
+            }
+        });
+    </script>
+</block>

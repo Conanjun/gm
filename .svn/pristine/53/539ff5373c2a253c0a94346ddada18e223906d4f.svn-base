@@ -1,0 +1,389 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: huajie <banhuajie@163.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+use Admin\Model\AuthGroupModel;
+
+/**
+ * 文档基础模型
+ */
+class DocModel extends Model
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function searchPersonProject($uid, $filter, $wheres, $act)
+    {
+        $project = M('project');
+        //uid查找project经理人和项目添加人和task任务执派人和takepart参与人所相关的项目
+        $where = "( pmuid ={$uid} or uid ={$uid}  or  exists(select pid from ot_task t  where t.pid=p.pid and  t.assigneduid={$uid}) or exists(select pid from ot_takepart tp  where tp.pid=p.pid  and tp.uid = {$uid}) ) and p.del=0 and p.state !=-1";
+        if ($act) {
+            $where = $wheres['_string'] . ' and ' . $where;
+            $res = $project->alias('p')->field("pid")
+                ->where($where)
+                ->select();
+        } else {
+            $res = $project->alias('p')->field("pid")
+                ->where($where)
+                ->select();
+        }
+        $pid = "";
+        $length = count($res);
+        foreach ($res as $k => $vo) {
+            $pid .= $vo['pid'];
+            if ($k < $length - 1) {
+                $pid .= ',';
+            }
+        }
+        if ($filter['sort'] && $filter['order']) {
+            $order = 'p.' . $filter["sort"] . " " . $filter["order"];
+        } else {
+            $order = 'p.pid desc';
+        }
+        $page = new \Think\Page($project->alias('p')->where("pid  in (" . $pid . ")")->count(), 20);
+        $list = $project->field('p.pid,p.name,p.progress,d.d_key,c.shortsign')
+            ->alias('p')
+            ->join("ot_customer c on p.cid=c.cid", 'left')
+            ->join('ot_dictionary d on p.state=d.d_value and d.d_code=\'project_state\'', 'left')
+            ->where("pid  in (" . $pid . ")")
+            ->order($order)->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        //通项目查找所包含的文档个数
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $res_dt = array();
+        foreach ($list as $each_list) {
+            $res_docTypes = M('doc')->field('d.pid,d.docid,dt.name')
+                ->alias('d')
+                ->join("ot_doc_type dt on d.dtid=dt.dtid", "left")
+                ->where(array('pid' => $each_list['pid']))
+                ->select();
+            foreach ($res_docTypes as $res_docType) {
+                array_push($res_dt, $res_docType);
+            }
+        }
+        $pds = array();
+        $pdfs = array();
+        //        通过文档id 查找所有附件
+        foreach ($res as $num) {
+            $sum = M('doc')->field("dtid,count('filed') as sum")->where(array('pid' => $num['pid']))->group('dtid')->select();
+
+            $pds['pid'] = $num['pid'];
+            foreach ($sum as $u) {
+                $pds['dtid'] = $u['dtid'];
+                $pds['sum'] = $u['sum'];
+                array_push($pdfs, $pds);
+            }
+        }
+        return array($list, $pdfs, $page,);
+    }
+
+    //文档详情
+    public function docDetail($id)
+    {
+        $docDetail = M('doc')->field('docid,title,uname,dtid,content,pid,addtime,edituid,editname,edittime')->where(array('docid' => $id))->select();
+        foreach ($docDetail as &$record) {
+            $record["addtime"] = date('Y-m-d H:i:s', $record["addtime"]);
+            $record["edittime"] = date('Y-m-d H:i:s', $record["edittime"]);
+        }
+        //       获取相关的附件id
+        $fileids = M('doc_file')->field('file_id')
+            ->where(array('docid' => $id))
+            ->select();
+        $length = count($fileids);
+        $attachId = "";
+        foreach ($fileids as $k => $fileid) {
+            $attachId .= $fileid['file_id'];
+            if ($k < $length - 1) {
+                $attachId .= ',';
+            }
+        }
+        //通过附件id获取附件
+        $attachFiles = M('file')
+            ->field('fileid,name,savepath,ext,size,addtime,uname')
+            ->where('fileid in (' . $attachId . ')')
+            ->where(array('delete' => 0))
+            ->select();
+        return array($docDetail, $attachFiles);
+    }
+
+    public function docTypes()
+    {
+        $result = M('doc_type')->field('dtid,name')->order('sort_order asc')->select();
+        return $result;
+    }
+
+    public function username($uid)
+    {
+        $res = M('ucenter_member')->field('username')->where(array('id' => $uid))->find();
+        return $res;
+    }
+
+    public function file_insert($fileList)
+    {
+        $result = M('file')->add($fileList);
+        return $result;
+    }
+
+    public function doc_insert($data)
+    {
+        $result = M('doc')->add($data);
+        return $result;
+    }
+
+    public function doc_file_insert($doc_file)
+    {
+        $result = M('doc_file')->add($doc_file);
+        return $result;
+    }
+
+    public function delete_doc($id)
+    {
+        $file_delete['delete'] = 1;
+        $res = M('file')->where(array('fileid' => $id))->save($file_delete);
+        //同步doc数据库表
+        if ($res) {
+            M('doc')->where(array('fileid' => $id))->delete();
+        }
+        return $res;
+
+    }
+
+    public function dcoType()
+    {
+        $result = M('doc_type')->field('dtid,name')->order('sort_order asc')->select();
+        return $result;
+    }
+
+    //查看项目信息
+    public function getProject($pid)
+    {
+        $res = M('project')->where(array('pid' => $pid))->find();
+        return $res;
+    }
+
+    public function deleteAttach($id)
+    {
+        $data['delete'] = 1;
+        $res = M('file')->where(array('fileid' => $id))->save($data);
+        return $res;
+    }
+
+    public function doc_update($docList, $docid)
+    {
+        $result = M('doc')->where(array('docid' => $docid))->save($docList);
+
+        return $result;
+    }
+
+    public function getAttachList($uid, $filter)
+    {
+        // $list,$fileList,$partProject
+        $result = $this->searchPersonAttach($uid, $filter);
+        $docIds = "";
+        $length = count($result[1]);
+        foreach ($result[1] as $k => $ids) {
+            $docIds .= $ids['docid'];
+            if ($k < $length - 1) {
+                $docIds .= ',';
+            }
+        }
+        //获取所有的附件判断是否有过滤和排序条件
+        $fileids = M('doc_file')->field('file_id')
+            ->where('docid in (' . $docIds . ')')
+            ->select();
+        $length = count($fileids);
+        $attachId = "";
+        foreach ($fileids as $k => $fileid) {
+            $attachId .= $fileid['file_id'];
+            if ($k < $length - 1) {
+                $attachId .= ',';
+            }
+        }
+        //通过附件id获取附件
+        //    var_dump($filter);
+        if (empty($filter['sort'])) {
+            $attachFiles = M('file')
+                ->field('fileid,name,savepath,ext,size,addtime,uname,views')
+                ->where('fileid in (' . $attachId . ')')
+                ->where(array('delete' => 0))
+                ->select();
+        } else {
+            $attachFiles = M('file')
+                ->field('fileid,name,savepath,ext,size,addtime,uname,views')
+                ->where('fileid in (' . $attachId . ')')
+                ->where(array('delete' => 0))
+                ->order($filter['sort'] . " " . $filter['order'])
+                ->select();
+        }
+
+        foreach ($attachFiles as &$attachFile) {
+            $attachFile['addtime'] = date('Y-m-d H:i:s', $attachFile['addtime']);
+            $attachFile['size'] = round($attachFile['size'] / 1024 / 1024, 3);
+        }
+        return $attachFiles;
+    }
+
+    //查询个人附件列表
+    public function searchPersonAttach($uid, $filter, $wheres, $map)
+    {
+        // 上传时间(文档库查询上传时间) : LGW
+        $day = strpos($wheres['_string'], 'daysss');
+        if ($day) {
+            $uptime = $wheres['uptime'];
+            $wheres['_string'] = str_replace('daysss', '', $wheres['_string']);
+        }
+
+        $project = M('project');
+        //      uid查找project经理人和项目添加人和task任务执派人和takepart参与人所相关的项目
+        $where = "( pmuid ={$uid} or uid = {$uid} or exists(select pid from ot_task t where t.pid=p.pid and t.assigneduid={$uid}) or exists(select pid from ot_takepart tp  where tp.pid=p.pid and tp.uid = {$uid})) and p.del=0 and p.state !=-1";
+        $res = $project->alias('p')->field("pid")
+            ->where($where)
+            ->select();
+        $pid = "";
+        $length = count($res);
+        foreach ($res as $k => $vo) {
+            $pid .= $vo['pid'];
+            if ($k < $length - 1) {
+                $pid .= ',';
+            }
+        }
+        $list = $project->field('p.pid,p.name,p.progress,d.d_key,c.shortsign')
+            ->alias('p')
+            ->join("ot_customer c on p.cid=c.cid", 'left')
+            ->join('ot_dictionary d on p.state=d.d_value and d.d_code=\'project_state\'', 'left')
+            ->where("pid  in (" . $pid . ") and p.del=0 and p.state !=-1")
+            ->order('p.pid desc')
+            ->select();
+        //查附件
+        //排序
+        if (empty($filter['sort'])) {
+            $filter['sort'] = "d.addtime";
+        }
+        if (!in_array($filter['order'], array('asc', 'desc'))) {
+            $filter['order'] = 'desc';
+        }
+        //搜索
+        if (strlen($wheres['_string']) > 25) {
+            $where = $wheres['_string'];
+        } else {
+            $where = '(1=1)';
+        }
+        $where .= " and exists(select fileid  from ot_file f where f.delete=0)";
+        //按项目
+        if ($filter['pid']) {
+            $where .= " and d.pid=" . $filter['pid'];
+        } else {
+            $where .= " and d.pid in (" . $pid . ")";
+        }
+        //按类型进行筛选
+        if ($map['dtid']) {
+            $where .= " and d.dtid=" . $map['dtid'];
+        }
+        //上传筛选
+        if ($filter['uploade']) {
+            $where .= " and d.uid=$uid";
+        }
+        $page = new \Think\Page(M('doc')->alias('d')->where($where)->count(), 20);
+
+        $fileList = M('doc')->field('FROM_UNIXTIME(d.addtime,"%Y%m%d") as uptime,d.docid,d.note,d.url,d.urlname,d.uname,d.uid,d.addtime,d.dtid,dt.name as type,d.fileid,f.savepath,f.name,f.ext,f.size,f.views,t.title,d.tid')
+            ->alias('d')
+            ->join('ot_doc_type dt on dt.dtid=d.dtid')
+            ->join('ot_file f on f.fileid=d.fileid', 'left')
+            ->join('ot_task t on t.tid=d.tid', 'left')
+            ->where($where)
+            ->order($filter['sort'] . " " . $filter['order'])
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($fileList as $k => &$file) {
+            $file['addtime'] = date('y-m-d H:i', $file['addtime']);
+            $file['size'] = ceil($file['size'] / 1024);
+        }
+
+        /************************* 上传时间 start ************************/
+        $fileData = [];
+        if ($uptime) {
+            foreach ($fileList as $k => $v) {
+                if ($uptime == $v['uptime']) {
+                    $fileData[$k] = $v;
+                }
+            }
+            $fileList = $fileData;
+        }
+        /************************* 上传时间 end ************************/
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+
+        return array($list, $fileList, $page);
+    }
+
+    /**
+     * 通过项目id查找项目文档 并按照类型分组
+     *
+     * @param $pid
+     *
+     * @return array
+     */
+
+    public function getDocByPid($pid)
+    {
+        $map = [];
+        $map['d.pid'] = $pid;
+        $list = $this->alias('d')
+            ->field('count(*) as num,t.name,t.dtid')
+            ->join('ot_doc_type t on t.dtid=d.dtid', 'LEFT')
+            ->where($map)
+            ->group('t.dtid')
+            ->select();
+        $array = [];
+        foreach ($list as $k => $v) {
+            $array[$v['name']] = $v;
+        }
+
+        // 全部的文档类型
+        $type = M('doc_type')
+            ->field('dtid,name,0 as num')
+            ->select();
+
+        $types = [];
+        foreach ($type as $key => $val) {
+            $types[$val['name']] = $val;
+        }
+
+        $list = array_merge($types,$array);
+        return $list;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

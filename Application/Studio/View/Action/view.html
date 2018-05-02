@@ -1,0 +1,19 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <!-- 数据列表 -->
+
+	<div class="outer" style="min-height: 500px;">
+		<div class="data-table table-striped" style="padding: 20px;">
+			<div>
+				{$log.addtime|time_format}, 由 {$log.uname}{$log.act_name}
+			</div>
+			<notempty name="hs">
+				<volist name="hs" id="h">
+					修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为 "{$h.newdata}"。<br>
+				</volist>
+			</notempty>
+			<div>{$log.comment}</div>
+		</div>
+	</div>
+</block>
+

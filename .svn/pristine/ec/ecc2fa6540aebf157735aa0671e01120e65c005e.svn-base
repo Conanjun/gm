@@ -1,0 +1,72 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Dentist\Controller;
+
+
+
+/**
+ * 工作室控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class IndexController extends AdminController
+{
+
+	private $meta_title;
+
+	/**
+	 * 工作室首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index()
+	{
+		if (UID) {
+			$this->meta_title = '首页';
+			$uid = UID;
+			//工作室消息
+			$count = M('Message')->where('toid='.$uid)->count();
+			$msg_list = M('Message') ->alias('me')
+			->join('left join ot_member m on m.uid = me.fromid')
+			->field('me.* ,m.nickname')
+			->where('me.toid='.$uid)
+			->order('me.msg_id desc')
+			->limit(3)->select();
+			$this->assign('count',  $count);
+            $this->assign('list_s',  $msg_list);
+            $this->display();
+		} else {
+			$this->redirect('Public/login');
+		}
+	}
+
+	public function changelang(){
+		echo '0';
+	}
+
+	/**
+	 * Delete block
+	 *
+	 * @param int $id
+	 */
+	public function delete($id = 0)
+	{
+		$map = [];
+		$map ['bid'] = $id;
+		$map['uid'] = UID;
+		if (M('Block')->where($map)->delete() !== false) {
+			$this->ajaxReturn(array('result' => 'success'));
+		} else {
+			$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+		};
+	}
+
+
+}

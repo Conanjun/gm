@@ -1,0 +1,57 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class OfferModel extends Model
+{
+    protected $pk = 'oid';
+
+    /**
+     * 通过主键获取报价单: LGW
+     *
+     * @param $id
+     *
+     * @return mixed
+     */
+    public function getQuotation($id)
+    {
+        $map['of.oid'] = $id;
+        // 找最大的版本号
+        $version = M('Offer_version')
+            ->alias('v')
+            ->field('max(v.version) as version')
+            ->where("v.oid = $id")
+            ->find();
+
+        $map['v.version'] = $version['version'];
+        $parent = $this->alias('of')
+            ->field('of.chance as opportunity_id,of.code as offer_no,of.cid as customer_id,of.amount,v.version,f.savepath,
+            of.addtime as created,of.uid')
+            ->join('ot_offer_version v on of.oid=v.oid', 'LEFT')
+            ->join('ot_file f on v.file_id=f.fileid', 'LEFT')
+            ->where($map)
+            ->find();
+
+        $parent['email'] = get_email($parent['uid']);
+        $parent['attachment'] = C('PDF_PATH') . substr($parent['savepath'], 1);
+        $parent['amount'] = (float)$parent['amount'];
+        $parent['created'] = date('Y-m-d', $parent['created']);
+        unset($parent['uid']);   // 不参与签名
+        unset($parent['savepath']);  // 不参与签名
+        return $parent;
+    }
+}

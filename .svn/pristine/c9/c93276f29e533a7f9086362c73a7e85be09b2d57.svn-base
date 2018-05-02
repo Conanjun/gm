@@ -1,0 +1,34 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: huajie <banhuajie@163.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+use Think\Model;
+
+/**
+ * 行为模型
+ * @author huajie <banhuajie@163.com>
+ */
+
+class LogModel extends Model {
+
+    /* 自动验证规则 */
+    protected $_validate = array(
+        array('action', 'require', 'log动作不能为空', self::MUST_VALIDATE, 'regex', self::MODEL_BOTH),
+        array('action', '1,20', 'log动作不能超过20个字符', self::MUST_VALIDATE, 'length', self::MODEL_BOTH),
+        array('comment', 'require', '内容备注不能为空', self::MUST_VALIDATE, 'regex', self::MODEL_BOTH),
+        array('comment', '1,200', '内容备注不能超过200个字符', self::MUST_VALIDATE, 'length', self::MODEL_BOTH),
+    );
+
+    /* 自动完成规则 */
+    protected $_auto = array(
+        /*array('status', 1, self::MODEL_INSERT, 'string'),
+        array('update_time', 'time', self::MODEL_BOTH, 'function'),*/
+    );
+
+}

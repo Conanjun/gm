@@ -1,0 +1,101 @@
+<extend name="Public/base" />
+<block name="btnarea">
+    <li class="right"><a href="{:U('Customer/add')}"><i
+		class="icon-plus"></i>添加客户</a></li>
+</block>
+<block name="body">
+	<include file="Public/search" />
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+	<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr>
+		<th width="30px"></th>
+            <th style="text-align: left" ><span class="sort" ectype="order_by" fieldname="name">客户名称</span></th>
+            <th width="80px" ><span class="sort" ectype="order_by" fieldname="shortsign">简称</span></th>
+            <th width="80px" ><span class="sort" ectype="order_by" fieldname="type">类型</span></th>
+		<th width="70px" ><span class="sort" ectype="order_by" fieldname="employees">员工数</span></th>
+		<th width="70px"><span class="sort" ectype="order_by" fieldname="contact">联系人</span></th>
+            <th width="100px" ><span class="sort" ectype="order_by" fieldname="phone">电话</span></th>
+			<th style="text-align: left" ><span class="sort" ectype="order_by" fieldname="address">地址</span></th>
+		<th width="100px">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td class="cell-id"><input class="ids" type="checkbox" name="id[]"
+					value="{$vo.cid}" />
+				</td>
+			<td style="text-align: left">{$vo.name} </td>
+			<td title="{$vo.shortsign}">{$vo.shortsign} </td>
+			<td title="{$vo.type}">{$vo.type}</td>
+			<td >{$vo.employees}</td>
+			<td title="{$vo.contact}">{$vo.contact}</td>
+			<td>{$vo.phone}
+			</td>
+			<td class="text-left">{$vo.address} </td>
+			<td>
+				<a href="{:U('Customer/edit?id='.$vo['cid'])}"
+						>编辑</a>
+				<a href="{:U('Customer/deletedata?id='.$vo['cid'])}"
+					class="confirm ajax-get">删除</a>
+                </td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="9" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+        <notempty name="_list">
+	<tfoot>
+			<tr>
+				<td colspan='9'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+	            <button class="btn btn-default ajax-post confirm"
+							url="{:U('Customer/deletedata')}"
+							target-form="ids">删 除</button>
+						
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+        </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Customer/index')}");
+	</script>
+</block>

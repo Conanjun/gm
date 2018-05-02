@@ -1,0 +1,96 @@
+<extend name="Public/base" />
+
+<block name="body">
+    <script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+        <script src='__JSNEW__/htmleditor/ueditor.config.js' type='text/javascript'></script>
+    <script src='__JSNEW__/htmleditor/ueditor.all.min.js' type='text/javascript'></script>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <script>
+$(function(){
+
+      $("[name='f']").change(function(){
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).parent().next().removeClass("error");
+                }
+            });
+   // $('form').validate({
+//	    errorPlacement: function (error, element) {
+////               $(element).addClass('blur');
+////               $(element).css({'border':"1px solid red"});
+//	           $(element).addClass('error');
+//	           $(element).removeClass('ffocus');
+//
+//	    },
+//	    onkeyup: false,
+//	    rules: {
+//	    	f: {
+//	            required: true
+//	        }
+//	    },
+//	    messages: {
+//	    	f: {
+//	    		required : '请选择上传文件'
+//	        }
+//	    }
+//	});
+});
+
+</script>
+<div id="titlebar">
+		<div class="heading">
+			<span class="prefix"><i class="icon-user"></i> </span> <strong><small
+				class="text-muted"><i class="icon-plus"></i> </small>从Excel导入数据到人员</strong>
+				<div class="actions">
+				<div class="btn-group"></div>
+				<a href="javascript:history.go(-1);"  class="btn" title="返回" ><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+			</div>
+		</div>
+	</div>
+	
+   
+		
+	
+		 <form method="post" action="{:U('userimport')}" class="form-condensed" enctype="multipart/form-data">
+        <table align="center" class="table table-form mytable " style="border: 0">
+                <tbody>
+                <tr>
+                    <th class="w-90px">请选择文件</th>
+                    <td class="w-p25-f">
+                      <input  type="file" name="f" id="file_card" class="form-control" autocomplete="off" >
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <th class="w-90px"></th>
+                    <td>
+                    <a  href="/人员导入模版.xlsx"  target="_blank" style="color:#104E8B;">请下载模板文件参考导入</a>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <th></th>
+                    <td>
+                    <div class="rightdiv">
+                        <a href="javascript:history.go(-1);" class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                        <a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();"><i class="icon-save"></i> 提交</a></div>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+    </form>
+	
+</block>
+
+
+
+
+
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('User/index')}");
+    </script>
+</block>

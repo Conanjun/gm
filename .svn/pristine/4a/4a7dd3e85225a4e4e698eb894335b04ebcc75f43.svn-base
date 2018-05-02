@@ -1,0 +1,95 @@
+<script type="text/javascript" src="__STATIC__/jquery-2.0.3.min.js"></script>
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+<link rel="stylesheet" href="__THEME__/default/zh-cn.default.css"
+      type="text/css" >
+<script>
+    $(function(){
+    	$("#nr").focus();
+        $("#refuse").click(function(){
+            var type='refuse';
+            var id="{$id}";
+            var nr=$("#nr").val();
+            if(nr)
+            {
+            	 $.post("{:U('check1')}",{id:id,type:type,nr:nr},function(result){
+                    if(result.done)
+                    {
+                        window.parent.renovate();
+                    }
+                    else
+                    {
+                        alert(result.msg);
+                    }
+                },"json");
+            }
+            else
+            {
+                $("textarea").css("border-color","red");
+            }
+
+        });
+
+
+    });
+
+</script>
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+
+<style>
+.check_btn{border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    background-color:#009de6;color: #fff;width:100px;height:30px;
+    line-height: 30px;
+    font-size: 14px;
+    border: 0px;
+    cursor: pointer;
+    }
+    .jj{background: #666}
+    .check_btn:HOVER {
+	background: #ff4d13
+}
+.section_maeginstyle {
+    padding: 0;
+}
+.qqq {
+   color: #551a8b;
+       padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 0;
+    float: left;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+    background-color: #7865c7;
+    border-color: #8e5fe6;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+        user-select: none;
+    border: 1px solid transparent;
+        transition: all .5s cubic-bezier(.175, .885, .32, 1);
+        box-sizing: border-box;
+            text-decoration: none;
+    outline: 0;
+}
+</style>
+<center>
+<div style="padding: 15px;">
+<textarea placeholder="请填写审阅意见" style="width:100%;height:100px;border: 1px solid #ddd;padding: 5px;float: left;padding: 5px 10px;
+    font-size: 12px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;" id="nr"></textarea><br><br>
+    <div style="clear: both;"></div>
+<div style="height: 15px; margin-top:10px;float:right" class="form-condensed">
+<a id="refuse" href="javascript:;" class="btn btn-primary qqq" data-loading="稍候..."><i class="icon-project-start icon-play"></i>审阅</a>
+    </div>
+</div>
+</center>
+
+
+

@@ -1,0 +1,639 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src='__JSNEW__/htmleditor/ueditor.config.js' type='text/javascript'></script>
+	<script src='__JSNEW__/htmleditor/ueditor.all.min.js' type='text/javascript'></script>
+	<script>
+        $(document).ready(function () {
+            var pmuid =  $('#pmuid').val();
+            if(pmuid){
+                $.post("{:U('ProjectNew/getDept')}", {'uid':pmuid}, function(data){
+                        if(data.done){
+                            $("select[name='depts']").val(data.retval);
+                            $("select[name='depts']").trigger('chosen:updated');
+                        }
+                    },'jsonp'
+                );
+
+            }
+        });
+		$(function(){
+		    $('#pmuid').change(function(){
+		        var pmuid = $(this).val();
+		        if(pmuid){
+
+					$.post("{:U('ProjectNew/getDept')}", {'uid':pmuid}, function(data){
+								if(data.done){
+                                    $("select[name='depts']").val(data.retval);
+                                    $("select[name='depts']").trigger('chosen:updated');
+								}
+							},'jsonp'
+                        );
+
+				}
+			});
+			$("[name='oid']").change(function(){
+				var chance=$(this).find("option:selected").attr("chance");
+				if(chance!=undefined&&chance!=''){
+					$("[name='chance']").val(chance);
+				}
+			});
+			$("[name='pmuid']").change(function(){
+				var pm=$(this).find("option:selected").text();
+				if(pm!=undefined&&pm!=''){
+					$("[name='pm']").val(pm);
+				}
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+			});
+            $("[name='sale']").change(function(){
+                var pm=$(this).find("option:selected").text();
+                if(pm!=undefined&&pm!=''){
+                    $("[name='salename']").val(pm);
+                }
+            });
+            $("[name='type']").change(function(){
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+            });
+            $("[name='orgid']").change(function(){
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+            });
+			var time = "{$time}";
+			$('#pstime').datetimepicker({value:time,lang:'ch',timepicker:false,format:'Y/m/d'});
+			$('#petime').datetimepicker({value:'',lang:'ch',timepicker:false,format:'Y/m/d'});
+			$('#livetime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+
+			$("#pstime").blur(function(){
+				$('#pstime').datetimepicker('hide');
+			});
+			
+			$("#petime").blur(function(){
+				$('#petime').datetimepicker('hide');
+			});
+			
+			$("#livetime").blur(function(){
+				$('#livetime').datetimepicker('hide');
+			});
+			jQuery.validator.methods.compareDate = function(value, element, param) {
+				var startDate = jQuery(param).val();
+                if(startDate){
+                    var date1 = new Date(Date.parse(startDate.replace("-", "/")));
+                    var date2 = new Date(Date.parse(value.replace("-", "/")));
+                    return date1 <= date2;
+                }else{
+                    return true;
+                }
+
+            };
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    if($(element).css("display")=='none'){
+                        $(element).next('div.chosen-container').children().addClass("error");
+                    }
+                },
+                onkeyup: false,
+                rules: {
+                    name: {
+                        required: true,
+                    },
+                    type: {
+                        required: true
+                    },
+                    pmuid: {
+                        required: true
+                    },
+                    pstime: {
+                        required: true
+                    },
+                    petime: {
+                        required: true,
+                        compareDate: "#pstime"
+                    } ,
+                    money: {
+                        required: true,
+                    },
+					depts:{
+                        required: true
+					}
+                },
+                messages: {
+                    name: {
+                        required : '项目名称不能为空'
+                    },
+                    type: {
+                        required: '请选择项目类型'
+                    },
+                    pmuid: {
+                        required: '请选择项目经理'
+                    },
+                    pstime: {
+                        required: '计划开始时间不能为空'
+                    },
+                    petime: {
+                        required: '计划结束时间不能为空',
+                        compareDate: "结束时间必须大于开始时间"
+                    },
+                    money: {
+                        required: '金额不能为空',
+                    },
+                    depts: {
+                        required: '所属部门不能为空',
+                    }
+                }
+            });
+            var noResultsMatch       = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'556px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#contract, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+
+        
+            $("#offer_choose").change(function () {
+                var oid = $(this).val();
+                $.ajax({
+                    type: "POST",
+                    url: "{:U('get_offer')}",
+                    data:{oid:oid},
+                    dataType: "json",
+                    success: function(data){
+                       /* console.log(data);*/
+                        if(data.done){
+                            $('#cid').val(data.retval.cid);
+                            $('#name').val(data.retval.projectname);
+                            $("[name='cid']").trigger('chosen:updated');
+                            $('#pmuid').val(data.retval.pmid);
+                            $("input[name='pm']").val(data.retval.pm);
+                            $("[name='pmuid']").trigger('chosen:updated');
+                            if(data.retval.pstime=="-"){
+                            	data.retval.pstime="";
+                            }
+                            $("#pstime").val(data.retval.pstime);
+                            if(data.retval.petime=="-"){
+                            	data.retval.petime="";
+                            }
+                            $("#petime").val(data.retval.petime);
+                            $('#sale').val(data.retval.ownner_id);
+                            $("input[name='salename']").val(data.retval.ownner);
+                            $("[name='sale']").trigger('chosen:updated');
+                            $("input[name='money']").val(data.retval.amount);
+                            $("[name='adviser']").val(data.retval.adviserid);
+                            $("[name='adviser']").trigger('chosen:updated');
+                            $("input[name='drug_name']").val(data.retval.drug_name);
+                            ue1.setContent(data.retval.description);
+                            var str1=data.retval.therapy_area;
+                            if(str1){
+                                var arr1=str1.split(',');
+                                var optionss = $("#therapy_area").find("option");
+                                for(var i=0;i<arr1.length;i++){
+                                    for(var j=0;j<optionss.length;j++){
+                                        if( optionss.eq(j).val()==arr1[i]){
+                                            optionss.eq(j).attr("selected",'true');
+                                        }
+                                    }
+                                }
+                                $("#therapy_area").trigger('chosen:updated');
+							}else{
+                                var optionss = $("#therapy_area").find("option");
+								for(var j=0;j<optionss.length;j++){
+									optionss.eq(j).attr("selected", false);
+								}
+                                $("#therapy_area").trigger('chosen:updated');
+							}
+							if(data.retval.pmid){
+                                getDept(data.retval.pmid);
+							}
+                        }
+                    }
+                });
+            });
+		});
+		function getDept(pmuid){
+            if(pmuid){
+                var dept = $("select[name='depts']").val();
+                if(dept=='' || dept==undefined){
+                    $.post(
+                        "{:U('ProjectNew/getDept')}",
+                        {'uid':pmuid},
+                        function(data){
+                            if(data.done){
+                                $("select[name='depts']").val(data.retval);
+                                $("select[name='depts']").trigger('chosen:updated');
+                            }
+                        },'jsonp'
+                    );
+                }
+            }
+		}
+	</script>
+	<div class="container mw-1300px" id="projectTaskForm">
+		<div id="titlebar">
+			<div class="heading">
+				<span class="prefix"><i class="icon-user"></i> </span> <strong><small
+					class="text-muted"><i class="icon-plus"></i> </small> 创建项目</strong>
+			</div>
+		</div>
+		<form action="{:U('add')}" method="post" class="form-condensed mw-1300px" enctype="multipart/form-data">
+			<table align="center" class="table table-form mytable">
+				<tbody>
+				<tr>
+					<th width="80px">客户</th>
+					<td width="866px">
+						<div class="input-group">
+							<div style="width: 250px">
+								<select name="cid" class="form-control searchSelect chosen" id="cid">
+									<volist name="customer" id="vo">
+										<option value=""></option>
+										<option value="{$vo.cid}">{$vo.name}</option>
+									</volist>
+								</select>
+							</div>
+							<!--<span class="input-group-addon fix-border">合同号</span>
+							<div style="width:250px">
+								<select name="contract[]" id="contract" multiple="" class="form-control" data-placeholder="请选择..." style="display: none;">
+									<option value=""></option>
+									<volist name="contracts" id="vo">
+										<option value="{$vo.contract_no}" >{$vo.contract_no}</option>
+									</volist>
+								</select>
+							</div>-->
+							<span class="input-group-addon fix-border" style="padding:0 31px">报价单</span>
+							<div style="width: 208px">
+							<select name="oid" class="form-control searchSelect chosen" id="offer_choose">
+								<option value=""></option>
+								<volist name="offer" id="vo">
+									<option value="{$vo.oid}" chance="{$vo.chance}">{$vo.code}</option>
+								</volist>
+							</select>
+							</div>
+							<span class="input-group-addon fix-border" style="padding:0 10px">所属部门<span class="required"></span></span>
+							<div style="width:242px">
+								<select name="depts" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="dept" id="vo">
+										<option value="{$vo.did}">{$vo.title_show}</option>
+									</volist>
+								</select>
+							</div>
+						</div>
+					</td>
+					<td ></td>
+				</tr>
+                <tr>
+					<th width="80px">合同号</th>
+					<td>
+						<div class="input-group">
+							<div style="width:555px;">
+								<select name="contract[]" id="contract" multiple="" class="form-control" data-placeholder="请选择..." style="display: none;">
+									<option value=""></option>
+									<volist name="contracts" id="vo">
+										<option value="{$vo.contract_no}" >{$vo.contract_no}</option>
+									</volist>
+								</select>
+							</div>
+                            <span class="input-group-addon fix-border" style="padding:0 22px">版本</span>
+							<input type="text"  name="version"  value="" class="form-control" autocomplete="off" style="width:243px;float: none" placeholder="多个版本用逗号相隔">
+						</div>
+					</td>
+					<td ></td>
+				</tr>
+				<tr>
+					<th width="80px">项目名称 <span class="required"></span> </th>
+					<td width="866px">
+						<div class="input-group">
+							<input type="text" name="name" id="name" value="" class="form-control" autocomplete="off" style="width:250px;float: none" placeholder="项目名称">
+							<span class="input-group-addon fix-border" style="padding:0 31px">优先级</span>
+							<div style="width: 208px">
+								<select name="level" class="form-control searchSelect chosen">
+									<volist name="levels" id="vo">
+										<option value="{$vo.d_value}">{$vo.d_key}</option>
+									</volist>
+								</select>
+							</div>
+							<span class="input-group-addon fix-border" style="padding:0 10px">项目经理 <span class="required"></span></span>
+							<div style="width: 242px">
+								<input type="hidden" name="pm" value="{$uanme}">
+							<input type="hidden" name="salename" >
+							<select name="pmuid" class="form-control searchSelect chosen" id="pmuid">
+									<option value=""></option>
+									<volist name="pm" id="vo">
+										<option value="{$vo.uid}" <if condition="$vo['uid']==$uid">selected</if>>{$vo.nickname}</option>
+									</volist>
+								</select>
+								
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">顾问</th>
+					<td width="866px">
+						<div class="input-group">
+							<div style="width: 250px">
+								<select name="adviser"class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="advisers" id="vo">
+										<option value="{$vo.uid}">{$vo.nickname}</option>
+									</volist>
+								</select>
+								</div>
+							<span class="input-group-addon fix-border" style="padding:0 37px">客户经理</span>
+							<div style="width: 208px;">
+									<select name="sale" id="sale" class="form-control searchSelect chosen">
+										<option value=""></option>
+										<volist name="sales" id="vo">
+											<option value="{$vo.uid}">{$vo.nickname}</option>
+										</volist>
+									</select>
+							</div>
+                            <span class="input-group-addon fix-border" style="padding:0 10px">项目类型 <span class="required"></span></span>
+							<div style="width: 242px">
+								<select name="type" class="form-control searchSelect chosen ">
+									<volist name="types" id="vo">
+										<option value="{$vo.d_value}">{$vo.d_key}</option>
+									</volist>
+								</select>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">项目金额 <span class="required"></span></th>
+					<td width="866px">
+						<div class="input-group">
+							<input type="text" name="money"  class="form-control" autocomplete="off" style="width: 250px;float: none" placeholder="项目金额">
+							<span class="input-group-addon fix-border" style="padding: 0 13px">合同推广费用</span>
+							<input type="text"  name="promotion" id="promotion" value="" class="form-control" autocomplete="off" style="width:208px;float: none" placeholder="合同推广费用">
+                            <span class="input-group-addon fix-border" style="padding:0 10px">药品名称</span>
+							<input type="text"  name="drug_name"  value="" class="form-control" autocomplete="off" style="width:242px;float: none" placeholder="药品名称">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">计划开始 <span class="required"></span></th>
+					<td width="866px">
+						<div class="input-group">
+							<input type="text" name="pstime" id="pstime" value=""  class="form-control" autocomplete="off" style="width: 250px">
+							<span class="input-group-addon fix-border" style="padding: 0 13px">计划结束时间 <span class="required"></span></span>
+							<input type="text" name="petime" id="petime"  value="" class="form-control" autocomplete="off" style="width: 208px">
+							<span class="input-group-addon fix-border" style="padding:0 10px">上线时间</span>
+							<input type="text"  name="livetime" id="livetime" value="" class="form-control" autocomplete="off" style="width: 242px" >
+						</div>
+					</td>
+				</tr>
+                <tr>
+					<th width="100px">治疗领域(可多选)</th>
+					<td width="866px">
+							<div style="width:866px">
+								<select name="therapy_area[]"  id="therapy_area"  multiple=""  class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="therapy_areas" id="vo">
+										<option value="{$vo.d_value}">{$vo.d_key}</option>
+									</volist>
+								</select>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">项目背景说明</th>
+					<td class="" colspan="2">
+						<textarea id="description" name="description" style="width: 100%;height: 300px" ></textarea>
+						<script type="text/javascript">
+							//实例化编辑器
+							//建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+							var ue1 = UE.getEditor('description', {autoHeightEnabled: false});
+						</script>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">客户反馈</th>
+					<td class="" colspan="2">
+						<textarea id="feedback" name="feedback" style="width: 100%;height: 100px"></textarea>
+						<script type="text/javascript">
+							//实例化编辑器
+							//建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+							var ue = UE.getEditor('feedback', {autoHeightEnabled: false});
+						</script>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">风险</th>
+					<td class="" colspan="2">
+						<textarea id="risk" name="risk" style="width: 100%;height: 100px"></textarea>
+						<script type="text/javascript">
+							//实例化编辑器
+							//建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+							var ue = UE.getEditor('risk', {autoHeightEnabled: false});
+						</script>
+					</td>
+				</tr>
+				<tr id='fileBox'>
+					<th style="width: 80px">文档</th>
+					<td width="866px"><style>
+						.fileBox {margin-bottom: 10px; width: 100%}
+						table.fileBox td {padding: 0!important}
+						.fileBox .input-control > input[type='file'] {width: 100%; height: 100%; height: 26px; line-height: 26px; border: none; position: relative;}
+						.fileBox td .btn {border-radius: 0; border-left: none}
+						.file-wrapper.form-control {border-right: 0;border-left:0px}
+						.content input {border-left:0px}
+						.file-wrapper.form-control .fileControl {width:100%;}
+						@-moz-document url-prefix(){.file-wrapper.form-control .fileControl {margin-top:-3px;}}
+					</style>
+						<div id='fileform'>
+							<script language='Javascript'>dangerFiles = "php,php3,php4,phtml,php5,jsp,py,rb,asp,aspx,ashx,asa,cer,cdx,aspl,shtm,shtml,html,htm";</script>
+							<table class='fileBox' id='fileBox1'>
+								<tr>
+									<td style='width: 20%'>
+										<select name='dtid[]' class='form-control searchSelect'>
+											<volist name='doc_type' id='vo'>
+												<option value='{$vo.dtid}'>{$vo.name}</option>
+											</volist>
+										</select>
+									</td>
+									<td style='width: 30%'>
+										<div class='form-control file-wrapper'>
+											<input type='file' name='files[]' class='fileControl'  tabindex='-1' onchange='checkSizeAndType(this)'/>
+										</div>
+									</td>
+									<td class=''><input type='text' name='labels[]' class='form-control' placeholder='标题：' tabindex='-1' /></td>
+									<td class='content'><input type='text' name='contents[]' class='form-control' placeholder='内容：' tabindex='-1' /></td>
+									<td class='w-30px'><a href='javascript:void(0);' onclick='addFile(this)' class='btn btn-block'><i class='icon-plus'></i></a></td>
+									<td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)' class='btn btn-block'><i class='icon-remove'></i></a></td>
+								</tr>
+							</table>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				
+				</tbody>
+				
+				<tfoot>
+				<style>
+				.form-condensed .table-form>tfoot td>.btn {
+    margin-right: 0px;
+}
+.outer .table tfoot .btn {
+        padding: 5px 10px;
+    font-size: 12px;
+    line-height: 20px; 
+}
+.table-form>tfoot>tr>th,.table-form>tfoot>tr>td {
+    border-bottom: 0;
+}
+				</style>
+				<tr>
+					<th></th>
+					<td>
+						<a href="javascript:;"  class="btn btn-primary" onclick=" $('form').submit();" data-loading="稍候...">保存</a>
+						<a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+					</td>
+					<td></td>
+				</tr>
+				</tfoot>
+			</table>
+		</form>
+	</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+$(function(){
+	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+});
+	//导航高亮
+	highlight_subnav("{:U('ProjectNewFromMe/index')}");
+</script>
+	<script language='javascript'>
+		/**
+		 * Check file size and type.
+		 *
+		 * @param  obj $obj
+		 * @access public
+		 * @return void
+		 */
+		function checkSizeAndType(obj)
+		{
+			if(typeof($(obj)[0].files) != 'undefined')
+			{
+				var maxUploadInfo = '50M';
+				var sizeType = {'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024};
+				var unit = maxUploadInfo.replace(/\d+/, '');
+				var maxUploadSize = maxUploadInfo.replace(unit,'') * sizeType[unit];
+				var fileSize = 0;
+				$(obj).closest('#fileform').find(':file').each(function()
+				{
+					/* Check file type. */
+					fileName = $(this)[0].files[0].name;
+					dotPos   = fileName.lastIndexOf('.');
+					fileType = fileName.substring(dotPos + 1);
+					if((',' + dangerFiles + ',').indexOf((',' + fileType + ',')) != -1) alert(' 您选择的文件存在安全风险，系统将不予上传。');
+
+					if($(this).val()) fileSize += $(this)[0].files[0].size;
+				})
+				if(fileSize > maxUploadSize) alert(' 文件大小已经超过限制，可能不能成功上传！');//Check file size.
+			}
+		}
+
+		/**
+		 * Set the width of the file form.
+		 *
+		 * @param  float  $percent
+		 * @access public
+		 * @return void
+		 */
+		function setFileFormWidth(percent)
+		{
+			totalWidth = Math.round($('#fileform').parent().width() * percent);
+			titleWidth = totalWidth - $('.fileControl').width() - $('.fileLabel').width() - $('.icon').width();
+			if($.browser.mozilla) titleWidth  -= 8;
+			if(!$.browser.mozilla) titleWidth -= 12;
+			$('#fileform .text-3').css('width', titleWidth + 'px');
+		};
+
+		/**
+		 * Add a file input control.
+		 *
+		 * @param  object $clickedButton
+		 * @access public
+		 * @return void
+		 */
+		/*<td style='width: 20%'>
+				<select name='level' class='form-control searchSelect chosen' >
+				<option value=''></option>
+				<volist name='levels' id='vo'>
+				<option value='{$vo.d_value}'>{$vo.d_key}</option>
+		</volist>
+		</select>
+		</td>*/
+		function addFile(clickedButton)
+		{
+			fileRow = "  <table class='fileBox' id='fileBox$i'>\n    <tr>\n  " +
+					" <td style='width: 20%'>" +
+					" <select name='dtid[]' class='form-control searchSelect chosen'>" +
+					" <option value=''>请选择文档类型</option> <volist name='doc_type' id='vo'>" +
+					" <option value='{$vo.dtid}'>{$vo.name}</option> </volist>  </select>"  +
+					"</select> </td>  <td style='width: 30%'><div class='form-control file-wrapper'>" +
+				"<input type='file' name='files[]' class='fileControl'  tabindex='-1' onchange='checkSizeAndType(this)'\/><\/div><\/td>\n     " +
+				" <td class=''><input type='text' name='labels[]' class='form-control' placeholder='\u6807\u9898\uff1a' tabindex='-1' \/><\/td>\n  " +
+				"<td class='content'><input type='text' name='content[]' class='form-control' placeholder='\u5185\u5bb9\uff1a' tabindex='-1' /></td>\n " +
+				"  <td class='w-30px'><a href='javascript:void(0);' onclick='addFile(this)' class='btn btn-block'><i class='icon-plus'><\/i><\/a><\/td>\n  " +
+				"    <td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)' class='btn btn-block'><i class='icon-remove'><\/i><\/a><\/td>\n  " +
+				"  <\/tr>\n  <\/table>";
+			fileRow = fileRow.replace('$i', $('.fileID').size() + 1);
+
+			/* Get files and labels name.*/
+			filesName  = $(clickedButton).closest('tr').find('input[type="file"]').attr('name');
+			/*labelsName = $(clickedButton).closest('tr').find('input[type="text"]').attr('name');*/
+
+			/* Add file input control and set files and labels name in it.*/
+			$fileBox = $(clickedButton).closest('.fileBox').after(fileRow).next('.fileBox');
+			$fileBox.find('input[type="file"]').attr('name', filesName);
+		/*	$fileBox.find('input[type="text"]').attr('name', labelsName);*/
+
+			setFileFormWidth(0.9);
+			updateID();
+		}
+
+		/**
+		 * Delete a file input control.
+		 *
+		 * @param  object $clickedButton
+		 * @access public
+		 * @return void
+		 */
+		function delFile(clickedButton)
+		{
+			if($('.fileBox').size() == 1) return;
+			$(clickedButton).closest('.fileBox').remove();
+			updateID();
+		}
+
+		/**
+		 * Update the file id labels.
+		 *
+		 * @access public
+		 * @return void
+		 */
+		function updateID()
+		{
+			i = 1;
+			$('.fileID').each(function(){$(this).html(i ++)});
+		}
+
+		$(function(){setFileFormWidth(0.9)});
+	</script>
+</block>

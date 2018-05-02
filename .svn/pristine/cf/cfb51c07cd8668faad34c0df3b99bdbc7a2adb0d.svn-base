@@ -1,0 +1,323 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+    <script>
+        var grid = 0;
+        $(function(){
+            regionInit("region");
+            $("[id^='li_']").click(function(){
+                var h=$(this).attr("h");
+                var item=$(this).attr("item");
+                if(h==0){
+                    $(this).attr("h",1);
+                    $(this).addClass("lion");
+                    var item1=$(this).attr("item1");
+                    $("#ss_"+item).val(item1);
+                }else if(h==1){
+                    $(this).attr("h",0);
+                    $(this).removeClass("lion");
+                    $("#ss_"+item).val("");
+                }
+            });
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('STUDIO')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('Studio/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+                            <input type="hidden" name="id" value="{$list.stuid}">
+                            <input type="hidden" name="uid" value="{$user.uid}">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">LOGO</label>
+                                <div class="col-sm-10">
+                                    <div style="position: relative;width: 200px;display: inline-block;margin-right: 10px;" id="pic_div">
+                                        <div class="form-item" style="border: 0; line-height: 52px;">
+                                            <input type="hidden" id="logo" name="logo" value="{$list.logo}" />
+                                            <div class="fl ">
+                                                <script type="text/template" id="qq-template-validation-license">
+                                                    <div class="qq-uploader-selector">
+                                                        <ul class="qq-upload-list-selector" aria-live="polite"
+                                                            aria-relevant="additions removals">
+                                                            <li class="pli">
+                                                                <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale style="max-height: 120px">
+                                                                <div class="pdel">
+                                                                    <button type="button"
+                                                                            style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" id="license_cancel">
+                                                                    </button>
+                                                                </div>
+                                                            </li>
+                                                        </ul>
+                                                        <div class="qq-upload-button-selector qq-upload-button" id="license_button">
+                                                            <div></div>
+                                                        </div>
+
+                                                    </div>
+                                                </script>
+                                                <div id="fine-uploader-license">
+                                                </div>
+                                                <if condition="$list.logo neq ''">
+                                                    <div style="position: relative;display: inline-block;" id="ddiv">
+                                                        <img style="max-height: 120px"  src="{$list['logo']}">
+                                                        <div class="pdel"><button id="bdel" type="button" style="border:0;width:20px;height:20px;display:block; background: none;"></button></div>
+                                                    </div>
+                                                </if>
+                                                <script>
+                                                    $(function(){
+                                                        var t="{$list.logo}";
+                                                        if(t!=undefined&&t!=""){
+                                                            $("#license_button").hide();
+                                                            $("#bdel").click(function(){
+                                                                $("#license_button").show();
+                                                                $("#logo").val("");
+                                                                $("#ddiv").remove();
+                                                            });
+                                                        }
+                                                    });
+                                                    var restrictedUploader = new qq.FineUploader({
+                                                        element: document.getElementById("fine-uploader-license"),
+                                                        template: 'qq-template-validation-license',
+                                                        request: {
+                                                            endpoint: "{:U('Studio/uploadPic')}",
+                                                            method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                        },
+                                                        thumbnails: {
+                                                            placeholders: {
+                                                                waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                            }
+                                                        },
+                                                        validation: {
+                                                            allowedExtensions: ['jpeg', 'jpg', 'png','gif'],
+                                                            itemLimit: 1,
+                                                        },
+                                                        debug: false,
+                                                        callbacks: {
+                                                            onSubmit: function(id, fileName) {
+                                                                $("#license_button").hide();
+                                                                $("#fine-uploader-license").parent().parent().removeClass("form-item-error");
+                                                                $("#fine-uploader-license").parent().parent().addClass("form-item-valid");
+                                                                $("#license-error").text("");
+                                                                $("#license-error").attr("id","");
+                                                            },
+                                                            onCancel: function(id, fileName) {
+                                                                $("#license_button").show();
+                                                                $("#logo").val("");
+                                                            },
+                                                            onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                if(responseJSON.success){
+                                                                    $("#license_cancel").show();
+                                                                    $("#logo").val(responseJSON.uploadName);
+                                                                    console.log(responseJSON);
+                                                                }else{
+                                                                    $("#license_button").click();
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                </script>
+                                            </div>
+                                            <div class="cl"></div>
+                                            <i class="i-status"></i>
+                                        </div>
+                                        <div class="input-tip">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MNAME')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="nickname" id="nickname" id="nickname" value="{$user.nickname}" class="form-control" autocomplete="off" placeholder="请输入姓名,必填">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PASSWORD')}</label>
+                                <div class="col-sm-10">
+                                    <input type="password" name="password" id="password" value="{$user.password}" class="form-control" autocomplete="off" placeholder="密码长度应在6-20个字符之间">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('NAME')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="name" id="name" class="form-control" value="{$list['name']}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('URLPARAM')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="urlparam" class="form-control" value="{$list['urlparam']}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('TAG')}</label>
+                                <div class="col-sm-10">
+                                    <ul class="sitem" style="max-height:50px; padding: 0px 5px;margin-right: 10px;">
+                                        <volist name="tags" id="s">
+                                            <if condition="$s.h neq 0">
+                                                <li item="{$s.tag_id}" item1="{$s.tag_name}" h="1" id="li_{$s.tag_id}" class="lion">
+                                                    {$s.tag_name}
+                                                    <input type="hidden"  name="tags[{$s.tag_id}]" value="{$s.tag_name}" id="ss_{$s.tag_id}">
+                                                </li>
+                                            <else/>
+                                                <li item="{$s.tag_id}" item1="{$s.tag_name}" h="0" id="li_{$s.tag_id}">
+                                                    {$s.tag_name}
+                                                    <input type="hidden" name="tags[{$s.tag_id}]" id="ss_{$s.tag_id}">
+                                                </li>
+                                            </if>
+
+                                        </volist>
+                                        <div class="clear"></div>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('REGION')}</label>
+                                <div id="region" class="col-sm-10">
+                                    <input type="hidden" name="regionid"  class="mls_ids"/>
+                                    <input type="hidden" name="regionname"  class="mls_names" />
+
+                                    <select class="form-control m-b">
+                                        <option>{:L('PLEASE_SELECT')}</option>
+                                        <volist name="regions" id="vo">
+                                            <option value="{$vo.region_id}" <if condition="$vo.region_id eq $Think.get.regionid">selected</if>>{$vo.region_name}</option>
+                                        </volist>
+                                    </select>
+                                    <if condition="$list.regionid">
+                                        <script>
+                                            grid={$list.regionid};
+                                        </script>
+                                    </if>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('ADDR')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="addr" class="form-control" value="{$list['addr']}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('CONTACT')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="contact" class="form-control" value="{$list['contact']}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('TEL_PHONE')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="tel" class="form-control" value="{$list['tel']}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('STATE')}</label>
+                                <div class="col-sm-10">
+                                    <div class="i-checks"><label> <input type="radio" value="1" name="enabled" <if condition="$list.enabled eq 1">checked</if>> <i></i> {:L('OPEN')} </label></div>
+                                    <div class="i-checks"><label> <input type="radio" value="0" name="enabled" <if condition="$list.enabled eq 0">checked</if>> <i></i> {:L('CLOSE')} </label></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('LANGUAGE')}</label>
+                                <div class="col-sm-10">
+                                    <div class="i-checks"><label> <input type="radio" value="zh_cn" name="language" <if condition="$list.language eq 'zh_cn'">checked</if>> <i></i> {:L('ZH_CN')} </label></div>
+                                    <div class="i-checks"><label> <input type="radio"  value="en_us" name="language" <if condition="$list.language eq 'en_us'"> <i></i> {:L('EN_US')} </label></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('DESCRIPTION')}</label>
+                                <div class="col-sm-10">
+                                    <textarea id="description" name="description" style="width: 400px;height: 170px;" class="ckeditor">{$list.description}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-white" type="button">{:L('BACK')}</a>
+                                    <button class="btn btn-primary" type="submit">{:L('SAVE')}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

@@ -1,0 +1,928 @@
+<?php
+
+namespace Admin\Controller;
+
+/**
+ * 典型项目控制器
+ */
+class ProjectConfigController extends AdminController
+{
+    private $meta_title;
+
+    private function getpro($url, $module, $id = 0, $ppid = 0, $addurl, $delurl)
+    {
+        global $lastMenu;
+        if ($ppid) {
+            $where = 'pid = ' . $ppid . " ";
+        } else {
+            $where = 'parentid = ' . $id . " ";
+        }
+        $data = $module->where($where)->order('sort_order asc')->select();
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($ppid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            foreach ($data as $key => $value) {
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >" . $value ['name'] .
+                        " </a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='添加下级' href='" . U($addurl . $value['pid']) . "'><i class=\"icon-plus\"></i></a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='删除服务' href='" . U($delurl . $value['pid']) . "' class='confirm ajax-get'><i class=\"icon-remove\"></i></a>";
+                    $this->getpro($url, $module, $value ['pid'], 0, $addurl, $delurl);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">" . $value ['name'] . " </a> 
+					<a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='添加下级' href='" . U($addurl . $value['pid']) . "'><i class=\"icon-plus\"></i></a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='删除服务' href='" . U($delurl . $value['pid']) . "' class='confirm ajax-get'><i class=\"icon-remove\"></i></a></li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+
+    // 对树搜索 : LGW
+    public function ajaxSearch()
+    {
+        $keywords = I('get.val');
+        $ppid = I('get.ppid');
+        $method = I('get.method');
+        $url = "$method/index?ppid=$ppid&pid=";
+        $module = M('ProjectConfig');
+        $addUrl = "$method/indexadd?ppid=$ppid&pid=";
+        $delUrl = "$method/del?ppid=$ppid&id=";
+        if (!$keywords || $keywords == '') {
+            if ($method == 'Module' || $method == 'Service' || $method == 'OfferTools') {
+                $ProTree = $this->getpro1($url, $module, $ppid, 0);
+            } else {
+                $ProTree = $this->getpro($url, $module, $ppid, 0, $addUrl, $delUrl);
+            }
+
+        } else {
+            if ($method == 'Module' || $method == 'Service' || $method == 'OfferTools') {
+                $ProTree = $this->ajaxGetpro1($keywords, $url, $module, $ppid, 1);
+            } else {
+                $ProTree = $this->ajaxGetpro($keywords, $url, $module, $ppid, 1, $addUrl, $delUrl);
+            }
+
+        }
+
+        $ProTree = "<ul class='tree' id='myTree' >" . substr($ProTree, 4);
+
+        $this->json_result($ProTree, '', false);
+    }
+
+    private function getpro1($url, $module, $id = 0, $ppid = 0)
+    {
+        global $lastMenu;
+        if ($ppid) {
+            $where = 'pid = ' . $ppid . " ";
+        } else {
+            $where = 'parentid = ' . $id . " ";
+        }
+        $data = $module->where($where)->order('sort_order asc')->select();
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($ppid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            foreach ($data as $key => $value) {
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >" . $value ['name'] .
+                        " </a> ";
+                    $this->getpro($url, $module, $value ['pid'], 0);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">" . $value ['name'] . " </a></li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+
+    public function ajaxGetpro1($keywords, $url, $module, $ppid = 0, $pid = 0)
+    {
+        $c1 = "1=1";
+        $c2 = " and parentid =$ppid";
+        $c3 = " and (c.name like '%{$keywords}%' or EXISTS(SELECT 1 from ot_project_config sc where sc.path like CONCAT('%,',c.pid,',%')  and sc.name like '%{$keywords}%'))";
+        $condition['_string'] = "(($c1 $c2 $c3))";
+
+        $data = $module->alias('c')->where($condition)->order('sort_order desc')->select();
+
+        global $lastMenu;
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($pid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            foreach ($data as $key => $value) {
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >" . $value ['name'] .
+                        " </a>";
+                    $this->ajaxGetpro1($keywords, $url, $module, $value ['pid'], $value['parentid']);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">" . $value ['name'] . " </a> 
+					</li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+
+        return $lastMenu;
+    }
+
+    public function ajaxGetpro($keywords, $url, $module, $ppid = 0, $pid = 0, $addUrl, $delUrl)
+    {
+        $c1 = "1=1";
+        $c2 = " and parentid =$ppid";
+        $c3 = " and (c.name like '%{$keywords}%' or EXISTS(SELECT 1 from ot_project_config sc where sc.path like CONCAT('%,',c.pid,',%')  and sc.name like '%{$keywords}%'))";
+        $condition['_string'] = "(($c1 $c2 $c3))";
+
+        $data = $module->alias('c')->where($condition)->order('sort_order desc')->select();
+
+        global $lastMenu;
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($pid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            foreach ($data as $key => $value) {
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >" . $value ['name'] .
+                        " </a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='添加下级' href='" . U($addUrl . $value['pid']) . "'><i class=\"icon-plus\"></i></a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='删除服务' href='" . U($delUrl . $value['pid']) . "' class='confirm ajax-get'><i class=\"icon-remove\"></i></a>";
+                    $this->ajaxGetpro($keywords, $url, $module, $value ['pid'], $value['parentid'], $addUrl, $delUrl);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">" . $value ['name'] . " </a> 
+					<a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='添加下级' href='" . U($addUrl . $value['pid']) . "'><i class=\"icon-plus\"></i></a> <a style='font-size:10px;color: rgba(97, 9, 232, 0.4);' title='删除服务' href='" . U($delUrl . $value['pid']) . "' class='confirm ajax-get'><i class=\"icon-remove\"></i></a></li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+
+        return $lastMenu;
+    }
+
+    // 首页
+    public function index()
+    {
+	   /* if (I("get.exportexcel", "") == 1) {
+		    $projectc = M('ProjectConfig')
+			    ->alias('pc')
+			    ->field('GROUP_CONCAT(pc1.name order by pc1.grade) pname,pc.type,pc.name')
+			    ->join("ot_project_config pc1  on pc.path   like  CONCAT('%,',pc1.pid,',%') ","left")
+			    ->group('pc.pid')
+			    ->order('pname asc')
+			    ->select();
+		    $this->export($projectc);
+	    }*/
+    	
+
+        // 获取所有的项目
+        $ProjectConfig = M('ProjectConfig')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array(
+                'pid' => $pid
+            ))->find();
+            $this->assign('pname', $p ['name']);
+        }
+        $this->assign('ppid', $pid);
+        $pid1 = I('get.pid');
+        if (empty ($pid1)) {
+            $pid1 = $pid;
+        }
+        
+        
+        
+
+        // 获取项目树
+        $ProTree = $this->getpro('ProjectConfig/index?ppid=' . $pid . '&pid=', M('ProjectConfig'), $pid, 0, 'ProjectConfig/indexadd?ppid=' . $pid . '&pid=', 'ProjectConfig/del?ppid=' . $pid . '&id=');
+        $ProTree = "<ul class='tree tree-lines'>" . substr($ProTree, 4);
+        $this->assign('Project', $ProTree);
+        $this->assign('pid', $pid1);
+
+        // 父级项目
+        $prop = D('ProjectConfig')->where('grade<5 and enabled =1 and pid !=' . $pid1)->select();
+        $prop = D('Common/Tree')->toFormatTree($prop, 'name', 'pid', 'parentid');
+        $prop = array_merge(array(
+            0 => array(
+                'pid' => '',
+                'title_show' => '顶级服务',
+                'grade' => ''
+            )
+        ), $prop);
+        $this->assign('prop', $prop);
+        // 项目类型
+        $types = M('dictionary')->where("d_code = 'projectconfig_type'")->field(true)->select(array('order' => 'd_order asc'));
+        $types = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $types);
+        $this->assign('types', $types);
+        // 优先级
+        $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+        $levels = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $levels);
+        $this->assign('levels', $levels);
+
+        $Pro = M('ProjectConfig')->where("pid = {$pid1}")->field(true)->find();
+
+        $this->assign('pro', $Pro);
+        if (false === $Pro) {
+            header("Location:" . U("indexadd"));
+            exit();
+            //$this->error ( '获取典型服务信息错误' );
+        }
+
+
+        // 记录当前列表页的cookie
+        Cookie('__forward__', $_SERVER ['REQUEST_URI']);
+        $this->meta_title = '服务配置';
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '服务分类', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+
+    public function indexadd()
+    {
+        // 获取所有的项目
+        $ProjectConfig = M('ProjectConfig')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array(
+                'pid' => $pid
+            ))->find();
+            $this->assign('pname', $p ['name']);
+        }
+
+        $pid1 = I('get.pid');
+        if (empty ($pid1)) {
+            $pid1 = $pid;
+        }
+
+        // 获取项目树
+        $ProTree = $this->getpro('ProjectConfig/index?ppid=' . $pid . '&pid=', M('ProjectConfig'), $pid, $pid, 'ProjectConfig/indexadd?ppid=' . $pid . '&pid=', 'ProjectConfig/del?ppid=' . $pid . '&id=');
+        $ProTree = "<ul class='tree tree-lines'>" . substr($ProTree, 4);
+        $this->assign('Project', $ProTree);
+        $this->assign('pid', $pid1);
+
+        // 父级项目
+        $prop = D('ProjectConfig')->where('grade<5 and enabled =1 ')->select();
+        $prop = D('Common/Tree')->toFormatTree($prop, 'name', 'pid', 'parentid');
+        $prop = array_merge(array(
+            0 => array(
+                'pid' => '',
+                'title_show' => '顶级服务',
+                'grade' => ''
+            )
+        ), $prop);
+        $this->assign('prop', $prop);
+        // 项目类型
+        $types = M('dictionary')->where("d_code = 'projectconfig_type'")->field(true)->select(array('order' => 'd_order asc'));
+        $types = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $types);
+        $this->assign('types', $types);
+        // 优先级
+        $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+        $levels = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $levels);
+        $this->assign('levels', $levels);
+
+        $Pro = M('ProjectConfig')->where("pid = {$pid1}")->field(true)->find();
+        if (I('get.pid', '')) {
+            $this->assign('pro', $Pro);
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '添加服务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        // 记录当前列表页的cookie
+        Cookie('__forward__', $_SERVER ['REQUEST_URI']);
+        $this->meta_title = '服务配置';
+
+        $this->display();
+    }
+
+// 获取所有的子项目
+    public function getProSons($data, $pid = 0)
+    {
+        global $ids;
+        if (is_array($data) && !empty ($data)) {
+            foreach ($data as $item) {
+                if ($item ['parentid'] == $pid) {
+                    $ids .= ',' . $item ['pid'];
+                    $this->getProSons($data, $item ['pid']);
+                }
+            }
+            return $ids;
+        }
+    }
+
+    /**
+     * 添加项目
+     */
+    public function add()
+    {
+        $pid = I('get.pid');
+        if (!$pid) {
+            $pid = 0;
+        }
+        $this->assign('pid', $pid);
+        if (IS_POST) {
+            $Pro = D('ProjectConfig');
+            $data = $Pro->create();
+            $res = $Pro->where("name='{$data['name']}' and parentid='{$data['parentid']}'")->find();
+            if ($res) {
+                $this->error('服务已存在！');
+            }
+            if(empty($data['name'])) {
+                $this->error('服务名称不能为空！');
+            }
+            if ($data) {
+
+                $data ['uid'] = UID;
+                $data ['addtime'] = time();
+                $data ['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+                $data ['grade'] = ( int )$data ['grade'] + 1;
+
+
+                if ($data['grade'] == 1) {
+                    $data['type'] = "业务线";
+                } else if ($data['grade'] == 2) {
+                    $data['type'] = "解决方案";
+                } else if ($data['grade'] == 3) {
+                    $data['type'] = "服务分类";
+                } else if ($data['grade'] == 4) {
+                    $data['type'] = "服务模块";
+                }
+
+                $id = $Pro->add($data);
+                if ($id) {
+                    // 记录行为
+                    $path = $this->getDeptPid($id);
+                    $Pro->where('pid = ' . $id)->save(array(
+                        'path' => $path
+                    ));
+                    action_log_new(array(
+                        'outtype' => 'ot_project_config',
+                        'outkey' => $id,
+                        'action' => 'create',
+                        'comment' => ''
+                    ));
+
+                    $ppid = 0;
+                    $model = M("ProjectConfig");
+                    $tid = $id;
+                    do {
+                        $te = $model->where("pid='{$tid}'")->find();
+                        if (!$te['parentid']) {
+                            $ppid = $te['pid'];
+                            $tid = 0;
+                        } else {
+                            $tid = $te['parentid'];
+                        }
+                    } while ($tid);
+
+                    $this->redirect("ProjectConfig/index", array("ppid" => $ppid, "pid" => $id));
+//					$this->success ( '添加成功', U("index?ppid={$ppid}&pid={$id}") );
+                } else {
+                    $this->error('添加失败');
+                }
+            } else {
+                $this->error($Pro->getError());
+            }
+        } else {
+            // 父级项目
+            $pro = D('ProjectConfig')->field(true)->where('grade<5 and enabled =1')->select();
+            $pro = D('Common/Tree')->toFormatTree($pro, 'name', 'pid', 'parentid');
+            $pro = array_merge(array(
+                0 => array(
+                    'pid' => '',
+                    'title_show' => '顶级项目',
+                    'grade' => ''
+                )
+            ), $pro);
+            $this->assign('pro', $pro);
+            // 项目类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            $types = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $types);
+            $this->assign('types', $types);
+            // 优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            $levels = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $levels);
+            $this->assign('levels', $levels);
+            // 部门
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree($depts, 'name', 'did', 'parent');
+            $depts = array_merge(array(
+                0 => array(
+                    'did' => '',
+                    'title_show' => '请选择...',
+                    'grade' => ''
+                )
+            ), $depts);
+            $this->assign('depts', $depts);
+
+            $this->meta_title = '新增服务';
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑
+     */
+    public function edit($id = 0)
+    {
+        if (IS_POST) {
+            $Menu = D('ProjectConfig');
+            $data = $Menu->create();
+            $res = $Menu->where('pid !=' . $id)->getByName($data ['name']);
+            if ($res) {
+                $this->error('服务已存在！');
+            }
+            $tmep = M('ProjectConfig')->field(true)->find($id);
+            if(empty($data['name'])) {
+                $this->error('服务名称不能为空');
+            }
+            if ($data) {
+                $data ['grade'] = ( int )$data ['grade'] + 1;
+	            if ($data['grade'] == 1) {
+		            $data['type'] = "业务线";
+	            } else if ($data['grade'] == 2) {
+		            $data['type'] = "解决方案";
+	            } else if ($data['grade'] == 3) {
+		            $data['type'] = "服务分类";
+	            } else if ($data['grade'] == 4) {
+		            $data['type'] = "服务模块";
+	            }
+                $history = array();
+                foreach ($data as $key => $vo) {
+                    if ($vo != $tmep [$key]) {
+                        $history [] = array(
+                            'field' => $key,
+                            'olddata' => $tmep [$key],
+                            'newdata' => $vo
+                        );
+                    }
+                }
+                if ($Menu->where('pid = ' . $id)->save($data) !== false) {
+                    // S('DB_CONFIG_DATA',null);
+                    // 记录行为
+                    $path = $this->getDeptPid($id);
+                    $Menu->where('pid = ' . $id)->save(array(
+                        'path' => $path
+                    ));
+                    action_log_new(array(
+                        'history' => $history,
+                        'outtype' => 'ot_project_config',
+                        'outkey' => $id,
+                        'action' => 'edit',
+                        'comment' => ''
+                    ));
+
+                    $ppid = 0;
+                    $model = M("ProjectConfig");
+                    $tid = $id;
+                    do {
+                        $te = $model->where("pid='{$tid}'")->find();
+                        if (!$te['parentid']) {
+                            $ppid = $te['pid'];
+                            $tid = 0;
+                        } else {
+                            $tid = $te['parentid'];
+                        }
+                    } while ($tid);
+
+                    $this->redirect("ProjectConfig/index", array('ppid' => $ppid, 'pid' => $id));
+                } else {
+                    $this->error('编辑失败');
+                }
+            } else {
+                $this->error($Menu->getError());
+            }
+        } else {
+            // 父级项目
+            $prop = D('ProjectConfig')->field(true)->where('grade<5 and enabled =1 and pid !=' . $id)->select();
+            $prop = D('Common/Tree')->toFormatTree($prop, 'name', 'pid', 'parentid');
+            $prop = array_merge(array(
+                0 => array(
+                    'pid' => '',
+                    'title_show' => '顶级项目',
+                    'grade' => ''
+                )
+            ), $prop);
+            $this->assign('prop', $prop);
+            // 项目类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            $types = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $types);
+            $this->assign('types', $types);
+            // 优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            $levels = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $levels);
+            $this->assign('levels', $levels);
+            // 部门
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $depts = array_merge(array(
+                0 => array(
+                    'did' => '',
+                    'title_show' => '请选择...',
+                    'grade' => ''
+                )
+            ), $depts);
+            $this->assign('depts', $depts);
+            /* 获取数据 */
+
+            $Pro = M('ProjectConfig')->where('pid = {$id}')->field(true)->find($id);
+
+            $this->assign('pro', $Pro);
+            if (false === $Pro) {
+
+                header("Location:" . U("indexadd"));
+                exit();
+                //$this->error ( '获取典型服务信息错误' );
+            }
+            $this->assign('id', $id);
+            $order = "";
+            if (I('sort', '') && I('order', '')) {
+                $order = I("sort") . " " . I("order");
+            } else {
+                $order = "tid asc";
+            }
+            $this->meta_title = '编辑服务';
+            $this->assign('pid', $id);
+            $count = M("TaskConfig")->alias('tc')->join("ot_module m on tc.mid = m.mid ")->where("tc.pid='" . $id . "'")->count("tc.tid");
+            $Page = new \Think\Page ($count, 20);
+            // 任务配置
+            $list = M("TaskConfig")->field(array(
+                'tc.*',
+                'm.name as m_name'
+            ))->alias('tc')->join("ot_module m on tc.mid = m.mid ")->where("tc.pid='" . $id . "'")->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $this->assign('_list', $list);
+            $show = $Page->show();
+            $this->assign('_page', $show);
+            $this->display();
+        }
+    }
+
+    /**
+     * 删除
+     */
+    public function del()
+    {
+        $pid = I('get.id');
+        //检测项目内容和报单明细中是否有引用及子类中是否有引用的
+        $where = "pc.pid={$pid}  and ( exists(select psid from ot_project_service ps where ps.pcid={$pid}) or exists(select osid from ot_offer_sub os where os.pid={$pid}))";
+        $result = M('ProjectConfig')->alias('pc')->where($where)->find();
+        if ($result) {
+            $this->ajaxReturn(array('done' => 0, 'msg' => '服务在报价明细或项目内容中被引用,不可以删除'));
+        }
+        $id = array_unique(( array )$pid);
+        if (empty ($id)) {
+//                $this->error ( '请选择要操作的数据!' );
+            $this->ajaxReturn(array('done' => 0, 'msg' => '请选择要操作的数据'));
+
+        }
+        $map = array('pid' => array('in', $id));
+        if (M('ProjectConfig')->where($map)->delete()) {
+            foreach ($ids as $vo) {
+                action_log_new(array(
+                    'outtype' => 'ot_project_config',
+                    'outkey' => $vo,
+                    'action' => 'delete',
+                    'comment' => ''
+                ));
+            }
+            $this->success('删除成功');
+        } else {
+//                $this->error ( '删除失败！' );
+            $this->ajaxReturn(array('done' => 0, 'msg' => '删除失败'));
+        }
+    }
+
+// 任务
+    public function task_config()
+    {
+        $xid = isset ($_GET ['pid']) ? intval($_GET ['pid']) : 0;
+        if (empty ($xid)) {
+            $this->error('服务不存在!');
+        }
+        $list = M("module")->where("pid=0")->field(array(
+            'mid',
+            'name'
+        ))->order('sort_order asc')->select();
+        $item = M("module")->where("pid!=0")->field(array(
+            'mid',
+            'name',
+            'pid'
+        ))->order('sort_order asc')->select();
+        $sub = M("Service")->query("select s3.sid,s3.name as s_name,s3.required,s3.description,t.sign,s3.mid from ot_service s3  left join 
+(select s1.* from ot_service_sub s1  inner join (select sign  from ot_service_sub s2 group by s2.sign)temp  on s1.sign=temp.sign) t on t.sid = s3.sid");
+        $config = M("task_config")->where("pid='" . $xid . "'")->select();
+        foreach ($list as $key => $v) {
+            $new_item = array();
+            foreach ($item as $k => $va) {
+                if ($v ['mid'] == $va ['pid']) {
+                    $new_sub = array();
+                    $sg = array();
+                    $is_check_mid = 0;
+                    foreach ($sub as $s) {
+                        if ($s ['mid'] == $va ['mid']) {
+                            if (!empty ($s ['sign']) && !in_array($s ['sign'], $sg)) {
+                                $sg [] = $s ['sign'];
+                            }
+                            $s ['check'] = 0;
+                            $s ['days'] = 0;
+                            if (!empty ($config)) {
+                                foreach ($config as $c) {
+                                    if ($c ['sid'] == $s ['sid']) {
+                                        $is_check_mid = 1;
+                                        $s ['check'] = 1;
+                                        $s ['days'] = $c ['days'];
+                                        $s ['description'] = $c ['description'];
+                                    }
+                                }
+                            }
+                            $new_sub [] = $s;
+                        }
+                    }
+                    $va ['check'] = 0;
+                    if ($is_check_mid == 1) {
+                        $va ['check'] = 1;
+                    }
+                    $va ['sg'] = implode(',', $sg);
+                    $va ['sub'] = $new_sub;
+                    $new_item [] = $va;
+                }
+            }
+            $list [$key] ['item'] = $new_item;
+        }
+        $this->assign('list', $list);
+        $this->assign('pj_id', $xid);
+        $this->display();
+    }
+
+    public function config()
+    {
+        if (IS_POST) {
+            $item = empty ($_REQUEST ['item']) ? '' : $_REQUEST ['item'];
+            $pid = empty ($_REQUEST ['pj_id']) ? '' : $_REQUEST ['pj_id'];
+            $description = empty ($_REQUEST ['description']) ? '' : $_REQUEST ['description'];
+            $days = empty ($_REQUEST ['days']) ? '' : $_REQUEST ['days'];
+            $item = str_replace('\\', '', $item);
+            $item = str_replace('\"', '"', $item);
+            $item = str_replace("\r", '', $item);
+            $item = str_replace("\n", '\n', $item);
+            $item = json_decode($item, true);
+            if (empty ($item)) {
+                $this->json_error('未选择任务!', false);
+            }
+            $is_mid_true = 1;
+            foreach ($item as $key => $val) {
+                $mid = $val ['id'];
+                $is_true = 1;
+                $sub = M("Service")->query("select s3.sid,s3.name as s_name,s3.required,s3.description,t.sign from ot_service s3  left join 
+(select s1.* from ot_service_sub s1  inner join (select sign  from ot_service_sub s2 where s2.mid='" . $mid . "' group by s2.sign)temp  on s1.sign=temp.sign) t on t.sid = s3.sid where s3.mid='" . $mid . "'");
+                foreach ($sub as $k => $V) {
+                    if ($V ['required'] == 1) {
+                        if (!in_array($V ['sid'], $val ['sub'])) {
+                            $is_true = 0;
+                            break;
+                        }
+                    }
+                    if (!empty ($V ['sign'])) {
+                        $is_sign = 0;
+                        $signs = M("Service_sub")->query("select * from ot_service_sub where mid ='" . $mid . "' and sign='" . $V ['sign'] . "'");
+                        foreach ($signs as $a) {
+                            if (in_array($a ['sid'], $val ['sub'])) {
+                                $is_sign = 1;
+                                break;
+                            }
+                        }
+                    } else {
+                        $is_sign = 1;
+                    }
+
+                    if ($is_sign == 0) {
+                        $is_true = 0;
+                        break;
+                    }
+                }
+                if ($is_true == 0) {
+                    $is_mid_true = 0;
+                    break;
+                }
+            }
+            if ($is_mid_true == 0) {
+                $this->json_error('选择任务不符合模块设置规则!', false);
+            }
+
+            $config = M("task_config")->where("pid='" . $pid . "'")->select();
+            if (!empty ($config)) {
+                M("task_config")->where("pid='" . $pid . "'")->delete();
+            }
+
+            foreach ($item as $key_p => $val_p) {
+                $mid = $val_p ['id'];
+                foreach ($val_p ['sub'] as $p => $s) {
+                    $service = M("Service")->where("sid='" . $s . "'")->find();
+                    $data = array(
+                        'pid' => $pid,
+                        'mid' => $mid,
+                        'sid' => $s,
+                        'name' => $service ['name'],
+                        'description' => $description [$mid] [$s],
+                        'days' => $days [$mid] [$s],
+                        'uid' => UID,
+                        'addtime' => time(),
+                        'uname' => get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login())
+                    );
+                    M("TaskConfig")->add($data);
+                }
+            }
+            $this->json_result(array(), '配置成功', false);
+        }
+    }
+
+    public function getDeptPid($id)
+    {
+        static $res = '';
+        $dept = M('ProjectConfig')->find($id);
+        $res = $dept ['pid'] . ',' . $res;
+        if ($dept ['parentid'] != 0) {
+            return $this->getDeptPid($dept ['parentid']);
+        }
+        return ',' . $res;
+    }
+
+// 异步修改数据
+    public function ajax_col()
+    {
+        $id = empty ($_GET ['id']) ? 0 : intval($_GET ['id']);
+        $column = empty ($_GET ['column']) ? '' : trim($_GET ['column']);
+        $value = isset ($_GET ['value']) ? trim($_GET ['value']) : '';
+        $data = array();
+
+        if (in_array($column, array(
+            'sort_order',
+            'enabled'
+        ))) {
+            $tmep = M('Service')->field(true)->find($id);
+            $data [$column] = $value;
+            $history = array();
+            foreach ($data as $key => $vo) {
+                if ($vo != $tmep [$key]) {
+                    $history [] = array(
+                        'field' => $key,
+                        'olddata' => $tmep [$key],
+                        'newdata' => $vo
+                    );
+                }
+            }
+            M('Service')->where('sid=' . $id)->save($data);
+            action_log_new(array(
+                'history' => $history,
+                'outtype' => 'ot_service',
+                'outkey' => $id,
+                'action' => 'edit',
+                'comment' => ''
+            ));
+        } else {
+            echo 'true';
+            return;
+        }
+        echo 'true';
+        return;
+    }
+
+    public function ajaxGetDropMenu()
+    {
+        $url = I('get.module') . '/' . I('get.index') . '?ppid=';
+
+        $m = M("ProjectConfig");
+
+        $pro = $m->where("parentid=0")->field('pid,name')->select();
+        $list1 = "<input type='text' class='form-control' id='search' value='' placeholder='搜索'/>
+		<div id='searchResult'><div id='defaultMenu' class='search-list'>
+    	<ul>";
+        $list2 = '';
+        foreach ($pro as $vo) {
+            $list2 .= " <li data-id=" . $vo ['pid'] . " data-key='" . str_replace(' ', '', pinyin($vo ['name'], 'all', '--')) . "' ><a href='" . U($url . $vo ['pid']) . "' ><i class='icon-folder-close-alt'></i> " . $vo ['name'] . "</a></li>";
+        }
+        $list3 = "</ul>";
+
+        echo $list1 . $list2 . $list3;
+    }
+	
+	public function export($pro)
+	{
+		//获取想应的数据并排序
+		foreach ($pro as $key => $val) {
+			$pname = str_replace(',',' / ',$val['pname']);
+			$arr['0'] = $pname;
+			//$arr['0'] = $val['name'];
+			$arr['1'] = $val['type'];
+			
+			$datas[] = $arr;
+		}
+		$data = $datas;
+		import("IOFactory", "../excel/toexcel/PHPExcel", ".php");
+		import("Excel5", "../excel/toexcel/PHPExcel/Reader", ".php");
+		import("PHPExcel", "../excel/toexcel", ".php");
+		$filename = "服务分类.xls";
+		header("Content-type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=$filename.xls");
+		
+		$excel = new \PHPExcel();
+		
+		//Excel表格式,这里简略写了8列
+		$letter = array('A', 'B');
+		//表头数组
+		$tableheader = array('名称', '服务类型');
+		//填充表头信息
+		//        $excel->getActiveSheet()->getColumnDimension('A1:L1')->setWidth('13');
+		for ($i = 0; $i < count($tableheader); $i++) {
+			$excel->getActiveSheet()->setCellValue("$letter[$i]1", "$tableheader[$i]");
+		}
+		//表格数组
+		//填充表格信息
+		for ($i = 2; $i <= count($data) + 1; $i++) {
+			$j = 0;
+			if ($i <= count($data) + 1) {
+				foreach ($data[$i - 2] as $key => $value) {
+					$excel->getActiveSheet()->setTitle('服务分类');
+					$excel->getActiveSheet()->setCellValue("$letter[$j]$i", " " . "$value");
+					$j++;
+				}
+			}
+			
+		}
+		//创建Excel输入对象
+		$write = new \PHPExcel_Writer_Excel5($excel);
+		header("Pragma: public");
+		header("Expires: 0");
+		header("Cache-Control:must-revalidate, post-check=0, pre-check=0");
+		header("Content-Type:application/force-download");
+		header("Content-Type:application/vnd.ms-execl");
+		header("Content-Type:application/octet-stream");
+		header("Content-Type:application/download");;
+		header('Content-Disposition:attachment;filename=' . $filename . '');
+		header("Content-Transfer-Encoding:binary");
+		$write->save('php://output');
+		
+	}
+}

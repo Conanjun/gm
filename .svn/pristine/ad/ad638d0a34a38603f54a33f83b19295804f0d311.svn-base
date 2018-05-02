@@ -1,0 +1,194 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>月营业额</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">275,800</h1>
+                        <div class="stat-percent font-bold text-success">98%
+                            <i class="fa fa-bolt"></i>
+                        </div>
+                        <small>月营业额</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>7日营业额</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">275,800</h1>
+                        <div class="stat-percent font-bold text-info">20%
+                            <i class="fa fa-level-up"></i>
+                        </div>
+                        <small>7日营业额</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>今日营业额</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">275,800</h1>
+                        <div class="stat-percent font-bold text-info">20%
+                            <i class="fa fa-level-up"></i>
+                        </div>
+                        <small>今日营业额</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>营业额分析</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-bar-chart"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>营业额分析</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-line-chart"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>营业额分析</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-line-chart-moving"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>营业额分析</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div class="flot-chart-pie-content" id="flot-pie-chart"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

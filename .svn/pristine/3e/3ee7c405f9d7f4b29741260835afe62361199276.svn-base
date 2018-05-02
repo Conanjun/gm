@@ -1,0 +1,202 @@
+<extend name="Public/base"/>
+
+<block name="body">
+<script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+	<ul class="nav" style="float: left">
+        <if condition="cando('OfferAll/index')"><li class="<eq name='actname' value='index'>active</eq>"><a href="{:U('OfferAll/index')}">所有</a>
+        </li></if>
+        <if condition="cando('OfferAll/examine')"><li class="<eq name='actname' value='examine'>active</eq>"><a href="{:U('OfferAll/examine')}">已审批</a>
+        </li></if>
+        <if condition="cando('OfferAll/submit')"><li class="<eq name='actname' value='submit'>active</eq>"><a href="{:U('OfferAll/submit')}">已提交</a>
+        </li></if>
+        <if condition="cando('OfferAll/create')"><li class="<eq name='actname' value='create'>active</eq>"><a href="{:U('OfferAll/create')}">新建</a>
+        </li></if>
+        <li id="statusTab" class="dropdown <eq name='actname' value='effect'>active</eq><eq name='actname' value='refuse'>active</eq>">
+            <a href="javascript:;" data-toggle="dropdown">
+                <eq name='actname' value='effect'>已生效
+                    <else/>
+                    <eq name='actname' value='refuse'>已拒绝
+                        <else/>
+                        更多
+                    </eq>
+                </eq><span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <if condition="cando('OfferAll/effect')"><li class="<eq name='actname' value='pause'>active</eq>"><a href="{:U('OfferAll/effect')}">已生效</a></li></if>
+                <if condition="cando('OfferAll/refuse')"><li class="<eq name='actname' value='finished'>active</eq>"><a href="{:U('OfferAll/refuse')}">已拒绝</a></li></if>
+            </ul>
+        </li>
+		<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+        <li style="float: right">
+
+        </li>
+	</ul>
+       
+        <div class="clearfix"></div>
+	<include file="Public/search" />	
+</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px">
+                </th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="projectname">项目名称</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="coreservice">核心服务</span></th>
+                
+                <th r="1" width="50px"><span class="sort" ectype="order_by" fieldname="static">状态</span></th>
+                 <th r="1" width="50px"><span class="sort" ectype="order_by" fieldname="cid">客户</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="oamount">基础报价</span></th>
+                <th r="1" width="50px"><span class="sort" ectype="order_by" fieldname="disoff_name">折扣</span></th>
+                <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="amount_tax">报价</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="signtime">预计签约</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="starttime">预计开始</span></th>
+                <th r="1" width="80px"><span class="sort" ectype="order_by" fieldname="addtime">创建时间</span></th>
+                <th width="70px"><span class="sort" ectype="order_by" fieldname="uid">创建人</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="code">编码</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="offer">
+                <volist name="offer" id="vo">
+                    <tr>
+                        <td r="1" class="cell-id">
+                               
+                        </td>
+                       
+                        <td r="1" class="text-left">
+                            <eq name="vo['uid']" value="$loginid">
+                                 <a href="{:U('Offer/veiw?id='.$vo['oid'])}">{$vo.projectname}</a>
+                                <else/>
+                                <a href="{:U('OfferAll/veiw?id='.$vo['oid'])}">{$vo.projectname}</a>
+                            </eq>
+                        </td>
+                        <td class="text-left">{$vo.coreservice}</td>
+                        <td r="1"> <span class="<if condition="$vo['static'] == -1 ">textr</if><if condition="$vo['static'] == 3 ">textg</if><if condition="$vo['static'] == 1 ">textc</if>"> {$vo.staticname}</span>
+                            
+                        </td>
+                        <td r="1">{$vo.cname}</td>
+                        <td r="1" style="text-align: right;">{$vo.oamount|fomatprice}</td>
+                        <td r="1"><span class="textch">{$vo.disoff_name}</span></td>
+                        <td r="1" style="text-align: right;">{$vo.amount|fomatprice}</td>
+                         
+                        <td>{$vo.signtime|time_format=###,"Y-m-d"}</td>
+                        <td>{$vo.starttime|time_format=###,"Y-m-d"}</td>
+                        <td r="1">{$vo.addtime|time_format=###,"Y-m-d"}</td>
+                        <td>{$vo.uname}</td>
+                        <td>{$vo.code}</td>
+                    </tr>
+                </volist>
+                <else/>
+                <tr><td r="1" colspan="12" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td></tr>
+            </notempty>
+            </tbody>
+            <notempty name="offer">
+            <tfoot class="scrolled">
+            <tr>
+                <td r="1" colspan='13' id="colspan_1">
+                    
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+        //导航高亮
+        highlight_subnav("{:U('OfferAll/index')}");
+
+        var ajaxurl="{:U('OfferAll/ajax_col')}";
+
+        function tijiao(id,es_eid,disoff){
+            if(confirm("确认提交吗？"))
+            $.post(
+                    "{:U('OfferAll/present')}",
+                    {'id':id,'eid':es_eid,'disoff':disoff},
+                    function(data){
+                       if(data.code){
+                           alert(data.msg);
+                       }else{
+                           window.location.href = window.location.href;
+                       }
+                    },
+                    'json'
+            );
+        }
+        function resizetable(){
+    		var w=$(window).width();
+    		if(w<1400){
+    			$("#taskList").find("th[r!=1]").hide();
+    			$("#taskList").find("td[r!=1]").hide();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+    		}else{
+    			$("#taskList").find("th[r!=1]").show();
+    			$("#taskList").find("td[r!=1]").show();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+    		}
+    	}
+
+        $(function(){
+        	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+        	
+        	resizetable();
+        	
+        	$(window).resize(function(){
+        		resizetable();
+        	});
+        	
+        	var max=0;
+        	$(".oop").each(function(){
+        		if($(this).find("em").size()>0){
+	        		var www=$(this).find("em").width();
+	        		if(www<40){
+	            		www=40;
+	            	}
+	        		
+	        		if(max<www+10){
+	        			max=www+10;
+	        		}
+	        		$(this).width(www+10);
+        		}
+        	});
+        	if($(".oop").size()==1){
+        		$(".oop").width("40px");
+        	}else{
+    	    	$(".oop").each(function(){
+    	    		if($(this).find("em").size()==0){
+    	    			$(this).width(max);
+    	    		}
+    	    	});
+        	}
+        });
+    </script>
+</block>

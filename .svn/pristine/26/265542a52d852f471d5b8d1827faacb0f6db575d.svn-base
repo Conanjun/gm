@@ -1,0 +1,50 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+use Think\Controller;
+
+class RegionToolsController extends Controller {
+	
+	function index()
+	{
+		$type=I("type",'');
+		$data=array('done' => false , 'msg' => "invalid type" , 'retval' => "");
+		in_array($type, array('region')) or $this->ajaxReturn($data,'JSON');
+		$pid = I("pid",0);
+		
+		switch ($type)
+		{
+			case 'region':
+				$mod_region =D('Region');
+				$regions = $mod_region->get_list('','',$pid);
+				foreach ($regions as $key => $region)
+				{
+					$regions[$key]['region_name'] = htmlspecialchars($region['region_name']);
+				}
+				$data=array('done' => true , 'msg' => "" , 'retval' => array_values($regions));
+				$this->ajaxReturn($data,'JSON');
+				break;
+// 			case 'regionload':
+// 				$mod_region =& m('region');
+// 				$regions = $mod_region->get_parents($pid);
+// 				$this->json_result(array_values($regions));
+// 				break;
+// 			case 'gcategory':
+// 				$mod_gcategory =& m('gcategory');
+// 				$cates = $mod_gcategory->get_list($pid, true);
+// 				foreach ($cates as $key => $cate)
+// 				{
+// 					$cates[$key]['cate_name'] = htmlspecialchars($cate['cate_name']);
+// 				}
+// 				$this->json_result(array_values($cates));
+				break;
+		}
+	}
+}

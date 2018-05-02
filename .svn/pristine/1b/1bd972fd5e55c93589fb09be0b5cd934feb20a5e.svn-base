@@ -1,0 +1,37 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: huajie <banhuajie@163.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 属性模型
+ *
+ * @author huajie <banhuajie@163.com>
+ */
+class BugModel extends Model
+{
+
+    protected $pk = 'bugid';
+
+    // 获取个人价格
+    public function individualPrice($pid)
+    {
+        $where['pid'] = $pid;
+        $bug = $this->alias('b')
+            ->field('SUM(b.hours) as hours,SUM(h.hours) as finishours,SUM(l.price * h.hours) as amount')
+            ->join('ot_bug_hours h on b.bugid=h.bugid', "LEFT")
+            ->join('ot_auth_group_access a on a.uid = b.finishuid', 'LEFT')
+            ->join('ot_role_level l on l.rlid = a.rlid', 'LEFT')
+            ->where($where)
+            ->find();
+        return $bug;
+    }
+}

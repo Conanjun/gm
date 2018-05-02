@@ -1,0 +1,218 @@
+<extend name="Public/base_choose" />
+
+<block name="body"> <script src='__JSNEW__/jquery.validate.js'
+	type='text/javascript'></script>
+<style>
+</style>
+	<div class="panel" style="padding: 0px 80px;width: 580px;margin: 0 auto">
+		<form id="childrenForm" class="form-condensed" method="post"
+			  action="{:U('servicedoc')}">
+			<div class="">
+				<div class="" >
+					<table class="table table-form" style="border: 0;">
+						<input type="hidden" name="sid" value="{$sid}">
+						<tbody>
+						<tr>
+							<td id="moduleBox">
+								<div id="sonModule">
+									<notempty name="service_doce">
+										<volist name="service_doce" id="vo">
+											<div class="row-table addedItem" style="margin-bottom: 5px">
+												<div class="col-table">
+													<input type="hidden" name="docid[]" id="docid[]" value="{$vo.docid}">
+													<select name="dtid[]"  class="form-control">
+														<volist name="doc_type" id="v">
+															<option value="{$v['dtid']}" <if condition="$vo['dtid'] eq $v['dtid']"> selected </if>>{$v['name']}</option>
+														</volist>
+													</select>
+												</div>
+												<div class="col-table" style="width: 180px">
+													<div class="input-group">
+														<input  type="text"  style="width: 100%;border-left:0px;" name="note[]" value="{$vo['note']}"
+																class="form-control" placeholder="备注" autocomplete="off" title="备注">
+															<span class="input-group-btn"><a
+															href="javascript:;" onclick='deletedata(this,"{:U('delete_doc?id='.$vo['docid'])}")'
+																	class="btn btn-block"><i class="icon icon-remove"></i>
+														</a> </span>
+													</div>
+												</div>
+											</div>
+										</volist>
+									</notempty>
+										<div class="row-table addedItem" style="margin-bottom: 5px">
+											<div class="col-table">
+												<select name="dtid[]" id="dtid[]" class="form-control">
+													<option value="">请选择...</option>
+													<volist name="doc_type" id="v">
+														<option value="{$v['dtid']}">{$v['name']}</option>
+													</volist>
+												</select>
+											</div>
+											<div class="col-table" style="width: 180px">
+												<div class="input-group">
+													<input  type="text"  style="width: 100%;border-left:0px;border-right: 0px;" name="note[]"
+															class="form-control" placeholder="备注" autocomplete="off" title="备注">
+															<span class="input-group-btn"><a
+																	href="javascript:;" onclick="addItem(this)"
+																	class="btn btn-block"><i class="icon icon-plus"></i>
+															</a> </span><span class="input-group-btn"><a
+														href="javascript:;" onclick="deleteItem(this)"
+														class="btn btn-block"><i class="icon icon-remove"></i>
+												</a> </span>
+												</div>
+											</div>
+										</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<button type="submit" id="submit"  class="btn btn-primary"
+										onclick="choose()">保存</button>
+								<button type="button" class="btn btn-default"
+										onclick="choose()">返回</button>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+		function choose() {
+			window.parent.choose();
+		}
+	function deletedata(obj,url){
+		if(confirm("确定要删除数据吗？")){
+			$.ajax({
+				type: 'get',
+				url: url,
+				error: function () {
+					alert('网络繁忙，请稍后再试');
+				},
+				success: function (response) {
+					if (response.done==true) {
+						deleteItem(obj);
+					}else{
+						alert(response.msg);
+					}
+				}
+			});
+		}
+	}
+	function addItem(obj)
+	{
+	    var $inputgroup = $(obj).closest('.row-table');
+	    $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+	}
+
+	function insertItem(obj)
+	{
+	    var $inputgroup = $(obj).closest('.row-table');
+	    var insertHtml  = $('#insertItemBox').children('.row-table').clone();
+	    $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+	    updateItemOrder();
+	}
+
+	function updateItemOrder()
+	{
+	    var order = 10;
+	    $('#sonModule').children('.row-table').each(function(){
+	        if($(this).find("input[name*='order']").length > 0)
+	        {
+	            console.log(order);
+	            $(this).find("input[name*='order']").val(order);
+	            order += 10;
+	        }
+	    });
+
+	    $('#maxOrder').val(order - 10);
+	}
+
+	function deleteItem(obj)
+	{
+	    console.log($(obj).closest('.row-table').siblings('.row-table').find('i.icon-remove').size());
+	    if($(obj).closest('.row-table').siblings('.row-table.addedItem').find('i.icon-remove').size() <= 0) return;
+	    $(obj).closest('.row-table').remove();
+	}
+	function syncModule(rootID, type)
+	{
+	    moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+	    type     = type == 'task' ? 'task' : 'story';
+
+	    link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+	    $.getJSON(link, function(modules)
+	    {
+	        if(modules.length == 0) return false;
+	        $('.helplink').addClass('hidden');
+	        var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+	        $.each(modules, function(key, module)
+	        {
+	            $('.row-table').each(function()
+	            {
+	               moduleName = $(this).find('input[id^=modules]').val();
+	                if(moduleName == module.name) modules[key] = null;
+	                if(!moduleName) $(this).closest('.row-table').remove();
+	            })
+	        });  
+
+	        $.each(modules, function(key, module)
+	        {
+	            if(module)
+	            {
+	                $('#sonModule').append($inputgroup);
+	                $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+	                $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+	            }
+	        })
+	        $('#sonModule').append($inputgroup);
+	    })
+	}
+
+	function syncProductOrProject(obj, type)
+	{
+	    if(type == 'product') viewType = 'story';
+	    if(type == 'project') viewType = 'task';
+	    link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+	    $.getJSON(link, function(modules)
+	    {
+	        $('.helplink').addClass('hidden');
+	        $('#' + type + 'Module').empty();
+	        $.each(modules, function(key, value)
+	        {  
+	            $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+	        }); 
+	        $('#' + type + 'Module').trigger("chosen:updated");
+	    })
+	    $('#copyModule').attr('onclick', null);
+	    $('#copyModule').bind('click', function(){syncModule(obj.value, viewType)});
+	}
+
+	function toggleCopy()
+	{
+	   var $copy = $('table.copy');
+	   if($copy.size() == 0) return false;
+	   $copy.toggle();
+	}
+
+	$(document).ready(function()
+	{
+	    toggleCopy();
+	    $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+	    $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+	});
+
+	</script>
+
+
+</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+		highlight_subnav("{:U('Group/index')}");
+    </script> </block>

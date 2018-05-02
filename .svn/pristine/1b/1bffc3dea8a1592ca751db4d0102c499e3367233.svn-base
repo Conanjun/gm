@@ -1,0 +1,902 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+use Admin\Common\Super\Api;
+use Admin\Model\ExpenseModel;
+
+/**
+ * 后台首页控制器
+ */
+class ExpenseController extends AdminController
+{
+	private $exp_model;
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->exp_model = new ExpenseModel();
+	}
+
+	public function printpage()
+	{
+		$id = I("get.id");
+		if (empty ($id)) {
+			$this->error('您要操作的报销不存在！');
+		}
+
+		topdf1(C('E_PRINT_URL') . $id . '.html', 1);
+	}
+
+	/**
+	 * 后台首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	/*报销单首页*/
+	public function expense()
+	{
+		$config = array(
+            "actionURL" => "/Admin/expense/expense",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '项目名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '单号', 'fieldname' => 'e.code', 'operator' => 'include', 'control' => 'input', 'values' => "")
+		, 2 => array('str' => '状态', 'fieldname' => 'e.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+		, 3 => array('str' => '成本类型', 'fieldname' => 'e.type', 'operator' => '=', 'control' => 'select', 'values' => array())
+		, 4 => array('str' => '发票数', 'fieldname' => 'e.innum', 'operator' => '=', 'control' => 'input', 'values' => "")
+		, 5 => array('str' => '金额', 'fieldname' => 'e.amount', 'operator' => '=', 'control' => 'input', 'values' => "")
+		, 6 => array('str' => '申请时间', 'fieldname' => 'e.addtime', 'operator' => '=', 'control' => 'input', 'values' => "", 'class' => "date")
+		, 7 => array('str' => '申请人', 'fieldname' => 'e.uname', 'operator' => '=', 'control' => 'input', 'values' => "")
+		, 8 => array('str' => '审批时间', 'fieldname' => 'e.checkedtime', 'operator' => '=', 'control' => 'input', 'values' => "", 'class' => "date")
+		, 9 => array('str' => '收款单位', 'fieldname' => 'e.unit', 'operator' => '=', 'control' => 'input', 'values' => "")
+		, 10 => array('str' => '收款账号', 'fieldname' => 'e.account', 'operator' => '=', 'control' => 'input', 'values' => "")
+		, 11 => array('str' => '开户行', 'fieldname' => 'e.bank', 'operator' => '=', 'control' => 'input', 'values' => ""),
+		));
+		if ($config && $config['params']) {
+			$mstate = array("" => "");
+			$mtypes = array("" => "");
+			$type = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'expense_type'])->select();
+			foreach ($type as $k => $v) {
+				$mtypes[$v['d_value']] = $v['d_key'];
+			}
+			$state = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'Reimbursement_static'])->select();
+			foreach ($state as $k => $v) {
+				$mstate[$v['d_value']] = $v['d_key'];
+			}
+			$config['params'][3]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstate;
+		}
+		$this->setSearchConfig($config);
+		if (I('get.sort', '') && I('get.order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "e.addtime  desc";
+		}
+		$where = $this->getCondition();
+		$re = strpos($where['_string'], 'e.state');
+		if (!$re) {
+			$estate = I('get.state');
+			if ($estate) {
+				$where['_string'] .= " and e.state=" . $estate;
+				if ($estate == 3) {
+					$this->assign('estatename', '已生效');
+				} elseif ($estate == -1) {
+					$this->assign('estatename', '已拒绝');
+				} else {
+					$this->assign('estatename', '');
+				}
+				$this->assign('estate', $estate);
+			}
+		}
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$expense = $this->exp_model->expense_list($where, $order);
+		foreach ($expense as &$vo) {
+			$vo['addtime'] = date('y/m/d H:i', $vo['addtime']);
+			if ($vo['checkedtime']) {
+				$vo['checkedtime'] = date("y/m/d H:i", $vo['checkedtime']);
+			}
+			$vo['type'] = $type[$vo['type']];
+		}
+		$this->assign('expenses', $expense);
+
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+		$root_mbx[] = array('title' => '报销单', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display();
+	}
+
+	/**
+	 * 切换费用类型二级分类信息
+	 *
+	 */
+	public function ajaxCostSub()
+	{
+		$cost['typeid'] = I('get.typeid');  // 类别id
+		$costSub = apiRead(Api::COST_SUB, Api::DXY_OA, $cost);
+		$data = [];
+		if ($costSub['success']) {
+			$data = $costSub['data'];
+		}
+
+		echo json_encode($data);
+	}
+
+	/*报销单添加*/
+	public function expenseadd()
+	{
+		//报销人
+		$units = M('Member')->field('uid,nickname')->where('status = 1')->select();
+		$this->assign('units', $units);
+		$this->assign('nickname', get_nickname(UID));
+		//参与的项目
+		$project = $this->exp_model->projectList();
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$costType = array();
+		$costTypes = apiRead(Api::COST_TYPES, Api::DXY_OA);  // 费用类型信息 : LGW
+		foreach ($costTypes['data'] as $value) {
+			$costType[$value['id']] = $value['type'];
+		}
+		$this->assign('costType', $costType);
+
+		$this->assign('project', $project);
+		$this->assign('type', $type);
+
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+		$root_mbx[] = array('title' => '报销单', 'url' => U('Expense/expense'));
+		$root_mbx[] = array('title' => '添加报销单', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display();
+	}
+
+	/*报销单保存*/
+	public function expenseSave()
+	{
+		$pid = I('post.pid');
+		$this->project_out($pid);//判断项目是否可以操作
+		$data['addtime'] = time();
+		$data['uid'] = UID;
+		$data['uname'] = get_nickname(UID);
+		$data['pid'] = $pid;
+		$data['state'] = 1;
+		$data['type'] = I('post.type');
+		$data['innum'] = I('post.innum');
+		$unit_id = I('post.unit_id');
+		$bank = I('post.bank', '');
+		$data['bank'] = $bank;
+		$account = I('post.account', '');;
+		$data['account'] = $account;
+		$data['unit_id'] = $unit_id;
+		if (I('post.unit_id') == 1) {
+			if (empty($bank)) {
+				$this->errot('开户银行不能为空');
+			}
+			if (empty($account)) {
+				$this->errot('收款账号不能为空');
+			}
+		}
+		$data['unit'] = I('post.unit');
+		$data['amount'] = I('post.amount');
+		$data['description'] = I('post.description');
+		$data['code'] = get_rand_number('E', D('expense'));
+
+		//将附件存入数据库
+		if (!empty($_FILES['f']['tmp_name'])) {
+			$upload = new \Think\Upload();
+			$info = $upload->upload();
+			if (!$info) {// 上传错误提示错误信息
+				$this->error($upload->getError());
+			} else {// 上传成功 获取上传文件信息
+				$file_ids = array();
+				$c = C('DOWNLOAD_UPLOAD');
+				foreach ($info as $file) {
+					$file_arr = explode('.', $file['name']);
+					$fileList['name'] = $file_arr[0];
+					$fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+					$fileList['ext'] = $file['ext'];
+					$fileList['size'] = $file['size'];
+					$fileList['uid'] = UID;
+					$fileList['uname'] = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+					$fileList['addtime'] = time();
+					$fileId = $this->exp_model->file_insert($fileList);
+					array_push($file_ids, $fileId);
+				}
+			}
+		}
+		if ($fileId) {
+			$data['fileid'] = $fileId;
+		}
+		$res = $this->exp_model->expense_insert($data);
+		//明细添加
+		$expend_data = array('feetype' => I('post.feetype'), 'feecode' => I('post.feecode'),
+            'catecode' => I('post.feecate'), 'feecate' => I('post.catetype'), 'money' => I('post.money'),
+            'invoicenum' => I('post.invoicenum'), 'note' => I('post.note'));
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='cost_type'")->order('d_order asc')->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$newdata = array();
+		foreach ($expend_data as $key => $value) {
+			foreach ($value as $k => $v) {
+				$newdata[$k][$key] = $v;
+			}
+		}
+
+		foreach ($newdata as $k => $va) {
+			if (!empty($va['money'])) {
+				$va['eid'] = $res;
+				M('expense_sub')->add($va);
+			}
+
+		}
+
+		//更新总金额
+		$this->exp_model->expense_update($res);
+		if ($res) {
+			action_log_new(array('outtype' => 'ot_expense', 'outkey' => $res, 'pid' => $data['pid'], 'action' => 'create', 'comment' => ''));
+			$this->redirect('admin/expense/expenseproject', array('eid' => $res));
+		} else {
+			$this->error('操作失败', U('Admin/Expense/expenseadd'));
+		}
+
+
+	}
+
+	public function expensedetail()
+	{
+		if (IS_POST) {
+			$eid = I('post.eid');
+			$data = array('feecode' => I('post.feecode')
+			, 'money' => I('post.money')
+			, 'invoicenum' => I('post.invoicenum')
+			, 'note' => I('post.note')
+			, 'esid' => I('post.esid')
+			);
+
+			$type = array();
+			$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+			foreach ($types as $value) {
+				$type[$value['d_value']] = $value['d_key'];
+			}
+			$newdata = array();
+			foreach ($data as $key => $value) {
+				foreach ($value as $k => $v) {
+					$newdata[$k][$key] = $v;
+				}
+			}
+			$editdata = array();
+			$adddata = array();
+			foreach ($newdata as $key => $value) {
+				if (empty($value['esid'])) {
+					if (!empty($value['feecode'])) {
+						$adddata[] = $value;
+					}
+				} else {
+					$editdata[] = $value;
+				}
+			}
+			$history = array();
+			if (is_array($editdata)) {
+				foreach ($editdata as $key => $vo) {
+					$data_origin = M('expense_sub')->where(['esid' => $vo['esid']])->find();
+					foreach ($vo as $k => $v) {
+						if ($v != $data_origin[$k]) {
+							$history[] = array(
+                                'field' => $k,
+                                'olddata' => $data_origin[$k],
+                                'newdata' => $v
+							);
+							action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'outkey' => $eid, 'action' => "infoedit", 'comment' => ''));
+						}
+					}
+					$vo['eid'] = $eid;
+					M('expense_sub')->save($vo);
+				}
+			}
+			if (is_array($adddata)) {
+				foreach ($adddata as $key => $vo) {
+
+					$vo['eid'] = $eid;
+					$vo['feetype'] = $type[$vo['feecode']];
+					M('expense_sub')->add($vo);
+					action_log_new(array('outtype' => 'ot_expense', 'outkey' => $eid, 'action' => 'infocreate', 'comment' => ''));
+				}
+				//更新总金额
+				$this->exp_model->expense_update($eid);
+				$this->redirect('Expense/expenseproject', array('eid' => $eid));
+			}
+		} else {
+			$eid = I('get.eid');
+			if (!$eid) {
+				$this->error('请选择要操作的数据');
+			}
+
+			$type = array();
+			$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+			foreach ($types as $value) {
+				$type[$value['d_value']] = $value['d_key'];
+			}
+			$result = $this->exp_model->getExpenseSub($eid);
+			foreach ($type as $k => $vo) {
+				if ($result['type'] == $k) {
+					$result['type'] = $vo;
+				}
+			}
+			foreach ($result as &$each) {
+				$each['note'] = strip_tags($each['note']);
+			}
+			$this->assign('type', $type);
+			$this->assign('details', $result);
+			$this->assign('eid', $eid);
+
+			$root_mbx = array();
+			$root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+			$root_mbx[] = array('title' => '报销单', 'url' => U('Expense/expense'));
+			$root_mbx[] = array('title' => '费用明细', 'url' => '');
+			$this->assign('root_mbx', $root_mbx);
+
+			$this->display();
+		}
+	}
+
+	public function expenseedit()
+	{
+		$eid = I('get.eid');
+		if (!$eid) {
+			$this->error('请选择要操作的数据');
+		}
+		$pid = I('get.pid');
+		$res = $this->exp_model->getExpenseInfo($eid);
+		if (!cando1(array($res['uid']))) {
+			$this->error("您没有权限！");
+		}
+
+		if($res['state']==3){
+			$this->error("报销单已经提交，无法修改！");
+		}
+
+		$project = $this->exp_model->projectList();
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$costType = array();
+		$costTypes = apiRead(Api::COST_TYPES, Api::DXY_OA);  // 费用类型信息 : LGW
+		foreach ($costTypes['data'] as $value) {
+			$costType[$value['id']] = $value['type'];
+		}
+		$this->assign('costType', $costType);
+		$result = $this->exp_model->getExpenseSub($eid);
+		$cateType = [];
+		foreach ($result as $key => $val) {
+			$cost['typeid'] = $val['feecode'];
+			$costSub = apiRead(Api::COST_SUB, Api::DXY_OA, $cost);
+
+			$data = [];
+			if ($costSub['success']) {
+				$data = $costSub['data'];
+				foreach ($data as $k => $v) {
+					$cateType[$v['id']] = $v['subtype'];
+				}
+			}
+
+		}
+		foreach ($type as $k => $vo) {
+			if ($result['type'] == $k) {
+				$result['type'] = $vo;
+			}
+		}
+		foreach ($result as &$each) {
+			$each['note'] = strip_tags($each['note']);
+		}
+		//报销人
+		$units = M('Member')->field('uid,nickname')->where('status = 1')->select();
+		$this->assign('units', $units);
+		$this->assign('details', $result);
+		$this->assign('project', $project);
+		$this->assign('type', $type);
+		$this->assign('costType', $costType);
+		$this->assign('cateType', $cateType);
+		$this->assign('expense', $res);
+		$this->assign('pid', $pid);
+		$this->assign('eid', $eid);
+
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+		$root_mbx[] = array('title' => '报销单', 'url' => U('Expense/expense'));
+		$root_mbx[] = array('title' => $res['code'], 'url' => U('Expense/expenseproject?eid=' . $eid));
+		$root_mbx[] = array('title' => '编辑报销单', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display();
+	}
+
+	public function expenseeditsave()
+	{
+
+		$data = I('post.');
+		$unit_id = I('post.unit_id');
+		$bank = I('post.bank', '');
+		$data['bank'] = $bank;
+		$account = I('post.account', '');
+
+		$res = $this->exp_model->getExpenseInfo($data['eid']);
+		if (!cando1(array($res['uid']))) {
+			$this->error("您没有权限！");
+		}
+
+		if($res['state']==3){
+			$this->error("报销单已经提交，无法修改！");
+		}
+
+		if ($unit_id == 1) {
+			if (empty($bank)) {
+				$this->errot('开户银行不能为空');
+			}
+			if (empty($account)) {
+				$this->errot('收款账号不能为空');
+			}
+		}
+		if (!empty($_FILES['f']['tmp_name'])) {
+			$file_ids = array();
+			$upload = new \Think\Upload();
+			$info = $upload->upload();
+			$c = C('DOWNLOAD_UPLOAD');
+			foreach ($info as $file) {
+				$file_arr = explode('.', $file['name']);
+				$fileList['name'] = $file_arr[0];
+				$fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+				$fileList['ext'] = $file['ext'];
+				$fileList['size'] = $file['size'];
+				$fileList['uid'] = UID;
+				$fileList['uname'] = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+				$fileList['addtime'] = time();
+				$fileId = $this->exp_model->file_insert($fileList);
+				array_push($file_ids, $fileId);
+			}
+			foreach ($file_ids as $file_id) {
+				$data['fileid'] = $file_id;
+				$result = $this->exp_model->expenseUpdate($data);
+			}
+
+		}
+		$data_origin = M('expense')->where(['eid' => $data['eid']])->find();
+		$res = $this->exp_model->expenseUpdate($data);
+		$data_new = array(
+            'pid' => I('post.pid'),
+            'eid' => I('post.eid'),
+            'unit' => I('post.unit'),
+            'type' => I('post.type'),
+            'account' => I('post.account'),
+            'bank' => I('post.bank'),
+            'description' => I('post.description')
+		);
+		$history = array();
+		foreach ($data_new as $k => $vo) {
+			if ($vo != $data_origin[$k]) {
+				$history[] = array(
+                    'field' => $k,
+                    'olddata' => $data_origin[$k],
+                    'newdata' => $vo
+				);
+			}
+		}
+
+		//更新费用明细
+		$eid = I('post.eid');
+		$expend_data = array('feetype' => I('post.feetype'), 'feecode' => I('post.feecode'),
+            'catecode' => I('post.feecate'), 'feecate' => I('post.catetype'),
+            'money' => I('post.money')
+		, 'invoicenum' => I('post.invoicenum')
+		, 'note' => I('post.note')
+		, 'esid' => I('post.esid')
+		);
+
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='cost_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$newdata = array();
+		foreach ($expend_data as $key => $value) {
+			foreach ($value as $k => $v) {
+				$newdata[$k][$key] = $v;
+			}
+		}
+		$editdata = array();
+		$adddata = array();
+		foreach ($newdata as $key => $value) {
+			if (empty($value['esid'])) {
+				if (!empty($value['feecode'])) {
+					$adddata[] = $value;
+				}
+			} else {
+				$editdata[] = $value;
+			}
+		}
+		$history = array();
+		if (is_array($editdata)) {
+			foreach ($editdata as $key => $vo) {
+				$data_origin = M('expense_sub')->where(['esid' => $vo['esid']])->find();
+				foreach ($vo as $k => $v) {
+					if ($v != $data_origin[$k]) {
+						$history[] = array(
+                            'field' => $k,
+                            'olddata' => $data_origin[$k],
+                            'newdata' => $v
+						);
+						action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'outkey' => $eid, 'action' => "infoedit", 'comment' => ''));
+					}
+				}
+				$vo['eid'] = $eid;
+
+				M('expense_sub')->save($vo);
+			}
+		}
+		if (is_array($adddata)) {
+			foreach ($adddata as $key => $vo) {
+
+				$vo['eid'] = $eid;
+				M('expense_sub')->add($vo);
+				action_log_new(array('outtype' => 'ot_expense', 'outkey' => $eid, 'action' => 'infocreate', 'comment' => ''));
+			}
+			//更新总金额
+			$this->exp_model->expense_update($eid);
+		}
+		if ($res) {
+
+			action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'pid' => $data['pid'], 'outkey' => $data['eid'], 'action' => "edit", 'comment' => ''));
+			$this->redirect('admin/expense/expenseproject', array('eid' => $eid));
+		} else {
+			$this->redirect('admin/expense/expenseproject', array('eid' => $eid));
+		}
+	}
+
+	public function expenseDelete()
+	{
+		$eid = (array)I('eid');
+		if (empty($eid[0])) {
+			return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+		}
+		$msg = '';
+		foreach ($eid as $vo) {
+			$expents = M('expense')->where("eid = " . $vo)->find();
+			$this->project_out($expents['pid'],1);//判断项目是否可以操作
+			if ($expents['state'] == 1 || $expents['state'] == -1) {
+				if (cando1(array($expents['uid']))) {
+					M('expense')->where("eid = " . $vo)->delete();
+					action_log_new(array('outtype' => 'ot_expense', 'outkey' => $vo, 'action' => 'delete', 'comment' => ''));
+					$msg .= "『{$expents['code']}』删除成功。\n";
+				} else {
+					$msg .= "『{$expents['code']}』删除失败,没有权限。\n";
+				}
+			} else {
+				$msg .= "『{$expents['code']}』删除失败,报销单不能删除。\n";
+			}
+		}
+		$this->ajaxReturn(array('done' => true, 'msg' => "{$msg}"));
+	}
+
+	public function expensesubdel()
+	{
+		$esid = I('get.esid');
+		$eid = I('get.eid');
+		$sub = M('expense_sub')->field('money,invoicenum')->where(['esid' => $esid])->find();
+
+		$exp = M('expense')->field('amount,innum')->where(['eid' => $eid])->find();
+		$data['amount'] = $exp['amount'] - $sub['money'];
+		$data['innum'] = $exp['amount'] - $sub['money'];
+		M('expense')->where(['eid' => $eid])->save($data);
+		$result = $this->exp_model->expensesubdel($esid);
+		if ($result) {
+			action_log_new(array('outtype' => 'ot_expense', 'outkey' => $esid, 'action' => 'delete', 'comment' => '明细删除'));
+			$this->ajaxReturn(['status' => true]);
+		} else {
+			$this->json_error('删除失败');
+		}
+	}
+
+	/*报销单详请*/
+	public function expenseproject()
+	{
+		$eid = I('get.eid');
+		$type = array();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='expense_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+
+		$result = $this->exp_model->getExpenseSub($eid);
+
+		$res = $this->exp_model->projectExpense($eid);
+		if ($res['addtime']) {
+			$res['addtime'] = date('Y-m-d H:i:s', $res['addtime']);
+		}
+		if ($res['checkedtime']) {
+			$res['checkedtime'] = date('Y-m-d H:i:s', $res['checkedtime']);
+		}
+		$logs = M("Log")->where(array("outtype" => "ot_expense", "outkey" => $eid))->order("addtime asc")->select();
+		if ($logs) {
+			foreach ($logs as $k => $v) {
+				$hs = M("History")->where("logid='{$v['logid']}'")->select();
+				if ($hs) {
+					foreach ($hs as $kk => $vv) {
+						$hs[$kk]['fname'] = tf_name("ot_expense", $vv['field']);
+						switch ($vv['field']) {
+							case "state":
+								$mod = M("Dictionary");
+								$orow = $mod->field("d_key")->where("d_code='Reimbursement_static' and d_value='{$vv['olddata']}'")->find();
+								if ($orow) {
+									$hs[$kk]['olddata'] = $orow["d_key"];
+								}
+								$nrow = $mod->field("d_key")->where("d_code='Reimbursement_static' and d_value='{$vv['newdata']}'")->find();
+								if ($orow) {
+									$hs[$kk]['newdata'] = $nrow["d_key"];
+								}
+								break;
+						}
+					}
+					$logs[$k]['hs'] = $hs;
+				}
+			}
+		}
+		$this->assign('logs', $logs);
+		//审核信息
+		$exprocess = M("exprocess")->where("exid='" . $eid . "' and type ='报销单审核'")->order("`order` asc")->select();
+		$this->assign('exprocess', $exprocess);
+		$this->assign('projectExpense', $res);
+		$this->assign('expenlist', $result);
+
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+		$root_mbx[] = array('title' => '报销单', 'url' => U('Expense/expense'));
+		$root_mbx[] = array('title' => $res['code'], 'url' => U('Expense/expenseproject?eid=' . $eid));
+		$root_mbx[] = array('title' => '查看报价单', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display();
+	}
+
+	/*报销单提交*/
+	public function expenseSubmit()
+	{
+		$eid = (array)I('eid');
+		if (empty($eid[0])) {
+			return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+		}
+		$success_msg = "";
+		$error_msg = "";
+		foreach ($eid as $v) {
+			//获取报销单项目名称和状态
+			$res_expense = M('expense')
+			->alias('e')
+			->field('p.name as pname,e.state,e.uid')
+			->join('ot_project  p on p.pid=e.pid', 'left')
+			->where(array('eid' => $v))->find();
+			//判断是否有费用明细
+			$res_sub = M('expense_sub')->where(array('eid' => $v))->select();
+			if (!$res_sub) {
+				$error_msg .= "『" . $res_expense['pname'] . "』" . "提交失败 : " . "费用明细没有添加.\n";
+				continue;
+			}
+			//判断是否是可提交(只有新建和拒绝可以)
+			if ($res_expense['state'] == 2) {
+				$error_msg .= "『" . $res_expense['pname'] . "』" . "提交失败 : " . "报销单已提交.\n";
+				continue;
+			}
+			if ($res_expense['state'] == 3) {
+				$error_msg .= "『" . $res_expense['pname'] . "』" . "提交失败 : " . "报销单已生效.\n";
+				continue;
+			}
+			/*查询业务审批并添加到审核表中*/
+			$res_examine = M("ExamineSub")->alias('es')->field('es.*')->join('ot_business_examine be on be.eid = es.es_eid', 'LEFT')->where("be.code = 'reimbursement'")->select();
+			if (cando1($res_expense['uid'])) {
+				foreach ($res_examine as $examine) {
+					$data = array(
+                        'exid' => $res_expense['eid'],
+                        'type' => '报销单审核',
+                        'checkid' => $examine ['uid'],
+                        'esid' => $examine ['esid'],
+                        'order' => $examine ['sort_order'],
+                        'checkname' => $examine ['uname'],
+                        'addtime' => time(),
+                        'adduid' => UID,
+                        'addname' => get_nickname(UID)
+					);
+					$result = M('Exprocess')->add($data);
+					if ($result) {
+						$upadate_state = M('expense')->where(['eid' => $v])->save(['state' => 2]);
+						$success_msg = "『" . $res_expense['pname'] . "』" . "提交成功.\n";
+						if ($upadate_state) {
+							$history = array(
+                                'field' => 'state',
+                                'olddata' => '1',
+                                'newdata' => '2'
+                                );
+                                action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'outkey' => $eid, 'action' => "submit", 'comment' => ''));
+						}
+
+					}
+
+				}
+			} else {
+				$error_msg .= $res_expense['pname'] . "提交失败 : " . "没有操作权限";
+				continue;
+			}
+
+		}
+		$msg = $success_msg . $error_msg;
+		return $this->ajaxReturn(array('done' => 'true', 'msg' => $msg));
+	}
+
+	public function expensefinish()
+	{
+
+		if (IS_POST) {
+			$eid = I('post.eid');
+			$content = I('post.content');
+			//查看是否是新建或已拒绝状态并是否有费用明细
+				
+			$res = $this->exp_model->getExpenseInfo($eid);
+			if (!cando1(array($res['uid']))) {
+				$this->json_error('您没有权限！', false);
+				exit();
+			}
+
+			if($res['state']==3){
+				$this->json_error('报销单已经提交，无法修改！', false);
+				exit();
+			}
+				
+			$res_checked = $this->exp_model->submitCheck($eid);
+			if ($res_checked) {
+				//查找当前提交人的角色的父节点是否有审核人 无则直接报销单生效
+				$res_role = M('auth_group_access')->alias('agc')->field('ag.parent,ag.grade')
+				->join('ot_auth_group ag on ag.id=agc.group_id')
+				->where(array('uid' => UID))->find();
+				$role_parent = array();
+					
+				if($res_role){
+					if($res_role['grade'] == 4||$res_role['grade'] == 5){
+						$parent_id = M('AuthGroup')->where(array('id'=>$res_role['parent']))->getField('parent');
+						$role_parent = M('auth_group_access')->alias('ag')->field('ag.uid')->where(array('ag.group_id=' . $res_role['parent']))->find();
+						$role_parent1 = M('auth_group_access')->alias('ag')->where(array('ag.group_id=' . $parent_id))->getField('ag.uid');//总监
+							
+					}else{
+						$role_parent = M('auth_group_access')->alias('ag')->field('ag.uid')->where(array('ag.group_id=' . $res_role['parent']))->find();
+					}
+
+				}
+				// 无则直接报销单生效
+				if (empty($role_parent['uid'])) {
+					$t = time();
+					M('expense')->where(['eid' => $eid])->save(['state' => 3, 'checkedtime' => $t]);
+					$history[] = array(
+                        'field' => 'state',
+                        'olddata' => '1',
+                        'newdata' => '3',
+					);
+
+					action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'outkey' => $eid, 'action' => "submit", 'comment' => "$content"));
+					//更新项目成本预算
+					$sub = M("ExpenseSub")->where(array("eid" => $eid))->select();
+					if ($sub) {
+						foreach ($sub as $v) {
+							$pbudgetmod = M("Projectbudget");
+							$row = $pbudgetmod->where(array("type" => "现金成本", "outitem" => $v["feetype"], "pid" => $res_checked["pid"]))->find();
+
+
+							if ($row) {
+
+								$data = array("cost" => ($row['cost'] + $v['money']), "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pbid" => $row['pbid']);
+
+
+								if ($pbudgetmod->save($data) === false) {
+									$this->json_error("操作失败，请重新操作",false);
+								}
+							} else {
+								$data = array("type" => "现金成本", "outitem" => $v['feetype'], "cost" => $v['money'], "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pid" => $res_checked['pid'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+
+								if ($pbudgetmod->add($data) === false) {
+									$this->json_error("操作失败，请重新操作",false);
+								}
+							}
+
+						}
+						//更新项目信息
+						update_project($res_checked['pid']);
+						// 审核通过后调用OA : LGW
+						exprocessBack($eid);
+					}
+
+
+					$this->ajaxReturn(array('done' => true, 'msg' => '成功'));
+				} else {
+					//                      查询业务审批并添加到审核表中
+					$uname = get_nickname($role_parent['uid']) ? get_nickname($role_parent['uid']) : get_username($role_parent['uid']);
+					$data = array(
+                        'exid' => $eid,
+                        'type' => '报销单审核',
+                        'checkid' => $role_parent['uid'],
+                        'esid' => 0,
+                        'order' => 1,
+                        'checkname' => $uname,
+                        'addtime' => time(),
+                        'adduid' => UID,
+                        'addname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+					);
+					$ExprocessId = M('Exprocess')->add($data);
+
+                    // 发给审批人 时间点：报销单审核发给第一个审核人  LGW
+                    $dynamic = [
+                        'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                        'b' => '报销单审核',
+                        'c'=>$res['pname1'].'-'.$res['code'],
+                        'email' => get_email($role_parent['uid']),
+                    ];
+                    $url = "Dexa/view/id/".$ExprocessId;
+                    $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                    $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+
+					if($role_parent1){
+						$uname = get_nickname($role_parent1) ? get_nickname($role_parent1) : get_username($role_parent1);
+						$data = array(
+		                    'exid' => $eid,
+		                    'type' => '报销单审核',
+		                    'checkid' => $role_parent1,
+		                    'esid' => 0,
+		                    'order' => 2,
+		                    'checkname' => $uname,
+		                    'addtime' => time(),
+		                    'adduid' => UID,
+		                    'addname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+						);
+						M('Exprocess')->add($data);
+					}
+
+
+					M('expense')->where(['eid' => $eid])->save(['state' => 2]);
+					$history[] = array(
+                        'field' => 'state',
+                        'olddata' => '1',
+                        'newdata' => '2'
+                        );
+				}
+				action_log_new(array('history' => $history, 'outtype' => 'ot_expense', 'outkey' => $eid, 'action' => "submit", 'comment' => "$content"));
+				//                    action_log_new(array('outtype'=>'ot_expense','outkey'=>$eid,'action'=>'submit','comment'=>''));
+				$this->ajaxReturn(array('done' => true, 'msg' => '成功'));
+			} else {
+				$this->json_error('请添加费用明细!', false);
+			}
+		}
+		$eid = I('get.eid');
+		$pid = I('get.pid');
+		if (!$eid) {
+			$this->error('请选择要操作的数据', 'javascript:window.parent.choose();');
+		}
+		$this->assign('eid', $eid);
+		$this->assign('pid', $pid);
+		$this->display();
+	}
+
+}

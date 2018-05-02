@@ -1,0 +1,129 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('PLATCUSTOMER')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/PlatCustomer/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('C_KEYS')}</label>
+                                                <input style="width: 220px !important" placeholder="{:L('C_KEYS_TIP')}" class="form-control" type="text" name="keys" value="{$Think.get.keys}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('C_CONTACT')}</label>
+                                                <input style="width: 130px !important" placeholder="{:L('C_CONTACT_TIP')}" class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('C_PTYPE')}</label>
+                                                <select name="paytype" class="form-control m-b" style="width: 50px">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="plist" id="sl">
+                                                    	 <option value="{$sl.payid}" <if condition="$Think.get.paytype eq $sl['payid']">selected</if>>{$sl.name}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('C_ENABLE')}</label>
+                                                <select name="enabled" class="form-control m-b" style="width: 50px">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.enabled eq 1">selected</if>>{:L('yes')}</option>
+                                                    <option value="0" <if condition="$Think.get.enabled === '0'">selected</if>>{:L('no')}</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('PlatCustomer/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th><span>{:L('C_NAME')}</span></th>
+									<th><span>{:L('C_RNAME')}</span></th>
+									<th><span>{:L('C_RESHIP')}</span></th>
+                                    <th><span>{:L('C_PTYPE')}</span></th>
+                                    <th><span>{:L('C_RE')}</span></th>
+                                    <th><span>{:L('C_TEL')}</span></th>
+									<th><span>{:L('C_CONTACT')}</span></th>
+									<th><span ectype="order_by" fieldname="addtime">{:L('C_ADDTIME')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="enabled">{:L('C_ENABLE')}<i class="fa fa-sort"></i></span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>{$vo['name']}</td>
+                                            <td>{$vo['realname']}</td>
+                                            <td>{$vo['rname']}</td>
+                                            <td>{$vo['pname']}</td>
+                                            <td>{$vo['regionname']} {$vo['addr']}</td>
+                                            <td>{$vo['tel']}</td>
+                                            <td>{$vo['contact']}</td>
+                                            <td><if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td>
+                                                <if condition="$vo['enabled']">
+                                                    <img src="__IMG__/positive_enabled.png"  title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

@@ -1,0 +1,1995 @@
+<?php
+
+namespace Admin\Controller;
+
+/*
+ * 任务控制器
+ * */
+use Admin\Common\Super\Task;
+use Admin\Common\Super\Api;
+
+class TaskController extends AdminController
+{
+    //定义数据表
+    private $db;
+    private $nowTime = 0; // 当前时间 : LGW
+
+    //构造函数 实例化ModuleModel 并获得整张表的数据
+    public function __construct()
+    {
+        parent::__construct();
+        //初始化时实例化category model
+        $this->db = D('Group');
+        $this->assign('nowDate', date('Ymd'));
+    }
+
+    // 任务的搜索 : LGW
+    public function taskSearch()
+    {
+        // 任务状态
+        $state = M("Dictionary")->where("d_code='taskstatus' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+        // 优先级
+        $unit = M("Dictionary")->where("d_code='task_level' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+        // 任务类型
+        $taskType = M('dictionary')->where("d_code = 'task_type'")->field(true)->select(array('order' => 'd_order asc'));
+        $this->assign('taskType', $taskType);
+        // 服务角色
+        $Group = M('Group')->field('groupid,name')->order('sort_order desc')->select();
+        $this->assign('states', $state);
+        $this->assign('units', $unit);
+        $this->assign('taskType', $taskType);
+        $this->assign('groups', $Group);
+        $c1 = " 1=1 ";
+        $c2 = "";
+        $c3 = "";
+        $c4 = "";
+        $c5 = "";
+        $c6 = "";
+        $c7 = "";
+        $c8 = "";
+        $c9 = " 1=1 ";
+        $c10 = "";
+        $c11 = "";
+        $c12 = "";
+        $c13 = "";
+        $c14 = "";
+        $c15 = "";
+
+
+        $field1 = 'p.name';
+        $field2 = 't.title';
+        $field3 = 't.manageruname';
+        $field4 = 't.assignedname';
+        $field5 = 't.state';
+        $field6 = 't.level';
+        $field7 = 't.tasktype';
+        $field8 = 't.groupid';
+        $field9 = 't.pstime';
+        $field10 = 't.petime';
+        $field11 = 't.etime';
+        $value1 = I('get.pname', '');  // 项目名称
+        $value2 = I('get.title', '');     // 任务名称
+        $value3 = I('get.manageruname', '');      // 分派人
+        $value4 = I('get.assignedname', '');    // 执行人
+        $value5 = I('get.state'); // 任务状态
+        $value6 = I('get.level'); // 优先级
+        $value7 = I('get.tasktype', ''); // 任务类型
+        $value8 = I('get.groupid', ''); // 服务角色
+
+        $pstimeStart = I('get.pstime_start', ''); // 计划开始时间从
+        $pstimeEnd = I('get.pstime_end', ''); // 计划开始时间至
+        $petimeStart = I('get.petime_start', ''); // 计划结束时间至
+        $petimeEnd = I('get.petime_end', ''); // 计划结束时间至
+        $etimeStart = I('get.etime_start', ''); // 实际结束时间至
+        $etimeEnd = I('get.etime_end', ''); // 实际结束时间至
+
+        $exists = "EXISTS(SELECT 1 FROM ot_project p WHERE p.pid=t.pid and";
+
+        $value1 and $c1 = " $exists $field1 like '%{$value1}%')";
+        $value2 and $c2 = " and $field2 like '%{$value2}%' ";
+        $value3 and $c3 = " and $field3 like '%{$value3}%' ";
+        $value4 and $c4 = " and $field4 like '%{$value4}%' ";
+        if (is_numeric($value5)) $c5 = " and $field5=$value5";
+        if (is_numeric($value6)) $c6 = " and $field6=$value6";
+        if (is_numeric($value7)) $c7 = " and $field7=$value7";
+        $value8 and $c8 = " and $field8=$value8";
+        if ($pstimeStart) {
+            $start = strtotime($pstimeStart);
+            $c9 .= " and $field9 >= '{$start}'";
+        }
+        if ($pstimeEnd) {
+            $end = strtotime($pstimeEnd);
+            $c9 .= " and $field9 <= '{$end}'";
+        }
+        if ($petimeStart) {
+            $start = strtotime($petimeStart);
+            $c10 .= " and $field10 >= '{$start}'";
+        }
+        if ($petimeEnd) {
+            $end = strtotime($petimeEnd);
+            $c10 .= " and $field10 <= '{$end}'";
+        }
+
+        if ($etimeStart) {
+            $start = strtotime($etimeStart);
+            $c11 .= " and $field11 >= '{$start}'";
+        }
+        if ($etimeEnd) {
+            $end = strtotime($etimeEnd);
+            $c11 .= "and $field11 <= '{$end}'";
+        }
+        $this->assign('calculate', calculateDate()); // 本周 本月 等
+        $actionURL = strstr(__ACTION__, '/Admin');
+        $this->assign('actionURL', $actionURL);
+
+        $reset = I('get.reset');
+        if ($reset == 1) {
+            $c1 = " 1=1 ";
+            $condition ['_string'] = "(( $c1))";
+            return $condition;
+        }
+        $condition ['_string'] = "(($c1 $c2 $c3 $c4 $c5 $c6 $c7 $c8) and ($c9 $c10 $c11 $c12 $c13 $c14 $c15 ) )";
+
+        $this->assign('value1', $value1);
+        $this->assign('value2', $value2);
+        $this->assign('value3', $value3);
+        $this->assign('value4', $value4);
+        $this->assign('value5', $value5);
+        $this->assign('value5', $value5);
+        $this->assign('value6', $value6);
+        $this->assign('value7', $value7);
+        $this->assign('value8', $value8);
+
+        $this->assign('pstimeStart', $pstimeStart);
+        $this->assign('pstimeEnd', $pstimeEnd);
+        $this->assign('petimeStart', $petimeStart);
+        $this->assign('petimeEnd', $petimeEnd);
+
+        $this->assign('etimeStart', $etimeStart);
+        $this->assign('etimeEnd', $etimeEnd);
+        $pstime = I('get.pstime');
+        $petime = I('get.petime');
+        $etime = I('get.etime');
+        $this->assign('pstime', $pstime);
+        $this->assign('petime', $petime);
+        $this->assign('etime', $etime);
+        $show = 0;
+        $second = 0;
+        if ($value1 || $value2 || $value3 || $value4 || is_numeric($value5) || is_numeric($value6) || $value7 || $value8 || $pstimeStart || $pstimeEnd || $petimeStart || $petimeEnd || $etimeStart || $etimeEnd) $show = 1;
+        if ($value7 || $value8 || $pstimeStart || $pstimeEnd || $petimeStart || $petimeEnd || $etimeStart || $etimeEnd) $second = 1;
+        $this->assign('show', $show);
+        $this->assign('second', $second);
+
+        return $condition;
+
+    }
+
+    public function index()
+    {
+        $this->assign('actname', ACTION_NAME);
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+        C('LIST_ROWS', 20);
+        $where['_string'] .= " and (t.state=2 or t.state=6 or t.state=1 or t.state=4) and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr,(select count(1) from ot_module_help mh where mh.mid = t.mid) as sdc');
+        // 大于要求时间为红色，等于要求时间为黄色  :LGW
+        $today = strtotime(date('Y-m-d'));
+        foreach ($list as $k => $v) {
+            $petime = strtotime(date('Y-m-d', $v['petime']));
+            $num = (int)$petime - (int)$today;
+            if ($num > 0) {
+                $num = round($num / 86400);
+                if ($num > 5) {
+                    $list[$k]['color'] = 'green';
+                    $list[$k]['num'] = '···';
+                    $list[$k]['num1'] = $num;
+                } else {
+                    $list[$k]['color'] = 'green';
+                    $list[$k]['num'] = $num;
+                    $list[$k]['num1'] = $num;
+                }
+            } elseif ($num < 0) {
+                $num = abs($num);
+                $num = round($num / 86400);
+                if ($num > 5) {
+                    $list[$k]['color'] = 'red';
+                    $list[$k]['num'] = '···';
+                    $list[$k]['num1'] = $num;
+                } else {
+                    $list[$k]['color'] = 'red';
+                    $list[$k]['num'] = $num;
+                    $list[$k]['num1'] = $num;
+                }
+            } else {
+                $list[$k]['color'] = 'yellow';
+            }
+        }
+        $this->assign('_list', $list);
+        /*$task=$taskmod->alias('t')->field("t.*,d2.d_key,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+		 join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'','LEFT')
+		 ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'",'left')
+		 ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+		 ->join("ot_service s on s.sid=t.psid", 'LEFT')
+		 ->join ( 'ot_module m ON m.mid = s.mid', 'LEFT' )
+		 ->join ( 'ot_group g ON m.role = g.groupid', 'LEFT' )
+		 ->where("t.tid='{$id}' and t.deleted=0")->find();*/
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-未完成', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display();
+    }
+
+
+    public function out()
+    {
+        $this->assign('actname', ACTION_NAME);
+
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+        C('LIST_ROWS', 20);
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+        $time = strtotime(date('Ymd', time()));
+
+        $where['_string'] .= " and t.petime<" . $time . " and t.state!=3 and t.state!=-1 and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        foreach ($list as $k => $v) {
+            $v['petime_format'] = date("Ymd", $v['petime']);
+            $list[$k] = $v;
+        }
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-已延期', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display("index");
+    }
+
+
+    public function nots()
+    {
+        $this->assign('actname', ACTION_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Task/nots",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '任务名称', 'fieldname' => 't.title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 't.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '标准服务', 'fieldname' => 'pc.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '模块', 'fieldname' => 'm.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '项目组', 'fieldname' => 't.groupid', 'operator' => 'include', 'control' => 'select', 'values' => array())
+            , 5 => array('str' => '优先级', 'fieldname' => 't.level', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 6 => array('str' => '周期', 'fieldname' => 't.days', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 7 => array('str' => '工时', 'fieldname' => 't.hours', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '计划开始时间', 'fieldname' => 't.pstime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 9 => array('str' => '计划结束时间', 'fieldname' => 't.petime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 10 => array('str' => '实际开始时间', 'fieldname' => 't.stime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 11 => array('str' => '实际结束时间', 'fieldname' => 't.etime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 12 => array('str' => '创建人', 'fieldname' => 't.uname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 13 => array('str' => '创建时间', 'fieldname' => 't.addtime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '分派人', 'fieldname' => 't.manageruname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '执行人', 'fieldname' => 't.assignedname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 16 => array('str' => '分派时间', 'fieldname' => 't.assignedtime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 17 => array('str' => '关闭用户', 'fieldname' => 't.closeuname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '关闭时间', 'fieldname' => 't.closetime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 19 => array('str' => '审核用户', 'fieldname' => 't.checkuname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 20 => array('str' => '审核时间', 'fieldname' => 't.checktime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 21 => array('str' => '完成用户', 'fieldname' => 't.finishuname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '完成时间', 'fieldname' => 't.finishtime', 'operator' => 'include', 'control' => 'input', 'values' => '', 'class' => 'date')
+            )
+        );
+        if ($config && $config['params']) {
+            $unit = M("Dictionary")->where("d_code='task_level' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+
+            $munit = array("" => "");
+            if ($unit) {
+                foreach ($unit as $v) {
+                    $munit[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][5]['values'] = $munit;
+            //状态
+            $mstate = array("" => "");
+            $state = M("Dictionary")->where("d_code='taskstatus' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+            if ($state) {
+                foreach ($state as $vo) {
+                    $mstate[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $mstate;
+            //项目组
+            $group = M('Group')->field('groupid,name')->order('sort_order asc')->select();
+            $mg = array("" => "");
+            if ($group) {
+                foreach ($group as $v) {
+                    $mg[$v['groupid']] = $v['name'];
+                }
+            }
+            $config['params'][4]['values'] = $mg;
+        }
+
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $where["t.deleted"] = 0;
+        C('LIST_ROWS', 20);
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+
+        $where['_string'] .= " and (t.state=1) and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-未开始', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display("index");
+    }
+
+
+    public function allindex()
+    {
+        $this->assign('actname', ACTION_NAME);
+
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+        C('LIST_ROWS', 20);
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+
+        $where['_string'] .= " and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        // 大于要求时间为红色，等于要求时间为黄色  :LGW
+        $today = strtotime(date('Y-m-d'));
+        foreach ($list as $k => $v) {
+            $petime = strtotime(date('Y-m-d', $v['petime']));
+            $num = (int)$petime - (int)$today;
+            if ($num > 0) {
+                $num = round($num / 86400);
+                if ($num > 5) {
+                    $list[$k]['color'] = 'green';
+                    $list[$k]['num'] = '···';
+                    $list[$k]['num1'] = $num;
+                } else {
+                    $list[$k]['color'] = 'green';
+                    $list[$k]['num'] = $num;
+                    $list[$k]['num1'] = $num;
+                }
+            } elseif ($num < 0) {
+                $num = abs($num);
+                $num = round($num / 86400);
+                if ($num > 5) {
+                    $list[$k]['color'] = 'red';
+                    $list[$k]['num'] = '···';
+                    $list[$k]['num1'] = $num;
+                } else {
+                    $list[$k]['color'] = 'red';
+                    $list[$k]['num'] = $num;
+                    $list[$k]['num1'] = $num;
+                }
+            } else {
+                $list[$k]['color'] = 'yellow';
+            }
+        }
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display("index");
+    }
+
+
+    public function pause()
+    {
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+        C('LIST_ROWS', 20);
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+
+        $where['_string'] .= " and (t.state=5) and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-已暂停', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+        $this->assign('actname', ACTION_NAME);
+        $this->display("index");
+    }
+
+    public function finished()
+    {
+        $this->assign('actname', ACTION_NAME);
+
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+        C('LIST_ROWS', 20);
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+
+        $where['_string'] .= " and (t.state=3) and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-已完成', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display("index");
+    }
+
+
+    public function closed()
+    {
+        $this->assign('actname', ACTION_NAME);
+
+        $where = $this->taskSearch();
+        $where["t.deleted"] = 0;
+
+        $pid = I('pid');
+        if ($pid) {
+            $this->assign('pid', $pid);
+            $where['_string'] .= " and p.pid=" . $pid;
+        }
+
+        $where['_string'] .= " and (t.state=-1) and t.assigneduid=" . UID;
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = "t.petime";
+        }
+        $module = M('Task')->alias('t')
+            ->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'left')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join('ot_module m on m.mid = t.mid', 'left')
+            ->join('ot_project p on p.pid = t.pid', 'left');
+        $list = $this->lists($module, $where, $order, null, 't.*,d.d_key level_name,m.name mname,p.name pname,d1.d_key as statestr');
+        $this->assign('_list', $list);
+        //项目
+        $pro = M('Project')->alias("p")->join("left join ot_customer c on c.cid=p.cid")->field('p.pid,p.name,c.shortsign')
+            ->where("exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid ) and p.del=0 and p.state !=-1")->order("p.addtime desc")->select();
+        $this->assign('pro', $pro);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '我的任务-已关闭', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route_t__', '我的任务');
+        Cookie('__from_url_t__', U('Task/index'));
+
+        $this->display("index");
+    }
+
+    /**
+     * 编辑模块
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $key => $value) {
+                if (empty($value['groupid'])) {
+                    if (!empty($value['name'])) {
+                        $adddata[] = $value;
+                    }
+                } else {
+                    $editdata[] = $value;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $key => $vo) {
+                    $this->db->save($vo);
+                }
+            }
+            if (is_array($adddata)) {
+                $sql = '';
+                foreach ($adddata as $key => $vo) {
+                    extract($vo);
+                    $sql .= ",('" . $name . "',$sort_order)";
+                }
+                $sql = "insert into ot_group(name,sort_order) values " . substr($sql, 1);
+                $this->db->execute($sql);
+            }
+            $this->success('编辑成功！', U('Group/index'));
+        }
+
+    }
+
+    public function edit()
+    {
+        $this->display();
+    }
+
+    public function delete()
+    {
+        $mid = I('get.id');
+        if (!$mid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        if (is_array($mid)) {
+            $ids = implode(',', $mid);
+        } else {
+            $ids = $mid;
+        }
+        $where = array('groupid' => array('in', $ids));
+        $tmp = $this->db->where($where)->delete();;
+        if ($tmp) {
+            $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+        } else {
+            $this->json_error('删除失败!', false);
+        }
+    }
+
+    public function file_uplode($files = '')
+    {
+        $upload = new \Think\Upload(C('DOWNLOAD_UPLOAD'));// 实例化上传类
+        // 上传文件
+        $info = $upload->upload($files);
+        if (!$info) {// 上传错误提示错误信息
+            $this->error($upload->getError());
+        } else {// 上传成功 获取上传文件信息
+            $filelids = array();
+            foreach ($info as $key => $value) {
+                $a = explode('.', $value['name']);
+                $name = $a[0];
+                $file['name'] = $_POST['labels'][$key] ? $_POST['labels'][$key] : $name;
+                $c = C('DOWNLOAD_UPLOAD');
+                $file['savepath'] = $c['rootPath'] . $value['savepath'] . $value['savename'];
+                $file['ext'] = $value['ext'];
+                $file['size'] = $value['size'];
+                $file['addtime'] = time();
+                $file['uid'] = UID;
+                $file['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+                $filelid = M('File')->add($file);
+                $filelids[$key] = $filelid;
+            }
+            return $filelids;
+        }
+    }
+
+    public function finish()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")
+            ->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+
+        if ($task['state'] == 3 || $task['state'] == -1 || $task['state'] == 4) {
+            $this->error("此任务现在不能进行完成操作", 'javascript:window.parent.choose();');
+        }
+        if (!$task['assigneduid']) {
+            $this->error("此任务未指派执行人", 'javascript:window.parent.choose();');
+        }
+        if (IS_POST) {
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+            $finishours = I("post.finishours", 0);
+            /* if (empty($finishours)) {
+                 $this->error("实际工时不能为空", 'javascript:window.parent.choose();');
+             }*/
+            $content = I("post.note", "");
+            $mailto = I("post.mailto", "");
+            //文件上传类型
+            $dtid = I("post.dtids", "");
+            //网络资料地址上传类型
+            $dturl = I('post.dtid', '');
+            $dtsum = array_merge($dtid, $dturl);
+            $dtsum = array_unique($dtsum);
+            $labels = I("post.labels", "");
+
+            $files = $_FILES['files'];
+
+            //判断是否必须上传文档
+            $sdoc = array();
+            if ($task['sid']) {
+                $sdoc = M("ServiceDoc")->alias('sd')->field('dt.name,sd.*')->join('ot_doc_type dt on dt.dtid=sd.dtid')->where("sid='{$task['sid']}'")->select();
+            }
+            $typename = "";
+            foreach ($sdoc as $d) {
+                $typename .= $d['name'] . '类型和';
+            }
+            $typename = mb_substr($typename, 0, -1, 'utf-8');
+            if ($sdoc) {
+                if (empty($dtsum) || !is_array($dtsum)) {
+                    $this->error("{$typename}上传不完整", 'javascript:window.parent.choose();');
+                }
+                foreach ($sdoc as $v) {
+                    if (!in_array($v['dtid'], $dtsum)) {
+                        $this->error("{$v['name']}类型上传不完整", 'javascript:window.parent.choose();');
+                    }
+                }
+                foreach ($sdoc as $v) {
+                    foreach ($dtsum as $kk => $vv) {
+                        if ($vv == $v['dtid']) {
+                            if ((empty($files['tmp_name']) || empty($files['tmp_name'][$kk])) && empty($_POST['label'][$kk])) {
+                                $this->error("{$v['name']}类型上传不完整", 'javascript:window.parent.choose();');
+                            }
+                        }
+                    }
+                }
+            }
+            $accessories = array_filter($_FILES['files']['tmp_name']);
+            if (!empty($accessories)) {
+                $file_ids = $this->file_uplode();
+                if (!empty($file_ids)) {
+                    $sql = 'insert into ot_doc (pid,fileid,tid,dtid,note,addtime,uid,uname,edittime,edituid,edituname) values  ';
+                    foreach ($file_ids as $key => $vo) {
+                        $pid = $task['pid'];
+                        $dtid = $_POST['dtids'][$key] ?: 0;
+                        $note = $_POST['contents'][$key] ?: '';
+                        $addtime = time();
+                        $uid = UID;
+                        $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                        $sql .= "($pid,$vo,$id,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "'),";
+                    }
+                    $sql = substr($sql, 0, -1);
+                    $temp = M('doc')->execute($sql);
+                }
+            }
+            //网络资料
+            $dtids = $_POST['dtid'];
+            foreach ($dtids as $kk => $dt) {
+                if ($_POST['url'][$kk]) {
+                    //网络资料填写
+                    $pid = $task['pid'];
+                    $url = $_POST['url'][$kk];
+                    $dtid = $dt;
+                    $note = $_POST['content'][$kk];
+                    $addtime = time();
+                    $uid = UID;
+                    $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                    $urlname = $_POST['label'][$kk];
+                    if (empty($urlname)) {
+                        $this->error('网络资料标题名称不可为空', 'javascript:window.parent.choose();');
+                    }
+                    $sql = 'insert into ot_doc (pid,fileid,tid,dtid,note,addtime,uid,uname,edittime,edituid,edituname,url,urlname) values  ';
+                    $sql .= "($pid,0,$id,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "','" . $url . "','" . $urlname . "'),";
+                    $sql = substr($sql, 0, -1);
+                    $temp2 = M('doc')->execute($sql);
+                }
+            }
+            /*$Picture = D ( 'Admin/Picture' );
+			 $pic_driver = C ( 'PICTURE_UPLOAD_DRIVER' );
+			 C('PICTURE_UPLOAD.exts','jpg,gif,png,jpeg,bmp,icon,zip,rar,tar,gz,7z,doc,docx,txt,xml,ppt,pdf,xls,xlsx,pptx,log,pdm,avi,rmvb,mp4,mp3,ogg,wps');
+			 C('PICTURE_UPLOAD.maxSize',50*1024*1024);
+
+			 $info = $Picture->upload ( $_FILES, C ( 'PICTURE_UPLOAD' ), C ( 'PICTURE_UPLOAD_DRIVER' ),
+			 C ( "UPLOAD_{$pic_driver}_CONFIG" ) ); // TODO:上传到远程服务器
+
+			 if($dtid&&$info){
+			 foreach ($dtid as $k=>$v){
+			 if($v&&$info[$k]){
+			 if(empty($labels[$k])){
+			 $labels[$k]=$info[$k]["name"];
+			 }
+			 $fdata=array("uid"=>UID,"uname"=>get_nickname(UID),"name"=>$labels[$k],'savepath'=>$info[$k]['path']
+			 ,'ext'=>$info[$k]['ext'],'size'=>$info[$k]['size'],'addtime'=>time());
+			 $fileid=M("File")->add($fdata);
+			 if(empty($fileid)){
+			 $this->error("操作失败，请重新操作");
+			 }
+			 $ddata=array("pid"=>$task['pid'],"tid"=>$id,"fileid"=>$fileid,"dtid"=>$v,
+			 "note"=>$contents[$k],"uid"=>UID,"uname"=>get_nickname(UID),
+			 "addtime"=>time(),"edituid"=>UID,"edituname"=>get_nickname(UID),"edittime"=>time());
+			 $did=M("Doc")->add($ddata);
+			 if(empty($did)){
+			 $this->error("操作失败，请重新操作");
+			 }
+			 }
+			 }
+			 }*/
+            $finishours1 = $task['finishours'] ?: 0;//获取累计完成工时
+            $finishours2 = (float)$finishours + (float)$finishours1; //累计工时
+            $tasksub = array(
+                'tid' => $id,
+                'finishours' => $finishours,
+                'finishtime' => time(),
+                'finishuid' => $task['assigneduid'],    // 执行人即是完成人
+                'finishuname' => $task['assignedname']
+            );
+            $tsid = M('TaskSub')->add($tasksub);
+            if ($task['checkuid']) {
+                //审核流程
+                M("Exprocess")->where("exid='{$id}' and type='任务审核'")->delete();
+
+                $checkdata = array("exid" => $id, "type" => "任务审核", "state" => "0", "checkid" => $task['checkuid'], "checkname" => $task['checkuname'], "addtime" => time(),
+                    "adduid" => UID,
+                    "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+                $ExprocessId = M("Exprocess")->add($checkdata);
+                if ($ExprocessId == false) {
+                    $this->error("操作失败，请重新操作");
+                }
+
+                if ($taskmod->save(array("tid" => $id, "finishours" => $finishours2, "thisfinishours" => $finishours, "state" => 4, "finishcontent" => $content, "finishuid" => $task['assigneduid'], "finishuname" => $task['assignedname'])) === false) {
+                    $this->error("操作失败，请重新操作");
+                }
+                action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'submit', 'comment' => $content, 'history' => array(array('field' => "任务状态", 'olddata' => "进行中", 'newdata' => "已提交"))));
+                $logs = $this->getLogs($id, 'submit');       // 操作记录 提交
+                $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+
+                // 发给审批人 时间点：任务审核发给第一个审核人  LGW
+                $dynamic = [
+                    'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                    'b' => '任务审核',
+                    'c' => $task['pname'] . '-' . $task['code'],
+                    'email' => get_email($task['checkuid']),
+                ];
+                $url = "Dexa/view/id/".$ExprocessId;
+                $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+
+                /*M('Project')->where('pid ='.$task['pid'])->setInc('amount',$task['amount']);*/
+            } else {
+                $data = array("etime" => time(), "tid" => $id, "finishours" => $finishours2, "thisfinishours" => $finishours, "state" => 3, "finishtime" => time(), "finishcontent" => $content, "finishuid" => $task['assigneduid'], "finishuname" => $task['assignedname']);
+                // 任务完成时间
+                if (empty($task['stime'])) {
+                    $data['stime'] = time();
+                }
+                if ($taskmod->save($data) === false) {
+                    $this->error("操作失败，请重新操作");
+
+                }
+                action_log_new(array('ext1' => $finishours, 'outtype' => 'ot_task', 'outkey' => $id, 'action' => 'finish', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => $task['state'], 'newdata' => 3))));
+                $logs = $this->getLogs($id, 'finish');       // 操作记录 完成
+                $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+                $amounts = M('Task')->alias('t')
+                    ->field("ifnull(SUM(r.price*ts.finishours),0) as amount,ifnull(SUM(ts.finishours),0) as finishours,ps.type as type1")
+                    ->join('ot_task_sub ts on ts.tid=t.tid', 'left')
+                    ->join('ot_member m on m.uid=ts.finishuid', 'left')
+                    ->join('ot_auth_group_access a on m.uid=a.uid', 'left')
+                    ->join('ot_role_level r on a.rlid=r.rlid', 'left')
+                    ->join('ot_project_service ps on ps.psid = t.psid', 'left')
+                    ->where("t.groupid='{$task['groupid']}' and t.pid = '{$task['pid']}'")
+                    ->group("ps.type")
+                    ->select();
+                $pbudgetmod = M("Projectbudget");
+                $groupName = M('Group')->where("groupid='{$task['groupid']}'")->getField('name');
+                // 更新发生金额 : LGW
+                foreach ($amounts as $k => $v) {
+                    $map = [];
+                    $map['type'] = "人力成本";
+                    $map['outid'] = $task['groupid'];
+                    $map['pid'] = $task['pid'];
+                    $map['type1'] = $v['type1'];    // 人力成本分预算内 预算外（包含测试） 变更
+                    $row = $pbudgetmod->where($map)->find();
+                    if ($row) {
+                        // 编辑
+                        $data = array("pbid" => $row['pbid'], "cost" => $v['amount'], "finishours" => $v['finishours'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+                        if ($pbudgetmod->save($data) === false) {
+                            $this->error("操作失败，请重新操作");
+                        }
+                    } else {
+                        // 新增
+                        $data = array("type1" => $v['type1'], "type" => "人力成本", "outitem" => $groupName, "outid" => $task['groupid'], "cost" => $v['amount'], "finishours" => $v['finishours'], "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "pid" => $task['pid'], "updatetime" => time(), "updateuid" => UID, "updateuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID));
+
+                        if ($pbudgetmod->add($data) === false) {
+                            $this->error("操作失败，请重新操作");
+                        }
+                    }
+                }
+
+                update_project($task['pid']);
+                updateprocess($task['tid']);
+                if (M('Milestone')->where(array('tid' => $task['psid'], 'pid' => $task['pid']))->find()) {
+                    M('Milestone')->where(array('tid' => $task['psid'], 'pid' => $task['pid']))->save(array('completion' => 100, "etime" => time()));
+                }
+            }
+
+            if ($mailto && is_array($mailto)) {
+                $toreadmod = M("Toread");
+                foreach ($mailto as $v) {
+                    if ($v) {
+                        $toreadmod->add(array("uid" => UID, "uname" => get_nickname(UID), "pid" => $task['pid'], "tid" => $id,
+                            "touid" => $v, "touname" => get_nickname($v), "addtime" => time()));
+                    }
+                }
+            }
+            if (!empty($tsid)) {
+                $Model->commit(); // 成功则提交事务
+                echo "<script>window.parent.choose(true);</script>";
+            } else {
+                $Model->rollback(); // 否则将事务回滚
+                $this->error('添加失败！');
+            }
+
+        } else {
+            //文档类型
+            $doc_type = M('DocType')->field('dtid,name')->order('sort_order asc')->select();
+            $this->assign('doc_type', $doc_type);
+            //审核人
+            $ses = M("Member")->where("status=1")->select();
+            $this->assign('ses', $ses);
+
+            $sdoc = array();
+            if ($task['sid']) {
+                $sdoc = M("ServiceDoc")->where("sid='{$task['sid']}' ")->select();
+            }
+
+            $this->assign('task', $task);
+            $this->assign('id', $id);
+            $this->assign("sdoc", $sdoc);
+
+            $this->display();
+        }
+    }
+
+    /**
+     * 获取操作记录
+     *
+     * @param $id
+     * @param $action
+     *
+     * @return string
+     */
+    public function getLogs($id, $action)
+    {
+        $map = [];
+        $map['outtype'] = 'ot_task';
+        $map['outkey'] = $id;
+        $map['action'] = $action;
+        //$map['action'] = [['not in', 'pause,finish,open,send']]; // 暂停 完成 开启 转派
+        $logs = M("Log")
+            ->field('logid,addtime,uname,action')
+            ->where($map)
+            ->order("addtime desc")
+            ->find();
+        $title = '';
+        $content = '';
+        if ($logs) {
+            $addTime = date("Y-m-d H:i", $logs['addtime']);
+            $action = ac_name($logs['action']);
+            $title = ' ' . $addTime . '，由 ' . $logs['uname'] . ' ' . $action . '。';
+            $hs = M("History")->where("logid='{$logs['logid']}'")->select();
+            if ($hs) {
+                $mod = M("Dictionary");
+                foreach ($hs as $kk => $vv) {
+                    $fname = tf_name("ot_task", $vv['field']);
+                    $olddata = $vv['olddata'];
+                    $newdata = $vv['newdata'];
+                    switch ($vv['field']) {
+                        case "state":
+                            $orow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$olddata}'")->find();
+                            if ($orow) {
+                                $olddata = $orow["d_key"];
+                            }
+                            $nrow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$newdata}'")->find();
+                            if ($orow) {
+                                $newdata = $nrow["d_key"];
+                            }
+                            break;
+                    }
+                    $content .= "修改了 " . $fname . '，旧值为"' . $olddata . '"新值为"' . $newdata . '"。';
+                }
+            }
+        }
+        $message = $title . $content;
+        return $message;
+    }
+
+    /**
+     * 任务通知
+     *
+     * @param $logs
+     * @param $task
+     */
+    public function taskNotice($logs, $task)
+    {
+        $uid = is_login();  // 判断登录是经理还是执行人
+        $url = 'Task/view/id/'.$task['tid'];
+        // 项目经理操作 给执行人发
+        
+        // 执行人操作 给项目经理发
+        if ($uid == $task['assigneduid']) {
+            // 发给项目经理 时间点：操作记录  LGW
+            $assigned = [
+                'a' => $task['pname'],                      // 项目名称
+                'b' => $task['title'],                      // 任务名称
+                'email' => get_email($task['pmuid']),           // 执行人邮箱
+            ];
+            $cost = sendTemplate($assigned, 'task_manager',$url);
+            $cost['data'] .= $logs;
+            apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给项目经理 : LGW
+        }else{
+        	//if ($uid == $task['pmuid']) 
+            // 发给执行人 时间点：操作记录  LGW
+            $assigned = [
+                'a' => $task['pname'],                      // 项目名称
+                'b' => $task['title'],                      // 任务名称
+                'email' => get_email($task['assigneduid']),     // 执行人邮箱
+            ];
+            $cost = sendTemplate($assigned, 'task_execute',$url);
+            $cost['data'] .= $logs;
+            apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给执行人 : LGW
+        }
+    }
+
+
+    public function start()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")
+            ->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+
+        if ($task['state'] != 1) {
+            $this->error("此任务现在不能进行开始操作", 'javascript:window.parent.choose();');
+        }
+        if (!$task['assigneduid']) {
+            $this->error("此任务未指派执行人", 'javascript:window.parent.choose();');
+        }
+        if (IS_POST) {
+            $data = array("state" => 2, "tid" => $id, "stime" => time());
+            if ($taskmod->save($data) === false) {
+                $this->error("操作失败，请重试", 'javascript:window.parent.choose();');
+            };
+            $content = I("post.content", "");
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'start', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => $task['state'], 'newdata' => 2))));
+
+            $logs = $this->getLogs($id, 'start');       // 操作记录 开始
+            $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    public function oppause()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")
+            ->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if ($task['state'] != 2) {
+            $this->error("此任务现在不能进行暂停操作");
+        }
+
+        if (IS_POST) {
+            $data = array("state" => 5, "tid" => $id);
+            if ($taskmod->save($data) === false) {
+                $this->error("操作失败，请重试");
+            };
+            $content = I("post.content", "");
+
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'pause', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => "{$task['state']}", 'newdata' => 5))));
+            $logs = $this->getLogs($id, 'pause');       // 操作记录 暂停
+            $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    public function opcontinue()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")
+            ->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if ($task['state'] != 5) {
+            $this->error("此任务现在不能进行继续操作");
+        }
+
+        if (IS_POST) {
+            $data = array("state" => 2, "tid" => $id);
+            if ($taskmod->save($data) === false) {
+                $this->error("操作失败，请重试");
+            };
+            $content = I("post.content", "");
+
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'continue', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => "{$task['state']}", 'newdata' => 2))));
+            $logs = $this->getLogs($id, 'continue');       // 操作记录 继续
+            $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    public function close()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if ($task['state'] == 3 || $task['state'] == -1 || $task['state'] == 4) {
+            $this->error("任务当前状态不允许关闭");
+        }
+
+        if (IS_POST) {
+            $content = I("post.content", "");
+            if (empty($content)) {
+                $this->error("请填写关闭原因");
+            }
+
+            $data = array("state" => -1, "tid" => $id, "closeuid" => UID, "closeuname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "closetime" => time(), "closereason" => $content);
+            if ($taskmod->save($data) === false) {
+                $this->error("操作失败，请重试");
+            };
+
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'close', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => "{$task['state']}", 'newdata' => -1))));
+            $logs = $this->getLogs($id, 'close');       // 操作记录 关闭
+            $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+            updateprocess($id);
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    // 转派
+    public function send()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+
+        if ($task['state'] != 1 && $task['state'] == 0) {
+            $this->error("此任务现在不能进行转派操作");
+        }
+
+        if (IS_POST) {
+            $content = I("post.content", "");
+            $aid = I("post.aid", "");
+            if (empty($aid)) {
+                $this->error("请选择转派指定人");
+            }
+            $data = array("manageruid" => UID, "manageruname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID), "state" => 1, "tid" => $id, "assignedtime" => time(), "assigneduid" => $aid, "assignedname" => get_nickname($aid) ? get_nickname($aid) : get_username($aid));
+            if ($taskmod->save($data) === false) {
+                $this->error("操作失败，请重试");
+            };
+            // 被转派人如果不是项目参与人要写到参与人 : LGW
+            $map = [];
+            $map['tp.pid'] = $task['pid'];
+            $map['tp.uid'] = $aid;
+            $list = M("takepart")->alias('tp')->field('tp.uid')
+                ->join('ot_project_role pr on pr.prid=tp.roleid')
+                ->join('ot_member m on m.uid=tp.uid')
+                ->where($map)->find();
+            // 不存在存入
+            if (!$list) {
+                $name = '项目执行';
+                $projectRole = M('Project_role')->alias('pr')->field('pr.prid')
+                    ->where("pr.name='{$name}'")->find();
+                $array = [
+                    'pid' => $task['pid'],
+                    'uid' => $aid,
+                    'uname' => get_nickname($aid) ? get_nickname($aid) : get_username($aid),
+                    'addtime' => time(),
+                    'adduid' => UID,
+                    'adduname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                    'roleid' => $projectRole['prid'],
+                ];
+                M('Takepart')->add($array);
+            }
+
+            if (empty($content)) {
+                $content = "此任务由【" . (get_nickname(UID) ? get_nickname(UID) : get_username(UID)) . "】转派给【" . (get_nickname($aid) ? get_nickname($aid) : get_username($aid)) . "】";
+            }
+            // 发给旧执行人 时间点：任务转派  LGW
+            $dynamic_old = [
+                'a' => $task['title'],
+                'email' => get_email($task['assigneduid']),
+            ];
+            $url = 'Task/view/id/'.$task['tid'];
+            $cost = sendTemplate($dynamic_old, 'task_old',$url);
+            apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给旧执行人 : LGW
+
+            // 发给执行人 时间点：任务转派  LGW
+            $dynamic_new = [
+                'a' => get_nickname($aid) ? get_nickname($aid) : get_username($aid),               // 执行人
+                'b' => $task['title'],                      // 任务名称
+                'c' => $task['pname'],                      // 项目名称
+                'email' => get_email($aid),
+            ];
+            $cost = sendTemplate($dynamic_new, 'task_new',$url);
+            apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给执行人 : LGW
+
+            if ($task['state'] == 0) {
+                action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'send', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => "{$task['state']}", 'newdata' => 1))));
+            } else {
+                action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'send', 'comment' => $content));
+            }
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+
+            $uids = M("Member")->where("status=1 and uid<>'" . UID . "'")->select();
+            $this->assign("uids", $uids);
+
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+
+    public function assigned()
+    {
+        $ses = M("Member")->where("status=1")->select();
+        $this->assign('ses', $ses);
+        $this->display();
+    }
+
+    // 我的任务详情
+    public function view()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')->field("t.*,d2.d_key,d3.d_key as typename,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+        join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join("ot_dictionary d3 on d3.d_value = t.tasktype and d3.d_code='task_type'", 'left')
+            ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+            ->join("ot_service s on s.sid=t.sid", 'LEFT')
+            ->join('ot_module m ON m.mid = t.mid', 'LEFT')
+            ->join('ot_group g ON m.role = t.groupid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+
+        $doc = M("doc")->where("tid=$id")
+            ->join('ot_file f on d.fileid=f.fileid  and f.delete=0', 'left')
+            ->join('ot_doc_type t on d.dtid=t.dtid', 'left')
+            ->field(array(
+                'd.docid',
+                'd.uid',
+                't.name as tname',
+                'f.name as dname',
+                'savepath',
+                'size', 'views', 'd.uname', 'd.addtime', 'note', 'f.fileid', 'd.url', 'd.urlname', 'f.ext'
+            ))->order('addtime desc')->select(array('alias' => 'd'));
+        $extimg = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tiff');
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+            if (in_array($vo['ext'], $extimg)) {
+                $vo['isimg'] = true;
+            } else {
+                $vo['isimg'] = false;
+            }
+        }
+        $this->assign('doc', $doc);
+        $this->assign('uid', UID);
+
+        $task['finishcontent'] = strip_tags($task['finishcontent']);
+        $task['finishcontent'] = trim($task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\t", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace(" ", "", $task['finishcontent']);
+
+        $task['closereason'] = strip_tags($task['closereason']);
+        $task['closereason'] = trim($task['closereason']);
+        $task['closereason'] = ereg_replace("\t", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace(" ", "", $task['closereason']);
+        $task['format_petime'] = date("Ymd", $task['petime']);
+        $this->assign('info', $task);
+        $this->assign('nowDay', date('Ymd', time()));
+
+        $wlist = array();//提醒数据
+        $rlist = array();//评论数据
+        $wlist = M("TaskWarn")->where("tid='{$id}'")->order("addtime desc")->select();
+        $rlist = M("TaskComment")->where("tid='{$id}'")->order("addtime desc")->select();
+
+        $this->assign('wlist', $wlist);
+        $this->assign('rlist', $rlist);
+
+        //任务转阅列表
+        $readlist = array();
+        $readlist = M("Toread")->where("tid='{$id}'")->select();
+        $this->assign('readlist', $readlist);
+
+
+        //审核进程
+        $process = M("exprocess")->alias('e')->where("exid='" . $id . "' and type='任务审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $logs = array();
+        $map = [];
+        $map['outtype'] = 'ot_task';
+        $map['outkey'] = $id;
+        //$map['action'] = [['not in', 'pause,finish,open,send']]; // 暂停 完成 开启 转派
+        $logs = M("Log")
+            ->where($map)
+            ->order("addtime asc")->select();
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $map['logid'] = $v['logid'];
+                $map['field'] = array('neq', 'lastedittime');
+                $hs = M("History")->where($map)->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_task", $vv['field']);
+                        $mod = M("Dictionary");
+                        switch ($vv['field']) {
+                            case "state":
+                                $orow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                            case "level";
+                                $orow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$vv['newdata']}'")->find();
+                                if ($nrow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                            case "tasktype";
+                                $orow = $mod->field("d_key")->where("d_code='task_type' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='task_type' and d_value='{$vv['newdata']}'")->find();
+                                if ($nrow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+        // 任务记录
+        /* $taskLog = [];
+         $where = [];
+         $where['outtype'] = 'ot_task';
+         $where['outkey'] = $id;
+         $where['action'] = [['in', 'pause,finish,open,send']]; // 暂停 完成 开启 转派
+         $taskLog = M("Log")
+             ->where($where)
+             ->order("addtime asc")->select();
+         $this->assign('taskLog', $taskLog);*/
+        $project = M('Project')
+            ->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_offer o on p.oid = o.oid', 'LEFT')
+            ->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where('p.pid=' . $task['pid'])
+            ->find();
+
+        $project['description'] = htmlspecialchars_decode($project['description']);
+        $project['risk'] = htmlspecialchars_decode($project['risk']);
+        $project['feedback'] = htmlspecialchars_decode($project['feedback']);
+
+        $this->assign('p', $project);
+
+        $from_route_t = Cookie('__from_route_t__') ? Cookie('__from_route_t__') : '我的任务';
+        $from_url_t = Cookie('__from_url_t__') ? Cookie('__from_url_t__') : U('Task/index');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route_t, 'url' => $from_url_t);
+        $root_mbx[] = array('title' => $task['title'], 'url' => U('Task/view?id=' . $task['tid']));
+        $root_mbx[] = array('title' => '查看任务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url_t);
+
+        $this->display();
+    }
+
+    public function warn()
+    {
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if (!IS_POST) {
+
+            $this->assign('id', $id);
+            $this->display();
+        } else {
+            $nr = I("nr", '');
+            if (empty($nr)) {
+                $this->json_error("请填写提醒内容", false);
+            }
+
+            $data = array("tid" => $id, "uid" => UID, "uname" => get_nickname(UID), "addtime" => time(), "content" => $nr);
+            if (M("TaskWarn")->add($data) == false) {
+                $this->json_error("操作失败，请重新操作", false);
+            }
+
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'warn', 'comment' => $nr));
+            $this->json_result(array(), "", false);
+        }
+    }
+
+    public function reply()
+    {
+
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if (!IS_POST) {
+
+            $this->assign('id', $id);
+            $this->display();
+        } else {
+            $nr = I("nr", '');
+            if (empty($nr)) {
+                $this->json_error("请填写评论内容", false);
+            }
+
+            $data = array("tid" => $id, "uid" => UID, "uname" => get_nickname(UID), "addtime" => time(), "content" => $nr);
+            if (M("TaskComment")->add($data) == false) {
+                $this->json_error("操作失败，请重新操作", false);
+            }
+            action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'reply', 'comment' => $nr));
+            $this->json_result(array(), "", false);
+        }
+    }
+
+    /**
+     * 我的日历
+     */
+    public function mycal()
+    {
+        $list = array();
+        $taskmod = M("Task");
+
+        $map['t.assigneduid'] = UID;
+        $map['_string'] = " (t.state=2  or t.state=1  or t.state=4) ";
+
+        $list = $taskmod->alias('t')
+            ->field("t.tid as id,t.title as name,'task' as type,t.pstime as stime,t.petime as etime,t.state as state")
+            ->union("SELECT td.todoid as id,td.title as name,'todo' as type,td.stime as stime,td.etime as etime,0 as state FROM ot_todo td where td.toid='" . UID . "' and state!='已完成'")
+            ->where($map)->select();
+
+        $oplist = array();
+
+        if ($list) {
+            $nowDate = date('Ymd');
+            foreach ($list as $k => $v) {
+                // 我的日历状态是已延期的用红色标出 : LGW
+                if ($v['state'] != Task::FINISHED && $v['state'] != Task::CLOSE && $v['etime']) {
+                    $petime = date("Ymd", $v['etime']);
+                    if ($nowDate > $petime) {
+                        $v['state'] = 6;
+                    }
+                }
+                if ($v['type'] == "task") {
+                    $v['url'] = U("Task/view?id=" . $v['id']);
+
+                    if ($v['stime'] && $v['etime']) {
+                        $days = ceil(($v['etime'] - $v['stime']) / 86400);
+                        if ($days && $days > 0) {
+                            for ($i = 1; $i < $days; $i++) {
+                                $temp = $v;
+                                $temp['stime'] = $v['stime'] + 86400 * $i;
+                                $temp['stime'] = date('Y-m-d H:i', $temp['stime']);
+                                $temp['etime'] = "";
+                                $oplist[] = $temp;
+                            }
+                        }
+                    }
+                    $v['etime'] = "";
+                } else {
+                    $v['url'] = U("Dealt/view?id=" . $v['id']);
+                }
+
+
+                $v['stime'] = date('Y-m-d H:i', $v['stime']);
+                $v['etime'] = date('Y-m-d H:i', $v['etime']);
+                $oplist[] = $v;
+            }
+        }
+
+        $oplist = array_values($oplist);
+        $this->assign("list", json_encode($oplist));
+
+        $this->display('Public/calendar');
+    }
+
+    public function addtask()
+    {
+        $pid = I('get.pid');
+        if (IS_POST) {
+
+            if (empty ($_POST ['title'])) {
+                $this->error('任务标题不能为空');
+            }
+            $res = M('Task')->where("name = '" . $_POST['name'] . "'")->find();
+            if ($res) {
+                $this->error('任务标题已存在！');
+            }
+            if (empty ($_POST ['pid'])) {
+                $this->error('请选择项目');
+            }
+            if (empty ($_POST ['assigneduid'])) {
+                $this->error('请选择执行人');
+            }
+
+            $pstime = strtotime($_POST['pstime']);
+            $petime = strtotime($_POST['petime']);
+            if (empty ($pstime)) {
+                $this->error('计划开始时间不能为空');
+            }
+            if (empty ($petime)) {
+                $this->error('计划结束时间不能为空');
+            }
+            if ($petime < $pstime) {
+                $this->error('结束时间必须大于开始时间');
+            }
+            $groupid = $_POST['groupid'];
+            $psid = $_POST['sid'] ?: 0;
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+            if (empty($psid)) {
+                $groupid = $_POST['groupid1'] ?: 0;
+                $data1 = array(
+                    'pid' => $_POST['pid'],
+                    'title' => $_POST['title'],
+                    'assignedname' => get_nickname($_POST['assigneduid']),
+                    'assigneduid' => $_POST['assigneduid'],
+                    'checkuname' => get_nickname($_POST['checkuid']),
+                    'checkuid' => $_POST['checkuid'],
+                    'pstime' => $pstime,
+                    'petime' => $petime,
+                    'days' => $_POST['days'],
+                    'hours' => $_POST['hours'],
+                    'description' => $_POST['description'],
+                    'state' => 1,
+                    'lastedituid' => UID,
+                    'lastedituname' => get_nickname(UID),
+                    'lastedittime' => time(),
+                );
+                $psid = M('ProjectService')->add($data1);
+            } else {
+                $service = M('ProjectService')->alias("ps")->field('s.pid,s.mid,s.sid,ps.groupid')->join('ot_service s on s.sid = ps.sid')->where('ps.psid=' . $psid)->find();
+                $groupid = $service['groupid'] ?: 0;
+            }
+
+            $data = array(
+                'pid' => $_POST['pid'],
+                'psid' => $psid,
+                'sid' => $service['sid'] ?: 0,
+                'pcid' => $service['pid'] ?: 0,
+                'mid' => $service['mid'] ?: 0,
+                'groupid' => $groupid,
+                'title' => $_POST['title'],
+                'assignedname' => $_POST['assignedname'],
+                'assigneduid' => $_POST['assigneduid'],
+                'assignedtime' => time(),
+                'checkuname' => $_POST['checkuname'],
+                'checkuid' => $_POST['checkuid'],
+                'pstime' => $pstime,
+                'petime' => $petime,
+                'days' => $_POST['days'],
+                'hours' => $_POST['hours'],
+                'level' => $_POST['level'],
+                'description' => $_POST['description'],
+                'lastedituid' => UID,
+                'lastedituname' => get_nickname(UID),
+                'lastedittime' => time(),
+                'addtime' => time(),
+                'uid' => UID,
+                'uname' => get_nickname(UID),
+                'state' => 1,
+                'sign' => 1,
+                'tasktype' => $_POST['tasktype'],
+            );
+            $task_id = M('Task')->add($data);
+            $tmp4 = M('Takepart')->field('tpid')->where('uid=' . $_POST['assigneduid'] . ' and pid = ' . $pid)->find();
+            if (empty($tmp4['tpid'])) {
+                $data4 = array(
+                    'pid' => $pid,
+                    'uid' => $_POST['assigneduid'],
+                    'uname' => $_POST['assignedname'],
+                    'addtime' => time(),
+                    'adduname' => get_nickname(UID),
+                    'adduid' => UID,
+                );
+                M('Takepart')->add($data4);
+            }
+            action_log_new(array(
+                'outtype' => 'ot_task',
+                'outkey' => $task_id,
+                'action' => 'create',
+                'comment' => ''
+            ));
+            $taskmod = M("Task");
+            $task = $taskmod->alias('t')
+                ->field("t.*,p.name as pname,pmuid")
+                ->join('ot_project p on t.pid = p.pid', 'LEFT')
+                ->where("t.tid='{$task_id}' and t.deleted=0")->find();
+
+            // 发给执行人 时间点：任务启动  LGW
+            $dynamic = [
+                'a' => $task['assignedname'],               // 执行人
+                'b' => $task['title'],                      // 任务名称
+                'c' => $task['pname'],                      // 项目名称
+                'email' => get_email($task['assigneduid']),
+            ];
+            $url = 'Task/view/id/'.$task['tid'];
+            $cost = sendTemplate($dynamic, 'task_new',$url);
+            apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给执行人 : LGW
+
+            updateprocess($task_id);
+            update_project($_POST['pid']);
+            if (!empty($psid) && !empty($task_id)) {
+                $Model->commit(); // 成功则提交事务
+                //$this->success('添加成功！', U('index'));
+
+                $this->redirect('TaskFromMe/index');
+            } else {
+                $Model->rollback(); // 否则将事务回滚
+                $this->error('添加失败！');
+            }
+
+        } else {
+            $where = "(state != -1 or state != 2) and del=0";
+            //项目
+            $project = M('Project')->field('pid,name')->where($where)->select();
+            $this->assign('project', $project);
+            //执行人
+            $pm = M('Member')->field('uid,nickname')->select();
+            $this->assign('pm', $pm);
+            //审核人
+            $sales = M('Member')->field('uid,nickname')->select();
+            $this->assign('sales', $sales);
+            //项目组
+            $group = M('Group')->field('groupid,name')->order('sort_order asc')->select();
+            $this->assign('group', $group);
+            //优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            $this->assign('levels', $levels);
+            //任务类型
+            $task_type = M('dictionary')->where("d_code = 'task_type'")->field(true)->select(array('order' => 'd_order asc'));
+            $this->assign('taskType', $task_type);
+
+            $this->assign('pid', $pid);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+            $root_mbx[] = array('title' => '我的任务', 'url' => U('TaskFromMe/index'));
+            $root_mbx[] = array('title' => '添加任务', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+
+            $this->display();
+
+        }
+    }
+
+    public function get_service()
+    {
+        $id = I('post.pid');
+        if ($id) {
+            $data = M('ProjectService')->field('psid,title,groupid')->where('pid=' . $id)->select();
+            if ($data) {
+                echo json_encode($data);
+            }
+
+        }
+    }
+
+    public function open()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')
+            ->field("t.*,d2.d_key,p.name as pname,pmuid")
+            ->join('ot_project p on t.pid = p.pid', 'LEFT')
+            ->join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在", 'javascript:window.parent.choose();');
+        }
+        $this->project_out($task['pid']);//判断项目是否可以操作
+        if ($task['state'] == 3 || $task['state'] == -1) {
+            if (IS_POST) {
+                $data = array("state" => 2, "tid" => $id, "stime" => time());
+                if ($taskmod->save($data) === false) {
+                    $this->error("操作失败，请重试", 'javascript:window.parent.choose();');
+                };
+                updateprocess($task['tid']);
+                $content = I("post.content", "");
+                action_log_new(array('outtype' => 'ot_task', 'outkey' => $id, 'action' => 'open', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => $task['state'], 'newdata' => 2))));
+                $logs = $this->getLogs($id, 'open');       // 操作记录
+                $this->taskNotice($logs, $task);                    // 给执行人或项目经理发消息
+                echo "<script>window.parent.choose(true);</script>";
+            } else {
+                $this->assign('id', $id);
+                $this->display();
+            }
+        } else {
+            $this->error("此任务现在不能进行开始操作", 'javascript:window.parent.choose();');
+        }
+    }
+
+    public function editurl()
+    {
+        $this->display();
+    }
+
+    /*删除任务文档*/
+    public function deleteDoc()
+    {
+        $id = I('id');
+        if (empty($id)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $doc = M('Doc')->where('docid=' . $id)->find();
+        $this->project_out($doc['pid'], 1);//判断项目是否可以操作
+        if (empty($doc)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败，文档不存在"));
+        }
+        if ($doc['uid'] != UID) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败，您没有权限删除"));
+        }
+        //假删除
+        $update_delete['delete'] = 1;
+        M('file')->where('fileid=' . $doc['fileid'])->save($update_delete);
+        M('doc')->where('docid=' . $id)->delete();
+        return $this->ajaxReturn(array('done' => true, 'msg' => "删除成功"));
+    }
+
+    //上传文档
+    public function docadd()
+    {
+        if (IS_POST) {
+            $id = I('post.pid', 0);
+            $tid = I('post.tid', 0);
+            if (empty($id)) {
+                $this->error('请选择指定的项目');
+            }
+            $this->project_out($id);//判断项目是否可以操作
+            $temp = "";
+//        $num = count(array_filter($_FILES['files']['tmp_name']));
+            $accessories = array_filter($_FILES['files']['tmp_name']);
+            if (!empty($accessories)) {
+                $file_ids = $this->file_uplode();
+                if (!empty($file_ids)) {
+                    $sql = 'insert into ot_doc (pid,fileid,tid,dtid,note,addtime,uid,uname,edittime,edituid,edituname) values  ';
+                    foreach ($file_ids as $key => $vo) {
+                        $dtid = $_POST['dtids'][$key];
+                        $note = $_POST['contents'][$key];
+                        $addtime = time();
+                        $uid = UID;
+                        $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                        $sql .= "($id,$vo,$tid,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "'),";
+                    }
+                    $sql = substr($sql, 0, -1);
+                    $temp = M('doc')->execute($sql);
+                }
+            }
+            //网络资料
+            $temp2 = "";
+            $dtids = I('post.dtid');
+            foreach ($dtids as $kk => $dt) {
+                if ($_POST['url'][$kk]) {
+                    //网络资料填写
+                    $url = $_POST['url'][$kk];
+                    $dtid = $dt;
+                    $note = $_POST['content'][$kk];
+                    $addtime = time();
+                    $uid = UID;
+                    $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                    $urlname = $_POST['label'][$kk];
+                    if (empty($urlname)) {
+                        $this->error('网络资料标题名称不可为空');
+                    }
+                    $sql = 'insert into ot_doc (pid,fileid,tid,dtid,note,addtime,uid,uname,edittime,edituid,edituname,url,urlname) values ';
+                    $sql .= "($id,0,$tid,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "','" . $url . "','" . $urlname . "'),";
+                    $sql = substr($sql, 0, -1);
+                    $temp2 = M('doc')->execute($sql);
+                }
+            }
+            if ($temp || $temp2) {
+                echo "<script>window.parent.renovate();</script>";
+            } else {
+                $this->error('请添加上传文档或网络资料');
+            }
+        } else {
+            $tid = I('get.tid', 0);
+            $pid = I('get.pid', 0);
+            $doc_type = M('DocType')->field('dtid,name')->order('sort_order asc')->select();
+            $this->assign('doc_type', $doc_type);
+            $this->assign('tid', $tid);
+            $this->assign('pid', $pid);
+            $this->display();
+        }
+    }
+
+    /*
+ * 判断文件是不是图片
+ * */
+    public function checkfile()
+    {
+        $id = I('id', 0);
+        $extimg = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tiff');
+        $res = M('file')->field('ext,savepath,size')->where(array('fileid' => $id))->find();
+        if (in_array($res['ext'], $extimg) && file_exists($res['savepath'])) {
+            $img = @imagecreatefrompng($res['savepath']);
+            if (!$img) {
+                header('Content-Type: image/png');
+                $im = imagecreatetruecolor(150, 30);
+                $bgc = imagecolorallocate($im, 255, 255, 255);
+                $tc = imagecolorallocate($im, 0, 0, 0);
+                imagefilledrectangle($im, 0, 0, 150, 30, $bgc);
+                imagestring($im, 1, 5, 5, 'Error loading ' . $res['savepath'], $tc);
+                imagepng($im);
+                imagedestroy($im);
+            } else {
+                header('Content-Type: image/png');
+                $bg = imagecolorallocatealpha($img, 0, 0, 0, 127);
+                imagefill($img, 0, 0, $bg);//填充
+                imagesavealpha($img, true);//设置保存PNG时保留透明通道信息
+                imagepng($img);
+                imagedestroy($img);
+            }
+        } else {
+            return false;
+        }
+    }
+}

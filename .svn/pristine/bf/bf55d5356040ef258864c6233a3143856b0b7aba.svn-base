@@ -1,0 +1,83 @@
+<div class="modal-body">
+    <form action="{:U('PlatOrder/send')}" class="form-horizontal" id="send_form" method='post' enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$id}" >
+        <div class="form-group">
+            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                {:L('EXPRESS')}
+            </label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id= "express" name="express" value="" >
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                {:L('EXPRESSCODE')}
+            </label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id= "expresscode" name="expresscode" value="" >
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+    <a href="javascript:void(0);"  id="save" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+</div>
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    {:L('sysnotice')}
+                </h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal -->
+</div>
+<script>
+    var error_box = $("#errorModal");
+    $(function () {
+        $("#save").click(function () {
+            if(validate()){
+                var param = $("#send_form").serialize();
+                $.ajax({
+                    url: base.url + $('#send_form').attr('action') ,
+                    type: 'POST' ,
+                    data: param,
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            }
+        })
+    });
+
+    function validate() {
+        var express = $('#express').val();
+        var expresscode = $('#expresscode').val();
+        if(express=='' || expresscode==''){
+            modal.text(error_box, "{:L('EXPRESS_EMPTY')}");
+            return false;
+        }
+        return true;
+    }
+</script>

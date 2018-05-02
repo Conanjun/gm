@@ -1,0 +1,123 @@
+<extend name="Public/base"/>
+<block name="body">
+    <div class="modal-body">
+        <form action="{:U('OrderTaskCw/confirm')}" class="form-horizontal" id="task_form" method='post' enctype="multipart/form-data">
+            <input type="hidden" name="tid" id="task_id" value="{$tid}" >
+            <div class="form-group">
+                <div>
+                    <table class="table table-center">
+                        <thead>
+                        <tr>
+                            <th style="width: 80px">{:L('FEE_NAME')}</th>
+                            <th style="width: 100px">{:L('PRICE_RMB')}</th>
+                            <th style="width: 80px">{:L('DOLLAR_PRICE')}</th>
+                            <th style="width: 120px">{:L('HANDLE')}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <if condition="$user_state eq 1 ">
+                            <notempty name="pays">
+                                <volist name="pays" id="p">
+                                    <tr>
+                                        <td>{$p.feename}</td>
+                                        <td>￥{$p['money']}</td>
+                                        <td>${$p['money1']}</td>
+                                        <td></td>
+                                    </tr>
+                                </volist>
+                            </notempty>
+                            <else/>
+                            <notempty name="pays">
+                                <volist name="pays" id="p">
+                                    <tr>
+                                        <td>{$p.feename}</td>
+                                        <td><input type="text" name= item[{$p.opid}][money] id="m_{$p.opid}_" value="{$p.money}"></td>
+                                        <td><input type="text" name= item[{$p.opid}][money1] id="m1_{$p.opid}_" value="{$p.money1}"></td>
+                                        <td><a href="javascript:;" id="del_fee_{$p.opid}" key="{$p.opid}">{:L('DELETE')}</a> </td>
+                                    </tr>
+                                </volist>
+                            </notempty>
+                        </if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+        <a href="javascript:void(0);"  id="save" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+    </div>
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        {:L('sysnotice')}
+                    </h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <script>
+        $(function () {
+            var error_box = $("#errorModal");
+            $("[id^='del_fee_']").on("click",function(){
+                var t=$(this);
+                var pid = t.attr('key');
+                var ajax_url ="{:U('OrderTaskCw/delpay')}";
+                $.ajax({
+                    url: base.url + ajax_url,
+                    type: 'POST' ,
+                    data: {'pid':pid},
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            t.parent().parent().remove();
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            });
+            $("#save").click(function () {
+                var tid=$("#task_id").val() ;
+                var finishnote = $("#finishnote").val() ;
+                var param = $("#task_form").serialize();
+                console.log(param);
+                $.ajax({
+                    url: base.url + $('#task_form').attr('action') ,
+                    type: 'POST' ,
+                    data: param,
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            })
+        });
+    </script>
+</block>

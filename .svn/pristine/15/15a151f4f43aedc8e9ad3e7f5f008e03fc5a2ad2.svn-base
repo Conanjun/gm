@@ -1,0 +1,284 @@
+<extend name="Public/base" />
+
+<block name="body">
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+    <link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+    <script>
+        $(function(){
+            $('#petime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+            $('#petime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+            $('#stime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+            $('#etime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+            $('#livetime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+            jQuery.validator.methods.compareDate = function(value, element, param) {
+                var startDate = jQuery(param).val();
+                if(startDate){
+                    var date1 = new Date(Date.parse(startDate.replace("-", "/")));
+                    var date2 = new Date(Date.parse(value.replace("-", "/")));
+                    return date1 < date2;
+                }else{
+                    return true;
+                }
+
+            };
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    $(element).parent().next().append(error);
+                },
+                onkeyup: false,
+                rules: {
+                    name: {
+                        required: true,
+                    },
+                    type: {
+                        required: true
+                    },
+                    contract: {
+                        required: true
+                    },
+                    orgid: {
+                        required: true
+                    },
+                    pmid: {
+                        required: true
+                    },
+                    oid: {
+                        required: true
+                    },
+                    levels: {
+                        required: true
+                    },
+                    pstime: {
+                        required: true
+                    },
+                    petime: {
+                        required: true,
+                        compareDate: "#pstime"
+                    },
+                    etime: {
+                        compareDate: "#stime"
+                    },
+
+                    possible: {
+                        max: 100
+                    },
+                },
+                messages: {
+                    name: {
+                        required : '项目名称不能为空'
+                    },
+                    type: {
+                        required: '请选择项目类型'
+                    },
+                    contract: {
+                        required: '请选择合同'
+                    },
+                    orgid: {
+                        required: '请选择项目部门'
+                    },
+                    pmid: {
+                        required: '请选择项目经理'
+                    },
+                    oid: {
+                        required: '请选择报价单'
+                    },
+                    levels: {
+                        required: '请选择优先级'
+                    },
+                    pstime: {
+                        required: '计划开始时间不能为空'
+                    },
+                    petime: {
+                        required: '计划结束时间不能为空',
+                        compareDate: "结束时间必须大于开始时间"
+                    },
+                    etime: {
+                        compareDate: "结束时间必须大于开始时间"
+                    },
+                    possible: {
+                        max: '不能超过100'
+                    },
+
+                }
+            });
+        });
+        function chooseorg(id,name) {
+            $.closeModal();
+            $('#orgid').val(id);
+            $('#chooseorg').text(name);
+        }
+        function choosepm(id,name) {
+            $.closeModal();
+            $('#pmid').val(id);
+            $('#pm').val(name);
+            $('#choosepm').text(name);
+        }
+
+        function chooseoffer(id,code) {
+            $.closeModal();
+            $('#oid').val(id);
+            $('#chooseoffer').text(code);
+        }
+    </script>
+    <div class="container mw-700px">
+        <div id="titlebar">
+            <div class="heading">
+                <span class="prefix"><i class="icon-user"></i> </span> <strong><small
+                    class="text-muted"><i class="icon-plus"></i> </small> 编辑项目</strong>
+            </div>
+        </div>
+        <form action="{:U('edit?id='.$project['pid'])}" method="post" class="form-condensed mw-700px">
+            <table align="center" class="table table-form">
+                <tbody>
+                <tr>
+                    <th class="w-120px">项目名称</th>
+                    <td class="w-p50">
+                        <input type="text" name="name"
+                               id="name" value="{$project.name}" class="form-control" autocomplete="off" >
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">项目类型</th>
+                    <td class="w-p50">
+                        <select name="type" class="form-control">
+                            <volist name="types" id="vo">
+                                <option value="{$vo.d_value}">{$vo.d_key}</option>
+                            </volist>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">合同号</th>
+                    <td class="w-p50">
+                        <select name="contract" class="form-control">
+                            <volist name="contracts" id="vo">
+                                <option value="{$vo}">{$vo}</option>
+                            </volist>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">项目部门</th>
+                    <td class="w-p50">
+                        <input type="hidden" name="orgid" id="orgid" value="{$project.orgid}">
+                        <a href="{:U('Project/chooseorg')}" id="chooseorg"  class="iframe btn btn-primary" data-width="800" data-height="500">{$project.orgname}</a>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">项目经理</th>
+                    <td class="w-p50">
+                        <input type="hidden" name="pmid" id="pmid" value="{$project.pmid}">
+                        <input type="hidden" name="pm" id="pm" value="{$project.pm}">
+                        <a href="{:U('Project/choosepm')}" id="choosepm"  class="iframe btn btn-primary" data-width="800" data-height="500">{$project.pm}</a>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">报价单</th>
+                    <td class="w-p50">
+                        <input type="hidden" name="oid" id="oid" value="{$project.oid}">
+                        <a href="{:U('Project/chooseoffer')}" id="chooseoffer"  class="iframe btn btn-primary" data-width="800" data-height="500">{$project.oname}</a>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <th class="w-120px">优先级</th>
+                    <td class="w-p50">
+                        <select name="level" class="form-control">
+                            <volist name="levels" id="vo">
+                                <option value="{$vo.d_value}">{$vo.d_key}</option>
+                            </volist>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">计划开始时间</th>
+                    <td class="w-p50">
+                        <input type="text" name="pstime" id="pstime" value="{$project.pstime|date='Y/m/d',###}" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">计划结束时间</th>
+                    <td class="w-p50">
+                        <input type="text" name="petime" id="petime" value="{$project.petime|date='Y/m/d',###}" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">实际开始时间</th>
+                    <td class="w-p50">
+                        <input type="text" name="stime" id="stime" value="{$project.stime|date='Y-m-d',###}" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">实际结束时间</th>
+                    <td class="w-p50">
+                        <input type="text" name="etime" id="etime" value="{$project.etime|date='Y-m-d',###}" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">上线时间</th>
+                    <td class="w-p50">
+                        <input type="text" name="livetime" id="livetime" value="{$project.livetime|date='Y-m-d',###}" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">合同推广费</th>
+                    <td class="w-p50">
+                        <input type="text" name="contractcost" id="contractcost" value="{$project.contractcost}" class="form-control" autocomplete="off" >
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">进度</th>
+                    <td class="w-p50">
+                        <div class="input-group">
+                            <input type="number" name="progress" id="progress" value="{$project.progress}" min="0" max="100" class="form-control" autocomplete="off"  placeholder="0~100" style="border-right: 0;">
+                            <span class="input-group-addon">%</span>
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">项目背景说明</th>
+                    <td class="w-p50">
+                        <textarea name="description" class="form-control">{$project.description}</textarea>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td>
+                        <a href="javascript:;"  class="btn btn-primary" onclick="$('form').submit();" data-loading="稍候...">保存</a>
+                        <a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+    //导航高亮
+    var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'edit'))}";
+    highlight_subnav("{:U('Project/index')}");
+    Think.setValue("type", "{$project.type|default = 0}");
+    Think.setValue("contract", "{$project.contract|default = 0}");
+    Think.setValue("level", "{$project.level|default = 0}");
+
+
+</script> </block>

@@ -1,0 +1,85 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<div id="querybox" class="show form-condensed">
+
+        <!-- 高级搜索 -->
+		<table class="table table-form search-form" style="width: 300px;">
+		<tr>
+		<td>
+				<input type="text" name="code" class="form-control  searchInput"
+				value="{:I('code')}" placeholder="请输入用户昵称或者UID" /></td>
+				<td>
+				<button type="button" class="btn btn-primary" href="javascript:;" id="search" url="{:U('Disdefine/choose')}">搜索</button>
+				</td>
+		
+		</tr>
+		</table>
+    </div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr>
+		<th class="">UID</th>
+		<th class="">昵称</th>
+		<th class="">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="member">
+		<volist name="member" id="vo">
+		<tr>
+			<td>{$vo.uid} </td>
+			<td>{$vo.nickname} </td>
+			<td>
+				<button type="button" class="btn btn-primary" style="padding: 2px 8px" onclick='choose("{$vo.uid}","{$vo.nickname}")' >选择</button>
+            </td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="3" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+	<tfoot>
+			<tr>
+				<td colspan='3'>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose(id,name) {
+			window.parent.changechoose(id,name);
+		}
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Offer/index')}");
+	</script>
+</block>

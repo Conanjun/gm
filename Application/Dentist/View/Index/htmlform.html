@@ -1,0 +1,82 @@
+<script>
+window.UEDITOR_HOME_URL="/Public/Admin/jsnew/htmleditor/";
+</script>
+<style>.input-group-btn .dropdown-toggle {border-radius: 4px;}
+.dropdown-menu {min-width: 120px;}
+.dropdown-menu.colors {padding: 5px; width: 205px}
+.dropdown-menu.buttons {padding: 5px; padding-bottom: 0; padding-right: 0;}
+.dropdown-menu.buttons > li {margin-bottom: 5px; display: block; float: left; width: 33.333333%; padding-right: 5px}
+.table.table-form{margin-bottom:0px;}
+#blockParam{padding-right:100px;}
+#blockParam .table td, #blockParam .table th{border-bottom:0px;}
+</style>
+<script src='__JSNEW__/htmleditor/ueditor.config.js' type='text/javascript'></script>
+<script src='__JSNEW__/htmleditor/ueditor.all.min.js' type='text/javascript'></script>
+<form method="post" id="blockForm" target="hiddenwin" class="form form-horizontal form-condensed" action="{:U('Index/set?id='.$id.'&type=html')}">
+  <table class="table table-form">
+    <tbody>
+      <tr>
+  <th class="w-100px">区块名称</th>
+  <td><input type="text" name="title" id="title" value="{$block.title}" class="form-control" autocomplete="off">
+</td>
+</tr>
+<tr>
+  <th>外观</th>
+  <td>
+    <div class="w-240px">
+      <div class="input-group">
+        <span class="input-group-addon">宽度</span>
+        <select name="grid" id="grid" class="form-control">
+			<option value="4" <eq name="block.grid" value="4">selected="selected"</eq> data-keys="1/3 13">1/3</option>
+			<option value="6" <eq name="block.grid" value="6">selected="selected"</eq> data-keys="1/2 12">1/2</option>
+			<option value="8" <eq name="block.grid" value="8">selected="selected"</eq> data-keys="2/3 23">2/3</option>
+			<option value="3" <eq name="block.grid" value="3">selected="selected"</eq> data-keys="1/4 14">1/4</option>
+			<option value="9" <eq name="block.grid" value="9">selected="selected"</eq> data-keys="3/4 34">3/4</option>
+			<option value="12" <eq name="block.grid" value="12">selected="selected"</eq> data-keys="100% 1">100%</option>
+		</select>
+		<div class="input-group-btn block">
+                    <button style="border-top-left-radius: 0;border-bottom-left-radius: 0;padding: 6.5px 12px;" type="button" class="btn btn-{$block.params.color} dropdown-toggle" data-toggle="dropdown">
+            颜色 <span class="caret"></span>
+          </button>
+          <input type="hidden" name="params[color]" id="params[color]" value="{$block.params.color}">
+          <div class="dropdown-menu buttons pull-right">
+            <li><button type="button" data-id="default" class="btn btn-block btn-default">&nbsp;</button></li>
+            <li><button type="button" data-id="primary" class="btn btn-block btn-primary">&nbsp;</button></li>
+            <li><button type="button" data-id="warning" class="btn btn-block btn-warning">&nbsp;</button></li>
+            <li><button type="button" data-id="danger" class="btn btn-block btn-danger">&nbsp;</button></li>
+            <li><button type="button" data-id="success" class="btn btn-block btn-success">&nbsp;</button></li>
+            <li><button type="button" data-id="info" class="btn btn-block btn-info">&nbsp;</button></li>
+          </div>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>
+            <tr>
+        <th>HTML</th>
+        <td>
+        	 <textarea id="description"  name="params[html]" style="width: 540px;">{$block.params.html}</textarea>
+<script type="text/javascript">
+    //实例化编辑器
+    //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+    
+    var ue = UE.getEditor('description',{autoHeightEnabled: false});
+</script>
+        </td>
+      </tr>
+          </tbody>
+    <tfoot>
+      <tr><th></th><td> <button style="color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+    background-color: #7865c7;
+    border-color: #8e5fe6;" type="submit" id="submit" class="btn btn-primary" data-loading="稍候...">保存</button></td></tr>
+    </tfoot>
+  </table>
+</form>
+<script>
+$(function()
+{
+    options = $('#modules').find("option").text();
+    if($('#title').val() == '') $('#title').val($('#moduleBlock').find("option:selected").text());
+})
+</script>

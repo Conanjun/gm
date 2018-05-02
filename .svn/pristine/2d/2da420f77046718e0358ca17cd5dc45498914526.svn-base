@@ -1,0 +1,139 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('AuthManager/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('PLATFORM_ROLE')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('AuthManager/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/AuthManager/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('PLATFORM_NAME')}</label>
+                                                <input class="form-control" type="text" name="title" value="{$Think.get.title}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('STATE')}</label>
+                                                <select name="status" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.status eq 1">selected</if>>{:L('NORMAL')}</option>
+                                                    <option value="2" <if condition="$Think.get.status eq 2">selected</if>>{:L('DISABLE')} </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('AuthManager/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="title">{:L('PLATFORM_NAME')} <i class="fa fa-sort"></i></span></span></th>
+                                   
+									<th style="width: 80px"><span ectype="order_by" fieldname="status">{:L('STATE')}<i class="fa fa-sort"></i></span></th>
+									<th style="text-align: left"><span ectype="order_by" fieldname="description">{:L('DESCRIBE')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 200px">{:L('OP')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['id']}" class="check">
+                                                <label></label></div>
+                                            </td>
+                                            <td style="text-align: left">{$vo['title']}</td>
+                                           
+                                           
+											<td>
+												<if condition="$vo['status'] eq 1"> {:L('NORMAL')}
+												<elseif condition="$vo['status'] eq 0"/>{:L('DISABLE')}
+												<else /> {:L('DELETE')}
+												</if>
+											</td>
+											 <td style="text-align: left">{$vo['description']}</td>
+                                            <td style="text-align: right">
+                                            	<a href="{:U('AuthManager/userlist?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('USERLIST')}</a>
+                                                <a href="{:U('AuthManager/edit?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+												<a href="{:U('AuthManager/access',array('group_name'=>$vo['title'],'group_id'=>$vo['id']))}" class="btn btn-xs btn-primary">{:L('PURVIEW')}</a>
+                                                <a data-trigger="confirm" data-content="{:L('DATANDEL')}" data-title="{:L('DELTITILE')}"
+                                                data-ajax="{:U('AuthManager/deletedata?id='.$vo['id'])}"
+                                                data-type="get"
+                                                data-n1="{:L('DOCANCEL')}" 
+                                                data-n2="{:L('CONFIRM')}" 
+                                                class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+												
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-white">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

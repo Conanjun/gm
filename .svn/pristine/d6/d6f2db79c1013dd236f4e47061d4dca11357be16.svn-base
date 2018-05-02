@@ -1,0 +1,1332 @@
+<?php
+
+namespace Admin\Controller;
+
+/**
+ * 周报
+ */
+class ReviewController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     *周报首页  我的周报
+     *
+     */
+    public function index()
+    {
+        $this->assign('actname', ACTION_NAME);
+        $this->setreview();
+        $config = array(
+            "actionURL" => "/Admin/Review/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '用户', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '更新时间', 'fieldname' => 'retime', 'operator' => '>=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 2 => array('str' => '生成时间', 'fieldname' => 'addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date'))
+        );
+
+
+        $this->setSearchConfig($config);
+
+        $this->assign('cname', CONTROLLER_NAME);
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $module = M('Weekly');
+
+        $res = M('member')->alias('m')->field('g.*')
+            ->join('ot_auth_group_access a on m.uid=a.uid')
+            ->join('ot_auth_group g on g.id=a.group_id')
+            ->where("m.uid=" . UID)->find();
+        $group = 0;
+        $grade = 10;
+        if ($res) {
+            $group = $res['id'];
+            $grade = $res['grade'];
+        }
+
+        $where = $this->getCondition();
+
+        $where['_string'] .= " and uid = " . UID . " ";
+
+        $count = $module->where($where)->count();
+        $page = new \Think\Page($count, 20);
+        $week = $module
+            ->field(true)
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('_list', $week);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '我的周报', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->meta_title = '周报';
+        $this->display();
+    }
+
+    public function index1()
+    {
+        $this->assign('actname', ACTION_NAME);
+        $this->setreview();
+        $config = array(
+            "actionURL" => "/Admin/Review/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '用户', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '生成时间', 'fieldname' => 'retime', 'operator' => '>=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 2 => array('str' => '生成时间', 'fieldname' => 'addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date'))
+        );
+
+
+        $this->setSearchConfig($config);
+
+        $this->assign('cname', CONTROLLER_NAME);
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $module = M('Weekly');
+
+        $res = M('member')->alias('m')->field('g.*')
+            ->join('ot_auth_group_access a on m.uid=a.uid')
+            ->join('ot_auth_group g on g.id=a.group_id')
+            ->where("m.uid=" . UID)->find();
+        $group = 0;
+        $grade = 10;
+        if ($res) {
+            $group = $res['id'];
+            $grade = $res['grade'];
+        }
+
+        $where = $this->getCondition();
+
+        $where['_string'] .= " and  EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id
+		where a.uid=ot_weekly.uid and g.path like CONCAT('%,','" . $group . "',',%') and g.grade>" . $grade . ")";
+
+        $count = $module->where($where)->count();
+        $page = new \Think\Page($count, 20);
+        $week = $module
+            ->field(true)
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('_list', $week);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '我下属的周报', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->meta_title = '周报';
+        $this->display('index');
+    }
+
+    public function view()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $wid = I("get.id");
+        $this->assign('id', $wid);
+        $this->assign('uid', UID);
+
+        $this->assign('e', I("get.e"));
+
+        if (IS_POST) {
+            $content = I("post.content", '');
+            if ($content) {
+                M('Weekly')->where("weekid=" . $wid)->save(array('content' => $content));
+            }
+        }
+        $week = M('Weekly')->field(true)->where('weekid=' . $wid)->find();
+        $week_project = M('WeeklyProject')->field("wp.*,d1.d_key dname")->alias('wp')
+            ->join('ot_dictionary d1 on wp.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->where('wp.wid=' . $wid)->select();
+        $week_task = M('WeeklyTask')->field(true)->where('wid=' . $wid)->select();
+        $fuwu = '';
+        $fuwu1 = '';
+        $renwu = '';
+        $renwu1 = '';
+        $role = '';
+        $role1 = '';
+        $pamoney = 0;
+        if (!empty($week_project)) {
+            foreach ($week_project as $k => $vo) {
+                if ($vo['sname']) {
+                    $fuwu .= ',' . $vo['sname'];
+                }
+                if ($vo['dname']) {
+                    $renwu .= ',' . $vo['dname'];
+                }
+                if ($vo['role']) {
+                    $role .= ',' . $vo['role'];
+                }
+                if ($vo['money']) {
+
+                    $pamoney += (float)($vo['money']) / 10000;
+                    $week_project[$k]['money'] = round((float)($vo['money']) / 10000, 2);
+                }
+            }
+            if ($fuwu) {
+                $fuwu = substr($fuwu, 1);
+                $fuwu = explode(',', $fuwu);
+                $fuwu = array_count_values($fuwu);
+                foreach ($fuwu as $k => $v) {
+                    $fuwu1 .= $k . $v . "/" . $week['pznum'] . "</br>";
+                }
+            }
+            if ($renwu) {
+                $renwu = substr($renwu, 1);
+                $renwu = explode(',', $renwu);
+                $renwu = array_count_values($renwu);
+                foreach ($renwu as $k => $v) {
+                    $renwu1 .= $k . $v . "</br>";
+                }
+            }
+            if ($role) {
+                $role = substr($role, 1);
+                $role = explode(',', $role);
+                $role = array_count_values($role);
+                foreach ($role as $k => $v) {
+                    $role1 .= "作为" . $k . $v . "个项目</br>";
+                }
+            }
+
+        }
+        $p_zj = array(
+            'pzum' => "合计" . $week['pznum'] . "个",
+            "role1" => $role1,
+            "renwu1" => $renwu1,
+            "fuwu1" => $fuwu1,
+            "pamoney" => round($pamoney, 2),
+
+        );
+        $da = 0;
+        $t1 = 0;
+        $t2 = 0;
+        $t3 = 0;
+        $t4 = 0;
+        if (!empty($week_task)) {
+            foreach ($week_task as $k => $vo) {
+                if ($vo['type'] == 1) {
+                    $t1 = $vo['tmum'];
+                } else {
+                    $t2 = $vo['tmum'];
+                }
+                if ($vo['type'] == 1 && $vo['state'] == 3) {
+                    $t3 = $vo['tmum'];
+                }
+                if ($vo['type'] == 3) {
+                    $t4 = $vo['tmum'];
+                }
+                $da += $vo['days'];
+                $week_task[$k]['money'] = round((float)($vo['money']) / 10000, 2);
+            }
+        }
+        $num = "总任务 " . $week['tznum'] . "</br>" . "项目交付型 " . $t1 . "(完成 " . $t3 . ")</br>.项目管理型任务 " . $t2 . "</br>会议 $t4";
+        $t_zj = array(
+            'pzum' => "合计",
+            "num" => $num,
+            "da" => $da,
+            "money" => round((float)($week['tzmoney']) / 10000, 2),
+
+        );
+        $rlist = array();//评论数据
+        $rlist = M("WeeklyComment")->where("wid='{$wid}'")->order("addtime desc")->select();
+        $this->assign('rlist', $rlist);
+
+        $this->assign('t_zj', $t_zj);
+        $this->assign('p_zj', $p_zj);
+        $this->assign('week', $week);
+        $this->assign('week_project', $week_project);
+        $this->assign('week_task', $week_task);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '周报', 'url' => U('Review/index'));
+        $root_mbx[] = array('title' => '查看周报', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    public function view1()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $wid = I("get.id");
+        $this->assign('id', $wid);
+
+        $this->assign('e', I("get.e"));
+
+        if (IS_POST) {
+            $content = I("post.content", '');
+            if ($content) {
+                M('Weekly')->where("weekid=" . $wid)->save(array('content' => $content));
+            }
+        }
+        $week = M('Weekly')->field(true)->where('weekid=' . $wid)->find();
+        $week_project = M('WeeklyProject')->field("wp.*,d1.d_key dname")->alias('wp')
+            ->join('ot_dictionary d1 on wp.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->where('wp.wid=' . $wid)->select();
+        $week_task = M('WeeklyTask')->field(true)->where('wid=' . $wid)->select();
+        $fuwu = '';
+        $fuwu1 = '';
+        $renwu = '';
+        $renwu1 = '';
+        $role = '';
+        $role1 = '';
+        $pamoney = 0;
+        if (!empty($week_project)) {
+            foreach ($week_project as $k => $vo) {
+                if ($vo['sname']) {
+                    $fuwu .= ',' . $vo['sname'];
+                }
+                if ($vo['dname']) {
+                    $renwu .= ',' . $vo['dname'];
+                }
+                if ($vo['role']) {
+                    $role .= ',' . $vo['role'];
+                }
+                if ($vo['money']) {
+                    $pamoney += round((float)($vo['money']) / 10000, 2);
+                    $week_project[$k]['money'] = round((float)($vo['money']) / 10000, 2);
+                }
+            }
+            if ($fuwu) {
+                $fuwu = substr($fuwu, 1);
+                $fuwu = explode(',', $fuwu);
+                $fuwu = array_count_values($fuwu);
+                foreach ($fuwu as $k => $v) {
+                    $fuwu1 .= $k . $v . "/" . $week['pznum'] . "</br>";
+                }
+            }
+            if ($renwu) {
+                $renwu = substr($renwu, 1);
+                $renwu = explode(',', $renwu);
+                $renwu = array_count_values($renwu);
+                foreach ($renwu as $k => $v) {
+                    $renwu1 .= $k . $v . "</br>";
+                }
+            }
+            if ($role) {
+                $role = substr($role, 1);
+                $role = explode(',', $role);
+                $role = array_count_values($role);
+                foreach ($role as $k => $v) {
+                    $role1 .= "作为" . $k . $v . "个项目</br>";
+                }
+            }
+
+        }
+        $p_zj = array(
+            'pzum' => "合计" . $week['pznum'] . "个",
+            "role1" => $role1,
+            "renwu1" => $renwu1,
+            "fuwu1" => $fuwu1,
+            "pamoney" => $pamoney,
+
+        );
+        $da = 0;
+        $t1 = 0;
+        $t2 = 0;
+        $t3 = 0;
+        $t4 = 0;
+        if (!empty($week_task)) {
+            foreach ($week_task as $k => $vo) {
+                if ($vo['type'] == 1) {
+                    $t1 = $vo['tmum'];
+                } else {
+                    $t2 = $vo['tmum'];
+                }
+                if ($vo['type'] == 1 && $vo['state'] == 3) {
+                    $t3 = $vo['tmum'];
+                }
+                if ($vo['type'] == 3) {
+                    $t4 = $vo['tmum'];
+                }
+                $da += $vo['days'];
+                $week_task[$k]['money'] = round((float)($vo['money']) / 10000, 2);
+            }
+        }
+        $num = "总任务 " . $week['tznum'] . "</br>" . "项目交付型 " . $t1 . "(完成 " . $t3 . ")</br>.项目管理型任务 " . $t2 . "</br>会议 $t4";
+        $t_zj = array(
+            'pzum' => "合计",
+            "num" => $num,
+            "da" => $da,
+            "money" => round((float)($week['tzmoney']) / 10000, 2),
+
+        );
+
+        $this->assign('t_zj', $t_zj);
+        $this->assign('p_zj', $p_zj);
+        $this->assign('week', $week);
+        $this->assign('week_project', $week_project);
+        $this->assign('week_task', $week_task);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '周报', 'url' => U('Review/index'));
+        $root_mbx[] = array('title' => '查看周报', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    public function setreview()
+    {
+        $groupid = M('Member')->alias('m')->join('ot_auth_group_access aga on aga.uid=m.uid')->where('m.uid=' . UID)->getField('aga.group_id');
+        if (empty($groupid)) {
+            return;
+        }
+        $timestr = time();
+        $day = date('w', $timestr);
+        $tday = date('Y/m/d', $timestr);
+        $taytims = strtotime($tday);
+        $one_day = $taytims - ($day - 1) * 86400;
+        $end_day = $one_day + 7 * 86400;
+        $end1_day = $one_day + 14 * 86400;
+        $work_day = $one_day + 4 * 86400;
+        $date1 = date('n.d', $one_day);
+        $date2 = date('n.d', $work_day);
+        $wyear = date('Y', $timestr);
+        $wweek = date('W', $timestr);
+
+        $menbers = M('AuthGroup')->alias('ag')
+            ->field('m.nickname,m.uid')
+            ->join('ot_auth_group_access aga on aga.group_id = ag.id')
+            ->join('ot_member m on  aga.uid = m.uid ')
+            ->where("ag.path like CONCAT('%,'," . $groupid . ",',%')")->select();
+        foreach ($menbers as $item) {
+            $uid = $item['uid'] ?: 0;
+            $uname = $item['nickname'] ?: '';
+            $title = $uname . "的周报 " . $date1 . "~" . $date2;
+            $res = M('Weekly')->field('weekid,retime')->where("uid = '{$uid}'")->find();
+            if (strtotime(date('Y/m/d', $res['retime'])) == $taytims) {
+                continue;
+            }
+            //项目
+            $where1 = "p.del=0 and ((p.pstime<='{$one_day}' and p.petime>'{$one_day}') or (p.pstime>'{$one_day}' and p.pstime<'{$end_day}') or (p.closetime between {$one_day} and {$end_day}))";
+            $project = M('Project')->alias('p')
+                ->field("p.pmuid,GROUP_CONCAT(distinct  p2.`name`) as sname,GROUP_CONCAT( distinct ag.name) as rolename,c.shortsign,p.money,p.pid,p.state,p.name,p.progress,p.addtime")
+                ->join('ot_takepart t on t.pid = p.pid and t.uid=' . $uid)
+                ->join('ot_project_role ag on ag.prid = t.roleid', 'LEFT')
+                ->join('ot_customer c on c.cid = p.cid', 'LEFT')
+                ->join('ot_project_service ps on ps.pid = p.pid', 'LEFT')
+                ->join('ot_project_config p1 on p1.pid = ps.pcid', 'LEFT')
+                ->join('ot_project_config p2 on p1.path like CONCAT(\'%,\',p2.pid,\',%\') and p2.grade=2', 'LEFT')
+                ->where($where1)
+                ->group('p.addtime desc')
+                ->select();
+            $where8 = "((t.pstime<='{$end_day}' and t.petime>'{$end_day}') or (t.pstime>'{$end_day}' and t.pstime<'{$end1_day}'))";
+            $project1 = M('Task')->alias('t')
+                ->field('count(DISTINCT p.pid) npnum ,count(DISTINCT t.tid) nnum,sum(s.hours) nhours')
+                ->join('ot_project p on t.pid = p.pid', 'LEFT')
+                ->where($where8 . " and  t.assigneduid = '{$uid}'")
+                ->find();
+            $pznum = 0;
+            $pmoney = 0;
+            $panum = 0;
+            $pamoney = 0;
+            $pwnum = 0;
+            $pwmoney = 0;
+            $pfnum = 0;
+            $pfmoney = 0;
+
+            $pname = '';
+            $sname = '';
+            $state = 0;
+            $money = '';
+            $progress = 0;
+            $pstate = '';
+            $role = '';
+            $id = 0;
+            $nnum = 0;
+            $npnum = 0;
+            $nhours = 0;
+            if (!empty($project1)) {
+                $nnum = $project1['nnum'] ?: 0;
+                $npnum = $project1['npnum'] ?: 0;
+                $nhours = empty($project1['nhours']) ? 0 : $project1['nhours'];
+            }
+            if (!empty($project)) {
+                $pids = array();
+                $pznum = count($project);
+                $sqlres = '';
+                $panum = array();
+                $pwnum = array();
+                $pfnum = array();
+                $tpid = '';
+
+                foreach ($project as $vo) {
+                    $pmoney += (float)($vo['money']);
+                    $pids[] = $vo['pid'];
+                    $addtime = $vo['addtime'];
+                    if ($addtime >= $one_day && $addtime <= $end_day) {
+                        $panum[] = $vo;
+                        $pamoney += (float)($vo['money']);
+                    }
+                    if ($vo['state'] == 1 || $vo['state'] == 4) {
+                        $pwnum[] = $vo;
+                        $pwmoney += (float)($vo['money']);
+                    }
+                    if ($vo['state'] == 2) {
+                        $pfnum[] = $vo;
+                        $pfmoney += (float)($vo['money']);
+                    }
+                    if ($vo['pmuid'] == $uid) {
+                        $tpid .= $vo['pid'] . ',';
+                    }
+                }
+                $panum = count($panum);
+                $pwnum = count($pwnum);
+                $pfnum = count($pfnum);
+            }
+            //任务
+            $where2 = "( (t.pstime<{$one_day} and t.petime>{$one_day}) or (t.pstime>{$one_day} and t.pstime<{$end_day})) and t.assigneduid = {$uid}";
+            $task = M('Task')->alias('t')
+                ->field("t.delivery,t.state,t.petime,t.tid,t.days,t.amount,t.tasktype,ifnull((select sum(ts.finishours) from ot_task_sub ts where ts.tid = t.tid and ts.finishuid = {$uid}),0) as hours")
+                ->where($where2)
+                ->select();
+            $task2 = array();
+            if ($tpid) {
+                $tpid = trim($tpid, ',');
+                $task2 = M('Task')->alias('t')
+                    ->field('t.delivery,t.state,t.petime,t.tid,t.days,t.amount,t.finishours as hours,t.tasktype')
+                    ->where("( (t.pstime<{$one_day} and t.petime>{$one_day}) or (t.pstime>{$one_day} and t.pstime<{$end_day})) and t.pid in( {$tpid}) and t.deleted = 0")
+                    ->select();
+            }
+
+
+            $tznum = 0;
+            $tzmoney = 0;
+            $tzhours = 0;
+            $tdnum = 0;
+            $tdmoney = 0;
+            $tdduty = 0;
+            $tdhours = 0;
+            $tnnum = 0;
+            $tnhours = 0;
+            $tnmoney = 0;
+            $tnduty = 0;
+            $wttype1 = 0;
+            $wtstate1 = 0;
+            $wttmum1 = 0;
+            $wtdays1 = 0;
+            $wtduty1 = 0;
+            $wtmoney1 = 0;
+            $wttype2 = 0;
+            $wtstate2 = 0;
+            $wttmum2 = 0;
+            $wtdays2 = 0;
+            $wtduty2 = 0;
+            $wtmoney2 = 0;
+            $wttype3 = 0;
+            $wtstate3 = 0;
+            $wttmum3 = 0;
+            $wtdays3 = 0;
+            $wtduty3 = 0;
+            $wtmoney3 = 0;
+            $wttype4 = 0;
+            $wtstate4 = 0;
+            $wttmum4 = 0;
+            $wtdays4 = 0;
+            $wtduty4 = 0;
+            $wtmoney4 = 0;
+            $mnum = 0;
+            $mduty = 0;
+            $mhours = 0;
+            $mstate = 0;
+            $mmoney = 0;
+            $dtnum = 0;  //延期任务数
+            $dtduty = 0;  //延期任务占比
+
+            $days = 0;
+            if (!empty($task)) {
+                $tdnum = array();
+                $tnnum = array();
+                $dtnum = array();
+                $mnum = array();
+                $wttmum1 = array();
+                $wttmum2 = array();
+                $wttmum3 = array();
+                $wttmum4 = array();
+                $wttmum11 = 0;
+                $wttmum21 = 0;
+                $wttmum31 = 0;
+                $wttmum41 = 0;
+                $wtdays1 = 0;
+                $wtdays2 = 0;
+                $wtdays3 = 0;
+                $wtdays4 = 0;
+                $wtmoney1 = 0;
+                $wtmoney2 = 0;
+                $wtmoney3 = 0;
+                $wtmoney4 = 0;
+                if ($task2) {
+                    foreach ($task2 as $key => $vo) {
+                        $has = true;
+                        foreach ($task as $k => $v) {
+                            if ($vo['tid'] == $v['tid']) {
+                                $has = false;
+                                unset($task2[$k]);
+                                break;
+                            }
+                        }
+                        if ($has) {
+                            $task[] = $vo;
+                            unset($task2[$key]);
+                        }
+                    }
+                }
+                $tznum = count($task);
+                foreach ($task as $vo) {
+                    $days += (int)($vo['days']);
+                    if ($vo['state'] == 3) {
+                        $tzmoney += (float)($vo['amount']);
+                        $tzhours += (float)($vo['hours']);
+                    }
+                    if ($vo['tasktype'] == '会议' && $vo['state'] == 3) {
+                        $mnum[] = $vo;;
+                        $mhours += (float)($vo['hours']);
+                        $mstate = $vo['state'];
+                        $mmoney = $vo['amount'];
+                    }
+                    if ($vo['delivery'] == 1 && $vo['state'] == 3) {
+                        $tdmoney += (float)($vo['amount']);
+                        $tdhours += (float)($vo['hours']);
+                        $tdnum[] = $vo;
+                        $wttmum1[] = $vo;
+                        $wtdays1 += (float)($vo['hours']);
+                        $wtmoney1 += (float)($vo['amount']);
+                    } elseif ($vo['delivery'] == 0 && $vo['state'] == 3 && $vo['tasktype'] != '会议') {
+                        $tnmoney += (float)($vo['amount']);
+                        $tnhours += (float)($vo['hours']);
+                        $tnnum[] = $vo;
+                        $wttmum2[] = $vo;
+                        $wtdays2 += (float)($vo['hours']);
+                        $wtmoney2 += (float)($vo['amount']);
+                    } elseif ($vo['delivery'] == 1 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                        $wttmum3[] = $vo;
+                        $wtdays3 += (float)($vo['hours']);
+                        $wtmoney4 += (float)($vo['amount']);
+                    } elseif ($vo['delivery'] == 0 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                        $wttmum4[] = $vo;
+                        $wtdays4 += (float)($vo['hours']);
+                        $wtmoney4 += (float)($vo['amount']);
+                    }
+                    if ($vo['state'] != 3 && $vo['state'] != -1 && $vo['tasktype'] != '会议') {
+                        $dtnum[] = $vo;
+                    }
+                }
+                $tdnum = count($tdnum);
+                $tnnum = count($tnnum);
+                $mnum = count($mnum);
+                $dtnum = count($dtnum);
+                if ($dtnum) {
+                    $dtduty = number_format($dtnum / $tznum * 100, 2);
+                }
+
+                if ($tzhours) {
+                    $tdduty = (float)$tdhours / (float)$tzhours * 100;
+                    $tdduty = number_format($tdduty, 2);
+                    $tnduty = (float)$tnhours / (float)$tzhours * 100;
+                    $tnduty = number_format($tnduty, 2);
+                    $mduty = (float)$mhours / (float)$tzhours * 100;
+                    $mduty = number_format($mduty, 2);
+                }
+                $wttmum11 = count($wttmum1);
+                $wttmum21 = count($wttmum2);
+                $wttmum31 = count($wttmum3);
+                $wttmum41 = count($wttmum4);
+            }
+            if ($res) {
+                $id = $res['weekid'];
+                $data = array(
+                    'uid' => $uid,
+                    'uname' => $uname,
+                    'wyear' => $wyear,
+                    'wweek' => $wweek,
+                    'pznum' => $pznum,
+                    'pmoney' => $pmoney,
+                    'panum' => $panum,
+                    'pamoney' => $pamoney,
+                    'pwnum' => $pwnum,
+                    'pwmoney' => $pwmoney,
+                    'pfnum' => $pfnum,
+                    'pfmoney' => $pfmoney,
+                    'tznum' => $tznum,
+                    'tzmoney' => $tzmoney,
+                    'tzhours' => $tzhours,
+                    'tdnum' => $tdnum,
+                    'tdmoney' => $tdmoney,
+                    'tdduty' => $tdduty,
+                    'tnnum' => $tnnum,
+                    'tnmoney' => $tnmoney,
+                    'tnduty' => $tnduty,
+                    'mnum' => $mnum,
+                    'mduty' => $mduty,
+                    'nnum' => $nnum,
+                    'npnum' => $npnum,
+                    'nhours' => $nhours,
+                    'title' => $title,
+                    'retime' => $timestr,
+                    'dtduty' => $dtduty,
+                    'dtnum' => $dtnum
+                );
+                M('Weekly')->where('weekid=' . $id)->save($data);
+                M('WeeklyTask')->where('wid=' . $id)->delete();
+                M('WeeklyProject')->where('wid=' . $id)->delete();
+            } else {
+                $data = array(
+                    'uid' => $uid,
+                    'uname' => $uname,
+                    'addtime' => $timestr,
+                    'wyear' => $wyear,
+                    'wweek' => $wweek,
+                    'pznum' => $pznum,
+                    'pmoney' => $pmoney,
+                    'panum' => $panum,
+                    'pamoney' => $pamoney,
+                    'pwnum' => $pwnum,
+                    'pwmoney' => $pwmoney,
+                    'pfnum' => $pfnum,
+                    'pfmoney' => $pfmoney,
+                    'tznum' => $tznum,
+                    'tzmoney' => $tzmoney,
+                    'tzhours' => $tzhours,
+                    'tdnum' => $tdnum,
+                    'tdmoney' => $tdmoney,
+                    'tdduty' => $tdduty,
+                    'tnnum' => $tnnum,
+                    'tnmoney' => $tnmoney,
+                    'tnduty' => $tnduty,
+                    'mnum' => $mnum,
+                    'mduty' => $mduty,
+                    'nnum' => $nnum,
+                    'npnum' => $npnum,
+                    'nhours' => $nhours,
+                    'title' => $title,
+                    'retime' => $timestr,
+                    'dtduty' => $dtduty,
+                    'dtnum' => $dtnum
+                );
+                $id = M('Weekly')->add($data);
+
+            }
+            if (!empty($project) && $id) {
+                foreach ($project as $vo) {
+                    $progress = $vo['progress'];
+                    if ($vo['shortsign']) {
+                        $pname = $vo['shortsign'] . "-" . $vo['name'];
+                    } else {
+                        $pname = $vo['name'];
+                    }
+                    $sname = $vo['sname'];
+                    $state = $vo['state'];
+                    $money = $vo['money'];
+                    $role = $vo['rolename'];
+                    $sqlres .= "($id,'{$pname}','{$sname}',$state,$money,$progress,'{$pstate}','{$role}'),";
+                }
+
+                $sqlres = trim($sqlres, ',');
+                $sql = "insert into ot_weekly_project (wid,pname,sname,state,money,progress,pstate,role) VALUES  $sqlres";
+                M()->execute($sql);
+            }
+            if (!empty($project) && $id && !empty($task)) {
+                //周报任务中的总工时
+                $tzxhours = $wtdays1 + $wtdays2 + $wtdays3 + $wtdays4;
+                foreach ($task as $vo) {
+                    if ($vo['delivery'] == 1 && $vo['state'] == 3) {
+                        $wttype1 = $vo['delivery'];;
+                        $wtstate1 = $vo['state'];
+                        if ($tzxhours) {
+                            $wtduty1 = (int)$wtdays1 / (int)$tzxhours * 100;
+                            $wtduty1 = number_format($wtduty1, 2);
+                        }
+                    } elseif ($vo['delivery'] == 0 && $vo['state'] == 3) {
+                        $wttype2 = $vo['delivery'];;
+                        $wtstate2 = $vo['state'];
+                        if ($tzxhours) {
+                            $wtduty2 = (int)$wtdays2 / (int)$tzxhours * 100;
+                            $wtduty2 = number_format($wtduty2, 2);
+                        }
+                    } elseif ($vo['delivery'] == 1 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                        $wttype3 = $vo['delivery'];;
+                        $wtstate3 = $vo['state'];
+                        if ($tzxhours) {
+                            $wtduty3 = (int)$wtdays3 / (int)$tzxhours * 100;
+                            $wtduty3 = number_format($wtduty3, 2);
+                        }
+
+                    } elseif ($vo['delivery'] == 0 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                        $wttype4 = $vo['delivery'];;
+                        $wtstate4 = $vo['state'];
+                        if ($tzxhours) {
+                            $wtduty4 = (int)$wtdays4 / (int)$tzxhours * 100;
+                            $wtduty4 = number_format($wtduty4, 2);
+                        }
+                    }
+                }
+
+                if ($wttmum11) {
+                    $sqlres1 = "($id,$wttype1,$wtstate1,$wttmum11,$wtmoney1,$wtdays1,$wtduty1)";
+                }
+                if ($wttmum21) {
+                    $sqlres2 = "($id,$wttype2,$wtstate2,$wttmum21,$wtmoney2,$wtdays2,$wtduty2)";
+                }
+                if ($wttmum31) {
+                    $sqlres3 = "($id,$wttype3,$wtstate3,$wttmum31,$wtmoney3,$wtdays3,$wtduty3)";
+                }
+                if ($wttmum41) {
+                    $sqlres4 = "($id,$wttype4,$wtstate4,$wttmum41,$wtmoney4,$wtdays4,$wtduty4)";
+                }
+                if ($mnum) {
+                    $sqlres5 = "($id,3,$mstate,$mnum,$mmoney,$mhours,$mduty)";
+                }
+                $sqlarr = array(
+                    0 => $sqlres1,
+                    1 => $sqlres2,
+                    2 => $sqlres3,
+                    3 => $sqlres4,
+                    4 => $sqlres5,
+                );
+                $sql11 = "";
+                foreach ($sqlarr as $vo) {
+                    if ($vo) {
+                        $sql11 .= $vo . ",";
+                    }
+                }
+                $sql11 = trim($sql11, ',');
+
+                $sql = "insert into ot_weekly_task (wid,type,state,tmum,money,days,duty) VALUES  $sql11";
+                M()->execute($sql);
+
+            }
+
+        }
+
+    }
+
+    public function update()
+    {
+        $uid = UID;
+        $uname = get_nickname(UID);
+
+        $timestr = time();
+        $day = date('w', $timestr);
+        $tday = date('Y/m/d', $timestr);
+        $taytims = strtotime($tday);
+        $one_day = $taytims - ($day - 1) * 86400;
+        $end_day = $one_day + 7 * 86400;
+        $end1_day = $one_day + 14 * 86400;
+        $work_day = $one_day + 4 * 86400;
+        $date1 = date('n.d', $one_day);
+        $date2 = date('n.d', $work_day);
+        $wyear = date('Y', $timestr);
+        $wweek = date('W', $timestr);
+        $title = $uname . "的周报 " . $date1 . "~" . $date2;
+        $res = I('get.id');
+        if (!$res) {
+            $this->error('请选择要操作的数据');
+        }
+
+        //项目
+        $where1 = "p.del=0 and ((p.pstime<='{$one_day}' and p.petime>'{$one_day}') or (p.pstime>'{$one_day}' and p.pstime<'{$end_day}') or (p.closetime between {$one_day} and {$end_day}))";
+        $project = M('Project')->alias('p')
+            ->field("p.pmuid,GROUP_CONCAT(distinct  p2.`name`) as sname,GROUP_CONCAT( distinct ag.name) as rolename,c.shortsign,p.money,p.pid,p.state,p.name,p.progress,p.addtime")
+            ->join('ot_takepart t on t.pid = p.pid and t.uid=' . $uid)
+            ->join('ot_project_role ag on ag.prid = t.roleid', 'LEFT')
+            ->join('ot_customer c on c.cid = p.cid', 'LEFT')
+            ->join('ot_project_service ps on ps.pid = p.pid', 'LEFT')
+            ->join('ot_project_config p1 on p1.pid = ps.pcid', 'LEFT')
+            ->join('ot_project_config p2 on p1.path like CONCAT(\'%,\',p2.pid,\',%\') and p2.grade=2', 'LEFT')
+            ->where($where1)
+            ->group('p.addtime desc')
+            ->select();
+        $where8 = "((t.pstime<='{$end_day}' and t.petime>'{$end_day}') or (t.pstime>'{$end_day}' and t.pstime<'{$end1_day}'))";
+        $project1 = M('Task')->alias('t')
+            ->field('count(DISTINCT p.pid) npnum ,count(DISTINCT t.tid) nnum,sum(t.hours) nhours')
+            ->join('ot_project p on t.pid = p.pid and p.del=0', 'LEFT')
+            ->where($where8 . " and  t.assigneduid = '{$uid}'")
+            ->find();
+	  
+        $pznum = 0;
+        $pmoney = 0;
+        $panum = 0;
+        $pamoney = 0;
+        $pwnum = 0;
+        $pwmoney = 0;
+        $pfnum = 0;
+        $pfmoney = 0;
+
+        $pname = '';
+        $sname = '';
+        $state = 0;
+        $money = '';
+        $progress = 0;
+        $pstate = '';
+        $role = '';
+        $id = 0;
+        $nnum = 0;
+        $npnum = 0;
+        $nhours = 0;
+        if (!empty($project1)) {
+            $nnum = $project1['nnum'] ?: 0;
+            $npnum = $project1['npnum'] ?: 0;
+            $nhours = empty($project1['nhours']) ? 0 : $project1['nhours'];
+        }
+        if (!empty($project)) {
+            $pids = array();
+            $pznum = count($project);
+            $sqlres = '';
+            $panum = array();
+            $pwnum = array();
+            $pfnum = array();
+            $tpid = '';
+
+            foreach ($project as $vo) {
+                $pmoney += (float)($vo['money']);
+                $pids[] = $vo['pid'];
+                $addtime = $vo['addtime'];
+                if ($addtime >= $one_day && $addtime <= $end_day) {
+                    $panum[] = $vo;
+                    $pamoney += (float)($vo['money']);
+                }
+                if ($vo['state'] == 1 || $vo['state'] == 4) {
+                    $pwnum[] = $vo;
+                    $pwmoney += (float)($vo['money']);
+                }
+                if ($vo['state'] == 2) {
+                    $pfnum[] = $vo;
+                    $pfmoney += (float)($vo['money']);
+                }
+                if ($vo['pmuid'] == $uid) {
+                    $tpid .= $vo['pid'] . ',';
+                }
+            }
+            $panum = count($panum);
+            $pwnum = count($pwnum);
+            $pfnum = count($pfnum);
+        }
+        //任务
+        $where2 = "( (t.pstime<={$one_day} and t.petime>{$one_day}) or (t.pstime>{$one_day} and t.pstime<{$end_day})) and t.assigneduid = {$uid} and t.deleted=0";
+        $task = M('Task')->alias('t')
+            ->field("t.delivery,t.state,t.petime,t.tid,t.days,t.amount,t.tasktype,ifnull((select sum(ts.finishours) from ot_task_sub ts where ts.tid = t.tid and ts.finishuid = {$uid}),0) as hours")
+            ->where($where2)
+            ->select();
+        $task2 = array();
+        if ($tpid) {
+            $tpid = trim($tpid, ',');
+            $task2 = M('Task')->alias('t')
+                ->field('t.delivery,t.state,t.petime,t.tid,t.days,t.amount,t.finishours as hours,t.tasktype')
+                ->where("( (t.pstime<={$one_day} and t.petime>{$one_day}) or (t.pstime>{$one_day} and t.pstime<{$end_day})) and t.pid in( {$tpid}) and t.deleted = 0")
+                ->select();
+        }
+
+
+        $tznum = 0;
+        $tzmoney = 0;
+        $tzhours = 0;
+        $tdnum = 0;
+        $tdmoney = 0;
+        $tdduty = 0;
+        $tdhours = 0;
+        $tnnum = 0;
+        $tnhours = 0;
+        $tnmoney = 0;
+        $tnduty = 0;
+        $wttype1 = 0;
+        $wtstate1 = 0;
+        $wttmum1 = 0;
+        $wtdays1 = 0;
+        $wtduty1 = 0;
+        $wtmoney1 = 0;
+        $wttype2 = 0;
+        $wtstate2 = 0;
+        $wttmum2 = 0;
+        $wtdays2 = 0;
+        $wtduty2 = 0;
+        $wtmoney2 = 0;
+        $wttype3 = 0;
+        $wtstate3 = 0;
+        $wttmum3 = 0;
+        $wtdays3 = 0;
+        $wtduty3 = 0;
+        $wtmoney3 = 0;
+        $wttype4 = 0;
+        $wtstate4 = 0;
+        $wttmum4 = 0;
+        $wtdays4 = 0;
+        $wtduty4 = 0;
+        $wtmoney4 = 0;
+        $mnum = 0;
+        $mduty = 0;
+        $mhours = 0;
+        $mstate = 0;
+        $mmoney = 0;
+        $dtnum = 0;  //延期任务数
+        $dtduty = 0;  //延期任务占比
+
+        $days = 0;
+        if (!empty($task)) {
+            $tdnum = array();
+            $tnnum = array();
+            $dtnum = array();
+            $mnum = array();
+            $wttmum1 = array();
+            $wttmum2 = array();
+            $wttmum3 = array();
+            $wttmum4 = array();
+            $wttmum11 = 0;
+            $wttmum21 = 0;
+            $wttmum31 = 0;
+            $wttmum41 = 0;
+            $wtdays1 = 0;
+            $wtdays2 = 0;
+            $wtdays3 = 0;
+            $wtdays4 = 0;
+            $wtmoney1 = 0;
+            $wtmoney2 = 0;
+            $wtmoney3 = 0;
+            $wtmoney4 = 0;
+            if ($task2) {
+                foreach ($task2 as $key => $vo) {
+                    $has = true;
+                    foreach ($task as $k => $v) {
+                        if ($vo['tid'] == $v['tid']) {
+                            $has = false;
+                            break;
+                        }
+                    }
+                    if ($has) {
+                        $task[] = $vo;
+                    }
+                }
+            }
+            $tznum = count($task);
+            foreach ($task as $vo) {
+                $days += (int)($vo['days']);
+                if ($vo['state'] == 3) {
+                    $tzmoney += (float)($vo['amount']);
+                    $tzhours += (float)($vo['hours']);
+                }
+                if ($vo['tasktype'] == '会议' && $vo['state'] == 3) {
+                    $mnum[] = $vo;;
+                    $mhours += (float)($vo['hours']);
+                    $mstate = $vo['state'];
+                    $mmoney = $vo['amount'];
+                }
+                if ($vo['delivery'] == 1 && $vo['state'] == 3) {
+                    $tdmoney += (float)($vo['amount']);
+                    $tdhours += (float)($vo['hours']);
+                    $tdnum[] = $vo;
+                    $wttmum1[] = $vo;
+                    $wtdays1 += (float)($vo['hours']);
+                    $wtmoney1 += (float)($vo['amount']);
+                } elseif ($vo['delivery'] == 0 && $vo['state'] == 3 && $vo['tasktype'] != '会议') {
+                    $tnmoney += (float)($vo['amount']);
+                    $tnhours += (float)($vo['hours']);
+                    $tnnum[] = $vo;
+                    $wttmum2[] = $vo;
+                    $wtdays2 += (float)($vo['hours']);
+                    $wtmoney2 += (float)($vo['amount']);
+                } elseif ($vo['delivery'] == 1 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                    $wttmum3[] = $vo;
+                    $wtdays3 += (float)($vo['hours']);
+                    $wtmoney4 += (float)($vo['amount']);
+                } elseif ($vo['delivery'] == 0 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                    $wttmum4[] = $vo;
+                    $wtdays4 += (float)($vo['hours']);
+                    $wtmoney4 += (float)($vo['amount']);
+                }
+                if ($vo['state'] != 3 && $vo['state'] != -1 && $vo['tasktype'] != '会议') {
+                    $dtnum[] = $vo;
+                }
+            }
+            $tdnum = count($tdnum);
+            $tnnum = count($tnnum);
+            $mnum = count($mnum);
+            $dtnum = count($dtnum);
+            if ($dtnum) {
+                $dtduty = number_format($dtnum / $tznum * 100, 2);
+            }
+
+            if ($tzhours) {
+                $tdduty = (float)$tdhours / (float)$tzhours * 100;
+                $tdduty = number_format($tdduty, 2);
+                $tnduty = (float)$tnhours / (float)$tzhours * 100;
+                $tnduty = number_format($tnduty, 2);
+                $mduty = (float)$mhours / (float)$tzhours * 100;
+                $mduty = number_format($mduty, 2);
+            }
+            $wttmum11 = count($wttmum1);
+            $wttmum21 = count($wttmum2);
+            $wttmum31 = count($wttmum3);
+            $wttmum41 = count($wttmum4);
+        }
+        if ($res) {
+            $id = $res;
+            $data = array(
+                'uid' => $uid,
+                'uname' => $uname,
+                'wyear' => $wyear,
+                'wweek' => $wweek,
+                'pznum' => $pznum,
+                'pmoney' => $pmoney,
+                'panum' => $panum,
+                'pamoney' => $pamoney,
+                'pwnum' => $pwnum,
+                'pwmoney' => $pwmoney,
+                'pfnum' => $pfnum,
+                'pfmoney' => $pfmoney,
+                'tznum' => $tznum,
+                'tzmoney' => $tzmoney,
+                'tzhours' => $tzhours,
+                'tdnum' => $tdnum,
+                'tdmoney' => $tdmoney,
+                'tdduty' => $tdduty,
+                'tnnum' => $tnnum,
+                'tnmoney' => $tnmoney,
+                'tnduty' => $tnduty,
+                'mnum' => $mnum,
+                'mduty' => $mduty,
+                'nnum' => $nnum,
+                'npnum' => $npnum,
+                'nhours' => $nhours,
+                'title' => $title,
+                'retime' => $timestr,
+                'dtduty' => $dtduty,
+                'dtnum' => $dtnum
+            );
+            M('Weekly')->where('weekid=' . $id)->save($data);
+            M('WeeklyTask')->where('wid=' . $id)->delete();
+            M('WeeklyProject')->where('wid=' . $id)->delete();
+        } else {
+            $data = array(
+                'uid' => $uid,
+                'uname' => $uname,
+                'addtime' => $timestr,
+                'wyear' => $wyear,
+                'wweek' => $wweek,
+                'pznum' => $pznum,
+                'pmoney' => $pmoney,
+                'panum' => $panum,
+                'pamoney' => $pamoney,
+                'pwnum' => $pwnum,
+                'pwmoney' => $pwmoney,
+                'pfnum' => $pfnum,
+                'pfmoney' => $pfmoney,
+                'tznum' => $tznum,
+                'tzmoney' => $tzmoney,
+                'tzhours' => $tzhours,
+                'tdnum' => $tdnum,
+                'tdmoney' => $tdmoney,
+                'tdduty' => $tdduty,
+                'tnnum' => $tnnum,
+                'tnmoney' => $tnmoney,
+                'tnduty' => $tnduty,
+                'mnum' => $mnum,
+                'mduty' => $mduty,
+                'nnum' => $nnum,
+                'npnum' => $npnum,
+                'nhours' => $nhours,
+                'title' => $title,
+                'retime' => $timestr,
+                'dtduty' => $dtduty,
+                'dtnum' => $dtnum
+            );
+            $id = M('Weekly')->add($data);
+
+        }
+        if (!empty($project) && $id) {
+            foreach ($project as $vo) {
+                $progress = $vo['progress'];
+                if ($vo['shortsign']) {
+                    $pname = $vo['shortsign'] . "-" . $vo['name'];
+                } else {
+                    $pname = $vo['name'];
+                }
+                $sname = $vo['sname'];
+                $state = $vo['state'];
+                $money = $vo['money'];
+                $role = $vo['rolename'];
+                $sqlres .= "($id,'{$pname}','{$sname}',$state,$money,$progress,'{$pstate}','{$role}'),";
+            }
+
+            $sqlres = trim($sqlres, ',');
+            $sql = "insert into ot_weekly_project (wid,pname,sname,state,money,progress,pstate,role) VALUES  $sqlres";
+            M()->execute($sql);
+        }
+        if (!empty($project) && $id && !empty($task)) {
+            $sqlres1 = "";
+            $sqlres2 = "";
+            $sqlres3 = "";
+            $sqlres4 = "";
+            //周报任务中的总工时
+            $tzxhours = $wtdays1 + $wtdays2 + $wtdays3 + $wtdays4;
+            foreach ($task as $vo) {
+                if ($vo['delivery'] == 1 && $vo['state'] == 3) {
+                    $wttype1 = $vo['delivery'];;
+                    $wtstate1 = $vo['state'];
+                    if ($tzxhours) {
+                        $wtduty1 = (int)$wtdays1 / (int)$tzxhours * 100;
+                        $wtduty1 = number_format($wtduty1, 2);
+                    }
+                } elseif ($vo['delivery'] == 0 && $vo['state'] == 3) {
+                    $wttype2 = $vo['delivery'];;
+                    $wtstate2 = $vo['state'];
+                    if ($tzxhours) {
+                        $wtduty2 = (int)$wtdays2 / (int)$tzxhours * 100;
+                        $wtduty2 = number_format($wtduty2, 2);
+                    }
+                } elseif ($vo['delivery'] == 1 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                    $wttype3 = $vo['delivery'];;
+                    $wtstate3 = $vo['state'];
+                    if ($tzxhours) {
+                        $wtduty3 = (int)$wtdays3 / (int)$tzxhours * 100;
+                        $wtduty3 = number_format($wtduty3, 2);
+                    }
+
+                } elseif ($vo['delivery'] == 0 && ($vo['state'] == 1 || $vo['state'] = 6)) {
+                    $wttype4 = $vo['delivery'];;
+                    $wtstate4 = $vo['state'];
+                    if ($tzxhours) {
+                        $wtduty4 = (int)$wtdays4 / (int)$tzxhours * 100;
+                        $wtduty4 = number_format($wtduty4, 2);
+                    }
+                }
+            }
+
+            if ($wttmum11) {
+                $sqlres1 = "($id,$wttype1,$wtstate1,$wttmum11,$wtmoney1,$wtdays1,$wtduty1)";
+            }
+            if ($wttmum21) {
+                $sqlres2 = "($id,$wttype2,$wtstate2,$wttmum21,$wtmoney2,$wtdays2,$wtduty2)";
+            }
+            if ($wttmum31) {
+                $sqlres3 = "($id,$wttype3,$wtstate3,$wttmum31,$wtmoney3,$wtdays3,$wtduty3)";
+            }
+            if ($wttmum41) {
+                $sqlres4 = "($id,$wttype4,$wtstate4,$wttmum41,$wtmoney4,$wtdays4,$wtduty4)";
+            }
+            if ($mnum) {
+                $sqlres5 = "($id,3,$mstate,$mnum,$mmoney,$mhours,$mduty)";
+            }
+            $sqlarr = array(
+                0 => $sqlres1,
+                1 => $sqlres2,
+                2 => $sqlres3,
+                3 => $sqlres4,
+                4 => $sqlres5,
+            );
+            $sql11 = "";
+            foreach ($sqlarr as $vo) {
+                if ($vo) {
+                    $sql11 .= $vo . ",";
+                }
+            }
+            $sql11 = trim($sql11, ',');
+
+            $sql = "insert into ot_weekly_task (wid,type,state,tmum,money,days,duty) VALUES  $sql11";
+            M()->execute($sql);
+        }
+        $this->success('更新成功', U('Review/view?id=' . $id));
+
+    }
+
+    public function printpage()
+    {
+        $id = I("get.id");
+        if (empty ($id)) {
+            $this->error('您要操作的周报不存在！');
+        }
+        topdf1(C('REVIEW_PRINT_URL') . $id . '.html', 1);
+    }
+
+    public function download()
+    {
+        $id = I("get.id");
+        if (empty ($id)) {
+            $this->error('您要操作的周报不存在！');
+        }
+        $title = I('get.title');
+        $url = C('REVIEW_PRINT_URL') . $id . '.html';
+        $path = topdf1($url);
+
+        $file = @ fopen($path, "r");
+        if ($file) {
+            header("Content-type: application/octet-stream");
+            header("Content-Disposition: attachment; filename=" . $title . '.pdf');
+            while (!feof($file)) {
+                echo fread($file, 50000);
+            }
+            fclose($file);
+        } else {
+            $this->error('文件不存在');
+        }
+    }
+
+    //评论
+    public function reply()
+    {
+
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("请选择要操作的数据");
+        }
+
+        $weeklymod = M("Weekly");
+        $task = $weeklymod->where("weekid='{$id}'")->find();
+        if (empty($task)) {
+            $this->error("请选择要操作的数据");
+        }
+
+        if (!IS_POST) {
+
+            $this->assign('id', $id);
+            $this->display();
+        } else {
+            $nr = I("nr", '');
+            if (empty($nr)) {
+                $this->json_error("请填写评论内容", false);
+            }
+
+            $data = array("wid" => $id, "uid" => UID, "uname" => get_nickname(UID), "addtime" => time(), "content" => $nr);
+            if (M('WeeklyComment')->add($data) == false) {
+                $this->json_error("操作失败，请重新操作");
+            } else {
+                $this->json_result(array(), "", false);
+            }
+
+        }
+    }
+
+    /*删除评论*/
+    public function delete()
+    {
+        $id = I('id');
+        if (empty($id)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        if (M('WeeklyComment')->where('wcid=' . $id)->delete() === false) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败"));
+        }
+        $this->ajaxReturn(array('done' => true, 'msg' => "删除成功"));
+    }
+
+}

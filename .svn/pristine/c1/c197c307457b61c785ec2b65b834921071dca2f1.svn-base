@@ -1,0 +1,246 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 公告管理控制器
+ */
+class NoticeController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     *公告管理首页
+     *
+     */
+    public function index()
+    {
+
+        $config = array(
+            "actionURL" => "/Admin/Notice/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'n.title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '优先级', 'fieldname' => 'n.level', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 2 => array('str' => '类型', 'fieldname' => 'n.type', 'operator' => '=', 'control' => 'select', 'values' => '')
+            )
+        );
+
+        if ($config && $config['params']) {
+            $types = M('dictionary')->where("d_code = 'noticetype'")->field(true)->select(array('order' => 'd_order asc'));
+            $level = M('dictionary')->where("d_code = 'noticelevel'")->field(true)->select(array('order' => 'd_order asc'));
+            $mtypes = array("" => "");
+            $mlevel = array("" => "");
+            if ($types) {
+                foreach ($types as $v) {
+                    $mtypes[$v['d_value']] = $v['d_value'];
+                }
+            }
+            if ($level) {
+                foreach ($level as $v) {
+                    $mlevel[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $mlevel;
+            $config['params'][2]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        } else {
+            $order = 'addtime desc';
+        }
+
+        $Model = M('Notice');
+        $count = $Model->where($where)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = $Model->alias('n')->field(array(
+            'n.*',
+            'd.d_key',
+        ))->join("ot_dictionary d ON d.d_value = n.level and d.d_code='noticelevel'", 'LEFT')
+            ->where($where)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+
+        $this->assign('_list', $list);
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '公告', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('_list', $list);
+        $this->meta_title = '公告';
+        $this->display();
+    }
+
+    /**
+     * 删除数据
+     */
+    public function deletedata()
+    {
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map ['id'] = array('in', $id);
+        if (M('Notice')->where($map)->delete() !== false) {
+//			$this->success ( "删除成功", U ( 'index' ) );
+            $this->ajaxReturn(['status' => 1]);
+        } else {
+
+            $this->error("删除失败");
+        };
+    }
+
+    /**
+     * 新增待办
+     */
+    public function add()
+    {
+
+        if (IS_POST) {
+            $title = I("post.title", '');
+            $level = I("post.level", '');
+            $type = I("post.type", '');
+            $description = I("post.content", '');
+
+            if (empty ($title)) {
+                $this->error('标题不能为空');
+            }
+            if (empty ($level)) {
+                $this->error('优先级不能为空');
+            }
+            if (empty ($type)) {
+                $this->error('公告类型不能为空');
+            }
+
+            $data = array(
+                'title' => $title,
+                'level' => $level,
+                'type' => $type,
+                'content' => $description,
+                'addtime' => time(),
+                'uid' => is_login(),
+                'uname' => get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login()),
+            );
+            if (!M('Notice')->add($data)) {
+                $this->error('公告发布失败！');
+            } else {
+                $this->redirect('Notice/index');
+//				$this->success ( '公告发布成功！', U ( 'index' ) );
+            }
+        } else {
+            $this->meta_title = '发布公告';
+            $this->assign('now', date('Y/m/d H:i'), time());
+
+            $types = M("Dictionary")->where("d_code='noticetype'")->select(array('order' => 'd_order asc'));
+            $this->assign('types', $types);
+
+            $state = M("Dictionary")->where("d_code='noticelevel'")->select(array('order' => 'd_order asc'));
+            $this->assign('levels', $state);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '公告', 'url' => U('Notice/index'));
+            $root_mbx[] = array('title' => '发布公告', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+
+            $this->display();
+        }
+    }
+
+
+    public function view()
+    {
+        $id = I("id");
+        if (empty($id)) {
+            $this->error('公告数据不存在！');
+        }
+        $data = array();
+        $data = M('Notice')->alias('n')->field("n.*,d.d_key")
+            ->join("ot_dictionary d ON d.d_value = n.level and d.d_code='noticelevel'", 'LEFT')
+            ->where("n.id='" . $id . "'")->find();
+        if (empty($data)) {
+            $this->error('公告数据不存在！');
+        }
+        $this->assign('d', $data);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '公告', 'url' => U('Notice/index'));
+        $root_mbx[] = array('title' => $data['title'], 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    /**
+     * 编辑
+     */
+    public function edit()
+    {
+        $id = I("id");
+        if (empty($id)) {
+            $this->error('待办数据不存在！');
+        }
+        if (IS_POST) {
+            $title = I("post.title", '');
+            $level = I("post.level", '');
+            $type = I("post.type", '');
+            $description = I("post.content", '');
+
+            if (empty ($title)) {
+                $this->error('标题不能为空');
+            }
+            if (empty ($level)) {
+                $this->error('优先级不能为空');
+            }
+            if (empty ($type)) {
+                $this->error('公告类型不能为空');
+            }
+
+            $data = array(
+                'id' => $id,
+                'title' => $title,
+                'level' => $level,
+                'type' => $type,
+                'content' => $description,
+            );
+            if (D('Notice')->save($data) === false) {
+                $this->error('公告编辑失败！', U('Notice/edit?id=' . $id));
+            } else {
+                $this->redirect('Notice/index', array('id' => $id));
+//				$this->success ( '公告编辑成功！', U ( 'Notice/edit?id='.$id ) );
+            }
+        } else {
+            $this->meta_title = '编辑公告';
+            $data = array();
+            $data = M('Notice')->where("id='" . $id . "'")->find();
+            if (empty($data)) {
+                $this->error('公告数据不存在！');
+            }
+            $this->assign('id', $id);
+
+
+            $types = M("Dictionary")->where("d_code='noticetype'")->select(array('order' => 'd_order asc'));
+            $this->assign('types', $types);
+
+            $state = M("Dictionary")->where("d_code='noticelevel'")->select(array('order' => 'd_order asc'));
+            $this->assign('levels', $state);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '公告', 'url' => U('Notice/index'));
+            $root_mbx[] = array('title' => '编辑公告', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('d', $data);
+            $this->display();
+        }
+    }
+}

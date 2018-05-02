@@ -1,0 +1,158 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('ORDER_MANAGE')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Order/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Dentist/Order/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('ORDER_SN')}</label>
+                                                <input class="form-control" type="text" name="order_sn" value="{$Think.get.order_sn}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_KEYS')}</label>
+                                                <input style="width: 230px !important" placeholder="{:L('ORDER_KEYS_PLACEHOLDER')}" class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_STATE')}</label>
+                                                <select name="state" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="statuslist" id="sl">
+                                                        <option value="{$sl.d_key}" <if condition="$Think.get.state eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_STYPE')}</label>
+                                                <select name="servicetype" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="stypelist" id="sl">
+                                                        <option value="{$sl.d_key}" <if condition="$Think.get.servicetype eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_UG')}</label>
+                                                <select name="isurgent" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.isurgent eq 1">selected</if>>{:L('yes')}</option>
+                                                    <option value="0" <if condition="$Think.get.isurgent === '0'">selected</if>>{:L('no')}</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('PlatOrder/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="order_sn">{:L('ORDER_SN')} <i class="fa fa-sort"></i></span></th>
+                                    <th style="text-align: left"><span>{:L('ORDER_STATE')}</span></th>
+                                    <th style="width: 100px"><span>{:L('ORDER_STYPE')}</span></th>
+                                    <th style="text-align: left"><span>{:L('ORDER_CNAME')}</span></th>
+                                    <th style="text-align: left"><span>{:L('ORDER_SNAME')}</span></th>
+                                    <th style="text-align: left"><span>{:L('ORDER_PNAME')}</span></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="amount">{:L('ORDER_YM')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="payamount">{:L('ORDER_SM')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="addtime">{:L('ORDER_ADDTIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="paytime">{:L('ORDER_LTIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="isurgent">{:L('ORDER_UG')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 300px;">{:L('HANDLE')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td style="text-align: left">{$vo['order_sn']}</td>
+                                            <td style="text-align: left">{$vo['d_value']}</td>
+                                            <td>{$vo['dv1']}</td>
+                                            <td style="text-align: left">{$vo['dename']}</td>
+                                            <td style="text-align: left">{$vo['stuname']}</td>
+                                            <td style="text-align: left">{$vo['pname']}</td>
+                                            <td style="text-align: left">RMB:{$vo['amount']}<br/>USD:{$vo['amount1']}</td>
+                                            <td style="text-align: left">RMB:{$vo['payamount']}<br/>USD:{$vo['payamount1']}</td>
+                                            <td><if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td><if condition="$vo['paytime']">{$vo['paytime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td>
+                                                <if condition="$vo['isurgent']">
+                                                    <img src="__IMG__/positive_enabled.png"  title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <if condition="$vo['state'] eq 50">
+                                                    <a href="{:U('Order/confirm?id='.$vo['order_id'])}" class="btn btn-xs btn-primary confirm ajax-get">{:L('TASK_CONFIRM')}</a>
+                                                    <a href="{:U('Order/change?id='.$vo['order_id'])}" class="btn btn-xs btn-primary confirm ajax-get">{:L('TASK_CHANGE')}</a>
+                                                </if>
+                                                <a href="{:U('Order/view?id='.$vo['order_id'])}" class="btn btn-xs btn-primary confirm ajax-get">{:L('VIEW')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    <else />
+                                    <tr>
+                                        <td colspan="12">{:L('NOCONCENT')}</td>
+                                    </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-default btn-sm">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+       $(function(){
+           Think.setValue("type", "{$Think.get.type|default = 0}");
+       });
+    </script>
+</block>
+

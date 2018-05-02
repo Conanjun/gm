@@ -1,0 +1,258 @@
+<extend name="Public/base" />
+<block name="navhead">
+    <if condition="$pid">
+
+        <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+                class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+        </li>
+    </if>
+</block>
+
+<block name="btnarea">
+</block>
+
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<div class='panel-footer' style="position: fixed; bottom: 0px; right: 0px; padding-right: 30px;background: none;
+    z-index: 1040; border: 0;width:450px">
+    <div style='float: right;margin-left: 20px;'>
+    <span class="pri6" style='float: left;margin-right: 5px;'></span>未到期任务</div>
+    <div style='float: right;margin-left: 20px;'><span class="pri5" style='float: left;margin-right: 5px;'></span>今日待办任务</div>
+    <div style='float: right;margin-left: 20px;'><span class="pri1" style='float: left;margin-right: 5px;'></span>已延期任务</div>
+    <div style='clear: both'></div>
+</div>
+    <script>
+        $(function(){
+            $("#searchform").prepend("<input type='hidden' name='pid' value='{$pid}'>");
+        })
+    </script>
+<style>
+    #bysearchTab.active
+		{
+			background: #5e4ba4 !important;
+			color:#fff;
+    padding: 2px 10px 3px;
+    padding-bottom: 2px;
+    border: none !important;
+		}
+.outer .side {
+    width: 192px;
+    position: absolute;
+    left: 20px;
+    top: 66px;
+    bottom: 20px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+.panel{border: 0;}
+</style>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <style>
+
+        #childrenForm .col-table+.col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+    </style>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+                <if condition="cando('Execute/task_add',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('Execute/task_add',array('pid'=>$pid))}" class="btn"><i class="icon-plus"></i>新建任务</a>
+                </if>
+                <a href="{:U('Execute/task_gantt',array('pid'=>$pid))}" data-width="1200"
+                   data-height="800" data-title="{$p['name']}-甘特图" class="btn iframe"><i class="icon-list-alt icon"></i>甘特图</a>
+                <a href="javascript:;" id="export" class="btn"><i class="icon-file-excel"></i>&nbsp;导出Excel</a>
+                <a href="#" id="bysearchTab" class="btn"><i class="icon-search icon"></i>搜索</a>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <include file="Task/search" />
+    </div>
+    <div class="data-table table-striped" id="projectTaskForm">
+    
+        <include file="Public:executetitle" />
+        <form action="{:U('Execute/task_index',array('pid'=>$pid))}" method="get"  id="searchform"></form>
+            <table
+                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList1">
+                <thead>
+                <tr>
+                    <th r="1" style="width: 10px"></th>
+                    
+                    <th r="1" style="text-align: left;" ><span class="sort" ectype="order_by" fieldname="x.tid">任务</span></th>
+           
+                    <th r="1" style="width:60px ;">进程</th>
+                    <th r="1" style="width: 60px" ><span class="sort" ectype="order_by" fieldname="x.state">状态</span></th>
+                    <th r="1" style="width: 80px" ><span class="sort" ectype="order_by" fieldname="x.assigneduid">执行人</span></th>
+                    <th style="width: 80px" ><span class="sort" ectype="order_by" fieldname="x.addtime">创建时间</span></th>
+                    <th r="1" style="width: 80px" ><span class="sort" ectype="order_by" fieldname="x.petime">要求时间</span></th>
+                    <th r="1" style="width: 80px"><span class="sort" ectype="order_by" fieldname="x.finishtime">完成时间</span></th>
+                    <th style="width: 60px"  ><span class="sort" ectype="order_by" fieldname="x.level">优先级</span></th>
+                    <th r="1" style="width: 50px" ><span class="sort" ectype="order_by" fieldname="x.hours">工时</span></th>
+                    <th style="width: 100px" ><span class="sort" ectype="order_by" fieldname="x.amount">挣值</span></th>
+                    <th r="1" class="oop"  style="width: 120px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <form action="{:U('Execute/task_allwarn')}" method="post">
+
+
+                <notempty name="_list">
+                    <volist name="_list" id="vo">
+                        <if condition="$nowDate gt $vo['petime_format'] && $vo['petime_format']"><tr class="taskr"></if>
+                        <if condition="$nowDate lt $vo['petime_format'] && $vo['petime_format']"><tr class="task"></if>
+                        <if condition="$nowDate == $vo['petime_format'] && $vo['petime_format']"><tr class="taskh"></if>
+                
+                    <td r="1"style="width: 10px">
+
+                    </td>
+                    
+                    <td r="1" style="text-align: left;" title="{$vo['title']}">
+                        <if condition="$vo.tt ==1"> <a href="{:U('Task/view?id='.$vo['tid'])}"><if condition="$vo.mname != ''">{$vo['mname']}-</if>{$vo['title']}</a>
+                            <else/>
+                            <if condition="$vo.mname != ''">{$vo['mname']}-</if>{$vo['title']}
+                        </if>
+                       </td>
+            
+                        <td r="1">
+                            <if condition="$vo['state'] eq 0 || $vo['state'] eq 1 || $vo['state'] eq 2 || $vo['state'] eq 4">
+                                <if condition="$vo['color'] eq 'red' ">
+                                    <span class="pri1" title="已延期{$vo['num1']}天">{$vo['num']}</span>
+                                    <elseif condition="$vo['color'] eq 'green'"/>
+                                    <span class="pri6" title="距要求时间{$vo['num1']}天">{$vo['num']}</span>
+                                    <elseif condition="$vo['color'] eq 'yellow'"/>
+                                    <span class="pri5"></span>
+                                </if>
+                            </if>
+                        </td>
+                   <td r="1" 
+                    class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'>textc</eq><eq name='vo.state' value='2'></eq><eq name='vo.state' value='3'>textg</eq><eq name='vo.state' value='4'></eq><eq name='vo.state' value='5'></eq><eq name='vo.state' value='6'>textr</eq><eq name='vo.state' value='-1'>textc</eq>">
+                       {$vo.statestr}
+                    </td>
+                    <td r="1">{$vo['assignedname']}</td>
+                    <td title="{$vo['addtime']|time_format}">{$vo['addtime']|time_format=###,'m-d'}</td>
+                    <td r="1" title="{$vo['petime']|time_format}">{$vo['petime']|time_format=###,'m-d'}</td>
+                    <td r="1" title="{$vo['finishtime']|time_format}">{$vo['finishtime']|time_formatnew}</td>
+                    <td <if condition="$vo.level_name eq '高'">class="textr"</if>><if condition="$vo.level_name != ''"> {$vo['level_name']}</if></td>
+                    <td r="1">{$vo['hours']}h</td>
+                     <td class="text-right">
+                         <if condition="$vo['state'] == 3 && $vo['amount']">
+                             {$vo['amount']|fomatprice}
+                         </if>
+                     </td>
+                    <td r="1" class="oop" >
+                    <em>
+                    	<!--<if condition="cando('Task/close')"><if condition="$vo['state'] != 3&&$vo['state'] != -1">
+                        <a href="{:U('Task/close?id='.$vo['tid'])}"  data-width="810"
+					   data-height="400" title="{$vo['title']}-关闭" class="iframe">关闭</a>
+					   </if></if>
+                    
+                       <if condition="cando('Task/send')"><if condition="$vo['state'] == 1 || $vo['state'] == 2 || $vo['state'] == 0">
+                        <a href="{:U('Task/send?id='.$vo['tid'])}"  data-width="800"
+					   data-height="400" title="{$vo['title']}-转派" class="iframe">转派</a>
+					   </if></if>-->
+                       <if condition="$vo.tt ==1">
+                           <if condition="cando('Task/start',array($vo['assigneduid']),$p['pid'])">
+                               <eq name="vo.state" value="1">
+                                   <a href="{:U('Task/start?id='.$vo[tid])}" id="finish12" class="iframe" data-width="800" data-title="{$vo.title} - 开始" data-height="400">开始</a>
+                               </eq>
+                           </if>
+                           <if condition="cando('Task/start',array($vo['assigneduid']),$p['pid'])">
+                               <if condition="$vo['state'] != 3&&$vo['state'] != -1&&$vo['state'] != 5&&$vo['state'] != 4">
+                                   <a href="{:U('Task/finish?id='.$vo[tid])}" id="finish1" class="iframe" data-width="1100" data-title="{$vo.title} - 完成" data-height="700">完成</a>
+                               </if>
+                           </if>
+                           <if condition="cando('Task/start',array($vo['assigneduid']),$p['pid'])">
+                               <if condition="$vo['state'] == 2">
+                                   <a href="{:U('Task/oppause?id='.$vo['tid'])}" data-width="800" data-height="400" class="iframe" data-title="{$vo.title} - 暂停">暂停</a>
+                               </if>
+                           </if>
+                           <if condition="cando('Task/opcontinue',array($vo['assigneduid']),$p['pid'])">
+                               <if condition="$vo['state'] == 5">
+                                   <a href="{:U('Task/opcontinue?id='.$vo['tid'])}" data-width="800" data-height="400" class="iframe" data-title="{$vo.title} - 继续">继续</a>
+                               </if>
+                           </if>
+                           <if condition="cando('Task/send',array($vo['assigneduid']),$p['pid'])">
+                               <if condition="$vo['state'] == 1 || $vo['state'] == 2 || $vo['state'] == 0">
+                                   <a href="{:U('Task/send?id='.$vo['tid'])}" data-width="800"
+                                      data-height="450" data-title="{$vo['title']}-转派" class="iframe">转派</a>
+                               </if>
+                           </if>
+                       </if>
+                    </em>
+                    </td>
+                </tr>
+                    </volist>
+                    <else />
+                    <tr><td r="1" colspan="12" class="text-center table_nodata" id="colspan_1"> aOh! 暂时还没有内容! </td></tr>
+                </notempty>
+ </form>
+                </tbody>
+                <notempty name="_list">
+                <tfoot>
+                <tr>
+                    <td r="1" colspan='12' id="colspan_2">
+                        <div class="table-actions clearfix">
+                        </div>
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                </tr>
+                </tfoot>
+                </notempty>
+            </table>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        $("#export").click(function(){
+            $("#searchform").attr("target","_blank");
+            var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+            $("#searchform").append(my_input);
+            $("#searchform").submit();
+
+            $("[name='exportexcel']").val("");
+            $("#searchform").attr("target","");
+        });
+        function choose(r){
+        	$.closeModal();
+        	if(r){
+        		location.replace(location.href);
+        	}
+        }
+
+        function tixing(nr){
+             var ids='';
+                $(".ids").each(function(){
+                    if(this.checked){
+                        ids+=$(this).val()+",";
+                    }
+                });
+            $.post("{:U('allwarn')}",{id:ids,nr:nr},function(response){
+                   if(response.done){
+                           window.location.href=window.location.href;
+                   }else{
+                       alert(response.msg);
+                      window.location.href=window.location.href;
+
+                   }
+                },"json");
+               return ids;
+        }
+
+        //导航高亮
+        highlight_subnav("{$from_url}");
+    </script>
+</block>

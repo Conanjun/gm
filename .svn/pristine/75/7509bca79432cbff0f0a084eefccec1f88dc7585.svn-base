@@ -1,0 +1,89 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<div id="querybox" class="show form-condensed">
+
+        <!-- 高级搜索 -->
+		<table class="table table-form search-form" style="width: 300px;">
+		<tr>
+		<td>
+				<input type="text" name="key" class="form-control  searchInput"
+				value="{:I('key')}" placeholder="请输入编码或者客户名称或者联系人" /></td>
+				<td>
+				<button type="button" class="btn btn-primary" href="javascript:;" id="search" url="{:U('Offer/choose')}">搜索</button>
+				</td>
+		
+		</tr>
+		</table>
+    </div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr>
+		<th class="">编码</th>
+		<th class="">客户名称</th>
+		<th class="">联系人</th>
+		<th class="">联系电话</th>
+		<th class="">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+			<td>{$vo.code} </td>
+			<td>{$vo.name} </td>
+			<td>{$vo.contact}</td>
+			<td>{$vo.phone}</td>
+			<td>
+				<button type="button" class="btn btn-primary" style="padding: 2px 8px" onclick='choose("{$vo.name}")' >选择</button>
+            </td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="5" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+	<tfoot>
+			<tr>
+				<td colspan='5'>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose(name) {
+			window.parent.changechoose(name);
+		}
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Offer/index')}");
+	</script>
+</block>

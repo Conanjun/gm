@@ -1,0 +1,71 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+    <!-- 数据列表 -->
+        <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="20px">
+                </th>
+                <th style="text-align: left;">问题</th>
+                <th style="text-align: left;">任务</th>
+                <th width="100px">完成人(单价)</th>
+                <th width="120px">完成时间</th>
+                <th width="80px">预计工时</th>
+                <th width="80px">完成工时</th>
+                <th width="100px">成本</th>
+            </tr>
+
+            </thead>
+            <tbody>
+            <notempty name="files">
+                <volist name="files" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                        </td>
+                        <td style="text-align: left;">{$vo.title}</td>
+                        <td style="text-align: left;">{$vo.task}</td>
+                        <td>{$vo.finishuname}
+                            <if condition="$vo.price !=0.00">
+                               (￥{$vo.price})
+                            </if>
+                        </td>
+                        <td>{$vo.finishtime|time_format}</td>
+                        <td>{$vo.predicthours}h</td>
+                        <td>
+                            <if condition="$vo['hours'] gt $vo['predicthours']">
+                                <span class="textr">{$vo.hours}h</span>
+                            <else/>
+                                {$vo.hours}h
+                            </if>
+                        </td>
+                        <td>{$vo.amount|fomatprice2}</td>
+                    </tr>
+
+                </volist>
+                <tr>
+                    <td colspan="8" class="text-right">
+                        合计：
+                        预计工时<span class="textg">{$hours}h</span>
+                        完成工时<span class="textg">{$finishhours}h</span>
+                        成本<span class="textg">{$amountTotal|fomatprice2}</span></td>
+                </tr>
+                <else/>
+                <td colspan="8" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+    </script>
+</block>

@@ -1,0 +1,130 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('PAYMENT')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('Feeitem/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+                            <input type="hidden" name="id" value="{$data.itemid}">
+                             <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SERVICE_TYPE')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="servicetype" id="servicetype" value="{$data.servicetype}" class="form-control" autocomplete="off" placeholder="请输入用户名,必填不可重复">
+                                </div>
+                            </div>
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEE_CODE')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="feecode" class="form-control" value="{$data.feecode}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEE_NAME')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="feename" class="form-control" value="{$data.feename}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PRICE_RMB')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="price" class="form-control" value="{$data.price}">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('DOLLAR_PRICE')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="price1" class="form-control" value="{$data.price1}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-white" type="button">{:L('BACK')}</a>
+                                    <button class="btn btn-primary" type="submit">{:L('SAVE')}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

@@ -1,0 +1,86 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+	<script>
+		$(function(){
+			$('form').validate({
+				errorPlacement: function (error, element) {
+					$(element).next('.field_notice').hide();
+					$(element).parent().next().append(error);
+				},
+				onkeyup: false,
+				rules: {
+                    finishours: {
+                        required: true
+                    }
+				},
+				messages: {
+                    finishours: {
+                        required : '实际工时不能为空'
+                    }
+				}
+			});
+		});
+	</script>
+	<style>
+		#cke_finishcontent{
+			width:890px !important;
+		}
+	</style>
+		<form action="{:U('finish?id='.$id)}" method="post" class="form-condensed " enctype="multipart/form-data" >
+			<table align="center" class="table table-form" style="border: 0px;margin-top: 20px">
+				<tbody>
+				<tr>
+					<th style="width: 100px">预计时间</th>
+					<td class="w-p50"  ><div class="input-group"style="width:290px;" >
+						<input type="number" name="hours" id="hours" class="form-control" autocomplete="off" min="1" style="width:265px;" value="{$bugList.hours}" disabled="disabled">
+						<span class="input-group-addon ">h</span>
+					</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th style="width: 100px">完成工时</th>
+					<td class="w-p50"  ><div class="input-group"style="width:290px;" >
+						<input type="number" name="finishours" id="finishours" class="form-control" autocomplete="off" style="width:265px;" value="">
+						<span class="input-group-addon ">h</span>
+					</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th style="width: 100px" class="thtop">备注</th>
+					<td  colspan="2">
+						<textarea id="finishcontent" name="finishcontent" style="width: 610px;height: 300px" class="ckeditor" ></textarea>
+					</td>
+				</tr>
+
+				<tr>
+					<th></th>
+					<td colspan="2">
+						<div  style="float: right;margin-right: 96px;">
+							<a href="javascript:;" onclick="window.parent.choose(true);" class="btn btn-back">返回</a>
+							<a href="javascript:;" id="submit" class="btn btn-primary" onclick="choose()" >完成</a>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</form>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose() {
+           $('form').submit();
+				//window.parent.choose(true);
+		}
+
+
+	</script>
+
+</block>

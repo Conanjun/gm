@@ -1,0 +1,1 @@
+{"qqfile":{"name":"b6fe9b78a8af82c1568fc48de4f25d09.jpg","type":"image\/jpeg","tmp_name":"D:\\install\\wamp\\tmp\\phpA35F.tmp","error":0,"size":801150}}

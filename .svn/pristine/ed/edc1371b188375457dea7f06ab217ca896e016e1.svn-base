@@ -1,0 +1,53 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class TaskModel extends Model
+{
+
+    public function getState()
+    {
+        $map['d_code'] = 'taskstatus';
+        // $map['d_del'] = '0';
+        return M('Dictionary')->field('d_key,d_value')->where($map)->select();
+    }
+
+    /**
+     * 获取项目的项目范围
+     *
+     * @param $pid
+     *
+     * @return mixed
+     */
+    public function getTaskByPid($pid)
+    {
+        $map = [];
+        $map['t.pid'] = $pid;
+        $map['t.deleted'] = 0;
+        $list = $this->alias('t')
+            ->field('t.*, m.name as o_name, g.name as gname, pc.name as pcname, d.d_key as str')
+            ->join('ot_service s ON s.sid = t.sid', 'LEFT')
+            ->join('ot_project_config pc ON pc.pid = t.pcid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join("ot_dictionary d ON d.d_value = t.state and d.d_code='taskstatus'", 'LEFT')
+            ->where($map)
+            ->select();
+        return $list;
+    }
+
+}

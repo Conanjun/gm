@@ -1,0 +1,167 @@
+<extend name="Public/base" />
+<block name="btnarea">
+	<li class="right">
+	</li>
+</block>
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav" style="float: left">
+			<if condition="cando('BugAll/index')">
+				<li class="<eq name='actname' value='index'>active</eq>">
+					<a href="{:U('BugAll/index')}">未解决</a>
+			</li></if>
+			<if condition="cando('BugAll/resolved')">
+				<li class="<eq name='actname' value='resolved'>active</eq>">
+					<a href="{:U('BugAll/resolved')}">已解决</a>
+				</li></if>
+			<if condition="cando('BugAll/closed')">
+				<li class="<eq name='actname' value='closed'>active</eq>">
+					<a href="{:U('BugAll/closed')}">已关闭</a>
+				</li></if>
+			</li></if>
+			<if condition="cando('BugAll/allindex')"><li class="<eq name='actname' value='allindex'>active</eq>"><a href="{:U('BugAll/allindex')}">所有</a>
+			</li></if>
+
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+
+		</ul>
+		<div class="actions">
+		<!--	<a href="javascript:;" id="export" class="btn"><i class="icon-file-excel"></i>&nbsp;导出Excel</a>-->
+			<if condition="cando('BugAll/add')">
+				<a href="{:U('ProjectEstablish/add',array('pid'=>$pid))}" class="btn"><i class="icon-plus"></i>创建Bug</a>
+			</if>
+		</div>
+		<div style="clear: both;"></div>
+		<include file="Public/search" />
+	</div>
+	<!-- 数据列表 -->
+	<div class="data-table table-striped" id="projectTaskForm">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+				style="text-align: center"  id="taskList">
+			<thead>
+			<tr>
+				<th r="1" width="10px"></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="title">主题</span></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="pid">项目名称</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="type">跟踪</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+				<th r="1" style="width:70px"><span class="sort" ectype="order_by" fieldname="assigneduid">执行人</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="pstime">开始时间</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="petime">计划完成</span></th>
+				<th r="1" style="width:70px"><span class="sort" ectype="order_by" fieldname="hours">预计(h)</span></th>
+				<th r="1" style="width:70px"><span class="sort" ectype="order_by" fieldname="type">进度</span></th>
+				<th r="1" style="width:50px">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo">
+					<tr>
+						<td r="1" class="cell-id"><!--<input class="ids" type="checkbox" name="id[]" value="{$vo.bugid}" />--></td>
+						<td r="1" style="text-align:left" title="{$vo.title}"><a href="{:U('BugAll/view?id='.$vo['bugid'])}">{$vo.title}</a></td>
+						<td r="1"style="text-align:left">{$vo.name}</td>
+						<td r="1">{$vo.type}</td>
+						<td r="1">{$vo.state}</td>
+						<td r="1">{$vo.assignedname}</td>
+
+						<td r="1"><if condition="$vo['pstime']">{$vo.pstime|time_format=###,'m-d'}<else/>-</if></td>
+						<td r="1"><if condition="$vo['petime']">{$vo.petime|time_format=###,'m-d'}<else/>-</if></td>
+						<td r="1"><if condition="$vo['hours']">{$vo.hours}h<else/>-</if></td>
+						<td r="1" >
+							<if condition="$vo['progress']">
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['progress']/2}">
+								<else/>
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+							</if>
+							<small>{$vo.progress}%</small>
+						</td>
+						<td r="1">
+							<if condition="cando('BugAll/edit',array($vo['uid']))"><a href="{:U('BugAll/edit?id='.$vo['bugid'])}">编辑</a> </if>
+						</td>
+					</tr>
+				</volist>
+				<else />
+				<tr><td r="1" colspan="11" class="text-center table_nodata" id="colspan_1">aOh! 暂时还没有内容!</td></tr>
+			</notempty>
+			</tbody>
+            <notempty name="_list">
+			<tfoot>
+			<tr>
+				<td r="1" colspan='11' id="colspan_2">
+
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+
+					<div style="float: right;line-height: 27px;margin-right:10px">
+						{$projectlog}
+					</div>
+				</td>
+			</tr>
+			</tfoot>
+            </notempty>
+		</table>
+	</div>
+</block>
+
+<block name="script"> <script
+		src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+		type="text/javascript">
+
+    function resizetable(){
+        var w=$(window).width();
+        if(w<1400){
+            $("#taskList").find("th[r!=1]").hide();
+            $("#taskList").find("td[r!=1]").hide();
+            $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+        }else{
+            $("#taskList").find("th[r!=1]").show();
+            $("#taskList").find("td[r!=1]").show();
+            $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+        }
+    }
+
+    $(function(){
+        setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+        resizetable();
+
+        $(window).resize(function(){
+            resizetable();
+        });
+    });
+
+    //搜索功能
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    //导航高亮
+    highlight_subnav("{:U('BugAll/index')}");
+
+    $("#export").click(function(){
+        $("#searchform").attr("target","_blank");
+        var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+        $("#searchform").append(my_input);
+        $("#searchform").submit();
+        $("[name='exportexcel']").val("");
+        $("#searchform").attr("target","");
+    });
+
+</script> </block>

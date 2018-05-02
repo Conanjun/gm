@@ -1,0 +1,45 @@
+<style>
+#fourheading{font-size: 14px;}
+    #fourheading a
+    {
+        color: #5e4ba4;
+        padding: 3px;
+    }
+    #fourheading a:hover
+	{
+	background: #FF7F24;
+		border-color: #FF7F24;
+		color: #fff;
+		padding: 3px;
+		border-radius: 3px;
+}
+    #fourheading .active
+    {
+        background: #FF7F24;
+		border-color: #FF7F24;
+		color: #fff;
+		padding: 3px;
+		border-radius: 3px;
+    }
+    .cl{clear: both}
+    .outer.with-side #featurebar, .outer.with-side #titlebar {
+    margin-bottom: 0px;
+}
+</style>
+<div class="cl"></div>
+<div id="fourheading" <notempty name="notList">style="margin-top:0 !important;"</notempty> >
+    <a <if condition="$fourtitle eq service"> class="active"</if>  href="{:U('ProjectNew/service?id='.$p['pid'])}"><notempty name="existService"><span class="icon icon-checked"></span></notempty>项目范围 </a>
+    <i class="icon-angle-right"></i>
+    <a <if condition="$fourtitle eq milestoneindex"> class="active"</if> href="{:U('ProjectNew/milestoneindex?id='.$p['pid'])}"><notempty name="existMilestone"><span class="icon icon-checked"></span></notempty>里程碑计划</a>
+    <i class="icon-angle-right"></i>
+    <a <if condition="$fourtitle eq commplan"> class="active"</if>  href="{:U('ProjectNew/commplan?id='.$p['pid'])}"><notempty name="existCommplan"> <span class="icon icon-checked"></span></notempty>沟通计划 </a>
+    <i class="icon-angle-right"></i>
+    <a <if condition="$fourtitle eq budgetindex"> class="active"</if> href="{:U('ProjectNew/budgetindex?id='.$p['pid'])}"><notempty name="existBudget"> <span class="icon icon-checked"></span></notempty>成本预算 </a>
+    <i class="icon-angle-right"></i>
+    <a  <if condition="$fourtitle eq meet"> class="active"</if> href="{:U('Plan/meet?id='.$p['pid'])}"><notempty name="existMeet"><span class="icon icon-checked"></span></notempty>铁三角启动会</a>
+    <i class="icon-angle-right"></i>
+    <a <if condition="$fourtitle eq resourceplan"> class="active"</if> href="{:U('ResourcePlan/resourceplan?id='.$p['pid'])}"><if condition="$existService eq 1 || $existTakepart eq 1"><span class="icon icon-checked"></span></if>资源规划</a>
+    <i class="icon-angle-right"></i>
+    <a  <if condition="$fourtitle eq innermeet"> class="active"</if> href="{:U('Plan/innermeet?id='.$p['pid'])}"><notempty name="existInnerMeet"><span class="icon icon-checked"></span></notempty>内部启动会</a>
+</div>
+<div class="cl"></div>

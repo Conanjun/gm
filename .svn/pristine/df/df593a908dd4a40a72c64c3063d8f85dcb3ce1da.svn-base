@@ -1,0 +1,166 @@
+<?php
+
+namespace Studio\Controller;
+use Think\Page;
+use Common\Common\Super\Order;
+/**
+ * 任务管理-设计师：fhc
+ *
+ */
+class OrderTaskSjsController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('OrderTask');    // 订单任务
+	}
+    //首页
+    public function index(){
+        $stuid = Order::get_stuid(UID);   // 工作室id
+        $where = "1=1 and o.stuid = {$stuid} and t.tasktype = 'STUDIO_TASK_SJS' ";
+
+        $filter= '';
+
+        $order_sn = empty($_GET['order_sn'])?'':trim($_GET['order_sn']);//订单编号
+        if($order_sn){
+            $filter .= " and o.order_sn like '%{$order_sn}%'";
+        }
+
+        $tname = empty($_GET['tname'])?'':trim($_GET['tname']);//任务名称
+        if($tname){
+            $filter .= " and t.tname like '%{$tname}%'";
+        }
+
+        $finishname = empty($_GET['finishname'])?'':trim($_GET['finishname']);//完成人
+        if($finishname){
+            $filter .= " and m.nickname like '%{$finishname}%'";
+        }
+
+
+        $state = empty($_GET['state'])?'':trim($_GET['state']);//任务状态
+        $state == 1 and  $filter .= " and t.state = 0";
+        $state == 2 and  $filter .= " and t.state = 1";
+
+        $isurgent = empty($_GET['isurgent'])?'':trim($_GET['isurgent']);//是否加急
+        $isurgent == 1 and  $filter .= " and t.isurgent = 1";
+        $isurgent == 2 and  $filter .= " and t.isurgent = 0";
+
+        if ($_GET['start_addtime']) {
+            $af = gmstr2time($_GET['start_addtime']);
+            $filter .= " and t.add_time>='" . $af . "'";
+        }
+        if ($_GET['end_addtime']) {
+            $at = gmstr2time_end($_GET['end_addtime']);
+            $filter .= " and t.add_time<'" . $at . "'";
+        }
+        if ($_GET['start_finishtime']) {
+            $of = gmstr2time($_GET['start_finishtime']);
+            $filter .= " and t.finishtime>='" . $of . "'";
+        }
+        if ($_GET['end_finishtime']) {
+            $ot = gmstr2time_end($_GET['end_finishtime']);
+            $filter .= " and t.finishtime<'" . $ot . "'";
+        }
+        $where .= $filter;
+        $count = $this->model->alias('t')->join("ot_order o on t.oid = o.order_id")->join("ot_member m on m.uid = t.finishuid","left")->where($where)->count();
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('t')
+            ->field('t.*,t.state as task_state,t.addtime as task_addtime,t.finishtime as task_finishtime,t.finishuid as task_finishuid,t.isurgent as task_isurgent,o.*,m.nickname as task_finishman')
+            ->join("ot_order o on t.oid = o.order_id")
+            ->join("ot_member m on m.uid = t.finishuid","left")
+            ->where($where)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($lists as $key=>$list){
+            $lists[$key]['str_state'] = L(Order::$orderState[$list['state']]);
+        }
+
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+
+        $states = array(
+            2=>L('NOFINISH'),
+            1=>L('FINISH'));
+        $this->assign('states',$states);
+        $urgents = array(
+            2=>L('NO'),
+            1=>L('YES'));
+        $this->assign('urgents',$urgents);
+
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+        $this->display();
+    }
+
+    //接受任务
+    public function confirm(){
+        $order_id = empty($_POST['id']) ? '' : trim($_POST['id']);
+        $task_id = empty($_POST['task_id']) ? '' : trim($_POST['task_id']);
+        $time = time();
+        if (IS_POST) {
+            $finishnote = empty($_POST['finishnote']) ? '' : trim($_POST['finishnote']);
+            if(Order::checkorder($order_id)==0){
+                $this->error(L('S_TASK_ERROR_1'));
+            }
+
+            if(empty($_POST['task_image'])){
+                $this->error(L('S_TASK_SJS_MSG_2'));
+            }
+
+            $order = M("order")->where("order_id=".$order_id)->find();
+//            if($order['state']!=Order::CONFIRMED){
+//                $this->error(L('S_TASK_SJS_ERROR_1'));
+//            }
+
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+
+            //上传方案
+            $res_file = M('File')->add(['name'=>$_POST['task_images'], 'savepath'=>$_POST['task_image']]);
+            if($res_file){
+                M('Order_file')->add(['oid'=>$order_id, 'file_id'=>$res_file,'ftype'=>'plan_file6','addtime'=>time(),'uid'=>UID,'note'=>'']);
+            }
+
+            //修改完成人和说明
+            $res_data = array(
+                'tastkid'=>$task_id,
+                'finishnote'=>$finishnote,
+                'finishtime'=>$time,
+                'finishuid'=>UID,
+                'state'=>1
+            );
+            $res = M('Order_task')->save($res_data);
+
+            //给客户发消息
+            $title = sprintf(L('S_TASK_TASK_PROMPT_1'),$order['order_sn']);
+            $content = sprintf(L('S_TASK_TASK_PROMPT_5'),$order['stuname'],$order['order_sn'],L('UPLOADED'));
+            $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => $time,'title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$order_id));
+
+            //生成财务任务
+            $tname = sprintf(L('S_TASK_TASK_PROMPT_14'),$order['order_sn']);
+            $tid = Order::add_task(array('oid' => $order_id, 'tname' =>$tname, 'tasktype' => 'STUDIO_TASK_CW', 'isurgent'=>$order['isurgent'], 'uid' => '' ,'note'=>$tname));
+
+            //写入订单操作记录
+            $log_id = Order::action_order_log(array('oid' => $order_id, 'uid' =>$order['uid'], 'addtime' => $time, 'state' => Order::UPLOADED ,'note'=>''));
+
+            //更改订单状态
+            $result = M('Order')->where("order_id=".$order_id)->save(array('state'=>Order::UPLOADED));
+
+            //写入订单操作记录，修改订单状态 设计资料已接收
+
+            if($msg_id&&$log_id&&$tid&&$result&&$res){
+                $Model->commit(); // 成功则提交事务
+                $this->success(L('S_TASK_SJS_SUC'), U('index'));
+            }else{
+                $Model->rollback(); // 否则将事务回滚
+                $this->error(L('S_TASK_SJS_ERROR'));
+            }
+
+        }
+    }
+}

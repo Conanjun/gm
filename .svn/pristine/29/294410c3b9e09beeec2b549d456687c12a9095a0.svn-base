@@ -1,0 +1,143 @@
+<extend name="Public/base" />
+<block name="navhead">
+<li data-id="list" class=""><a id="currentItem"
+	href="javascript:showSearchMenu()">{:cookie('project_name')}
+		<span class="icon-caret-down"></span>
+</a>
+	<div id="dropMenu">
+    </div>
+</li>
+</block>
+<block name="btnarea">
+<li class="right"><a href="{:U('Project/add')}"><i
+		class="icon-plus"></i>&nbsp;添加项目</a>
+</li>
+<li class="right " data-id="all"><a href="{:U('Project/project')}"><i class="icon-th-large"></i>&nbsp;所有项目</a>
+</li>
+</block>
+
+<block name="body">
+	<div class="data-table table-striped" style="float: left;width: 60%">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+				style="text-align: center">
+			<thead>
+			<tr>
+				<th colspan="7" style="text-align: left;padding-left:10px">进行中的项目</th>
+			</tr>
+			<tr>
+				<td class='text-left'>项目名称</td>
+				<td width="120">计划结束时间</td>
+				<td width="50">状态</td>
+				<td width="55">总预计</td>
+				<td width="55">总消耗</td>
+				<td width="55">总剩余</td>
+				<td>进度</td>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="projects"> <volist name="projects" id="vo">
+				<tr>
+				<tr class="text-center">
+					<td class='text-left'>{$vo.name}</td>
+					<td>{$vo.petime|date="Y-m-d H:i",###}</td>
+					<td>
+						<switch name="vo.state" >
+							<case value="0" break="1">新建</case>
+							<case value="1" break="1">进行中</case>
+							<case value="2" break="1">已结束</case>
+							<case value="3" break="1">已暂停</case>
+							<case value="4" break="1">已延期</case>
+						</switch>
+					</td>
+					<td>{$vo.days}</td>
+					<td>{$vo.usedays}</td>
+					<td>{$vo['days']-$vo['usedays']}</td>
+					<td class="text-left">
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="40%">
+						<small>40%</small>
+					</td>
+				</tr>
+			</volist> <else />
+				<td colspan="6" class="text-center table_nodata">aOh! 暂时还没有内容!</td>
+			</notempty>
+			</tbody>
+		</table>
+	</div>
+<div class="data-table table-striped" style="width: 39%;float: right">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+		style="text-align: center">
+		<thead>
+		<tr>
+			<th colspan="4" style="text-align: left;padding-left:10px">我的任务</th>
+		</tr>
+		<tr>
+			<td class='text-left'>任务名称</td>
+			<td class="">计划结束时间</td>
+			<td class="">状态</td>
+			<td class="">预计工时</td>
+		</tr>
+		</thead>
+		<tbody>
+			<notempty name="projects"> <volist name="projects" id="vo">
+			<tr>
+				<td class='text-left'>测试任务</td>
+				<td>2017-07-14 10:40</td>
+				<td><if condition="$vo['state'] == 0 "> 新建 <elseif
+						condition="$vo['state'] == 1 " /> 进行中 <elseif
+						condition="$vo['state'] == 2 " /> 已结束 <elseif
+						condition="$vo['state'] == 3 " /> 已暂停 <elseif
+						condition="$vo['state'] == 4 " /> 已延期 <elseif
+						condition="$vo['state'] == 4 " /> 已关闭 </if></td>
+				<td>10</td>
+
+			</tr>
+			</volist> <else />
+			<td colspan="4" class="text-center table_nodata">aOh! 暂时还没有内容!</td>
+			</notempty>
+		</tbody>
+	</table>
+</div>
+</block>
+
+<block name="script"> <script
+		src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+		type="text/javascript">
+	//搜索功能
+	$("#search").click(function () {
+		var url = $(this).attr('url');
+		var query = $('.search-form').find('input').serialize();
+		query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+		query = query.replace(/^&/g, '');
+		if (url.indexOf('?') > 0) {
+			url += '&' + query;
+		} else {
+			url += '?' + query;
+		}
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function (e) {
+		if (e.keyCode === 13) {
+			$("#search").click();
+			return false;
+		}
+	});
+	//导航高亮
+	highlight_subnav("{:U('Project/index')}");
+
+	var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'index'))}";
+
+	function tijiao(id,es_eid){
+		if(confirm("确认提交吗？"))
+			$.post(
+					"{:U('Project/present')}",
+					{'id':id,'eid':es_eid},
+					function(data){
+						window.location.href = window.location.href;
+					}
+			);
+	}
+</script> </block>
+

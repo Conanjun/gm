@@ -1,0 +1,259 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+    <script>
+        var grid = 0;
+        $(function(){
+            regionInit("region");
+            $("[id^='li_']").click(function(){
+                var h=$(this).attr("h");
+                var item=$(this).attr("item");
+                if(h==0){
+                    $(this).attr("h",1);
+                    $(this).addClass("lion");
+                    var item1=$(this).attr("item1");
+                    $("#ss_"+item).val(item1);
+                }else if(h==1){
+                    $(this).attr("h",0);
+                    $(this).removeClass("lion");
+                    $("#ss_"+item).val("");
+                }
+            });
+            
+            $('#form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).parent().append(error);
+                    console.log(error);
+                    console.log(element);
+                },
+                onkeyup: false,
+                rules: {
+                	type: {
+                        required: true,
+                    },
+                	content: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    type: {
+                        required : '请填写意见类型'
+                    },
+                    content: {
+                        required : '请填写意见内容'
+                    },
+                }
+            });
+        });
+        
+        
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('DENTAL_FEEDBACK')}
+                            <small>{:L('ADD')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('Feedback/add')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('IMAGE')}</label>
+                                <div class="col-sm-10">
+                                    <div style="position: relative;width: 200px;display: inline-block;margin-right: 10px;" id="pic_div">
+                                        <div class="form-item" style="border: 0; line-height: 52px;">
+                                            <input type="hidden" id="logo" name="pic" value="{$list.pic}" />
+                                            <div class="fl ">
+                                                <script type="text/template" id="qq-template-validation-license">
+                                                    <div class="qq-uploader-selector">
+                                                        <ul class="qq-upload-list-selector" aria-live="polite"
+                                                            aria-relevant="additions removals">
+                                                            <li class="pli">
+                                                                <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale style="max-height: 120px">
+                                                                <div class="pdel">
+                                                                    <button type="button"
+                                                                            style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" id="license_cancel">
+                                                                    </button>
+                                                                </div>
+                                                            </li>
+                                                        </ul>
+                                                        <div class="qq-upload-button-selector qq-upload-button" id="license_button">
+                                                            <div></div>
+                                                        </div>
+
+                                                    </div>
+                                                </script>
+                                                <div id="fine-uploader-license">
+                                                </div>
+                                                <if condition="$list.pic neq ''">
+                                                    <div style="position: relative;display: inline-block;" id="ddiv">
+                                                        <img style="max-height: 120px"  src="{$list['pic']}">
+                                                        <div class="pdel"><button id="bdel" type="button" style="border:0;width:20px;height:20px;display:block; background: none;"></button></div>
+                                                    </div>
+                                                </if>
+                                                <script>
+                                                    $(function(){
+                                                        var t="{$list.logo}";
+                                                        if(t!=undefined&&t!=""){
+                                                            $("#license_button").hide();
+                                                            $("#bdel").click(function(){
+                                                                $("#license_button").show();
+                                                                $("#logo").val("");
+                                                                $("#ddiv").remove();
+                                                            });
+                                                        }
+                                                    });
+                                                    var restrictedUploader = new qq.FineUploader({
+                                                        element: document.getElementById("fine-uploader-license"),
+                                                        template: 'qq-template-validation-license',
+                                                        request: {
+                                                            endpoint: "{:U('Feedback/uploadPic')}",
+                                                            method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                        },
+                                                        thumbnails: {
+                                                            placeholders: {
+                                                                waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                            }
+                                                        },
+                                                        validation: {
+                                                            allowedExtensions: ['jpeg', 'jpg', 'png','gif'],
+                                                            itemLimit: 1,
+                                                        },
+                                                        debug: false,
+                                                        callbacks: {
+                                                            onSubmit: function(id, fileName) {
+                                                                $("#license_button").hide();
+                                                                $("#fine-uploader-license").parent().parent().removeClass("form-item-error");
+                                                                $("#fine-uploader-license").parent().parent().addClass("form-item-valid");
+                                                                $("#license-error").text("");
+                                                                $("#license-error").attr("id","");
+                                                            },
+                                                            onCancel: function(id, fileName) {
+                                                                $("#license_button").show();
+                                                                $("#logo").val("");
+                                                            },
+                                                            onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                if(responseJSON.success){
+                                                                    $("#license_cancel").show();
+                                                                    $("#logo").val(responseJSON.uploadName);
+                                                                    console.log(responseJSON);
+                                                                }else{
+                                                                    $("#license_button").click();
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                </script>
+                                            </div>
+                                            <div class="cl"></div>
+                                            <i class="i-status"></i>
+                                        </div>
+                                        <div class="input-tip">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEED_TYPE')}</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b"  name="type">
+                                        <option>{:L('PLEASE_SELECT')}</option>
+                                        <volist name="feed_type" id="d">
+                                            <option value="{$d.d_key}">{$d.d_value}</option>
+                                        </volist>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEED_CONTENT')}</label>
+                                <div class="col-sm-10">
+                                    <textarea id="description" name="content" style="width: 400px;height: 170px;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-default" type="button">{:L('BACK')}</a>
+                                    <button class="btn btn-primary" type="submit">{:L('SAVE')}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

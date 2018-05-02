@@ -1,0 +1,34 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+/**
+ * 后台首页控制器
+ */
+class Demo5Controller extends AdminController {
+
+    /**
+     * 后台首页
+     * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+     */
+    public function index(){
+         $this->display('Demo1/index');
+    }
+	 public function index1(){
+         $this->display('Demo1/index');
+    }
+	 public function index2(){
+         $this->display('Demo1/index');
+    }
+	 public function index3(){
+         $this->display('Demo1/index');
+    }
+
+}

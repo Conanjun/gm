@@ -1,0 +1,1457 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 后台用户控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class ServiceController extends AdminController
+{
+    // 定义数据表
+    private $pro_module;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->pro_module = D('ProjectConfig');
+    }
+
+    private function getpro($url, $module, $id = 0, $ppid = 0)
+    {
+        global $lastMenu;
+        if ($ppid) {
+            $where = 'pid = ' . $ppid . " ";
+        } else {
+            $where = 'parentid = ' . $id . " ";
+        }
+        $data = $module->where($where)->order('sort_order asc')->select();
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($ppid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            $smod = M("Service");
+            foreach ($data as $key => $value) {
+
+                $r = $smod->where("pid='{$value ['pid']}'")->find();
+                if ($r) {
+                    $i = "<img src='/images/d.png' style='width:8px;float: left;margin-top: 5px;margin-right:2px'>";
+                } else {
+                    $i = "";
+                }
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >{$i}" . $value ['name'] . " </a> ";
+                    $this->getpro($url, $module, $value ['pid'], 0);
+                    $lastMenu .= "</li>";
+                } else {
+
+                    if ($smod->where("pid='{$value ['pid']}'")->find()) {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    } else {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a class='textc' id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    }
+
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+
+    public function ajaxGetDropMenu()
+    {
+        $url = I('get.module') . '/' . I('get.index') . '?ppid=';
+
+        $m = M("ProjectConfig");
+
+        $pro = $m->where("parentid=0")->field('pid,name')->select();
+        $list1 = "<input type='text' class='form-control' id='search' value='' placeholder='搜索'/>
+		<div id='searchResult'><div id='defaultMenu' class='search-list'>
+    	<ul>";
+        $list2 = '';
+        foreach ($pro as $vo) {
+            $list2 .= " <li data-id=" . $vo ['pid'] . " data-key='" . str_replace(' ', '', pinyin($vo ['name'], 'all', '--')) . "' ><a href='" . U($url . $vo ['pid']) . "' ><i class='icon-folder-close-alt'></i> " . $vo ['name'] . "</a></li>";
+        }
+        $list3 = "</ul>";
+
+        echo $list1 . $list2 . $list3;
+    }
+
+
+    // 首页
+    public function index()
+    {
+        /*$res = get_son_id('55','parentid',$this->pro_module,'pid');
+		var_dump($res);die;*/
+        $config = array(
+            "actionURL" => "/Admin/Service/index",
+            "operators" => array(
+                "=" => "=",
+                "!=" => "!=",
+                ">" => ">",
+                ">=" => ">=",
+                "<" => "<",
+                "<=" => "<=",
+                "include" => "包含"
+            ),
+            "params" => array(
+                /*0 => array (
+					'str' => '服务',
+					'fieldname' => 's.name',
+					'operator' => 'include',
+					'control' => 'input',
+					'values' => ''
+				),*/
+                /*1 => array (
+					'str' => '模块',
+					'fieldname' => 's.mid',
+					'operator' => '=',
+					'control' => 'select',
+					'values' => array ()
+				),*/
+                0 => array(
+                    'str' => '模块',
+                    'fieldname' => 'm.name',
+                    'operator' => 'include',
+                    'control' => 'input',
+                    'values' => ''
+                ),
+                1 => array(
+                    'str' => '内容',
+                    'fieldname' => 's.name',
+                    'operator' => 'include',
+                    'control' => 'input',
+                    'values' => ''
+                ),
+                2 => array(
+                    'str' => '项目组',
+                    'fieldname' => 'm.role',
+                    'operator' => '=',
+                    'control' => 'select',
+                    'values' => array()
+                ),
+                3 => array(
+                    'str' => '单位',
+                    'fieldname' => 's.unit',
+                    'operator' => '=',
+                    'control' => 'select',
+                    'values' => array()
+                ),
+                4 => array(
+                    'str' => '是否启用',
+                    'fieldname' => 'pc.enabled',
+                    'operator' => '=',
+                    'control' => 'select',
+                    'values' => array(
+                        "" => "",
+                        "1" => "是",
+                        "0" => "否"
+                    )
+                )
+            )
+        );
+        if ($config && $config ['params']) {
+            /*$module = M ( 'Module' )->field ( true )->select ();*/
+            $group = M('Group')->field(true)->select();
+            $unit = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            /*
+				$mmodule = array (
+						"" => ""
+				);*/
+            $mgroup = array(
+                "" => ""
+            );
+            $munit = array(
+                "" => ""
+            );
+            /*if ($module) {
+				foreach ( $module as $v ) {
+					$mmodule [$v ['mid']] = $v ['name'];
+				}
+			}*/
+            if ($group) {
+                foreach ($group as $v) {
+                    $mgroup [$v ['groupid']] = $v ['name'];
+                }
+            }
+            if ($unit) {
+                foreach ($unit as $v) {
+                    $munit [$v ['d_value']] = $v ['d_value'];
+                }
+            }
+            /*	$config ['params'] [1] ['values'] = $mmodule;*/
+            $config ['params'] [2] ['values'] = $mgroup;
+            $config ['params'] [3] ['values'] = $munit;
+        }
+
+        $this->setSearchConfig($config);
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'sort_order';
+                $order = 'asc';
+            }
+        } else {
+            $sort = 'sort_order';
+            $order = 'asc';
+        }
+        if ($sort == 'sort_order') {
+            $this->assign('orderBy', $sort . ' ' . $order);
+        }
+        $where = $this->getCondition();
+        // 项目
+
+        $ProjectConfig = M('ProjectConfig')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array('pid' => $pid))->find();
+            $this->assign('pname', $p ['name']);
+        }
+        $this->assign('ppid', $pid);
+        $s = "";
+        if ($_GET['groupid']) {
+            $s .= " and g.groupid = " . $_GET['groupid'];
+        } else {
+            $pid1 = I('get.pid');
+
+            if (empty ($pid1)) {
+                $pid1 = $pid;
+            } else {
+                $s .= " and s.pid = " . $pid1;
+            }
+            if ($pid1) {
+                $s .= " and s.pid = " . $pid1;
+            }
+        }
+        if ($where['_string'] == '(( 1=1   ) AND ( 1=1   ))' || $where['_string'] == '(( 1=1   ) and ( 1=1   ))') {
+            $where['_string'] .= $s;
+        }
+
+        $pro = $this->getpro('Service/index?ppid=' . $pid . '&pid=', $this->pro_module, $pid, 0);
+
+        $pro = "<ul class='tree tree-lines'>" . substr($pro, 4);
+        $this->assign('ProjectConfig', $pro);
+
+        /*$pr01 = $this->pro_module->where ( 'pid=' . $pid )->find ();
+		$this->assign ( 'module_name', $pr01 ['name'] );*/
+
+        $Model = M('Service');
+        //$where ['_string'] .= " and d.d_code='reqgroup' and d.d_del=1";
+        $count = $Model->alias('s')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where($where)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = $Model->alias('s')->field(array(
+            's.*','m.name as o_name','p2.pid as ppid', 'd.d_key as regroup_name', 'g.name as ganme', 'm1.name as remid_name','p.name as pname',
+            '(select count(1) from ot_service_doc sd where sd.sid = s.sid) as sdc'))
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON p.pid = m.pid','LEFT')
+	        ->join('ot_project_config p2 on p.path like CONCAT(\'%,\',p2.pid,\',%\') and p2.grade=1','LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where($where)->order($sort . " " . $order, 's.mid asc')
+            ->select();
+
+        /*	var_dump($list);*/
+        $nlist = array();
+        if ($list) {
+            foreach ($list as $k => $v) {
+	            if($v['sid']){
+		            $stemp = M('Service')->field('description,mid')->where('sid = '.$v['sid'])->find();
+		            $sdescription = $stemp['description'];
+		            $smid= $stemp['mid'];
+		            $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+		            if($sdescription || $smh){
+			            $list[$k]['bulb'] = 1;
+		            }
+	            }
+                if ($v['description']) {
+                    $str = strip_tags(htmlspecialchars_decode($v['description']));
+                    $list[$k]['title_show'] = ($str);
+                } else {
+                    if ($v['ganme']) {
+                        $list[$k]['title_show'] = $v['ganme'] . '-' . $v['o_name'] . '-' . $v['name'];
+                    } else {
+                        $list[$k]['title_show'] = $v['o_name'] . '-' . $v['name'];
+                    }
+                }
+            }
+
+            foreach ($list as $k => $v) {
+                $nlist[$v['mid']]['mid'] = $v['mid'];
+                //$nlist[$v['mid']]['mname'] = $v['pname']. '-' .$v['ganme'] . '-' . $v['o_name'];
+                $nlist[$v['mid']]['mname'] = "<a class='a' style='color:#21841d;' href='".U('Service/index',array('ppid'=>$v['ppid'],'pid'=>$v['pid']))."'>".$v['pname']."</a>". '-'. $v['o_name'];
+                $nlist[$v['mid']]['list'][] = $v;
+            }
+        }
+
+
+        if (I("get.exportexcel", "") == 1) {
+            $pro = $Model->alias('s')->field(array(
+                's.*',
+                'm.name as o_name',
+                'd.d_key as regroup_name',
+                'g.name as ganme',
+                'm1.name as remid_name',
+                '(select count(1) from ot_service_doc sd where sd.sid = s.sid) as sdc'))
+                ->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_group g ON m.role = g.groupid', 'LEFT')
+                ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+                ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+                ->where($where)->order($sort . " " . $order, 's.mid asc')->select();
+            /*if ($list) {
+                foreach ($list as $k => $v) {
+                    if ($v['description']) {
+                        $str = strip_tags(htmlspecialchars_decode($v['description']));
+                        $list[$k]['title_show'] = ($str);
+                    } else {
+                        if ($v['ganme']) {
+                            $list[$k]['title_show'] = $v['ganme'] . '-' . $v['o_name'] . '-' . $v['name'];
+                        } else {
+                            $list[$k]['title_show'] = $v['o_name'] . '-' . $v['name'];
+                        }
+                    }
+                }
+            }*/
+
+            $this->export($pro, $pid1);
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '内容', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('_list', $nlist);
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        //$this->assign ( '_page', $show );
+        $this->assign('pid', $pid1);
+        cookie('service_pid', $pid1);
+        $this->meta_title = '服务内容';
+        $this->display();
+    }
+
+    // 从Excel导入内容
+    public function imort()
+    {
+        if (!IS_POST) {
+
+            $ProjectConfig = M('ProjectConfig')->select();
+            $pid = I('get.ppid');
+            if (!$pid) {
+                $pid = $ProjectConfig [0] ['pid'];
+                $this->assign('pname', $ProjectConfig [0] ['name']);
+            } else {
+                $p = M('ProjectConfig')->where(array(
+                    'pid' => $pid
+                ))->find();
+                $this->assign('pname', $p ['name']);
+            }
+
+            $pid1 = I('get.pid');
+            if (empty ($pid1)) {
+                $pid1 = $pid;
+            }
+
+            $pro = $this->getpro('Service/imort?ppid=' . $pid . '&pid=', $this->pro_module, $pid, $pid);
+            $pro = "<ul class='tree tree-lines'>" . substr($pro, 4);
+            $this->assign('ProjectConfig', $pro);
+
+            $pr01 = $this->pro_module->where('pid=' . $pid1)->find();
+            $this->assign('module_name', $pr01 ['name']);
+            $this->assign('pid', $pid1);
+            $this->assign('ppid', $pid);
+            $this->display();
+        } else {
+            set_time_limit(0); // 0表示不限时
+            $suc_count = 0; // 成功数
+            $error_note = '';; // 失败说明
+
+            $ppid = I("get.ppid", "");
+            $pid = I("get.pid", "");
+            if (empty($pid)) {
+                $this->error('服务信息不存在');
+            }
+            $projectconfig = M("ProjectConfig");
+            $prow = $projectconfig->where(array("pid" => $pid))->find();
+            if (empty($prow)) {
+                $this->error('服务信息不存在');
+            }
+
+            $file = $_FILES ['file_card'];
+            if ($file ['error'] == UPLOAD_ERR_NO_FILE) {
+                $this->error('请选择文件后操作');
+            }
+	        $c = C('DOWNLOAD_UPLOAD');
+	        $upload = new \Think\Upload($c);
+	        $info = $upload->upload();
+	        $file_path = $c['rootPath'] . $info['file_card']['savepath'] . $info['file_card']['savename'];
+	        
+            // 上传
+            import("IOFactory", "../excel/toexcel/PHPExcel", ".php");
+            import("Excel5", "../excel/toexcel/PHPExcel/Reader", ".php");
+            import("PHPExcel", "../excel/toexcel", ".php");
+
+            $objPHPExcel = \PHPExcel_IOFactory::load( $file_path);
+            $sheet = $objPHPExcel->getSheet(0);
+            $highestRow = $sheet->getHighestRow(); // 取得总行数
+            $highestColumn = $sheet->getHighestColumn(); // 取得总列数
+
+
+            $Module = M("Module");
+            $groupmod = M("Group");
+            $smod = M("Service");
+            $dmod = M("Dictionary");
+            for ($j = 2; $j <= $highestRow; $j++) {
+                try {
+                    $gname = trim($objPHPExcel->getActiveSheet()->getCell("A" . $j)->getValue()); // 项目组名称
+                    $modname = trim($objPHPExcel->getActiveSheet()->getCell("B" . $j)->getValue()); // 模块名称
+                    $name = trim($objPHPExcel->getActiveSheet()->getCell("C" . $j)->getValue()); // 内容名称
+                    $group = trim($objPHPExcel->getActiveSheet()->getCell("D" . $j)->getValue()); // 服务角色
+                    $min_price = $objPHPExcel->getActiveSheet()->getCell("E" . $j)->getValue(); // 最小价格
+                    $max_price = $objPHPExcel->getActiveSheet()->getCell("F" . $j)->getValue(); // 最大价格
+                    $quantity = $objPHPExcel->getActiveSheet()->getCell("G" . $j)->getValue(); // 数量
+                    $unit = trim($objPHPExcel->getActiveSheet()->getCell("H" . $j)->getValue()); // 单位
+                    $days = $objPHPExcel->getActiveSheet()->getCell("I" . $j)->getValue(); // 周期
+                    $hour = $objPHPExcel->getActiveSheet()->getCell("J" . $j)->getValue(); // 工时
+                    $cost = $objPHPExcel->getActiveSheet()->getCell("K" . $j)->getValue(); // 成本
+                    $enough = $objPHPExcel->getActiveSheet()->getCell("L" . $j)->getValue(); // 满
+                    $disoff = $objPHPExcel->getActiveSheet()->getCell("M" . $j)->getValue(); // 折扣率
+                    $required = $objPHPExcel->getActiveSheet()->getCell("N" . $j)->getValue(); // 必选
+                    $duoxuanyizu = $objPHPExcel->getActiveSheet()->getCell("O" . $j)->getValue(); // 多选一组
+                    $bdmod = trim($objPHPExcel->getActiveSheet()->getCell("P" . $j)->getValue()); // 绑定模块
+                    $standard = $objPHPExcel->getActiveSheet()->getCell("Q" . $j)->getValue(); // 标配
+                    $enabled = $objPHPExcel->getActiveSheet()->getCell("R" . $j)->getValue(); // 启用
+                    //$sort_order = $objPHPExcel->getActiveSheet()->getCell("S" . $j)->getValue(); // 排序
+                    $description = $objPHPExcel->getActiveSheet()->getCell("S" . $j)->getValue(); // 备注
+
+                    if (empty($gname) || empty($name)) {
+                        $error_note .= '第' . $j . '行，导入失败:' . '项目组名称不能为空;' . "</br>";
+                        continue;
+                    }
+                    if (empty($days)) {
+                        $days = 0;
+                    }
+                    if (empty($cost)) {
+                        $cost = 0;
+                    }
+
+                    if ($required == "多选一" && empty($duoxuanyizu)) {
+                        $error_note .= '第' . $j . '行，导入失败:' . '当必选为多选一，多选一组不能为空;' . "</br>";
+                        continue;
+                    }
+                    if ($required == "绑定模块" && empty($bdmod)) {
+                        $error_note .= '第' . $j . '行，导入失败:' . '当必选为绑定模块，绑定模块不能为空;' . "</br>";
+                        continue;
+                    }
+
+                    //获取模块id
+                    $mid = 0;
+                    if ($modname) {
+                        $mrow = $Module->where(array("pid" => $prow['pid'], "name" => $modname))->find();
+                        if ($mrow) {
+                            $mid = $mrow['mid'];
+                            if($group){
+	                            $rid = $groupmod->where(array("name"=>$group))->getField();
+	                            $rid = $rid?$rid:0;
+	                            if($rid && $mrow['roles']){
+		                            $rid = $mrow['roles'].','.$rid;
+	                            }elseif($rid ==0 && $mrow['roles']){
+		                            $rid = $mrow['roles'];
+	                            }
+	                            $Module->where('mid='.$mid)->save(array("roles"=>$rid));
+                            }
+                        } else {
+                            if ($gname) {
+	                            $apc = $projectconfig->where("pid='{$pid}'")->order("sort_order desc")->find();
+	                            if (empty($apc)) {
+		                            $so = 1;
+	                            } else {
+		                            $so = intval($apc['sort_order'] + 1);
+	                            }
+	                            $rid = $groupmod->where(array("name"=>$group))->getField();
+	                            $rid = $rid?$rid:0;
+	                            $mid = $Module->add(array("name" => $modname, "sort_order" => $so, "addtime" => time(), "uid" => UID, "user_name" => get_nickname(UID), "roles" => $rid, "pid" => $pid));
+	
+                            }
+
+                        }
+                    }
+                    //判断名称是否存在
+//					$srow=$smod->where("name='{$name}'")->find();
+//					if($srow){
+//						$error_count++;
+//						continue;
+//					}
+                    //价格判断
+                  /*  if (!is_numeric($max_price)) {
+                        $error_note .= '第' . $j . '行，导入失败:' . '最大价格不能为空或不是数字字符串;' . "</br>";
+                        continue;
+                    }
+                    if (intval($max_price) == 0) {
+                        $error_note .= '第' . $j . '行，导入失败:' . '最大价格不能0;' . "</br>";
+                        continue;
+                    }*/
+
+                    if (empty($min_price)) {
+                        $min_price = 0;
+                    }
+	                if (empty($max_price)) {
+		                $min_price = 0;
+	                }
+
+                    $min_price = floatval($min_price);
+                    $max_price = floatval($max_price);
+
+                    if (empty($quantity) || !is_numeric($quantity)) {
+                        $quantity = 0;
+                    }
+	                $unit = $unit?$unit:'';
+					if($unit){
+						$drow = $dmod->where("d_code='unit' and d_value='{$unit}'")->find();
+						if (empty($drow)) {
+							$dmod->add(array('d_code' => 'unit', 'd_key' => $unit, 'd_value' => $unit, 'd_del' => 1, 'd_name' => '单位'));
+						}
+					}
+
+                    if (empty($days) || !is_numeric($days)) {
+                        $days = 0;
+                    }
+
+                    if (empty($hour) || !is_numeric($hour)) {
+                        $hour = 0;
+                    }
+
+                    if (empty($cost) || !is_numeric($cost)) {
+                        $cost = 0;
+                    }
+
+                    if (empty($enough) || !is_numeric($enough)) {
+                        $enough = 0;
+                    }
+                    if (empty($disoff) || !is_numeric($disoff) || $disoff < 0 || $disoff > 100) {
+                        $disoff = 0;
+                    }
+
+                    $regroup = 0;
+                    $remid = 0;
+                    if ($required == "多选一") {
+                        $drow = $dmod->where("d_code='reqgroup' and d_value='{$duoxuanyizu}'")->find();
+                        if (empty($drow)) {
+                            $error_note .= '第' . $j . '行，导入失败:' . '多选一组不存在;' . "</br>";
+                            continue;
+                        }
+                        $regroup = $drow['d_value'];
+                        $required = 2;
+                    }
+                    if ($required == "绑定模块" && $mid) {
+                        $mrow = $Module->where("name='{$bdmod}' and pid='{$pid}' and mid<>'{$mid}'");
+                        if (empty($mrow)) {
+                            $error_note .= '第' . $j . '行，导入失败:' . '绑定模块不存在;' . "</br>";
+                            continue;
+                        }
+                        $remid = $mrow['mid'];
+                        $required = 3;
+                    }
+                    if ($required == "是") {
+                        $required = 1;
+                    }
+                    if ($required == "否") {
+                        $required = 0;
+                    }
+                    if (empty($required)) {
+                        $required = 0;
+                    }
+
+                    if (empty($standard)) {
+                        $standard = 0;
+                    } elseif ($standard == "是") {
+                        $standard = 1;
+                    } elseif ($standard == "否") {
+                        $standard = 0;
+                    }
+
+                    if (empty($enabled)) {
+                        $enabled = 0;
+                    } elseif ($enabled == "是") {
+                        $enabled = 1;
+                    } elseif ($enabled == "否") {
+                        $enabled = 0;
+                    }
+
+                    if (empty($sort_order) || !is_numeric($sort_order)) {
+                        $sort_order = 255;
+                    }
+                    if (empty($description)) {
+                        $description = "";
+                    }else{
+	                    preg_match_all("/(http|https):\/\/([\w\d\-_]+[\.\w\d\-_]+)[:\d+]?([\/]?[\w\/\.\?=\-&;%@#\+,]+)/i",$description,$arr);
+	                   if($arr[0]){
+		                    foreach($arr[0] as $v){
+			                    $aa = str_replace($v,"<a target='_blank'  href='".$v."'>$v</a>",$description);
+		                    }
+		                   $description = $aa;
+	                   }
+	                   
+                    }
+                    //开始写入数据
+                    $data = array(
+                        'mid' => $mid,
+                        'pid' => intval($pid),
+                        'name' => trim($name),
+                        'unit' => trim($unit),
+                        'minprice' => trim($min_price),
+                        'maxprice' => trim($max_price),
+                        'quantity' => intval($quantity),
+                        'required' => intval($required),
+                        'regroup' => intval($regroup),
+                        'days' => trim($days),
+                        'cost' => trim($cost),
+                        'description' => trim($description),
+                        'enough' => trim($enough),
+                        'disoff' => trim($disoff),
+                        'enabled' => intval($enabled),
+                        'standard' => intval($standard),
+                        //'sort_order' => trim ( $j-1 ),
+                        'remid' => trim($remid),
+                        'addtime' => time(),
+                        'hour' => trim($hour),
+                        'groupid' => trim($rid),
+                        'uid' => UID
+                    );
+                    $sid = $smod->add($data);
+
+                    if (empty($sid)) {
+                        $error_note .= '第' . $j . '行，导入失败' . "</br>";
+                        continue;
+                    }
+                    M()->execute("update ot_service set sort_order = sid  where sid = {$sid}");
+                    action_log_new(array(
+                        'outtype' => 'ot_service',
+                        'outkey' => $sid,
+                        'action' => 'create',
+                        'comment' => ''
+                    ));
+
+                    $suc_count++;
+
+                } catch (Exception $e) {
+                    $error_note .= '第' . $j . '行，导入失败' . "</br>";
+                    continue;
+                }
+            }
+
+            $this->success("操作成功，其中成功" . $suc_count . "项</br>" . $error_note, U("index?ppid={$ppid}&pid={$pid}"));
+
+        }
+    }
+
+    // 新增
+    public function add()
+    {
+        if (IS_POST) {
+            /* 检测密码 */
+            if (empty ($_POST ['name'])) $this->error('内容不能为空');
+            if (empty($_POST['maxprice'])) $this->error('最高价格不能为空');
+            if ($_POST['minprice'] && !is_numeric($_POST['minprice'])) $this->error('最低价格必须是数字');
+            if (!is_numeric($_POST['maxprice']) || $_POST['maxprice'] < 1) $this->error('最高价格必须是大于1的数字');
+            if ($_POST['minprice'] > $_POST['maxprice']) $this->error('最低价格不能大于最高价格');
+	        if (empty($_POST['groupid'])) $this->error('请选择服务角色');
+            if (intval($_POST ['required']) != 2) {
+                $regroup = 0;
+            } else {
+                $regroup = intval($_POST ['regroup']);
+            }
+            if (intval($_POST ['required']) != 3) {
+                $remid = 0;
+            } else {
+                $remid = intval($_POST ['remid']);
+            }
+            if ($_POST ['quantity'] < 0) {
+                $quantity = 0;
+            } else {
+                $quantity = intval($_POST ['quantity']);
+            }
+            $data = array(
+                'mid' => intval($_POST ['mid']),
+                'pid' => intval($_POST ['pid']),
+                'name' => trim($_POST ['name']),
+                'unit' => trim($_POST ['unit']),
+                'minprice' => trim($_POST ['minprice']),
+                'maxprice' => trim($_POST ['maxprice']),
+                'quantity' => $quantity,
+                'required' => intval($_POST ['required']),
+                'regroup' => $regroup,
+                'days' => trim($_POST ['days']),
+               /* 'cost' => trim($_POST ['cost']),*/
+                'description' => trim($_POST ['description']),
+                'enough' => trim($_POST ['enough']),
+                'disoff' => trim($_POST ['disoff']),
+                'enabled' => intval($_POST ['enabled']),
+                'standard' => intval($_POST ['standard']),
+                /*'sort_order' => trim ( $_POST ['sort_order'] ),*/
+                'remid' => $remid,
+                'addtime' => time(),
+                'groupid' => $_POST('groupid'),
+                'uid' => UID
+            );
+            $hour = $_POST['hour'];
+            if ($hour === '') {
+                $data['hour'] = NULL;
+            } else {
+                $data['hour'] = $hour;
+            }
+            $sid = M('Service')->add($data);
+            if (!$sid) {
+                $this->error('内容添加失败！');
+            } else {
+                M()->execute("update ot_service set sort_order = sid  where sid = {$sid}");
+                action_log_new(array(
+                    'outtype' => 'ot_service',
+                    'outkey' => $sid,
+                    'action' => 'create',
+                    'comment' => ''
+                ));
+                // 如果没有父级就把$tid赋值为0跳出循环 :LGW
+                $ppid = 0;
+                $model = M("ProjectConfig");
+                $tid = $_POST ['pid'];
+                do {
+                    $te = $model->where("pid='{$tid}'")->find();
+                    if (!$te['parentid']) {
+                        $ppid = $te['pid'];
+                        $tid = 0;
+                    } else {
+                        $tid = $te['parentid'];
+                    }
+                } while ($tid);
+//      		$this->success ( '内容添加成功！', U ( 'index?pid=' . $_POST ['pid'] ) );
+                $this->redirect("Service/index", array("ppid" => $ppid, 'pid' => $_POST['pid']));
+
+
+            }
+        } else {
+            $this->meta_title = '新增内容';
+            $pid = cookie('service_pid');
+            // 项目
+            $pro = D('ProjectConfig')->field(true)->where('enabled =1')->select();
+            $pro = D('Common/Tree')->toFormatTree($pro, 'name', 'pid', 'parentid');
+            $this->assign('pro', $pro);
+            // 模块
+            if ($pid) {
+                $module = M('Module')->where("pid=" . $pid)->select();
+            } else {
+                $module = M('Module')->where("pid=" . $pro [0] ['pid'])->select();
+            }
+
+            $this->assign('module', $module);
+            // 绑定模块
+            array_shift($module);
+            $this->assign('b_module', $module);
+            // 单位
+            $list = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            $this->assign('unit', $list);
+            // 是否标配
+            $reqtype = M("Dictionary")->where("d_code='reqtype' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            $this->assign('reqtype', $reqtype);
+            // 分组
+            $reqgroup = M("Dictionary")->where("d_code='reqgroup' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            //服务角色
+	        $groups = M('Group')->order('sort_order asc')->select();
+	        $this->assign('groups', $groups);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '内容', 'url' => U('Service/index'));
+            $root_mbx[] = array('title' => '添加内容', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('reqgroup', $reqgroup);
+            $this->assign('service_pid', $pid);
+            $this->display();
+        }
+    }
+
+    public function getmodule()
+    {
+        $pid = isset ($_GET ['pid']) ? intval($_GET ['pid']) : 0;
+        if (empty ($pid)) {
+            $this->json_error("数据不存在");
+        }
+
+        $list = M("module")->where("pid=$pid")->field(array(
+            'mid',
+            'name'
+        ))->order('sort_order asc')->select();
+        $this->json_result($list);
+    }
+
+    public function edit()
+    {
+        $sid = isset ($_GET ['id']) ? intval($_GET ['id']) : 0;
+        if (empty ($sid)) {
+            $this->error('内容不存在！');
+        }
+        $pid = I('get.pid');
+        $this->assign('pid', $pid);
+        $this->assign('sid', $sid);
+        if (IS_POST) {
+            /* 检测密码 */
+            if (empty ($_POST ['name'])) {
+                $this->error('内容不能为空');
+            }
+            if (empty($_POST['maxprice'])) $this->error('最高价格不能为空');
+            if ($_POST['minprice'] && !is_numeric($_POST['minprice'])) $this->error('最低价格必须是数字');
+            if (!is_numeric($_POST['maxprice']) || $_POST['maxprice'] < 1) $this->error('最高价格必须是大于1的数字');
+            if ($_POST['minprice'] > $_POST['maxprice']) $this->error('最低价格不能大于最高价格');
+	        if (empty($_POST['groupid'])) $this->error('请选择服务角色');
+
+            $service = M('Service')->find($sid);
+            if (intval($_POST ['required']) != 2) {
+                $regroup = 0;
+            } else {
+                $regroup = intval($_POST ['regroup']);
+            }
+            if (intval($_POST ['required']) != 3) {
+                $remid = 0;
+            } else {
+                $remid = intval($_POST ['remid']);
+            }
+            if ($_POST ['quantity'] < 0) {
+                $quantity = 0;
+            } else {
+                $quantity = intval($_POST ['quantity']);
+            }
+            $data = array(
+                'mid' => intval($_POST ['mid']),
+                'pid' => intval($_POST ['pid']),
+                'name' => trim($_POST ['name']),
+                'unit' => trim($_POST ['unit']),
+                'minprice' => trim($_POST ['minprice']),
+                'maxprice' => trim($_POST ['maxprice']),
+                'quantity' => $quantity,
+                'required' => intval($_POST ['required']),
+                'regroup' => $regroup,
+                'days' => trim($_POST ['days']),
+              /*  'cost' => trim($_POST ['cost']),*/
+                'description' => trim($_POST ['description']),
+                'enough' => trim($_POST ['enough']),
+                'disoff' => trim($_POST ['disoff']),
+                'enabled' => intval($_POST ['enabled']),
+                'standard' => intval($_POST ['standard']),
+                /*'sort_order' => trim ( $_POST ['sort_order'] ),*/
+                'remid' => $remid,
+                'groupid' => $_POST['groupid'],
+            );
+            $hour = $_POST['hour'];
+            if ($hour === '') {
+                $data['hour'] = NULL;
+            } else {
+                $data['hour'] = $hour;
+            }
+            if (M('Service')->where("sid='" . $sid . "'")->save($data) === false) {
+                $this->error('内容更新失败！');
+            } else {
+                $history = array();
+                foreach ($data as $key => $vo) {
+                    if ($vo != $service [$key]) {
+                        $history [] = array(
+                            'field' => $key,
+                            'olddata' => $service [$key],
+                            'newdata' => $vo
+                        );
+                    }
+                }
+                action_log_new(array(
+                    'history' => $history,
+                    'outtype' => 'ot_service',
+                    'outkey' => $sid,
+                    'action' => 'edit',
+                    'comment' => ''
+                ));
+                // 如果没有父级就把$tid赋值为0跳出循环 :LGW
+                $ppid = 0;
+                $model = M("ProjectConfig");
+                $tid = $pid;
+                do {
+                    $te = $model->where("pid='{$tid}'")->find();
+                    if (!$te['parentid']) {
+                        $ppid = $te['pid'];
+                        $tid = 0;
+                    } else {
+                        $tid = $te['parentid'];
+                    }
+                } while ($tid);
+//      		$this->success ( '内容添加成功！', U ( 'index?pid=' . $_POST ['pid'] ) );
+                $this->redirect("Service/index", array("ppid" => $ppid, 'pid' => $pid));
+
+//				$this->success ( '内容更新成功！', U ( 'Service/index?pid=' . $pid ) );
+            }
+        } else {
+            $this->meta_title = '编辑内容';
+            // 项目
+            $pro = D('ProjectConfig')->field(true)->where('enabled =1')->select();
+            $pro = D('Common/Tree')->toFormatTree($pro, 'name', 'pid', 'parentid');
+            $this->assign('pro', $pro);
+            // 单位
+            $list = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            $this->assign('unit', $list);
+            // 数据
+            $data = M("Service")->field(array(
+                'ot_service.*'
+            ))->where("sid='" . $sid . "'")->find();
+            // 模块
+            $module = M('Module')->where("pid=" . $data ['pid'])->select();
+            $this->assign('module', $module);
+            // 绑定模块
+            $b_module = M('Module')->where('pid=' . $data ['pid'] . " and mid!=" . $data ['mid'])->order('sort_order asc')->select();
+            $this->assign('b_module', $b_module);
+	        //服务角色
+	        $groups = M('Group')->order('sort_order asc')->select();
+	        $this->assign('groups', $groups);
+
+            $sub = M("ServiceSub")->query("
+                    select s1.sid,s1.sub_id,s3.name as s_name,m.name as m_name 
+                    from ot_service_sub s1 inner join ot_module m on s1.mid = m.mid 
+                    inner join ot_service s3 on s1.sid = s3.sid 
+                    inner join (select sign  from ot_service_sub s2 where s2.sid='" . $sid . "') tmp on s1.sign=tmp.sign");
+            $this->assign('_list', $sub);
+            $this->assign('data', $data);
+            $this->assign('id', $sid);
+
+            $reqtype = M("Dictionary")->where("d_code='reqtype' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            $this->assign('reqtype', $reqtype);
+
+            $reqgroup = M("Dictionary")->where("d_code='reqgroup' and d_del=1")->field(array(
+                'd_key',
+                'd_value'
+            ))->order('d_order asc,d_tid asc')->select();
+            $this->assign('reqgroup', $reqgroup);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '内容', 'url' => U('Service/index'));
+            $root_mbx[] = array('title' => '编辑服务内容', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+    }
+
+    // 启用禁用
+    public function changeStatus($method = null)
+    {
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map ['sid'] = array(
+            'in',
+            $id
+        );
+        switch (strtolower($method)) {
+            case 'forbidservice' :
+                $this->s_forbid('Service', $map);
+                break;
+            case 'resumeservice' :
+                $this->s_resume('Service', $map);
+                break;
+            default :
+                $this->error('参数非法');
+        }
+    }
+
+    // 删除
+    public function del_service()
+    {
+        $ids = array_unique(( array )I('id', 0));
+        if (empty ($ids)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $msg = "";
+        //检测项目内容和报单明细中是否有引用
+        foreach ($ids as $id) {
+            $where = "s.sid={$id}  and ( exists(select psid from ot_project_service ps where ps.sid={$id}) or exists(select osid from ot_offer_sub os where os.sid={$id}))";
+            $result = M('Service')->alias('s')->field('s.name')->where($where)->find();
+            if ($result) {
+                $msg .= "『{$result['name']}』删除失败 : 内容在报价明细或项目内容中被引用。\n";
+                continue;
+            } else {
+                $map = array('sid' => $id);
+                $res = M('Service')->field('name')->where($map)->find();
+                if (M('Service')->where($map)->delete() !== false) {
+                    M('ServiceDoc')->where($map)->delete();
+                    foreach ($ids as $vo) {
+                        action_log_new(array(
+                            'outtype' => 'ot_service',
+                            'outkey' => $vo,
+                            'action' => 'delete',
+                            'comment' => ''
+                        ));
+                    }
+                    $msg .= "『{$res['name']}』删除成功。\n";
+//                    $this->redirect('Service/index');
+                } else {
+                    $msg .= "『{$res['name']}』删除失败:内容编号无法找到。\n";
+//                    $this->error("删除失败");
+                }
+            }
+        }
+        $this->ajaxReturn(array('done' => true, 'msg' => "{$msg}"));
+
+    }
+
+    public function choose_service()
+    {
+        $mid = isset ($_GET ['mid']) ? intval($_GET ['mid']) : 0;
+        $ids = isset ($_GET ['mid']) ? trim($_GET ['ids']) : '';
+        $key = I('key');
+        $condition = "mid='" . $mid . "' and required=0";
+        if (!empty ($key)) {
+            $condition .= " and name like '%" . $key . "%'";
+        }
+        $Model = M('Service');
+        $list = $Model->where($condition)->select();
+        if ($ids) {
+            $sub = array_filter(explode(',', $ids));
+            foreach ($list as $key => $val) {
+                if (in_array($val ['sid'], $sub)) {
+                    $list [$key] ['check'] = 1;
+                } else {
+                    $list [$key] ['check'] = 0;
+                }
+            }
+        }
+
+        $this->assign('mid', $mid);
+        $this->assign('_list', $list);
+        $this->display('choose');
+    }
+
+    // 多选一
+    public function group()
+    {
+        $id = array_unique(( array )I('id', 0));
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        if (count($id) < 2) {
+            $this->error('多选一至少2组数据!');
+        }
+        $f_id = is_array($id) ? implode(',', $id) : $id;
+        $map ['sid'] = array(
+            'in',
+            $f_id
+        );
+        $Service_sub = M("Service_sub");
+        $item = $Service_sub->where($map)->select();
+        if (!empty ($item)) {
+            $this->error('选取数据中已经存在分组,请先删除组再分组');
+        }
+
+        $mid = 0;
+        $is_same = 1;
+        $is_required = 1;
+        foreach ($id as $key => $val) {
+            $service = M("Service")->where("sid = '" . $val . "' and required=0")->find();
+            if (empty ($service)) {
+                $is_required = 0;
+            }
+            if ($mid != 0 && $service ['mid'] != $mid) {
+                $is_same = 0;
+                break;
+            }
+            if ($mid == 0) {
+                $mid = $service ['mid'];
+            }
+        }
+        if ($is_required == 0) {
+            $this->error('选取数据必须非必选');
+        }
+        if ($is_same == 0) {
+            $this->error('选取数据中必须是同一个模块');
+        }
+        $sub = M("Service_sub")->order('sub_id desc')->limit(1)->find();
+        if (empty ($sub)) {
+            $sign = 'group_1';
+        } else {
+            $s = explode('_', $sub ['sign']);
+            $new_s = $s [1] + 1;
+            $sign = 'group_' . $new_s;
+        }
+        $service = M("Service")->where("sid = '" . $id [0] . "'")->find();
+        foreach ($id as $key => $val) {
+            $data = array(
+                'mid' => $service ['mid'],
+                'sid' => $val,
+                'sign' => $sign
+            );
+            M("Service_sub")->add($data);
+        }
+        $this->success("分组成功", U('index'));
+    }
+
+    public function del_service_sub()
+    {
+        $id = array_unique(( array )I('id', 0));
+        $ids = is_array($id) ? $id : array(
+            $id
+        );
+        if (empty ($ids)) {
+            $this->error('请选择要操作的数据!');
+        }
+        foreach ($ids as $id) {
+            $sub = M('ServiceSub')->where("sub_id='" . $id . "'")->find();
+            if (!empty ($sub)) {
+                M('ServiceSub')->where("sub_id='" . $id . "'")->delete();
+                $count = M('ServiceSub')->where("sign='" . $sub ['sign'] . "'")->count();
+                if ($count < 2) {
+                    M('ServiceSub')->where("sign='" . $sub ['sign'] . "'")->delete();
+                }
+            }
+        }
+        $this->redirect('Service/index');
+//		$this->success ( "删除成功", U ( 'index' ) );
+    }
+
+    public function get_module()
+    {
+        $id = I('post.id');
+        $mid = I('post.mid');
+        if ($mid && $mid != 'm') {
+            $data = M('Module')->where('pid=' . $id . " and mid!=" . $mid)->order('sort_order asc')->select();
+            echo json_encode($data);
+        } else if ($mid == 'm') {
+            $data = M('Module')->where('pid=' . $id)->order('sort_order asc')->select();
+            $data = M('Module')->where('pid=' . $id . " and mid!=" . $data [0] ['mid'])->order('sort_order asc')->select();
+            echo json_encode($data);
+        } else {
+            $data = M('Module')->where('pid=' . $id)->order('sort_order asc')->select();
+            echo json_encode($data);
+        }
+    }
+
+    // 异步修改数据
+    public function ajax_col()
+    {
+        $id = empty ($_GET ['id']) ? 0 : intval($_GET ['id']);
+        $column = empty ($_GET ['column']) ? '' : trim($_GET ['column']);
+        $value = isset ($_GET ['value']) ? trim($_GET ['value']) : '';
+        $data = array();
+
+        if (in_array($column, array('sort_order', 'standard'))) {
+            $tmep = M('Service')->field(true)->find($id);
+            $data [$column] = $value;
+            $history = array();
+            foreach ($data as $key => $vo) {
+                if ($vo != $tmep [$key]) {
+                    $history [] = array(
+                        'field' => $key,
+                        'olddata' => $tmep [$key],
+                        'newdata' => $vo
+                    );
+                }
+            }
+            M('Service')->where('sid=' . $id)->save($data);
+            action_log_new(array(
+                'history' => $history,
+                'outtype' => 'ot_service',
+                'outkey' => $id,
+                'action' => 'edit',
+                'comment' => ''
+            ));
+        } else {
+
+            $data_update = array();
+            $data_update[$column] = $value;
+            M('service')->where("sid='{$id}'")->save($data_update);
+
+            echo 'true';
+            return;
+        }
+        echo 'true';
+        return;
+    }
+
+    public function servicedoc()
+    {
+        $sid = I('sid');
+        if (IS_POST) {
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata [$k] [$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $key => $value) {
+                if (empty ($value ['docid'])) {
+                    if (!empty ($value ['dtid'])) {
+                        $adddata [] = $value;
+                    }
+                } else {
+                    $editdata [] = $value;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $key => $vo) {
+                    $docs = M('ServiceDoc')->find($vo ['docid']);
+                    $item ['dtid'] = $vo ['dtid'];
+                    $item ['sid'] = $vo ['sid'];
+                    $item ['note'] = $vo ['note'];
+                    $history = array();
+                    foreach ($item as $k => $v) {
+                        if ($v != $docs [$key]) {
+                            $history [] = array(
+                                'field' => $k,
+                                'olddata' => $docs [$k],
+                                'newdata' => $v
+                            );
+                        }
+                    }
+                    if (M('ServiceDoc')->save($vo) !== false) {
+                        action_log_new(array(
+                            'history' => $history,
+                            'outtype' => 'ot_service_doc',
+                            'outkey' => $vo ['docid'],
+                            'action' => 'rdocedit',
+                            'comment' => ''
+                        ));
+                    }
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $key => $vo) {
+                    if (!empty ($vo ['dtid'])) {
+                        $vo ['sid'] = $sid;
+                        $tmp = M('ServiceDoc')->add($vo);
+                        action_log_new(array(
+                            'outtype' => 'ot_service_doc',
+                            'outkey' => $tmp,
+                            'action' => 'rdocadd',
+                            'comment' => ''
+                        ));
+                    }
+                }
+            }
+        } else {
+            $doc_type = M("DocType")->select();
+
+            $this->assign('sid', $sid);
+            $this->assign('doc_type', $doc_type);
+            $service_doce = M('ServiceDoc')->where('sid=' . $sid)->select();
+            $this->assign('service_doce', $service_doce);
+            $this->display();
+        }
+    }
+
+    public function delete_doc()
+    {
+        $id = I('get.id');
+        if (!$id) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        if (is_array($id)) {
+            $ids = implode(',', $id);
+        } else {
+            $ids = $id;
+        }
+        $where = array(
+            'docid' => array(
+                'in',
+                $ids
+            )
+        );
+        $tmp = M('ServiceDoc')->where($where)->delete();;
+        if ($tmp) {
+            action_log_new(array(
+                'outtype' => 'ot_service_doc',
+                'outkey' => $ids,
+                'action' => 'rdocdel',
+                'comment' => ''
+            ));
+            $this->ajaxReturn(array(
+                'done' => true,
+                'msg' => '删除成功'
+            ));
+        } else {
+            $this->json_error('删除失败!', false);
+        }
+    }
+
+
+    public function updateOrder()
+    {
+        $idList = trim(I('post.projects'), ',');
+        $orderBy = I('post.orderBy');
+        $module = M('Service');
+        $idList = explode(",", $idList);
+        foreach ($idList as $k => $v) {
+            if ($v == 'xxxx') {
+                unset($idList[$k]);
+            }
+        }
+        $map['sid'] = array('in', $idList);
+        $services = $module->where($map)->order("{$orderBy}")->getField('sort_order,sid');
+        foreach ($services as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            $module->where("sid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+
+    public function export($pro, $pid)
+    {
+        if (empty($pro) || !is_array($pro) || count($pro) < 1) {
+            $pro = array();
+        }
+
+        //获取想应的数据并排序
+        foreach ($pro as $key => $val) {
+            $arr['0'] = $val['ganme'];
+            $arr['1'] = $val['o_name'];
+            $arr['2'] = $val['name'];
+            $arr['3'] = $val['minprice'];
+            $arr['4'] = $val['maxprice'];
+            $arr['5'] = $val['quantity'];
+            $arr['6'] = $val['unit'];
+            $arr['7'] = $val['days'];
+            $arr['8'] = $val['hour'];
+            $arr['9'] = $val['cost'];
+            $arr['10'] = $val['enough'];
+            $arr['11'] = $val['disoff'];
+            //是否必选
+            if ($val['required'] == 1) {
+                $val['required'] = '是';
+            } elseif ($val['required'] == 2) {
+                $val['required'] = '多选一';
+            } elseif ($val['required'] = 3) {
+                $val['required'] = '绑定模块';
+            } else {
+                $val['required'] = '否';
+            }
+            $arr['12'] = $val['required'];
+
+            $arr['13'] = $val['regroup'];//多选组
+            if ($val['required' == '绑定模块'] && $val['remid_name']) {
+                $arr['14'] = $val['remid_name'];//绑定模块
+            } else {
+                $arr['14'] = '';//绑定模块
+            }
+            if ($val['standard']) {
+                $val['standard'] = '是';
+            } else {
+                $val['standard'] = '否';
+            }
+            $arr['15'] = $val['standard'];//是否标配
+            if ($val['enabled']) {
+                $val['enabled'] = '是';
+            } else {
+                $val['enabled'] = '否';
+            }
+            $arr['16'] = $val['enabled'];//是否启用
+            $arr['17'] = $val['sort_order'];//排序
+            $arr['18'] = $val['description'];//备注
+            $datas[] = $arr;
+        }
+        $data = $datas;
+        import("IOFactory", "../excel/toexcel/PHPExcel", ".php");
+        import("Excel5", "../excel/toexcel/PHPExcel/Reader", ".php");
+        import("PHPExcel", "../excel/toexcel", ".php");
+//		若按项目进行筛选导出内容
+        if ($pid) {
+            $filename = '';
+            $res_path = M('project_config')->field('path')->where(['pid' => $pid])->find();
+            $arr_path = explode(',', $res_path['path']);
+
+            foreach ($arr_path as $value) {
+                if ($value && $value != 54) {
+                    $fname = M('project_config')->field('name')->where(['pid' => $value])->find();
+                    $filename .= $fname['name'] . '-';
+                }
+            }
+            $filename .= date('YmdHis');
+        } else {
+            $filename = '内容' . date('YmdHis');
+        }
+        $filename .= ".xls";
+        header("Content-type: application/vnd.ms-excel; charset=utf-8");
+        header("Content-Disposition: attachment; filename=$filename.xls");
+
+        $excel = new \PHPExcel();
+
+        //Excel表格式,这里简略写了8列
+        $letter = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S');
+        //表头数组
+        $tableheader = array('项目组名称', '模块名称', '内容名称', '最小价格', '最大价格', '数量', '单位', '周期', '工时', '成本', '满多少数量', '折扣率(1-100)', '必选', '多选一组', '绑定模块', '是否标配', '是否启用', '排序', '备注');
+        //填充表头信息
+        //        $excel->getActiveSheet()->getColumnDimension('A1:L1')->setWidth('13');
+        for ($i = 0; $i < count($tableheader); $i++) {
+            $excel->getActiveSheet()->setCellValue("$letter[$i]1", "$tableheader[$i]");
+        }
+        //表格数组
+        //填充表格信息
+        for ($i = 2; $i <= count($data) + 1; $i++) {
+            $j = 0;
+            if ($i <= count($data) + 1) {
+                foreach ($data[$i - 2] as $key => $value) {
+                    $excel->getActiveSheet()->setTitle('内容');
+                    $excel->getActiveSheet()->setCellValue("$letter[$j]$i", " " . "$value");
+                    $j++;
+                }
+            }
+
+        }
+        //创建Excel输入对象
+        $write = new \PHPExcel_Writer_Excel5($excel);
+        header("Pragma: public");
+        header("Expires: 0");
+        header("Cache-Control:must-revalidate, post-check=0, pre-check=0");
+        header("Content-Type:application/force-download");
+        header("Content-Type:application/vnd.ms-execl");
+        header("Content-Type:application/octet-stream");
+        header("Content-Type:application/download");;
+        header('Content-Disposition:attachment;filename=' . $filename . '');
+        header("Content-Transfer-Encoding:binary");
+        $write->save('php://output');
+
+    }
+}

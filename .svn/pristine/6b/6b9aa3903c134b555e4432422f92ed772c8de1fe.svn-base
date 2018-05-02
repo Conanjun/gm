@@ -1,0 +1,58 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class ProjectBudgetModel extends Model
+{
+    protected $tableName = 'projectbudget';
+    protected $_validate = array();
+
+    /**
+     * 按照项目查出数目
+     *
+     * @param $pid
+     *
+     * @return mixed
+     */
+    public function getCount($pid)
+    {
+        $map['pid'] = $pid;
+        $count = $this->where($map)->count();
+        return $count ? 1 : 0;
+    }
+
+    /**
+     * 项目成本预算
+     *
+     * @param        $pid
+     * @param string $type
+     *
+     * @return mixed
+     */
+    public function getProjectBudgetByPid($pid, $type = '')
+    {
+        $map = [];
+        $map['pid'] = $pid;     // 项目id
+        $type and $map['type'] = $type;     // 根据类型搜索
+        $list = $this->field('chours,type, outitem, budget, cost, cost/budget*10000/100 as bl, addtime, updatetime')
+            ->where($map)
+            ->order('updatetime desc')
+            ->select();
+        return $list;
+    }
+
+}

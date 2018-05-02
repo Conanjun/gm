@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+
+<!-- <link rel='stylesheet' type='text/css' href='__JSNEW__/fullcalendar/fullcalendar.css' /> -->
+<!-- 	<script type='text/javascript' src='__JSNEW__/fullcalendar/jquery/jquery.js'></script> -->
+<!-- 	<script type='text/javascript' src='__JSNEW__/fullcalendar/jquery/ui.core.js'></script> -->
+<!-- 	<script type='text/javascript' src='__JSNEW__/fullcalendar/jquery/ui.draggable.js'></script> -->
+<!-- 	<script type='text/javascript' src='__JSNEW__/fullcalendar/jquery/ui.resizable.js'></script> -->
+<!-- 	<script type='text/javascript' src='__JSNEW__/fullcalendar/fullcalendar.js'></script> -->
+	
+	<link href='__JSNEW__/fullcalendar3/fullcalendar.min.css' rel='stylesheet' />
+<link href='__JSNEW__/fullcalendar3/fullcalendar.print.min.css' rel='stylesheet' media='print' />
+<script src='__JSNEW__/fullcalendar3/lib/moment.min.js'></script>
+<script src='__JSNEW__/fullcalendar3/lib/jquery.min.js'></script>
+<script src='__JSNEW__/fullcalendar3/fullcalendar.min.js'></script>
+<script src='__JSNEW__/fullcalendar3/locale/zh-cn.js'></script>	
+<script>jQuery.noConflict();</script>
+	
+<script type='text/javascript'>
+function openparent(url){
+	window.parent.location.href=url;
+}
+
+jQuery(document).ready(function() {
+	
+		var date = new Date();
+		var d = date.getDate();
+		var m = date.getMonth();
+		var y = date.getFullYear();
+		var data=[];
+		try{
+			data={$list};
+		}catch(e){
+			data=[];
+		}
+		var eventsdata=[];
+		if(data!=undefined&&data.length>0){
+			for(var i=0;i<data.length;i++){
+				var color="#7865c7";
+				var url="javascript:;";
+				
+				var allDay=false;
+				
+				if(data[i].type=="task"){
+					color="#7865c7";
+					allDay=true;
+					if(data[i].state==1){
+						//未开始
+						color="#b2b2b2";
+					}else if(data[i].state==2){
+						//进行中
+						color="#7865c7";
+					}else if(data[i].state==4){
+						//已提交
+						color="#39b3d7";
+					}else if(data[i].state==6){
+						//已延期
+						color="#fc6161";
+					}
+				}else{
+					color="#21841d";
+				}
+				url="javascript:openparent('"+data[i].url+"')";
+				var r={"allDay": allDay,"title":data[i].name,"start":data[i].stime,"end":data[i].etime,"color":color,"url":url};
+				eventsdata.push(r);
+			}
+		}
+		
+		
+		jQuery('#calendar').fullCalendar({
+			theme: false,
+			header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,agendaWeek,agendaDay'
+			},
+			editable: false,
+			events: eventsdata,
+			eventMouseover:function(event, jsEvent, view){
+				jQuery("a").attr("title",event.title);
+				//jQuery(view).attr("title",event.title);
+			},
+		});
+		
+		//$("a").attr("target","_blank");
+	});
+
+</script>
+<style type='text/css'>
+
+	#calendar {
+		width: 100%;
+		margin: 0 auto;
+		padding: 10px;
+		}
+
+</style>
+</head>
+<body>
+<div style="position: relative;">
+	<div id='calendar'></div>
+</div>
+</body>
+</html>

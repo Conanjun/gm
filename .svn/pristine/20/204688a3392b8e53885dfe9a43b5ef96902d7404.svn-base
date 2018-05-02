@@ -1,0 +1,646 @@
+<extend name="Public/base"/>
+<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;">
+            <div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+    <script>
+        $(function(){
+            $("#searchform").prepend("<input type='hidden' name='pid' value='{$p.pid}'><input type='hidden' name='paid' value='{$paid}'>");
+        })
+    </script>
+    <style>
+        tbody.sortable > tr.drag-shadow {display: none}
+        tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+        tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+        tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+        tbody.sortable-sorting {cursor: move;}
+        tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+        tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+        tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+        tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+        .navul{margin: 0;padding: 0}
+        .navul li {list-style: none;}
+        .navul li a{
+            display:block;
+            float:left;
+            font-size: 14px;
+            color: #999999 ;
+            padding: 0 15px 10px 15px;margin-bottom: 5px;margin-right: 5px;text-align: center;}
+        .outer.with-side #featurebar, .outer.with-side #titlebar {
+            margin-bottom: 10px;
+        }
+
+        .navul li.active a{
+            display:block;
+            float:left;
+            color: #000;
+            padding: 0 15px 10px 15px;
+            margin-bottom: 5px;
+            margin-right: 5px;
+            text-align: center;
+            border-bottom: 3px solid #FF7F24}
+
+        .outer.with-side #featurebar, .outer.with-side #titlebar {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>orderBy="{$orderBy}"</script>
+    <script>
+        $(document).ready(function()
+        {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function()
+            {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function(e)
+                        {
+                            var orders = {};
+                            e.list.each(function(){
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function(){e.element.removeClass('drop-success');}, 800)
+                        }
+                    });
+            });
+
+            $('#projectTableList').on('sort.sortable', function(e, data)
+            {
+                var list = '';
+                for(i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('ProjectNew/updateOrder')}",{'psid' : list, 'orderBy' : orderBy},
+                    function(data){
+                        window.location.href = window.location.href;
+                    }
+                );
+            });
+        });
+        function choose1(){
+            $.closeModal();
+            window.location.href= window.location;
+        }
+        function choose2(){
+            $.closeModal();
+        }
+    </script>
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="actions" style="float: right">
+            <div class="btn-group">
+                <if condition="cando('Execute/alter_edit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                <a href="{:U('Execute/alter_edit?paid='.$paid.'&pid='.$pid)}" class="btn "><i class="icon-common-edit icon-pencil"></i>编辑</a>
+                </if>
+                <a href="javascript:history.go(-1);" class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+        <div class="clearfix"></div>
+        <include file="Public/search" />
+    </div>
+    <include file="Public:executetitle" />
+        <div class="row-table" style="border-bottom:1px solid #ddd;margin-bottom: 30px;margin-top: 20px">
+            <div class="col-main">
+                <div class="main" style="margin-left: 0;">
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-form mytable" style="border: 0;width: 100%;margin-left: 15px;">
+                                <tbody>
+                                <tr>
+                                    <th width="80px" style="text-align: left">变更描述：</th>
+                                    <td colspan="5">{$alter.title}</td>
+                                </tr>
+                                <tr>
+                                    <th width="80px" style="text-align: left">变更原因：</th>
+                                    <td colspan="5">{$alter.reason}</td>
+                                </tr>
+                                <tr>
+                                    <th width="80px" style="text-align: left">发起方：</th>
+                                    <td>{$alter.fqf}</td>
+                                    <th width="100px">发起人：</th>
+                                    <td>{$alter.fqr}</td>
+                                    <th width="120px">状态：</th>
+                                    <td>
+                                        <if condition="$alter.state eq 1">
+                                            已通过
+                                        <else/>
+                                            未审核
+                                        </if>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th width="80px" style="text-align: left">影响成本：</th>
+                                    <td>{$alter.ycost|fomatprice}</td>
+                                    <th width="100px">影响工时：</th>
+                                    <td>{$alter.hours}h</td>
+                                    <th width="120px">客户接受成本：</th>
+                                    <td> {$alter.kcost|fomatprice}</td>
+                                </tr>
+                                <tr>
+                                    <th width="80px" style="text-align: left">申请人：</th>
+                                    <td>{$alter.uname}</td>
+                                    <th width="100px">申请日期：</th>
+                                    <td>{$alter.add_time|time_format=###,'Y/m/d'}</td>
+                                    <th width="120px">审批日期：</th>
+                                    <td>
+                                        <if condition="$alter.sadd_time gt 0 ">
+                                        {$alter.sadd_time|time_format=###,'Y/m/d'}
+                                        </if>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th width="80px" style="text-align: left">备注：</th>
+                                    <td colspan="5">{$alter.note}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-table">
+            <div class="col-main">
+                <div style="margin-top: 30px;height: 30px;">
+                    <legend style="width: 80px;float:left;line-height: 28px;height: 28px">变更范围</legend>
+                    <span style="color: #888;line-height: 28px;height: 28px">注：变更审批通过后，变更范围涉及任务将被自动添加成为项目范围</span>
+                    <div class="actions" style="float: right;">
+                        <div class="btn-group">
+                            <if condition="cando('Execute/alter_transactor',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                <a id="tran" href="{:U('Execute/alter_transactor',array('pid'=>$p['pid']))}"  data-width="980" data-height="660" class="btn iframe">
+                                    <i class="icon-hand-right"></i>指派负责人</a>
+                            </if>
+                            <if condition="cando('Execute/executor',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                <a id="tran" href="{:U('Execute/alter_executor',array('pid'=>$p['pid']))}"  data-width="480" data-height="360" class="btn iframe">
+                                    <i class="icon-hand-right"></i>指派执行人</a>
+                            </if>
+                            <if condition="cando('Execute/alter_bulk_edit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                <if condition="cando('Execute/alter_bulk_edit',array($p['uid'],$p['pmuid']))">
+                                    <a href="javascript:;" class="btn" onclick="bulk_edit()" ><i class="icon-edit"></i>编辑</a>
+                                </if>
+                            </if>
+                            <if condition="cando('Execute/alter_service_arr',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                <a href="{:U('Execute/alter_service_arr',array('pid'=>$p['pid'],'paid'=>$paid))}"  data-width="600" onclick="servicearr()" data-height="400" class="btn iframe"><i
+                                        class="icon-time"></i>排期</a>
+                            </if>
+                            <if condition="cando('Execute/alter_workbreak',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                <a href="{:U('Execute/alter_workbreak?id='.$p['pid'])}"  data-width="800"
+                                   data-height="400" title="{$p['name']}-批量启动" class="btn iframe"><i class="icon-random"></i>启动</a>
+                            </if>
+                            <if condition="cando('Execute/alter_service_add',array($p['uid'],$p['pmuid']),$p['pid'])">
+                            <a href="{:U('Execute/alter_service_add',array('pid'=>$p['pid'],'paid'=>$paid))}" class="btn"><i class="icon-plus"></i>自定义任务</a>
+                            </if>
+                            <if condition="cando('Execute/alter_add_item',array($p['uid'],$p['pmuid']),$p['pid'])">
+                            <a href="{:U('Execute/alter_add_item',array('item_id'=>$p['pid'],'paid'=>$paid))}" class="btn "><i class="icon-download"></i>从标准服务引入</a>
+                            </if>
+                            <a href="javascript:;"  id="export" class="btn"><i class="icon-file-excel"></i>导出Excel</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main" style="margin-left: 0;">
+                    <div class="content">
+                        <form action="{:U('alter_bulk_edit',array('pid'=>$p['pid'],'paid'=>$paid))}" method="post" class="form-condensed">
+                            <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="31px"></th>
+                                    <th class="text-left"><span class="sort" ectype="order_by"
+                                                                fieldname="title">任务</span>
+                                    </th>
+                                    <th width="60px"><span class="sort" ectype="order_by" fieldname="type">类型</span>
+                                    </th>
+                                    <th width="60px"><span class="sort" ectype="order_by" fieldname="state">状态</span>
+                                    </th>
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="pstime">开始</span>
+                                    </th>
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="petime">结束</span>
+                                    </th>
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="quans">数量</span>
+                                    </th>
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="days">预周期</span>
+                                    </th>
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="hours">预工时</span>
+                                    </th>
+                                    <th width="80px"><span class="sort" ectype="order_by"
+                                                           fieldname="assignedname">执行人</span>
+                                    </th>
+                                    <th width="80px"><span class="sort" ectype="order_by"
+                                                           fieldname="executee_name">负责人</span>
+                                    </th>
+
+                                    <th width="70px"><span class="sort" ectype="order_by"
+                                                           fieldname="milestone">里程碑</span>
+                                    </th>
+                                    <th width="50px"><span class="sort" ectype="order_by"
+                                                           fieldname="delivery">交付</span>
+                                    </th>
+                                    <th width="40px">文档</th>
+                                    <th width="80px">操作</th>
+                                    <if condition="$orderBy">
+                                        <th width="50px"><span class="sort" ectype="order_by"
+                                                               fieldname="sort_order">排序</span>
+                                        </th>
+
+                                    </if>
+                                </tr>
+                                </thead>
+                                <if condition="$orderBy">
+                                    <tbody class="sortable" id='projectTableList'>
+                                    <else/>
+                                    <tbody >
+                                </if>
+                                <notempty name="_list">
+                                    <volist name="_list" id="l">
+                                        <tr title="{$l.mname}-点击全选或取消" data-id="xxxx.{$l.mid}" onclick="checkall(this,'{$l.mid}')" chell="0" style="cursor:pointer">
+                                            <td style="background-color: #f1f1f1; color: #5e4ba4;padding-left: 11px"><i class="icon-check-empty"></i></td>
+                                            <th colspan="<if condition="$orderBy">14<else/>14</if>" style="background-color: #f1f1f1;color:#5e4ba4"> <if condition="$l['mname']">{$l.mname}<else/>非标准服务</if></th>
+                                            <if condition="$orderBy">
+                                                <td class="sort-handler" style="background-color: #f1f1f1;color:#5e4ba4"><i class="icon icon-move"></i></td>
+                                            </if>
+                                        </tr>
+                                        <volist name="l.list" id="vo">
+                                            <tr  data-id="{$vo.psid}" data-order="{$vo['sort_order']}">
+                                                <td class="cell-id"><input class="ids" type="checkbox" pmid ="{$l.mid}"  name="id[]" value="{$vo.psid}" /></td>
+
+                                                <td class="text-left"><i style="position: relative;font-style: normal;" class="icon_show">
+                                                    <if condition="$vo['o_name']">{$vo['o_name']}-</if>{$vo.title}
+                                                </i>
+                                                    <if condition="$vo['bulb']">
+                                                        <a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.sname}-指导备注"  data-width="1000"
+                                                           data-height="600" class="iframe">
+                                                            <i class="icon-lightbulb"></i></a>
+                                                    </if>
+                                                    <if condition="$vo['op_text'] eq '新增'">
+                                                        <span class="add-data">新增</span>
+                                                        <elseif condition="$vo['op_text'] eq '删除'"/>
+                                                        <span class="delete-data">删除</span>
+                                                    </if>
+
+
+                                                </td>
+                                                <td>{$vo.type}</td>
+                                                <td>
+                                                    <if condition="$vo.state eq 1">
+                                                        <span class="textg"> 已启动</span>
+                                                        <elseif condition="$vo.state eq 0 and empty($vo['assignedname'])" />
+                                                        <span class="textc">未分配</span>
+                                                        <elseif condition="$vo.state eq 0 and !empty($vo['assignedname'])" />
+                                                        <span class="textc">已分配</span>
+                                                    </if>
+                                                </td>
+                                                <td>{$vo.pstime|time_format=###,'y/m/d'} </td>
+                                                <td>{$vo.petime|time_format=###,'y/m/d'}</td>
+                                                <td>{$vo.quans}</td>
+                                                <td>{$vo.days}d</td>
+                                                <td>{$vo.hours}h</td>
+                                                <td>{$vo.assignedname}</td>
+                                                <td>{$vo.executee_name}</td>
+                                                <td><eq name="vo.milestone" value="1">
+                                                    <img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png"  />
+                                                    <else/>
+                                                    <img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" />
+
+                                                </eq>
+                                                </td>
+                                                <td>
+                                                    <eq name="vo.delivery" value="1">
+                                                        <img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png"  ectype="inline_edit" fieldname="delivery" fieldid="{$vo.psid}" fieldvalue="1"/>
+                                                        <else/>
+                                                        <img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="delivery" fieldid="{$vo.psid}" fieldvalue="0"/>
+
+                                                    </eq>
+                                                </td>
+                                                <td>
+                                                    <if condition="$vo['sdc']">
+                                                        <a href="{:U('ProjectNew/servicedoc',array('sid'=>$vo['sid']))}"  title="需提交文档" data-width="600" data-height="400" class="iframe"><i
+                                                                class="icon-file-word"></i></a>
+                                                    </if>
+                                                </td>
+                                                <td>
+                                                    <if condition="$vo['state'] eq 0">
+                                                        <if condition="cando('Execute/alter_service_edit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                            <a href="{:U('alter_service_edit',array('id'=>$vo['psid'],'paid'=>$paid,'pid'=>$pid))}"
+                                                            >编辑</a></if>
+                                                        <if condition="cando('ProjectNew/servicedelete',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                            <a href="{:U('ProjectNew/servicedelete?id='.$vo['psid'])}"
+                                                               class="confirm ajax-get">删除</a></if>
+                                                    </if>
+                                                </td>
+                                                <if condition="$orderBy">
+                                                    <td class="sort-handler"><i class="icon icon-move"></i></td>
+                                                </if>
+                                            </tr>
+                                        </volist></volist>
+                                    <else />
+                                    <if condition="$orderBy">
+                                        <tr>
+                                            <td colspan="16" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+                                            <else/>
+                                            <td colspan="14" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+                                        </tr>
+
+                                    </if>
+
+                                </notempty>
+                                </tbody>
+                                <notempty name="_list">
+                                    <tfoot>
+                                    <tr>
+                                        <if condition="$orderBy">
+                                            <td colspan='16'>
+                                                <div class="table-actions clearfix">
+                                                    <div class="checkbox btn">
+                                                        <label><input type="checkbox" data-scope=""
+                                                                      class="rows-selector"> 选择</label>
+                                                    </div>
+                                                    <!--<if condition="cando('ProjectNew/edit',array($p['uid'],$p['pmuid']))">
+                                                    <button class="btn btn-default" onclick="bulk_edit()" >批量编辑</button></if>-->
+                                                    <if condition="cando('ProjectNew/servicedelete',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                        <button class="btn btn-default ajax-post confirm" url="{:U('ProjectNew/servicedelete')}" target-form="ids">删 除</button>
+                                                    </if>
+                                                </div>
+                                                <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                                            </td>
+                                            <else/>
+                                            <td colspan='15'>
+                                                <div class="table-actions clearfix">
+                                                    <div class="checkbox btn">
+                                                        <label><input type="checkbox" data-scope=""
+                                                                      class="rows-selector"> 选择</label>
+                                                    </div>
+                                                    <if condition="cando('ProjectNew/servicedelete',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                        <button class="btn btn-default ajax-post confirm" url="{:U('ProjectNew/servicedelete')}" target-form="ids">删 除</button>
+                                                    </if>
+                                                </div>
+                                                <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                                            </td>
+                                        </if>
+
+                                    </tr>
+                                    </tfoot>
+                                </notempty>
+                            </table>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="row-table">
+        <div class="col-main">
+            <div style="margin-top: 30px;height: 30px;">
+                <legend style="width: 80px;float:left;line-height: 28px;height: 28px">审批文档</legend>
+                <div class="actions" style="float: right;">
+                    <if condition="cando('Execute/alter_docadd',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <a href="{:U('Execute/alter_docadd',array('pid'=>$pid,'paid'=>$paid))}" data-width="1100" data-height="400" title="上传文档" class="btn iframe">
+                            <i class="icon-project-putoff icon-cloud"></i>上传文档
+                        </a>
+                    </if>
+                </div>
+            </div>
+            <div class="main" style="margin-left: 0;">
+                <div class="content">
+                    <div class="data-table table-striped">
+                        <table
+                                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                                style="text-align: center">
+                            <thead>
+                            <tr>
+                                <th width="10px"></th>
+                                <th style="text-align: left">文档名称</th>
+                                <th style="width: 80px">文档类型</th>
+                                <th style="width: 80px">大小</th>
+                                <th style="width: 80px">上传用户</th>
+                                <th style="width: 120px">上传时间</th>
+                                <th style="width: 80px">下载数</th>
+                                <th style="width: 100px">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <notempty name="doc">
+                                <volist name="doc" id="vo">
+                                    <tr>
+                                        <td class="cell-id"></td>
+                                        <td style="text-align: left">
+                                            <if condition="$vo['url']">
+                                                <if condition="$vo['urlname']">{$vo['urlname']}
+                                                    <else/>
+                                                    {$vo['url']}
+                                                </if>
+                                                <else/>
+                                                {$vo.dname}
+                                            </if>
+                                            <if condition="$vo['isimg']">
+
+                                                <a style="display: block;" href="{:U('doc/view?fid='.$vo['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$vo.dname} 预览">
+                                                    <img src="{:U('doc/view?fid='.$vo['fileid'])}" width="60px"></a>
+
+                                            </if>
+                                        </td>
+                                        <td>{$vo.tname}</td>
+                                        <td>
+                                            <if condition="$vo['url']">
+                                                <else/>
+                                                {$vo.size}K
+                                            </if>
+                                        </td>
+                                        <td>{$vo.uname}</td>
+                                        <td>{$vo.addtime|time_format}</td>
+                                        <td>{$vo.views}</td>
+                                        <td>
+                                            <if condition="$vo['url']">
+                                                <a href="{$vo['url']}" title="{$vo['url']}" target="_blank">预览</a>
+                                                <a href="{:U('Task/deleteDoc?id='.$vo['docid'])}" class="confirm ajax-get" title="点击删除文件">删除</a>
+                                                <else/>
+                                                <a href="{:U('doc/download?fid='.$vo['fileid'])}" title="点击下载文件">下载</a>
+                                                <a href="{:U('doc/view?fid='.$vo['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$vo.dname} 预览">
+                                                    <span class="download">预览</span></a>
+                                                <a href="{:U('Task/deleteDoc?id='.$vo['docid'])}" class="confirm ajax-get" title="点击删除文件">删除</a>
+                                            </if>
+                                        </td>
+                                    </tr>
+                                </volist>
+                                <else/>
+                                <tr>
+                                    <td colspan="8" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+                                </tr>
+                            </notempty>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        highlight_subnav("{$from_url}");
+        // 更新里程碑
+        function upalter(url) {
+            if (confirm("确定审批吗？")) {
+                $("#loadertip").show();
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            window.location.href = location.href;
+                        } else {
+                            alert(response.msg);
+                            $("#loadertip").hide();
+                        }
+                    }
+                });
+            }
+        }
+        function choose(){
+            $.closeModal();
+            window.location.href= window.location;
+        }
+        function choose2(){
+            $.closeModal();
+        }
+        function getitems(){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            return items;
+        }
+        function pnames(){
+            var pname = "{$p.name}";
+            return pname;
+        }
+        $("#export").click(function(){
+            $("#searchform").attr("target","_blank");
+            var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+            $("#searchform").append(my_input);
+            $("#searchform").submit();
+            $("[name='exportexcel']").val("");
+            $("#searchform").attr("target","");
+        });
+        function bulk_edit(){
+            $('form').submit();
+        }
+        function workbreak(content,pid) {
+            var psids = $('#psids').val();
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            $.ajax({
+                type: "POST",
+                url: "{:U('Execute/alter_workbreak?paid='.$paid)}",
+                data: {content: content, pid: pid, psids: items},
+                dataType: "json",
+                success: function (data) {
+                    if (data.done) {
+                        choose();
+                    } else {
+                        alert(data.msg);
+                    }
+                }
+            });
+        }
+        function servicearr(){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            return items;
+        }
+        function transactor(pstime,pid){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            $.ajax({
+                type: "POST",
+                url: "{:U('Execute/alter_transactor')}",
+                data: {pid:pid,pstime:pstime, psids: items},
+                dataType: "json",
+                success: function(data){
+                    if(data.done){
+                        choose();
+                    }else {
+                        alert(data.msg);
+                    }
+                }
+            });
+        }
+        function checkall(ziji,mid){
+            var has = true;
+            $("[pmid="+mid+"]").each(function () {
+                var check = $(this).attr('checked');
+                if(check != 'checked'){
+                    has = false;
+                    return false;
+                }
+            });
+            if(has){
+                $("[pmid="+mid+"]").each(function () {
+                    $(this).attr('checked',false);
+                    $(this).parent().parent().removeClass("active");
+                    $(ziji).removeClass("active");
+                });
+            }else{
+                $("[pmid="+mid+"]").each(function () {
+                    $(this).attr('checked',true);
+                    $(this).parent().parent().addClass("active");
+                    $(ziji).addClass("active");
+                });
+            }
+        }
+        function changewidth() {
+            $('.modal-iframe').attr('style','width:1003px');
+            $('.modal-body').attr('style','height:650px');
+        }
+
+        var ajaxurl="{:U('Execute/service_ajax_col')}";
+    </script>
+</block>

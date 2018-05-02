@@ -1,0 +1,61 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class TakePartModel extends Model
+{
+    protected $tableName = 'takepart';
+    protected $_validate = array(
+        array('uid', 'require', '请选择参与用户'), //默认情况下用正则进行验证
+    );
+
+    /**
+     * 按照项目获取参与成员
+     *
+     * @param $pid
+     *
+     * @return mixed
+     */
+    public function getTakePartByPid($pid)
+    {
+        $map = [];
+        $map['t.pid'] = $pid;
+        $list = $this->alias('t')
+            ->distinct(true)
+            ->field('pr.name as  title,t.uname, t.addtime, t.adduname,  m.mobile')
+            ->join('ot_project_role pr on t.roleid=pr.prid', 'left')
+            ->join('ot_ucenter_member m on m.id=t.uid', 'left')
+            ->where($map)
+            ->order('addtime desc')
+            ->select();
+        return $list;
+    }
+
+    /**
+     * 按照项目查出数目
+     *
+     * @param $pid
+     *
+     * @return mixed
+     */
+    public function getCount($pid)
+    {
+        $map['pid'] = $pid;
+        $count = $this->where($map)->count();
+        return $count ? 1 : 0;
+    }
+}

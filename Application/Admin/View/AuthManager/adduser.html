@@ -1,0 +1,246 @@
+<extend name="Public/base" />
+
+<block name="btnarea">
+</block>
+<block name="body">
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+<style>
+#sonModule,#moduleBox>span>input,#moduleBox>table {
+	max-width: 400px;
+}
+
+#childrenForm .col-table+.col-table .form-control {
+	border-left: transparent;
+}
+
+#sonModule .row-table .input-group input {
+	border-right: none;
+}
+#dropMenu {
+    	min-width: 250px;
+		}
+		#searchResult>.search-list, #defaultMenu, #moreMenu {
+	    display: table-cell;
+	    vertical-align: top;
+	    min-width: 205px;
+		}
+		.outer .side {
+    		width: 360px;
+		}
+		.outer .side-body .panel {
+    min-width: 350px;
+}
+.outer.with-side .main, .outer.with-side .side+form, .outer.with-side .main, .outer.with-side .side+table {
+    margin-left: 370px;
+    margin-right: 0;
+}
+</style>
+	<div class="side">
+			<a class="side-handle" data-id="companyTree">
+				<i class="icon-caret-left"></i>
+			</a>
+			<div class="side-body">
+				<div class="panel panel-sm">
+					<div class="panel-heading nobr">
+						<i class="icon-sitemap"></i>
+						<strong>{:L('PLATFORM_ROLE')}</strong>
+					</div>
+					<div class="panel-body" >
+						{$menuList}
+					</div>
+				</div>
+			</div>
+		</div>
+	
+	<div class="main">
+	<script>setTreeBox();</script>
+		<div class="panel">
+			<div class="panel-heading">
+				<strong>添加人员</strong>
+			</div>
+			<form id="childrenForm" class="form-condensed" method="post" action="{:U('adduser?id='.$id)}">
+				<div class="" style="padding: 20px">
+					<div>
+						<table class="table table-form ntable" style="border: 0">
+							<tbody>
+								<tr>
+									<td id="moduleBox">
+										<div id="sonModule" class="pr">
+											<a href="javascript:;" class="btn-addrow"  id="btn-addrow1"><i class="icon icon-plus"></i></a>
+											<notempty name="users">
+												<volist name="users" id="vo">
+													<div class="row-table addedItem" style="margin-bottom: 5px">
+														<div class="col-table" style="width:182px;">
+															<input name="uid[]" type="hidden" value="{$vo['id']}">
+															<input name="role[]" type="hidden" value="{$vo['id']}">
+															<select name="role[]"  class="form-control searchSelect chosen" disabled="disabled">
+                                                                <option value="{$v['id']}">{$vo['nickname']}</option>
+
+															</select>
+														</div>
+														<div class="col-table">
+															<select name="rlid[]" class="form-control searchSelect chosen" >
+																<option value="0">{:L('CHOSEJSGRADE')}</option>
+																<volist name="rls" id="v">
+																	<option value="{$v['rlid']}" <if condition="$vo['rlid'] eq $v['rlid']"> selected </if>>{$v['name']}</option>
+																</volist>
+															</select>
+														</div>
+														<div class="col-table" style="width: 40px">
+															<div class="input-group">
+																<span class="input-group-btn">
+																	<a href="javascript:;" onclick='deletedata(this,"{:U('deleteuser?uid='.$vo[id].'&gid='.$id)}")'class="btn btn-block">
+																		<i class="icon icon-remove"></i>
+																	</a>
+																</span>
+															</div>
+														</div>
+													</div>
+												</volist>
+												<else/>
+												<div class="row-table addedItem" style="margin-bottom: 5px">
+													<div class="col-table" style="width:182px;">
+														<select name="role[]" id="role[]" class="form-control searchSelect chosen">
+															<option value="0">{:L('CHOSERY')}</option>
+															<foreach name="temp_user" item="v" >
+																<option value="{$v['id']}">{$v['nickname']}</option>
+															</foreach>
+														</select>
+													</div>
+													<div class="col-table" >
+														<select name="rlid[]" class="form-control searchSelect chosen" >
+															<option value="0">{:L('CHOSEJSGRADE')}</option>
+															<volist name="rls" id="v">
+																<option value="{$v['rlid']}">{$v['name']}</option>
+															</volist>
+														</select>
+													</div>
+													<div class="col-table" style="width: 40px">
+														<div class="input-group">
+															<input type="hidden" id="new">
+															</a> </span><span class="input-group-btn"><a
+																href="javascript:;" onclick="deleteItem(this)"
+																class="btn btn-block"><i class="icon icon-remove"></i>
+														</a> </span>
+														</div>
+													</div>
+												</div>
+											</notempty>
+											<div class="row-table addedItem" style="margin-bottom: 5px;display: none">
+												<div class="col-table" style="width:182px;">
+													<select name="role[]" class="form-control searchSelect chosen">
+														<option value="0">{:L('CHOSERY')}</option>
+														<foreach name="temp_user" item="v" >
+															<option value="{$v['id']}">{$v['nickname']}</option>
+														</foreach>
+													</select>
+												</div>
+												<div class="col-table" >
+													<select name="rlid[]" class="form-control searchSelect chosen" >
+														<option value="0">{:L('CHOSEJSGRADE')}</option>
+														<volist name="rls" id="v">
+															<option value="{$v['rlid']}">{$v['name']}</option>
+														</volist>
+													</select>
+												</div>
+												<div class="col-table" style="width: 40px">
+													<div class="input-group">
+														<input type="hidden" >
+														</a> </span><span class="input-group-btn"><a
+															href="javascript:;" onclick="deleteItem(this)"
+															class="btn btn-block"><i class="icon icon-remove"></i>
+														</a> </span>
+													</div>
+												</div>
+											</div>
+										</div>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td width="400px">
+										<div class="rightdiv">
+											<input type="hidden" name="id" value="{$id}">
+											<button type="button" class="btn btn-default" onclick="history.go(-1);"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> {:L('BACK')}</button>
+											<button type="submit" id="submit"  class="btn btn-primary" ><i class="icon-save"></i> {:L('SAVE')}</button>
+										</div>
+									</td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+        function choose() {
+            $.closeModal();
+        }
+
+	function deletedata(obj,url){
+		if(confirm("{:L('DATANDEL')}")){
+			$.ajax({
+				type: 'get',
+				url: url,
+				error: function () {
+					alert('网络繁忙，请稍后再试');
+				},
+				success: function (response) {
+					if (response.done==true) {
+						deleteItem(obj);
+					}else{
+						alert(response.msg);
+					}
+				}
+			});
+		}
+	}
+        $(function(){
+            $("#btn-addrow1").click(function(){
+                var obj=$(".row-table:last");
+                addItem(obj);
+            });
+        })
+	function addItem(obj)
+	{
+        var obj=$(".row-table:last");
+		 var $inputgroup = $(obj);
+         $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+        $inputgroup.next('.row-table').attr('style','padding-bottom: 5px;');
+         $inputgroup.next().find("div.chosen-container").remove();
+        $inputgroup.next().find(".chosen").children('option').attr('selected',false);
+         
+         var defaultChosenOptions = {no_results_text: noResultsMatch, width:'100%', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+         $inputgroup.next().find(".chosen").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+         {
+             var $this = $(this);
+             var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+             var $drop = $chosen.find('.chosen-drop');
+             $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+         });
+	}
+
+	function deleteItem(obj)
+	{
+        if($("#sonModule").find('i.icon-remove').size() <= 2){
+            addItem(obj);
+        }
+        $(obj).closest('.addedItem').remove();
+	}
+
+	</script>
+
+
+</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+	$(function(){
+        $("#list{$id}").attr('class','active');
+	});
+        //导航高亮
+    highlight_subnav("{:U('AuthManager/index')}");
+    </script> </block>

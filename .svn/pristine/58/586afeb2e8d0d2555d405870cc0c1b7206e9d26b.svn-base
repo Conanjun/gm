@@ -1,0 +1,64 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+
+/**
+ * 动态管理控制器
+ */
+class DynamicsController extends AdminController {
+	
+	/**
+	 *动态管理首页
+	 *
+	 */
+    public function index() {
+
+        $config=array(
+            "actionURL"=>"/Admin/Dynamics/index",
+            "operators"=>array("="=>"=","!="=>"!=",">"=>">",">="=>">=","<"=>"<","<="=>"<=","include"=>"包含"),
+            "params"=>array(0=>array('str'=>'动作','fieldname'=>'a.name','operator' => 'include',  'control' => 'input',  'values' => '')
+            ,1=>array('str'=>'对象类型','fieldname'=>'t.name','operator' => 'include',  'control' => 'input',  'values' => ''))
+        );
+        $this->setSearchConfig($config);
+        $map=$this->getCondition();
+
+        $map ['uid'] = UID;
+
+        if (I('sort','') && I('order','')){
+            $order=I("sort")." ".I("order");
+        }else{
+            $order = 'logid desc';
+        }
+
+        $count = D ( 'log' )
+            ->alias ( 'l' )
+            ->join ( 'ot_action_name a on l.action = a.code', 'LEFT' )
+            ->join ( 'ot_table_name t on l.outtype = t.code', 'LEFT' )
+            ->where ( $map )->count();
+
+        $page = new \Think\Page ($count, 20 );
+
+        $list = D ( 'log' )
+            ->field ( 'l.*,a.name as action_name,t.name as outtype_name' )
+            ->alias ( 'l' )
+            ->join ( 'ot_action_name a on l.action = a.code', 'LEFT' )
+            ->join ( 'ot_table_name t on l.outtype = t.code', 'LEFT' )
+            ->where ( $map )->order ( $order )
+            ->limit ( $page->firstRow . ',' . $page->listRows )->select ();
+
+        $this->assign ( '_list', $list );
+        $page->setConfig ( 'theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%' );
+        $this->assign ( '_page', $page->show () );
+        $this->meta_title = '动态';
+        $this->assign('uid',UID);
+        $this->display ();
+    }
+}

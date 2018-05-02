@@ -1,0 +1,150 @@
+<?php
+namespace Admin\Controller;
+/*
+ * 项目组控制器
+ * */
+class ProjectServiceController extends AdminController{
+	//定义数据表
+	private $db;
+
+	//构造函数 实例化ModuleModel 并获得整张表的数据
+	public function __construct(){
+		parent::__construct();
+		//初始化时实例化category model
+		$this->db=D('Group');
+	}
+	public function index(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		$config=array(
+			"actionURL"=>"/Admin/Service/index",
+			"operators"=>array("="=>"=","!="=>"!=",">"=>">",">="=>">=","<"=>"<","<="=>"<=","include"=>"包含"),
+			"params"=>array(0=>array('str'=>'标准项目','fieldname'=>'s.name','operator' => 'include',  'control' => 'input',  'values' => '')
+			,1=>array('str'=>'项目组','fieldname'=>'s.mid','operator' => '=',  'control' => 'select',  'values' => array())
+			,2=>array('str'=>'模块','fieldname'=>'m.role','operator' => '=',  'control' => 'select',  'values' => array())
+			,3=>array('str'=>'标准内容','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,4=>array('str'=>'标题','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,5=>array('str'=>'状态','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,6=>array('str'=>'执行人','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,7=>array('str'=>'审核人','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,7=>array('str'=>'里程碑','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array())
+			,8=>array('str'=>'交付清单','fieldname'=>'s.unit','operator' => '=',  'control' => 'select',  'values' => array()))
+		);
+		if($config&&$config['params']){
+			$module = M('Module')->field(true)->select();
+			$group = M('Group')->field(true)->select();
+			$unit = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array('d_key','d_value'))->order('d_order asc,d_tid asc')->select();
+
+			$mmodule=array(""=>"");
+			$mgroup=array(""=>"");
+			$munit=array(""=>"");
+			if($module){
+				foreach ($module as $v){
+					$mmodule[$v['mid']]=$v['name'];
+				}
+			}
+			if($group){
+				foreach ($group as $v){
+					$mgroup[$v['groupid']]=$v['name'];
+				}
+			}
+			if($unit){
+				foreach ($unit as $v){
+					$munit[$v['d_value']]=$v['d_value'];
+				}
+			}
+			$config['params'][1]['values']=$mmodule;
+			$config['params'][2]['values']=$mgroup;
+			$config['params'][3]['values']=$munit;
+		}
+
+		$this->setSearchConfig($config);
+
+		//项目
+		$pro = getproject('ProjectService/index?pid=');
+		$this->assign('ProjectConfig',$pro);
+		$Page       = new \Think\Page(4,20);
+		$show = $Page->show();
+		$this->assign('_page',$show);
+		$this->display();
+	}
+	/**
+	 * 编辑模块
+	 */
+	public function add(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		if(IS_POST) {
+			$newdata = array();
+			$data = $_POST;
+			foreach ($data as $key => $value) {
+				foreach ($value as $k => $v) {
+					$newdata[$k][$key] = $v;
+				}
+			}
+			$editdata = array();
+			$adddata = array();
+			foreach ($newdata as $key => $value) {
+				if (empty($value['groupid'])) {
+					if (!empty($value['name'])) {
+						$adddata[] = $value;
+					}
+				} else {
+					$editdata[] = $value;
+				}
+			}
+			if(is_array($editdata)){
+				foreach ($editdata as $key=>$vo){
+					$this->db->save($vo);
+				}
+			}
+			if(is_array($adddata)){
+				$sql ='';
+				foreach ($adddata as $key=>$vo){
+					extract($vo);
+					$sql .= ",('".$name."',$sort_order)";
+				}
+				$sql ="insert into ot_group(name,sort_order) values ". substr($sql,1);
+				$this->db->execute($sql);
+			}
+			$this->success ( '编辑成功！',U( 'Group/index') );
+		}else{
+			$this->display();
+		}
+
+	}
+	public function edit(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+
+		$this->display();
+	}
+	public function bulk_edit(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		$this->display();
+	}
+	public function delete(){
+		$mid = I('get.id');
+		if(!$mid){
+			$this->json_error('请选择要操作的数据!', false);
+		}
+		if(is_array($mid)){
+			$ids = implode(',',$mid);
+		}else{
+			$ids = $mid;
+		}
+		$where =array('groupid'=>array('in',$ids));
+		$tmp = $this->db->where($where)->delete();;
+		if($tmp){
+			$this->ajaxReturn(array('done' => true , 'msg' => '删除成功'));
+		}else{
+			$this->json_error('删除失败!', false);
+		}
+	}
+	
+}

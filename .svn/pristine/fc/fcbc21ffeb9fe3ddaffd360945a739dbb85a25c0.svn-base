@@ -1,0 +1,74 @@
+<script type="text/javascript" src="__STATIC__/jquery-2.0.3.min.js"></script>
+<script>
+    $(function(){
+        $("#agree").click(function(){
+            var type='agree';
+            var id="{$id}";
+            var nr=$("#nr").val();
+            $.post("{:U('check')}",{id:id,type:type,nr:nr},function(result){
+               if(result.done)
+               {
+
+                   window.parent.renovate();
+               }
+               else{
+                   alert(result.msg);
+               }
+            },"json");
+        });
+        $("#refuse").click(function(){
+            var type='refuse';
+            var id="{$id}";
+            var nr=$("#nr").val();
+            if(nr)
+            {
+            	 $.post("{:U('check')}",{id:id,type:type,nr:nr},function(result){
+                    if(result.done)
+                    {
+                        window.parent.renovate();
+                    }
+                    else
+                    {
+                        alert(result.msg);
+                    }
+                },"json");
+            }
+            else
+            {
+                $("textarea").css("border-color","red");
+            }
+
+        });
+
+
+    });
+
+</script>
+<center>
+<div>
+<style>
+.check_btn{border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    background-color:#009de6;color: #fff;width:100px;height:30px;
+    line-height: 30px;
+    font-size: 14px;
+    border: 0px;
+    cursor: pointer;
+    }
+    .jj{background: #666}
+    .check_btn:HOVER {
+	background: #ff4d13
+}
+.section_maeginstyle {
+    padding: 0;
+}
+</style>
+<textarea placeholder="审核备注" style="width:200px;height:100px;border: 1px solid #ddd;padding: 5px" id="nr"></textarea><br><br>
+<button id="agree" class="check_btn tt" >同意</button>&nbsp;&nbsp;
+<button id="refuse" class="check_btn jj" >拒绝</button>
+</div>
+</center>
+
+
+

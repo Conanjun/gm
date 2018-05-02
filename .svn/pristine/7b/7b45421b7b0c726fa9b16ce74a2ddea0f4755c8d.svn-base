@@ -1,0 +1,293 @@
+<extend name="Public/base" />
+<block name="body"> <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+<script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+<link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css"
+	rel="stylesheet" />
+<link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css"
+	rel="stylesheet" />
+<style>
+.formbtn:hover {
+	color: #333333
+}
+
+.qq-upload-button {
+	width: 192px;
+	height: 100px;
+	border: 0;
+	background: url("__ROOT__/admin/images/plus.png") no-repeat center
+		center #efefef;
+	border: 0;
+	background-size: 50px;
+}
+
+.qq-upload-list-selector li {
+	position: relative;
+}
+
+.pdel {
+	background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	top: -5px;
+	right: -5px;
+	z-index: 1;
+}
+
+.qq-thumbnail-selector {
+	vertical-align: middle;
+	margin-right: 0px;
+	width: 200px;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.sitem li.lion {
+	background: #1ab394;
+	color: #fff;
+}
+
+.sitem li {
+	float: left;
+	background: #f2f2f2;
+	height: 25px;
+	line-height: 25px;
+	margin-right: 10px;
+	padding: 0 10px;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+	cursor: pointer;
+	color: #888;
+	transition: 0.3s;
+}
+</style>
+
+<link href="__CSS__/n.css" rel="stylesheet" type="text/css" />
+<script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+<script>
+$(function(){
+	$('form').validate({
+        errorPlacement: function (error, element) {
+            $(element).parent().append(error);
+        },
+	    onkeyup: false,
+        rules: {
+            title: {
+                required: true,
+                remote: {
+                    url: "{:U('AuthManager/check_title')}",
+                    type: 'post',
+                    data: {
+                        title: function () {
+                            return $('#title').val();
+                        },
+                        id:"{$group['id']}"
+                    }
+                }
+            },
+        },
+        messages: {
+            title: {
+                required : "{:L('PLATFORM_NAME_NOT_EMPTY')}",
+                remote: "{:L('ROLENAME_EXISTED')}" //角色名称已被占用
+            },
+        }
+	});
+});
+
+</script> <!-- content begin -->
+<div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('PLATFORM_ROLE')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('AuthManager/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+						<input type="hidden" name="id" value="{$group.id}">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PLATFORM_NAME')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="title" id="title" value="{$group.title}" class="form-control" autocomplete="off" placeholder="{:L('PLATFORM_NAME_NOT_EMPTY')}">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('DESCRIPTION')}</label>
+                                <div class="col-sm-4">
+                                    <textarea id="description" name="description" class="form-control">{$group.description}</textarea>
+                                </div>
+                            </div>
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('STATE')}</label>
+                                <div class="col-sm-3">
+                                    <div class="radio radio-inline"><input type="radio" value="1" name="enabled" <if condition="$group.enabled eq 1">checked</if>> <label> {:L('NORMAL')} </label></div>
+                                    <div class="radio radio-inline"><input type="radio" value="0" name="enabled" <if condition="$group.enabled eq 0">checked</if>> <label> {:L('DISABLE')} </label></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-default" type="button">{:L('BACK')}</a>
+									<a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();"><i class="icon-save"></i> {:L('SAVE')}</a>
+                                </div>
+                            </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+<!-- content end -->
+
+
+<div class="wrapper wrapper-content">
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="ibox float-e-margins">
+				<!-- title -->
+				<div class="ibox-title">
+					<h5>{:L('ROLE')}</h5>
+				</div>
+				<div class="ibox-content">
+					<table
+						class="table table-hover table-striped table-bordered table-form">
+						<thead>
+							<tr>
+								<th style="width: 200px">{:L('MOD')}</th>
+								<th>{:L('FUNC')}</th>
+							</tr>
+						</thead>
+						<tbody>
+							<volist name="node_list" id="node">
+							<tr class="main_row">
+								<th><label>{:L($node['title'])} <input
+										class="auth_rules rules_all" type="checkbox" name="rules[]"
+										value="<?php echo $main_rules[$node['url']] ?>">
+								</label>
+								</th>
+								<td><present name="node['child']"> <volist
+										name="node['child']" id="child">
+									<div class="rule_check">
+										<div style="font-weight: bold;">
+											<label>
+												<input class="auth_rules rules_row" type="checkbox"
+												name="rules[]" 
+												value="<?php echo $auth_rules[$child['url']] ?>"
+											<if
+													condition="in_array( $auth_rules[$child['url']],$rules_list)">checked='checked'</if>
+												/> {:L($child['title'])} </label>
+										</div>
+										<notempty name="child['operator']"> <span
+											class="child_row" style="margin-left: 30px; display: block;">
+											<volist name="child['operator']" id="op"> <label
+												style="width: 120px; color: #666"<notempty
+													name="op['tip']">title='{$op.tip}'</notempty>> <input
+												class="auth_rules" type="checkbox" name="rules[]" 
+												value="<?php echo $auth_rules[$op['url']] ?>" /> {:L($op['title'])}
+											</label> </volist> </span> </notempty>
+									</div>
+									</volist> </present></td>
+							</tr>
+							</volist>
+
+						</tbody>
+					</table>
+
+				</div>
+
+			</div>
+		</div>
+	</div>
+	</div>
+	</form>
+	<div class="wrapper wrapper-content">
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="ibox float-e-margins">
+				<!-- title -->
+				<div class="ibox-title">
+					<h5>{:L('ROLEUSER')}</h5>
+				</div>
+				<div class="ibox-content">
+				<table
+					class="table table-center"
+					style="text-align: center">
+					<thead>
+						
+						<tr>
+							<th style="text-align: left; padding-left: 10px">{:L('MNAME')}</th>
+							<th style="text-align: left">{:L('DNAME')}</th>
+							<th style="text-align: left">{:L('EMAIL')}</th>
+							<th style="width: 110px">{:L('MOBILE')}</th>
+							<th style="width: 60px">{:L('STATE')}</th>
+						</tr>
+					</thead>
+					<tbody>
+						<notempty name="users"> <volist name="users" id="vo">
+						<tr>
+							<td style="text-align: left; padding-left: 10px">{$vo.nickname}</td>
+							<td style="text-align: left">{$vo.dname}</td>
+							<td style="text-align: left">{$vo.email}</td>
+							<td>{$vo.mobile}</td>
+							<td><eq name="vo['status']" value="1"> <img
+									style="width: 15px;"
+									src="__IMG__/positive_enabled.png"
+									ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}"
+									fieldvalue="1" /> <else /> <img style="width: 15px;"
+									src="__IMG__/positive_disabled.png"
+									ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}"
+									fieldvalue="0" /> </eq></td>
+						</tr>
+						</volist> <else />
+						<td colspan="5" class="text-center table_nodata">{:L('NOCONCENT')}</td>
+						</notempty>
+					</tbody>
+				</table></div>
+			</div>
+		</div>
+	</div>
+</div>
+</block>
+<block name="script">
+    <!--<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>-->
+
+     <script type="text/javascript">
+         $(function(){
+             $("#list{$id}").attr('class','active');
+             var rules = [{$this_group.rules}];
+             $('.auth_rules').each(function(){
+                 if( $.inArray( parseInt(this.value,10),rules )>-1 ){
+                     $(this).prop('checked',true);
+                 }else{
+                     if($(this).hasClass('rules_all')){
+                         $(this).parent().parent().parent().remove();
+                     }else if($(this).hasClass('rules_row')){
+                         $(this).parent().parent().parent().remove();
+					 }else{
+                         $(this).parent().remove();
+                     }
+				 }
+                 if(this.value==''){
+                     $(this).closest('span').remove();
+                 }
+             });
+
+         });
+    </script>
+</block>

@@ -1,0 +1,331 @@
+<?php
+
+namespace Studio\Controller;
+use Think\Page;
+use Common\Common\Super\Order;
+/**
+ * 任务管理-设计师：fhc
+ *
+ */
+class OrderTaskSjsController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('OrderTask');    // 订单任务
+	}
+    //首页
+    public function index(){
+        $stuid = Order::get_stuid(UID);   // 工作室id
+        $uid = UID;
+        $where = "1=1 and t.uid = {$uid} and t.tasktype = 'STUDIO_TASK_SJS' ";
+
+        $filter= '';
+
+        $order_sn = empty($_GET['order_sn'])?'':trim($_GET['order_sn']);//订单编号
+        if($order_sn){
+            $filter .= " and o.order_sn like '%{$order_sn}%'";
+        }
+
+        $tname = empty($_GET['tname'])?'':trim($_GET['tname']);//任务名称
+        if($tname){
+            $filter .= " and t.tname like '%{$tname}%'";
+        }
+
+        $finishname = empty($_GET['finishname'])?'':trim($_GET['finishname']);//完成人
+        if($finishname){
+            $filter .= " and m.nickname like '%{$finishname}%'";
+        }
+
+
+        $state = empty($_GET['state'])?'':intval($_GET['state']);//任务状态
+        $state == 1 and  $filter .= " and t.state = 1";
+        $state == 2 and  $filter .= " and t.state = 0";
+
+        $isurgent = empty($_GET['isurgent'])?'':trim($_GET['isurgent']);//是否加急
+        $isurgent == 1 and  $filter .= " and t.isurgent = 1";
+        $isurgent == 2 and  $filter .= " and t.isurgent = 0";
+
+        if ($_GET['start_addtime']) {
+            $af = gmstr2time($_GET['start_addtime']);
+            $filter .= " and t.add_time>='" . $af . "'";
+        }
+        if ($_GET['end_addtime']) {
+            $at = gmstr2time_end($_GET['end_addtime']);
+            $filter .= " and t.add_time<'" . $at . "'";
+        }
+        if ($_GET['start_finishtime']) {
+            $of = gmstr2time($_GET['start_finishtime']);
+            $filter .= " and t.finishtime>='" . $of . "'";
+        }
+        if ($_GET['end_finishtime']) {
+            $ot = gmstr2time_end($_GET['end_finishtime']);
+            $filter .= " and t.finishtime<'" . $ot . "'";
+        }
+
+        // 更新排序
+        if (isset ( $_GET ['sort'] ) && isset ( $_GET ['order'] )) {
+            $sort = strtolower ( trim ( $_GET ['sort'] ) );
+            $order = strtolower ( trim ( $_GET ['order'] ) );
+            $sort1 = 't.addtime';
+            if (! in_array ( $order, array (
+                'asc',
+                'desc'
+            ) )) {
+                $sort = 't.isurgent';
+                $order = 'desc';
+                $sort1 = 't.addtime';
+            }
+        } else {
+            $sort = 't.isurgent';
+            $order = 'desc';
+            $sort1 = 't.addtime';
+        }
+
+        $where .= $filter;
+        $count = $this->model->alias('t')->join("ot_order o on t.oid = o.order_id")->join("ot_member m on m.uid = t.finishuid","left")->where($where)->count();
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('t')
+            ->field('t.*,t.state as task_state,t.addtime as task_addtime,t.finishtime as task_finishtime,t.finishuid as task_finishuid,t.isurgent as task_isurgent,o.*,m.nickname as task_finishman')
+            ->join("ot_order o on t.oid = o.order_id")
+            ->join("ot_member m on m.uid = t.finishuid","left")
+            ->where($where)
+            ->order ( "$sort $order ,$sort1 $order" )
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($lists as $key=>$list){
+            $lists[$key]['str_state'] = L(Order::$orderState[$list['state']]);
+        }
+
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+        $this->display();
+    }
+
+    //接受任务
+    public function confirm(){
+        $order_id = empty($_POST['id']) ? '' : trim($_POST['id']);
+        $task_id = empty($_POST['task_id']) ? '' : trim($_POST['task_id']);
+        $time = time();
+        if (IS_POST) {
+            $finishnote = empty($_POST['finishnote']) ? '' : trim($_POST['finishnote']);
+            if(Order::checkorder($order_id)==0){
+                $this->error(L('S_TASK_ERROR_1'));
+            }
+            if(empty($_POST['task_image'])){
+               // $this->error(L('S_TASK_SJS_MSG_2'));
+            }
+            $order = M("order")->where("order_id=".$order_id)->find();
+            $task = M("order_task")->where("tastkid=".$task_id)->find();
+            if($task['uid'] != UID){
+                $this->error(L('S_TASK_SJS_MSG_3'));
+            }
+            if($task['uid'] == 0){
+                $this->error(L('S_TASK_SJS_MSG_4'));
+            }
+            if($order['state'] < Order::ASSIGNED){
+                $this->error(L('S_TASK_SJS_ERROR_1'));
+            }
+
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+
+            //上传方案
+            $res_file = M('File')->add(['name'=>$_POST['task_images'], 'savepath'=>$_POST['task_image']]);
+            if($res_file){
+                M('Order_file')->add(['oid'=>$order_id, 'file_id'=>$res_file,'ftype'=>'plan_file6','addtime'=>time(),'uid'=>UID,'note'=>'']);
+            }
+
+            //修改完成人和说明
+            $res_data = array(
+                'tastkid'=>$task_id,
+                'finishnote'=>$finishnote,
+                'finishtime'=>$time,
+                'finishuid'=>UID,
+                'state'=>1
+            );
+            $res = M('Order_task')->save($res_data);
+
+            //给客户发消息
+            $title = sprintf(L('S_TASK_TASK_PROMPT_1'),$order['order_sn']);
+            $content = sprintf(L('S_TASK_TASK_PROMPT_5'),$order['stuname'],$order['order_sn'],L('UPLOADED'));
+            $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => $time,'title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$order_id));
+
+            //生成财务任务
+            $tname = sprintf(L('S_TASK_TASK_PROMPT_14'),$order['order_sn']);
+            $tid = Order::add_task(array('oid' => $order_id, 'tname' =>$tname, 'tasktype' => 'STUDIO_TASK_CW', 'isurgent'=>$order['isurgent'], 'uid' => '' ,'note'=>$tname));
+
+            //写入订单操作记录
+            $log_id = Order::action_order_log(array('oid' => $order_id, 'uid' =>$order['uid'], 'addtime' => $time, 'state' => Order::UPLOADED ,'note'=>''));
+
+            //更改订单状态
+            $result = M('Order')->where("order_id=".$order_id)->save(array('state'=>Order::UPLOADED));
+
+            //写入订单操作记录，修改订单状态 设计资料已接收
+
+            if($msg_id&&$log_id&&$tid&&$result&&$res){
+                $Model->commit(); // 成功则提交事务
+                $this->success(L('S_TASK_SJS_SUC'), U('index'));
+            }else{
+                $Model->rollback(); // 否则将事务回滚
+                $this->error(L('S_TASK_SJS_ERROR'));
+            }
+
+        }
+    }
+
+    //取消
+    public function cancle()
+    {
+        $tid = empty($_POST['tid']) ? '' : trim($_POST['tid']);
+        $task = M("OrderTask")->where("tastkid=" . $tid)->find();
+        $order_id = $task['oid'];
+        $order = M("Order")->where("order_id=" . $order_id)->find();
+        $user_state = Order::get_dent_paytype($order_id);
+        //0现付-已付的退款1月付
+        if ($user_state == 0) {
+            $pays = M("PayLog")->where("oid=" . $order_id)->select();
+            if (!empty($pays)) {
+                foreach ($pays as $k => $v) {
+                    //发起退款
+                    $sn = Order::creat_refundsn();
+                    $note = L('S_TASK_SJS_MSG_5');
+                    if ($v['currency'] == 'RMB') {
+                        $re_m = $v['ramount'];
+                    }
+                    $refund = array(
+                        'payid' => $v['payid'],
+                        'resn' => $sn,
+                        'addtime' => NOW_TIME,
+                        'retype' => $v['pay_name'],
+                        'amount' => $re_m,
+                        'currency' => $v['currency'],
+                        'description' => $note
+                    );
+                    $reid = M('Refund')->add($refund);
+                    if (empty($reid)) {
+                        $this->error(L('S_TASK_CW_ERROR_12'));
+                    }
+                    $out_request_no = $v['paysn'] . time();
+                    if ($v['pay_name'] == 'alipay') {
+                        include_once(ROOT_PATH . '/alipaysdk/aop/AopClient.php');
+                        include_once(ROOT_PATH . '/alipaysdk/AopSdk.php');
+                        $aop = new AopClient ();
+                        $aop->gatewayUrl = ALIPAY_URL;
+                        $aop->appId = ALIPAY_APPID;
+                        $aop->rsaPrivateKey = ALIPAY_PRIVATEKEY;
+                        $aop->alipayrsaPublicKey = ALIPAY_PUBLICKEY;
+                        $aop->apiVersion = '1.0';
+                        $aop->signType = 'RSA2';
+                        $aop->postCharset = 'utf-8';
+                        $aop->format = 'json';
+                        $request = new AlipayTradeRefundRequest();
+                        $request->setBizContent("{" .
+                            "\"out_trade_no\":\"{$v['paysn']}\"," .
+                            "\"out_request_no\":\"{$out_request_no}\"," .
+                            "\"trade_no\":\"{$v["out_trade_sn"]}\"," .
+                            "\"refund_amount\":{$re_m}," .
+                            "\"refund_reason\":\"{$note}\"}");
+                        $result = $aop->execute($request);
+                        $responseNode = str_replace(".", "_", $request->getApiMethodName()) . "_response";
+                        $resultCode = $result->$responseNode->code;
+                        if (empty($resultCode) || $resultCode != 10000) {
+                            $this->error(sprintf(L('S_TASK_CW_ERROR_10'), $resultCode));
+                        }
+                        //退款成功回更操作
+                        M('Refund')->where("reid=" . $reid)->save(array('out_trade_sn' => $result->$responseNode->trade_no, 'retime' => NOW_TIME));
+                        $data = array(
+                            'addtime' => NOW_TIME,
+                            'uid' => UID,
+                            'amount' => '-' . $re_m,
+                            'paytype' => '支付宝',
+                            'stuid' => $order['stuid'],
+                            'denid' => $order['denid'],
+                        );
+                        $recid = M('Receipt')->add($data);
+                        $data_sub = array(
+                            'recid' => $recid,
+                            'opid' => $v['payid'],
+                            'oid' => $v['oid'],
+                            'feename' => $v['feename'],
+                            'paytype' => $user_state,
+                            'amount' => '-' . $re_m,
+                            'pay_amount' => '-' . $re_m,//根据返回值重写
+                            'currency' => $v['currency'],
+                            'addtime' => NOW_TIME,
+                            'uid' => UID,
+                            'note' => $note
+                        );
+                        $recsubid = M('ReceiptSub')->add($data_sub);
+
+                        //写入订单操作记录
+                        $log_id = Order::action_order_log(array('oid' => $order_id, 'uid' => '', 'addtime' => '', 'state' => Order::CANCEL, 'note' => $note));
+                        if (empty($recid) || empty($recsubid) || empty($log_id)) {
+                            $this->error(L('S_TASK_CW_ERROR_13'));
+                        }
+                    } elseif ($v['pay_name'] == 'wxpay') {
+                        require_once(ROOT_PATH . '/wxpayapi/lib/WxPay.Api.php');
+                        $out_trade_no = $v['paysn'];
+                        $total_fee = $v["ramount"];
+                        $refund_fee = $re_m * 100;
+                        $input = new WxPayRefund();
+                        $input->SetOut_trade_no($out_trade_no);
+                        $input->SetTotal_fee($total_fee);
+                        $input->SetRefund_fee($refund_fee);
+                        $input->SetOut_refund_no(WxPayConfig::MCHID . date("YmdHis"));
+                        $input->SetOp_user_id(WxPayConfig::MCHID);
+                        $data = WxPayApi::refund($input);
+                        libxml_disable_entity_loader(true);
+                        $data = json_decode(json_encode(simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+                        if ($data["result_code"] != 0) {
+                            $this->error(sprintf(L('S_TASK_CW_ERROR_11')));
+                        }
+                        //退款成功回更操作
+                        M('Refund')->where("reid=" . $reid)->save(array('out_trade_sn' => $data["refund_id"], 'retime' => NOW_TIME));
+                        $data = array(
+                            'addtime' => NOW_TIME,
+                            'uid' => UID,
+                            'amount' => '-' . $re_m,
+                            'paytype' => '支付宝',
+                            'stuid' => $order['stuid'],
+                            'denid' => $order['denid'],
+                        );
+                        $recid = M('Receipt')->add($data);
+                        $data_sub = array(
+                            'recid' => $recid,
+                            'opid' => $v['payid'],
+                            'oid' => $v['oid'],
+                            'feename' => $v['feename'],
+                            'paytype' => $user_state,
+                            'amount' => '-' . $re_m,
+                            'pay_amount' => '-' . $re_m,//根据返回值重写
+                            'currency' => $v['currency'],
+                            'addtime' => NOW_TIME,
+                            'uid' => UID,
+                            'note' => $note
+                        );
+                        $recsubid = M('ReceiptSub')->add($data_sub);
+                        //写入订单操作记录
+                        $log_id = Order::action_order_log(array('oid' => $order_id, 'uid' => '', 'addtime' => '', 'state' => Order::CANCEL, 'note' => $note));
+                        if (empty($recid) || empty($recsubid) || empty($log_id)) {
+                            $this->error(L('S_TASK_CW_ERROR_13'));
+                        }
+                    }
+                }
+            }
+        }
+        $result = M("Order")->where("order_id=" . $order_id)->save(array('state' => Order::CANCEL));
+        if($result===false){
+            $this->error(L('S_TASK_SJS_MSG_6'));
+        }
+        $this->success(L('S_TASK_SJS_MSG_7'), U('index'));
+    }
+}

@@ -1,0 +1,292 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+		tbody.sortable > tr.drag-shadow {display: none}
+		tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+		tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+		tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+		tbody.sortable-sorting {cursor: move;}
+		tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+		tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+		tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+		tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+        #fourheading a
+         {
+             color: #333;
+         }
+        #fourheading .active
+        {
+            color: #7865c7;
+        }
+
+	</style>
+    <script language="Javascript">orderBy = "{$orderBy}";pid="{$p['pid']}"</script>
+	<script>
+        $(document).ready(function()
+        {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function()
+            {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function(e)
+                        {
+                            var orders = {};
+                            e.list.each(function(){
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function(){e.element.removeClass('drop-success');}, 800)
+                        }
+                    });
+            });
+            $('#milestoneTableList').on('sort.sortable', function(e, data)
+            {
+                var list = "";
+                for(i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('ProjectNew/milestoneOrder')}",{"mid" : list, "orderBy" : orderBy,"pid":pid});
+            });
+        });
+
+	</script>
+    <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;">
+            <div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+
+
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+             <!--   <a onclick='upMilestone("{:U('ProjectNew/update_milestone?id='.$p['pid'])}")'  class="btn"><i class="icon icon-refresh"></i>更新里程碑</a>-->
+                <if condition="cando('ProjectNew/key_service',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('ProjectNew/key_service?id='.$p['pid'])}" data-title="从项目范围引入" data-width="500" data-height="400" class="btn iframe"><i class="icon icon-bookmark"></i>从项目范围引入 </a>
+                </if>
+                <if condition="cando('ProjectNew/milestone',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('ProjectNew/milestone?id='.$p['pid'])}" class="btn"><i class="icon-edit"></i>自定义</a>
+                </if>
+
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+       <!-- <include file="Public:newfourtitle" />
+        <div class="actions" style="float:none">
+			<div class="btn-group">
+			     里程碑计划是指在项目全过程中对项目成败起决定性作用的关键事件。根据项目范围，该项目的里程碑计划如下。
+				<br>你可以根据实际情况修改里程碑计划，或者直接进入下一步<a  class="btn" style="float: none" href="{:U('ProjectNew/commplan',array('id'=>$p['pid']))}">沟通计划</a>
+		</div>
+		</div>-->
+    </div>
+    <!-- 数据列表 -->
+    <div id="projectTaskForm">
+    <div class="fnavbox">
+         <div>
+             <include file="Public:newfourtitle" />
+        </div>
+			<div class="actions">
+                	<div class="btn-group">
+			     里程碑计划是指在项目全过程中对项目成败起决定性作用的关键事件。根据项目范围，该项目的里程碑计划如下。
+				<br>你可以根据实际情况修改里程碑计划，或者直接进入下一步<!--<a  class="btn" style="float: none" href="{:U('ProjectNew/commplan',array('id'=>$p['pid']))}">沟通计划</a>-->「沟通计划」
+
+                    </div></div>
+		<div class="clearfix"></div>
+		</div>
+        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th r="1" width="10px">
+                </th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="m.name">事件名称</span></th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="t.title">关联任务</span></th>
+                <th r="1" width="60px"><span class="sort" ectype="order_by" fieldname="m.type">类型</span></th>
+                <th  width="120px"><span class="sort" ectype="order_by" fieldname="m.mtime">时间点</span></th>
+                <th  width="120px"><span class="sort" ectype="order_by" fieldname="m.etime">完成时间</span></th>
+                <th r="1" width="90px"><span class="sort" ectype="order_by" fieldname="m.completion">完成度</span></th>
+                <if condition="$orderBy">
+                    <th r="1"  style="text-align: center" width=50px"><span class="sort" ectype="order_by" fieldname="m.sort_order">排序</span></th>
+            </if>
+            </tr>
+            </thead>
+            <tbody  class="sortable" id='milestoneTableList'>
+            <notempty name="list">
+                <volist name="list" id="vo">
+                    <tr data-id="{$vo.mid}" data-order="{$vo['sort_order']}">
+                        <td r="1" class="cell-id">
+                            <!--<input class="ids" type="checkbox" name="mid[]" value="{$vo.mid}"/>-->
+                        </td>
+                        <td r="1" class="text-left">{$vo['name']}</td>
+                        <td r="1" class="text-left">{$vo['title']}</td>
+                        <td r="1">{$vo['type']}</td>
+                        <td>
+                            <if condition="$vo['mtime'] neq 0">
+                                {$vo['mtime']|date='Y/m/d',###}
+                            </if>
+                        </td>
+                        <td><if condition="$vo['etime']">{$vo['etime']|date='Y/m/d',###}</if></td>
+                        <td r="1" class="text-left"> 
+                        	<if condition="$vo['completion']">
+                        	<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['completion']/2}">
+				<else/>
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+					</if>
+                            <small> {$vo['completion']}%</small>
+                        </td>
+                        <if condition="$orderBy">
+                        <td r="1" class="sort-handler"><i class="icon icon-move"></i></td></if>
+                        <!--<td>-->
+                        <!--<a href="javascript:;" onclick='deletedata(this,"{:U('miledelete?mid='.$vo['mid'])}")'>删除</a>-->
+                        <!--</td>-->
+                    </tr>
+                </volist>
+                <else/>
+                <tr>
+                     <if condition="$orderBy">
+			   <td colspan="7" class="text-center table_nodata" id="colspan_2">暂时还没有内容!</td>
+                     <else/>
+                      <td colspan="6" class="text-center table_nodata" id="colspan_2">暂时还没有内容!</td>
+                 </if>
+                </tr>
+            </notempty>
+            </tbody>
+            <notempty name="list">
+            <tfoot class="scrolled">
+            <tr>
+            <if condition="$orderBy">
+                <td r="1" colspan='8' id="colspan_1">
+                <else/>
+                 <td r="1" colspan='7' id="colspan_1">
+            </if>
+                    <!--<div class="table-actions clearfix">-->
+                    <!--<div class="checkbox btn">-->
+                    <!--<label><input type="checkbox" data-scope=""-->
+                    <!--class="rows-selector"> 选择</label>-->
+                    <!--</div>-->
+                    <!--<button class="btn btn-default ajax-post confirm"-->
+                    <!--url="{:U('ProjectNew/miledelete')}"-->
+                    <!--target-form="ids">删 除-->
+                    <!--</button>-->
+                    <!--</div>-->
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        function choose(){
+            $.closeModal();
+            window.location.href="{:U('ProjectNew/milestoneindex?id='.$p['pid'])}";
+        }
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+        function deletedata(obj,url){
+            if(confirm("确定要删除数据吗？")){
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            $(obj).parent().parent().remove();
+//                            deleteItem(obj);
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+        var ajaxurl="{:U('Offer/ajax_col')}";
+
+        function resizetable(){
+            var w=$(window).width();
+            if(w<1400){
+                $("#taskList").find("th[r!=1]").hide();
+                $("#taskList").find("td[r!=1]").hide();
+                $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+            }else{
+                $("#taskList").find("th[r!=1]").show();
+                $("#taskList").find("td[r!=1]").show();
+                $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+            }
+        }
+        // 更新里程碑
+        function upMilestone(url) {
+            if (confirm("确定要更新里程碑吗？")) {
+                $("#loadertip").show();
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            window.location.href = location.href;
+                        } else {
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+
+        $(function(){
+            setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+            setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+            //resizetable();
+
+            $(window).resize(function(){
+                //resizetable();
+            });
+
+
+            if($(".oop").size()==1){
+                $(".oop").width("40px");
+            }else{
+                $(".oop").each(function(){
+                    if($(this).find("em").size()==0){
+                        $(this).width(max);
+                    }
+                });
+            }
+        });
+    </script>
+</block>
+

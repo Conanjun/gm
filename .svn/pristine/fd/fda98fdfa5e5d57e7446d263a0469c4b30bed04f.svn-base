@@ -1,0 +1,334 @@
+<extend name="Public/base" />
+<block name="btnarea">
+</block>
+<block name="body">
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+<style>
+.loading{    position: absolute;
+    left: 0;
+    top: 30px;
+    right: 0;
+    bottom: 30px;
+    z-index: 10000;display: none}
+    
+    .loading:before {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.loading:after {
+display: block;
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: -20px;
+    font-family: ZenIcon;
+    font-size: 14px;
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 400;
+    font-variant: normal;
+    line-height: 1;
+    line-height: 40px;
+    text-align: center;
+    text-transform: none;
+    content: '\e6eb';
+   -webkit-animation: rotates 3s linear infinite;
+    -moz-animation: rotates 3s linear infinite;
+    -ms-animation: rotates 3s linear infinite;
+    -o-animation: rotates 3s linear infinite;
+    animation: rotates 3s linear infinite;
+    color: #ffffff;
+}
+
+@keyframes rotates {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes rotates {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-moz-keyframes rotates {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-ms-keyframes rotates {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-o-keyframes rotates {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes scales {
+    0%, 100% {
+        width: 7.511374rem;
+        height: 7.511374rem;
+        opacity: .4;
+    }
+    25%, 75% {
+        width: 8.011374rem;
+        height: 8.011374rem;
+        opacity: .3;
+    }
+    50% {
+        width: 8.511374rem;
+        height: 8.511374rem;
+        opacity: .1;
+    }
+}
+
+@-webkit-keyframes scales {
+    0%, 100% {
+        width: 7.511374rem;
+        height: 7.511374rem;
+        opacity: .4;
+    }
+    25%, 75% {
+        width: 8.011374rem;
+        height: 8.011374rem;
+        opacity: .3;
+    }
+    50% {
+        width: 8.511374rem;
+        height: 8.511374rem;
+        opacity: .1;
+    }
+}
+
+@-moz-keyframes scales {
+    0%, 100% {
+        width: 7.511374rem;
+        height: 7.511374rem;
+        opacity: .4;
+    }
+    25%, 75% {
+        width: 8.011374rem;
+        height: 8.011374rem;
+        opacity: .3;
+    }
+    50% {
+        width: 8.511374rem;
+        height: 8.511374rem;
+        opacity: .1;
+    }
+}
+
+@-ms-keyframes scales {
+    0%, 100% {
+        width: 7.511374rem;
+        height: 7.511374rem;
+        opacity: .4;
+    }
+    25%, 75% {
+        width: 8.011374rem;
+        height: 8.011374rem;
+        opacity: .3;
+    }
+    50% {
+        width: 8.511374rem;
+        height: 8.511374rem;
+        opacity: .1;
+    }
+}
+
+@-o-keyframes scales {
+    0%, 100% {
+        width: 7.511374rem;
+        height: 7.511374rem;
+        opacity: .4;
+    }
+    25%, 75% {
+        width: 8.011374rem;
+        height: 8.011374rem;
+        opacity: .3;
+    }
+    50% {
+        width: 8.511374rem;
+        height: 8.511374rem;
+        opacity: .1;
+    }
+}
+</style>
+<div class="modal-backdrop fade in" style="display: none" id="l1"></div>
+<div class="loading" id="l2"></div>
+	<script language="Javascript">browseType = "unclosed";</script>
+	
+	<style>
+	#dropMenu {
+    	min-width: 250px;
+		}
+		#searchResult>.search-list, #defaultMenu, #moreMenu {
+	    display: table-cell;
+	    vertical-align: top;
+	    min-width: 205px;
+		}
+		.outer .side {
+    		width: 260px;
+		}
+		.outer .side-body .panel {
+    min-width: 250px;
+}
+.outer.with-side .main, .outer.with-side .side+form, .outer.with-side .main, .outer.with-side .side+table {
+    margin-left: 270px;
+    margin-right: 0;
+}
+.panel-heading {
+    padding: 7px 15px;
+}
+	</style>
+	
+	<div id="featurebar">
+		<ul class="nav">
+			<li><a href="{:U('ProjectConfig/index')}">服务分类</a></li>
+			<li ><a href="{:U('Module/index')}">服务模块</a></li>
+			<li class="active"><a href="{:U('Service/index')}">服务内容</a></li>
+		</ul>
+		
+	</div>
+    <!-- 数据列表 -->
+    <div class="side">
+			<a class="side-handle" data-id="companyTree">
+				<i class="icon-caret-left"></i>
+			</a>
+			<div class="side-body">
+				<div class="panel panel-sm">
+					<li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;" data-id="list" class="">
+					<a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem" href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+						<div id="dropMenu" style="width: 170px;">
+						</div>
+					</li>
+					<div class='panel-body'>
+						{$ProjectConfig}
+					</div>
+				</div>
+			</div>
+		</div>
+	<div class="main">
+		<script>setTreeBox();</script>
+		<div class="panel">
+		<div class="panel-heading">
+				<strong>从Excel导出数据到  	{$module_name}</strong>
+		</div>
+		 <form method="post" action="{:U('imort?ppid='.$ppid.'&pid='.$pid)}" enctype="multipart/form-data" class="form-condensed" style="padding: 20px">
+        <table align="center" class="table table-form">
+                <tbody>
+                <tr>
+                    <th class="w-90px">请选择文件</th>
+                    <td class="w-p25-f">
+                    <input  type="file" name="file_card" id="file_card" class="form-control" autocomplete="off" >
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <th class="w-90px"></th>
+                    <td class="w-p25-f">
+                    <a  href="/标准服务导入模板.xlsx" target="_blank" style="color:#104E8B;">请下载模板文件参考导入</a>
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <th></th>
+                    <td>
+                       <div class="rightdiv">
+                        <a href="javascript:history.go(-1);" class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                     <a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('#l1').show();$('#l2').show();$('form').submit();"
+                           data-loading="稍候..."><i class="icon-save"></i> 提交</a></div></td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+    </form></div>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		$(function(){
+			$("#list{$pid}").attr('class','active')
+		})
+		function choose() {
+			$.closeModal();
+		}
+    //导航高亮
+	highlight_subnav("{:U('ProjectConfig/index')}");
+	var ajaxGetDropMenu="{:U('Service/ajaxGetDropMenu/',array('module'=>'Service','index'=>'imort'))}";
+	var ajaxurl="{:U('Service/ajax_col')}";
+	</script>
+</block>

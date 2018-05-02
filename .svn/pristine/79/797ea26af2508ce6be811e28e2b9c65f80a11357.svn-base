@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<div>
+<div>
+	<img src="/Public/Admin/images/login_logo.png" style="width: 60px;height: 60px;float: left;">
+	<div style="    float: left;
+    font-size: 22px;
+    padding-left: 8px;">丁香园<p style="    font-size: 16px;
+    margin: 5px;">www.dxy.cn</p></div>
+	<div style="clear: both;"></div>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="0" style="margin-top: 30px;margin-left: 30px;">
+	<tr>
+    <th align="right">To 提呈：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;text-align: center;">11112</div></td>
+    <td width="60"></td>
+    <th align="right">Project 工作项目：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;"></div></td>
+  	</tr>
+  	<tr>
+    <th align="right">Client 客户：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;"></div></td>
+    <td></td>
+    <th align="right">Date 日期：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;"></div></td>
+  	</tr>
+  	
+  		<tr>
+    <th align="right">Account Manager 客户经理：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;"></div></td>
+    <td></td>
+    <th align="right">Email 邮箱：</th>
+    <td><div style="width: 150px;border-bottom: 2px solid #000;height: 22px;"></div></td>
+  	</tr>
+</table>
+
+<table border="1" cellspacing="0" cellpadding="3" style="margin-top: 30px;margin-left: 30px;">
+	<tr style="background: #7865c7;color: #fff;">
+    <th align="left">服务内容</th>
+    <th align="left">具体内容</th>
+    <th align="left" width="100">单位</th>
+    <th align="left" width="100">单价</th>
+    <th align="left" width="100">数量</th>
+    <th align="left" width="100">总计</th>
+    <th align="left">备注</th>
+  </tr>
+  <tr>
+    <td>平台服务平台服务平台服务</td>
+    <td>专区搭建2专区搭建2</td>
+    <td>个</td>
+    <td align="right">2000</td>
+    <td align="right">1</td>
+    <td align="right">￥100000</td>
+    <td>备注</td>
+  </tr>
+  
+  <tr>
+    <td style="font-weight: bold;">基础报价合计</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="right">￥100000</td>
+    <td>合计</td>
+  </tr>
+  
+  <tr>
+    <td style="font-weight: bold;">项目管理费</td>
+   <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="right">￥100000</td>
+    <td>备注</td>
+  </tr>
+  
+  <tr>
+    <td style="font-weight: bold;">税</td>
+   	<td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="right">￥100000</td>
+    <td>备注</td>
+  </tr>
+  
+  <tr>
+    <td style="font-weight: bold;">折扣</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="right">￥100000</td>
+    <td>备注</td>
+  </tr>
+  
+  <tr>
+    <td style="font-weight: bold;">总计</td>
+   <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="right">￥100000</td>
+    <td>备注</td>
+  </tr>
+</table>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<?php
+
+namespace Admin\Controller;
+
+use Admin\Model\DocTypeModel;
+
+class DocTypeController extends AdminController
+{
+    private $docTypeModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->docTypeModel = new DocTypeModel();
+    }
+
+    public function index()
+    {
+        $list = $this->docTypeModel->categoryList();
+        $this->assign('list', $list);
+        $orderby = 'sort_order  asc';
+        $this->assign('orderBy', $orderby);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '文档分类', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    public function add()
+    {
+        if (IS_POST) {
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $key => $value) {
+                if (empty($value['dtid'])) {
+                    if (!empty($value['name'])) {
+                        $adddata[] = $value;
+                    }
+                } else {
+                    $editdata[] = $value;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $key => $vo) {
+                    $this->docTypeModel->save($vo);
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $key => $vo) {
+                    $vo['addtime'] = time();
+                    $insertid = $this->docTypeModel->add($vo);
+                    M('doc_type')->where(array('dtid' => $insertid))->save(array('sort_order' => $insertid));
+                }
+            }
+            $this->redirect('index');
+//			$this->success ( '编辑成功！',U( 'index') );
+        }
+
+    }
+
+    public function delete()
+    {
+        $mid = I('get.id');
+        if (!$mid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        //查询文档类型下是否有文件
+        $result = M('doc')->where(array('dtid' => $mid))->find();
+        if ($result) {
+            $this->json_error('该分类下有文件不可以删除!', false);
+        } else {
+            $where = array('dtid' => $mid);
+            $tmp = $this->docTypeModel->where($where)->delete();;
+            if ($tmp) {
+                $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+            } else {
+                $this->json_error('删除失败!', false);
+            }
+        }
+    }
+
+    public function updateOrder()
+    {
+        $idList = trim(I('post.dtid'), ',');
+        $orderBy = I('post.orderBy');
+        $module = M("doc_type");
+        $res = $module->where("dtid in ({$idList})")->order($orderBy)->getField('sort_order,dtid');
+        $idList = explode(",", $idList);
+        foreach ($res as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            $module->where("dtid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+}

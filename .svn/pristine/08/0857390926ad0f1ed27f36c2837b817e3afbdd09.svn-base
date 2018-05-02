@@ -1,0 +1,157 @@
+<extend name="Public/base"/>
+<block name="btnarea">
+</block>
+<block name="body">
+<script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+	<ul class="nav">
+		<li><a href="{:U('Offer/index')}">所有</a>
+		</li>
+		<li  class="active"><a href="{:U('Offer/indexbyme')}">由我提交</a>
+		</li>
+		<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+		<li style="float: right"><a href="{:U('Offer/add')}"><i
+            class="icon-plus"></i>&nbsp;创建报价单</a>
+		</li>
+	</ul>
+	<include file="Public/search" />	
+</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="40px">
+                </th>
+                <th width="50px"><span class="sort" ectype="order_by" fieldname="static">状态</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="code">编码</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="custom">客户</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="coreservice">核心服务</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="amount">总金额</span></th>
+                <th width="50px"><span class="sort" ectype="order_by" fieldname="disoff_name">折扣</span></th>
+                <th width="50px"><span class="sort" ectype="order_by" fieldname="rate">税率</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="amount_notax">税后金额</span></th>
+                <th width="120px"><span class="sort" ectype="order_by" fieldname="signtime">预计签约时间</span></th>
+                <th width="120px"><span class="sort" ectype="order_by" fieldname="starttime">预计开始时间</span></th>
+                <th width="120px"><span class="sort" ectype="order_by" fieldname="addtime">创建时间</span></th>
+                <th  width="180px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="offer">
+                <volist name="offer" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                            <if condition="($vo['static'] == 1) or ($vo['static'] == -1)">
+                             </if>
+                            <input class="ids" type="checkbox" name="id[]" value="{$vo.oid}"/>
+                            
+                        </td>
+                        <td>
+                            <if condition="$vo['static'] == 1 ">
+                                 新建
+                            <elseif condition="$vo['static'] == 2 "/>
+                                 已提交
+                            <elseif condition="$vo['static'] == 3 "/>
+                                已审核
+                            <elseif condition="$vo['static'] == -1 "/>
+                                已拒绝
+                            </if>
+                        </td>
+
+                        <td>{$vo.code}</td>
+                        <td class="text-left">{$vo.cname}</td>
+                        <td class="text-left">{$vo.coreservice}</td>
+                        <td style="text-align: right;">{$vo.amount|fomatprice}</td>
+                        <td>{$vo.disoff_name}</td>
+                        <td>{$vo.rate}%</td>
+                        <td style="text-align: right;">{$vo.amount_notax|fomatprice}</td>
+                        <td>{$vo.signtime|time_format}</td>
+                        <td>{$vo.starttime|time_format}</td>
+                        <td>{$vo.addtime|time_format}</td>
+                        <td>
+                        	<a href="{:U('Offer/subview?id='.$vo['oid'])}">明细</a>
+                            <if condition="($vo['static'] eq 1) or ($vo['static'] eq -1)">
+                                <a href="javascript:;" onclick='tijiao("{$vo.oid}","{$vo.es_eid}","{$vo.disoff}")'>提交</a>
+                                <a href="{:U('Offer/veiw?id='.$vo['oid'])}">查看</a>
+                                <a href="{:U('Offer/edit?id='.$vo['oid'])}">编辑</a>
+                                <a href="{:U('Offer/delete?id='.$vo['oid'])}"
+                                   class="confirm ajax-get">删除</a>
+                            <else />
+                                <a href="{:U('Offer/veiw?id='.$vo['oid'])}">查看</a>
+                            </if>
+                        </td>
+                    </tr>
+                </volist>
+                <else/>
+                <td colspan="13" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan='13'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <button class="btn btn-default ajax-post confirm"
+                                url="{:U('Offer/delete')}"
+                                target-form="ids">删 除
+                        </button>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+
+        var ajaxurl="{:U('Offer/ajax_col')}";
+
+        function tijiao(id,es_eid,disoff){
+            if(confirm("确认提交吗？"))
+            $.post(
+                    "{:U('Offer/present')}",
+                    {'id':id,'eid':es_eid,'disoff':disoff},
+                    function(data){
+                       if(data.code){
+                           alert(data.msg);
+                       }else{
+                           window.location.href = window.location.href;
+                       }
+                    },
+                    'json'
+            );
+        }
+    </script>
+</block>

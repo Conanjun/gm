@@ -1,0 +1,284 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+    <script>
+        $(function(){
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    $(element).parent().next().append(error);
+                },
+
+                onkeyup: false,
+                rules: {
+                    name: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    name: {
+                        required : '',
+                    },
+
+
+                }
+            });
+        });
+
+    </script>
+    <link href="__CSS__/n.css" rel="stylesheet" type="text/css"/>
+    <style>
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+
+        #dropMenu {
+            min-width: 250px;
+        }
+
+        #searchResult > .search-list, #defaultMenu, #moreMenu {
+            display: table-cell;
+            vertical-align: top;
+            min-width: 205px;
+        }
+
+        .outer .side {
+            width: 260px;
+        }
+
+        .outer .side-body .panel {
+            min-width: 250px;
+        }
+
+        .outer.with-side .main, .outer.with-side .side + form, .outer.with-side .main, .outer.with-side .side + table {
+            margin-left: 270px;
+            margin-right: 0;
+        }
+
+        .tSerach {
+            position: absolute;
+            top: 1px;
+            right: 10px;
+            width: 150px;
+            height: 32px;
+            border: 0;
+            border-left: 1px solid #ddd;
+        }
+
+        #cke_description {
+            width: 790px;
+        }
+    </style>
+    <div id="featurebar">
+        <ul class="nav" style="float:left">
+            <li class="active"><a href="{:U('ProjectConfig/index')}">服务分类</a>
+            </li>
+            <li><a href="{:U('Module/index')}">服务模块</a>
+            </li>
+            <li><a href="{:U('Service/index')}">服务内容</a>
+            </li>
+            <!--<li style="float: right"><a href="{:U('ProjectConfig/indexadd?pid=0')}"><i-->
+            <!--class="icon-plus"></i>&nbsp;添加服务</a>-->
+            <!--</li>-->
+        </ul>
+        <div class="" style="float: right;margin-right: 10px">
+
+            <div class="actions">
+                <if condition="cando('Expense/expenseadd')">
+                    <a href="{:U('ProjectConfig/indexadd?pid=0')}" class="btn"><i class="icon-plus"></i>添加服务</a></if>
+                <!-- <a href="{:U('ProjectConfig/index?exportexcel=1')}" id="export" target="_blank" class="btn"><i class="icon-file-excel"></i>导出Excel文件</a>-->
+            </div>
+        </div>
+    </div>
+    <!-- 数据列表 -->
+    <div class="side">
+        <a class="side-handle" data-id="companyTree">
+            <i class="icon-caret-left"></i>
+        </a>
+        <div class="side-body">
+            <div class="panel panel-sm">
+                <li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;"
+                    data-id="list" class="">
+                    <a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem"
+                       href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+                    <input type="text" placeholder="点击回车搜索" class="form-control tSerach" id="treeSerach" name="treekey"
+                           value="">
+                    <div id="dropMenu" style="width: 250px;">
+                    </div>
+                    <input type="hidden" name="ppid" class="ppid" value="{$ppid}">
+
+                </li>
+                <div class='panel-body' id="project">
+                    {$Project}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main">
+        <script>setTreeBox();</script>
+        <div class="panel">
+            <div class="panel-heading" style="height: 34px">
+                <strong>编辑服务</strong>
+            </div>
+            <form action="{:U('edit?id='.$pro['pid'])}" method="post" class="form-condensed"
+                  style="    margin: 30px 30px 30px 0;">
+                <input type="hidden" id="grade" name="grade" value="">
+                <table align="center" class="table table-form ntable" style="width: 900px">
+                    <tbody>
+                    <tr>
+                        <th>服务名称<span class="required"></span></th>
+                        <td colspan="3">
+                            <input type="text" name="name" id="name" value="{$pro.name}" class="form-control"
+                                   autocomplete="off">
+                        </td>
+                        <td width="300px"></td>
+                    </tr>
+                    <tr>
+                        <th width="100px">父级服务</th>
+                        <td width="200px">
+                            <select name="parentid" class="form-control" id="parentid">
+                                <volist name="prop" id="p">
+                                    <option value="{$p.pid}" grade="{$p.grade}">{$p.title_show}</option>
+                                </volist>
+                            </select>
+                        </td>
+                        <th width="100px">服务类型</th>
+                        <td>
+                            <input type="text" name="type" id="type" readonly="readonly" value="{$pro.type}"
+                                   class="form-control" autocomplete="off">
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>优先级</th>
+                        <td>
+                            <div class="input-group">
+                                <select name="level" class="form-control">
+                                    <volist name="levels" id="level">
+                                        <option value="{$level.d_value}">{$level.d_key}</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </td>
+                        <th>是否启用</th>
+                        <td>
+                            <label class="radio"
+                                   style="float: left;margin-left: 30px;margin-top: 6px;width: 20px;"><input
+                                    type="radio" name="enabled" value="1">是</label>
+                            <label class="radio" style="margin-left: 70px;margin-top: 6px"><input type="radio"
+                                                                                                  name="enabled"
+                                                                                                  value="0">否</label>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>排序</th>
+                        <td>
+                            <input type="number" name="sort_order" min="0" value="{$pro.sort_order}"
+                                   class="form-control" autocomplete="off">
+                        </td>
+                        <th>添加信息</th>
+                        <td>
+                            {$pro.addtime|time_format} - {$pro.uname}
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th class="thtop">备注</th>
+                        <td colspan="4">
+                            <textarea id="description" name="description" style="height:150px;width: 100%;"
+                                      class="ckeditor">{$pro.description}</textarea>
+
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                    <tr>
+                        <th></th>
+                        <td colspan="4">
+                            <div class="rightdiv">
+                                <a href="javascript:history.go(-1);" class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                                <a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();"
+                                   data-loading="稍候..."><i class="icon-save"></i> 保存</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#list{$pid}").attr('class', 'active')
+        });
+
+        $(function () {
+            var grade = $('#parentid option:selected').attr('grade');
+            $("#grade").val(grade);
+        });
+        // 对树进行搜索
+        $("#treeSerach").keydown(function (e) {
+            if (e.keyCode == 13) {
+                var val = $(this).val();
+                var ppid = $(".ppid").val();
+                var method = 'ProjectConfig';
+                var url = "{:U('ProjectConfig/ajaxSearch')}";
+                $.get(url, {'val': val, 'ppid': ppid,'method': method}, function (data) {
+                    if (data.done) {
+                        $('.panel-body').html("");
+                        $('.panel-body').html(data.retval);
+
+                        $(".tree").tree({
+                            name: config.currentModule + "-" + config.currentMethod,
+                            initialState: "preserve"
+                        });
+
+                    }
+                });
+            }
+        });
+        $('#parentid').change(function () {
+            var grade = $('#parentid option:selected').attr('grade');
+            $("#grade").val(grade);
+            if(grade==undefined||grade==''){
+                Think.setValue("type", "业务线");
+            }else if(grade==1){
+                Think.setValue("type", "业务线");
+            }else if(grade==2){
+                Think.setValue("type", "解决方案");
+            }else if(grade==3){
+                Think.setValue("type", "服务分类");
+            }else if(grade==4){
+                Think.setValue("type", "服务模块");
+            }
+        });
+        Think.setValue("parentid", "{$pro.parentid|default = 0}");
+        Think.setValue("type", "{$pro.type|default = ''}");
+        Think.setValue("orgid", "{$pro.orgid|default = 0}");
+        Think.setValue("level", "{$pro.level|default = 0}");
+        Think.setValue("enabled", "{$pro.enabled|default = 0}");
+
+        //导航高亮
+        highlight_subnav("{:U('ProjectConfig/index')}");
+
+        var ajaxGetDropMenu = "{:U('ProjectConfig/ajaxGetDropMenu/',array('module'=>'ProjectConfig','index'=>'index'))}";
+
+        var ajaxurl = "{:U('ProjectConfig/ajax_col')}";
+    </script>
+</block>

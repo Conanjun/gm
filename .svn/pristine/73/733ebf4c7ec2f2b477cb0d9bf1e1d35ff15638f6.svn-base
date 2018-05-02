@@ -1,0 +1,52 @@
+
+<block name="body">
+    <style>
+        .modal-body,.wrapper-content{
+            padding:  0px !important;
+        }
+        .table-center{
+            margin-top: 0 !important;
+        }
+    </style>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+        <div class="table-responsive">
+            <table class="table table-center">
+                <thead>
+                <tr>
+                    <th style="text-align: left;padding-left: 10px">{:L('SHIPPINGADDRESS')}</th>
+                    <th style="width: 80px">{:L('ISDEFAULT')}</th>
+                    <th style="width: 120px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="lists">
+                    <volist name="lists" id="vo">
+                        <tr>
+                            <td style="text-align: left;padding-left: 10px">{$vo['snee']} {$vo['snee_tel']}<br>{$vo['regionname']}<br>{$vo['addr']}</td>
+                            <td>
+                                <if condition="$vo['isdefault']">
+                                    <img src="__IMG__/positive_enabled.png" ectype="inline_edit" fieldname="isdefault" fieldid="{$vo.addr_id}" fieldvalue="1" title="{:L('EDITABLE')}"/>
+                                    <else/>
+                                    <img src="__IMG__/positive_disabled.png" ectype="inline_edit" fieldname="isdefault" fieldid="{$vo.addr_id}" fieldvalue="0" title="{:L('EDITABLE')}"/>
+                                </if>
+                            </td>
+                            <td>
+                                <a data-trigger="modal" data-title="{:L('EDIT_ADDRESS')}" data-width="600PX" href="{:U('Addess/edit?id='.$vo['addr_id'])}" class="btn btn-xs btn-primary" >{:L('EDIT')}</a>
+                                <a class="btn btn-xs btn-primary" onclick='order_choose({add:"{123}",addr_id:"{$vo.addr_id}",regionname:"{$vo.regionname} {$vo.addr}",snee:"{$vo.snee}",snee_tel:"{$vo.snee_tel}"})'>{:L('SELECT')}</a>
+                            </td>
+                        </tr>
+                    </volist>
+                    <else />
+                    <tr>
+                        <td colspan="3">{:L('NOCONCENT')}</td>
+                    </tr>
+                </notempty>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- content end -->
+</block>
+

@@ -1,0 +1,105 @@
+<extend name="Public/base" />
+
+<block name="body">
+<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+	<ul class="nav">
+		<li class="active"><a href="{:U('Dexa/index')}">待审</a>
+		</li>
+		<li><a href="{:U('Dexa/index1')}">已审</a>
+		</li>
+		<li><a href="{:U('Dexa/index2')}">全部</a>
+		</li>
+		<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+		<li style="float: right">
+		</li>
+	</ul>
+	<include file="Public/search" />	
+</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" style="text-align: center;">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable">
+    <thead>
+        <tr>
+		<th width="10px"></th>
+		 <th class="text-left">业务标识</th>
+		 <th class="text-left">审批信息</th>
+         <th width="60px">状态</th>
+          <th width="120px">业务类型</th>
+          <th width="120px">审批时间</th>
+         <th width="90px">审批人</th>
+         <th width="120px"><span class="sort" ectype="order_by" fieldname="ot_exprocess.addtime">提交时间</span></th>
+         <th width="90px">提交人</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td class="cell-id"></td>
+			<td class="text-left">
+			<a href="{:U('Dexa/view?id='.$vo['id'])}"><eq name="vo.type" value="报价单审核">{$vo.shortsign}-{$vo.projectname}-{$vo.code}</eq>
+			<eq name="vo.type" value="任务审核">{$vo.proname}-{$vo.tasktitle}</eq>
+			<eq name="vo.type" value="报销单审核">{$vo.pname1}-{$vo.code1}</eq>
+			<eq name="vo.type" value="申请项目经理审核">{$vo.shortsign}-{$vo.projectname}-{$vo.code}</eq>
+			</a>
+			</td>
+			<td class="text-left"><eq name="vo.state" value="1">{$vo.checknote}</eq><eq name="vo.state" value="-1">{$vo.refusenote}</eq></td>
+            <td><eq name="vo.state" value="0">待审批</eq><eq name="vo.state" value="1">已通过</eq><eq name="vo.state" value="1">已拒绝</eq></td>
+             <td>{$vo.type} </td>
+             <td><eq name="vo.state" value="1">{$vo.checktime|time_format}</eq><eq name="vo.state" value="-1">{$vo.refusetime|time_format}</eq></td>
+              <td>{$vo.checkname}</td>
+              <td><gt name="vo.addtime" value="0">{$vo.addtime|time_format}<else/>-</gt></td>
+              <td>{$vo.addname}</td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="9" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+        	<notempty name="_list">
+	<tfoot>
+			<tr>
+				<td colspan='9'>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+            </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Dexa/index')}");
+    function renovate(){
+    	$.closeModal();
+    	location.replace(location.href);
+    }
+	</script>
+</block>

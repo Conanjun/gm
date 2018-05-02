@@ -1,0 +1,55 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+    <!-- 数据列表 -->
+        <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center;">
+            <thead>
+            <tr>
+                <th width="20px">
+                </th>
+                <th style="text-align: left;">报销单号</th>
+                <th style="text-align: left;">费用项目</th>
+                <th style="text-align: left;">备注</th>
+                <th width="100px">申请人</th>
+                <th width="100px">报销金额</th>
+                <th width="60px">发票数</th>
+                <th width="120px">生效时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="files">
+                <volist name="files" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                        </td>
+                        <td style="text-align: left;">{$vo.code}</td>
+                        <td style="text-align: left;">{$vo.feetype}</td>
+                        <td style="text-align: left;" title="{$vo.description}">{$vo.description|msubstr=###,0,15}</td>
+                        <td>{$vo.uname}</td>
+                        <td> <if condition="$vo.money !=0.00">(￥{$vo.money})</if> </td>
+                        <td>{$vo.invoicenum}</td>
+                        <td>{$vo.checkedtime|time_format}</td>
+                    </tr>
+                </volist>
+                <tr>
+                    <td colspan="8" class="text-right">合计：报销金额 <span class="textg">{$amountTotal|fomatprice}</span></td>
+                </tr>
+                <else/>
+                <td colspan="8"class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+    </script>
+</block>

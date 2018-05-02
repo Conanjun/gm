@@ -1,0 +1,79 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<div >
+        <style>
+        #cke_content{
+            width:640px !important;
+        }
+    </style>
+		<form action="{:U('close?id='.$id)}" method="post" class="form-condensed mw-980px" enctype="multipart/form-data" >
+			<table align="center" class=" table-form iframeContentop ntable">
+				<tbody>
+				<tr>
+					<th width="80" class="thtop">关闭原因</th>
+					<td class="" colspan="2">
+						<textarea id="content" name="content" style="width: 600px;height: 200px" placeholder="请填写关闭原因" class="ckeditor"></textarea>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th ></th>
+					<td class="form-condensed" colspan="2">
+						<div class="rightdiv">
+							<button type="button" class="btn btn-default" onclick="choose1()"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</button>
+							<a href="javascript:;" id="submit" class="btn btn-primary" onclick="choose()" ><i class="icon-project-close icon-off"></i> 关闭</a>
+						</div>
+
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose() {
+          var content=CKEDITOR.instances.content.getData();
+            if(content) {
+                $('form').submit();
+            }else{
+                $("#cke_content").css('border','1px solid red');
+                alert("请输入关闭原因");
+                return;
+            }
+		}
+		function choose1(){
+			window.parent.choose();
+		}
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+	</script>
+	<script language='javascript'>
+
+	</script>
+</block>

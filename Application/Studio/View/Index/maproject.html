@@ -1,0 +1,64 @@
+<table class="table tablesorter table-data table-hover block-todo table-fixed" id="taskList">
+	<thead style="visibility: visible;">
+		<tr>
+			<th r="1" class='text-left'>项目名称</th>
+			<th r="1" width="80">计划结束</th>
+				<th width="80">任务/完成</th>
+			<th r="1" width="50">状态</th>
+			<th r="1" width="70">挣值%</th>
+			<th r="1" width="100">进度%</th>
+			<th r="1" width="90">成本%</th>
+		</tr>
+	</thead>
+	<tbody>
+		<volist name="_projectlist" id="vo">
+           <tr class="text-center" data-url="{$vo.link}">
+               <if condition="$vo['shortsign']">
+                       <td r="1" class='text-left' title="{$vo.shortsign}-{$vo.name}"><a href="{$vo.link}" title="{$vo.shortsign}-{$vo.name}">{$vo.shortsign}-{$vo.name}</a></td>
+                   <else/>
+                     <td r="1" class='text-left' title="{$vo.name}"><a href="{$vo.link}" title="{$vo.name}">{$vo.name}</a></td>
+               </if>
+
+		      <td r="1">{$vo.petime|time_format=###,'y-m-d'}</td>
+		      
+		      <td>{$vo.tasknum}/<span class="textg">{$vo.ftasknum}</span></td>
+		      <td r="1" 
+		      class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'></eq><eq name='vo.state' value='2'>textg</eq><eq name='vo.state' value='3'></eq><eq name='vo.state' value='4'>textr</eq><eq name='vo.state' value='-1'>textc</eq>"
+		      >
+		      	{$vo.d_key}
+		      </td>
+			   <td r="1" class="text-right" title="{$vo.duty}%">{$vo.duty}%</td>
+		      <td r="1" class="text-left" title="{$vo.progress}%">
+				  <if condition="$vo['progress']">
+					  <img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['progress']/2}">
+					  <else/>
+					  <img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+				  </if>
+		          <small>{$vo.progress}%</small>
+        		</td>
+        		
+		      <td r="1" title="{$vo.duty1}%" <if condition="$vo['duty1'] gt 100">class="textr"</if>>{$vo.duty1}%</td>
+  			 </tr> 
+  		</volist>
+	</tbody>
+</table>
+<notempty name="_projectlist">  <else/><div class="text-center table_nodata" style="margin-top:1px"></div></notempty >
+<script>
+function resizetable(){
+	var w=$(window).width();
+	if(w<1400){
+		$("#taskList").find("th[r!=1]").hide();
+		$("#taskList").find("td[r!=1]").hide();
+	}else{
+		$("#taskList").find("th[r!=1]").show();
+		$("#taskList").find("td[r!=1]").show();
+	}
+}
+
+$(function(){
+	resizetable();
+	$(window).resize(function(){
+		resizetable();
+	});
+});
+</script>

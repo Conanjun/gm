@@ -1,0 +1,74 @@
+<extend name="Public/base" />
+
+<block name="body">
+<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+<script>
+$(function(){
+	$('form').validate({
+	    errorPlacement: function (error, element) {
+	        $(element).next('.field_notice').hide();
+	        $(element).parent().next().append(error);
+	    },
+	    onkeyup: false,
+	    rules: {
+			name: {
+	            required: true,
+	        },
+			sort_order: {
+	            required: true
+	        },
+	    },
+	    messages: {
+			name: {
+	    		required : '名称不能为空',
+	        },
+			sort_order: {
+	            required: '请填写数字'
+	        }
+	    }
+	});
+});
+
+</script>
+<div class="container mw-700px">
+	<div id="titlebar">
+		<div class="heading">
+			<span class="prefix"><i class="icon-user"></i> </span> <strong><small
+				class="text-muted"><i class="icon-plus"></i> </small> 编辑费用</strong>
+		</div>
+	</div>
+	<form action="{:U('edit')}" method="post" class="form-condensed mw-700px">
+		<input type="hidden" name="id" value="{$res.feeid}" >
+		<table align="center" class="table table-form mytable">
+			<tbody>
+				<tr>
+					<th class="w-120px">名称<span class="required"></span></th>
+					<td class="w-p50"><input type="text" name="name"
+						id="name" value="{$res.name}" class="form-control" autocomplete="off">
+					</td>
+					<td></td>
+				<tr>
+					<th class="w-120px">排序<span class="required"></span></th>
+					<td class="w-p50"><input type="number" name="sort_order"
+						id="sort_order" value="{$res.sort_order}" class="form-control" autocomplete="off" min="1"  >
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th></th>
+					<td>
+						<a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();" data-loading="稍候...">保存</a>
+						<a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+					</td>
+					<td></td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+        highlight_subnav('{:U('FeeItem/index')}');
+    </script> </block>

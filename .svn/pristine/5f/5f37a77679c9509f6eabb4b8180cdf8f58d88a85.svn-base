@@ -1,0 +1,22 @@
+
+<block name="body">
+    <link href="__CSS__/in/iviews-order.css" rel="stylesheet">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+        <div class="iviews-order-content iviews-order-step1">
+            <div class="iviews-order-type">
+                <volist name="types" id="vo">
+                    <if condition="$vo['d_value'] eq 'PLANT'">
+                    <a href="{:U('Order/add?type='.$vo['sid'])}"  data-type="1" class="iviews-order-type-1" >{$vo['d_value']|L}</a>
+                        <elseif condition="$vo['d_value'] eq 'GINGIVITIS'" />
+                        <a href="{:U('Order/add?type='.$vo['sid'])}"  data-type="1" class="iviews-order-type-2" >{$vo['d_value']|L}</a>
+                        <elseif condition="$vo['d_value'] eq 'IROK'" />
+                        <a href="{:U('Order/add?type='.$vo['sid'])}"  data-type="1" class="iviews-order-type-3" >{$vo['d_value']|L}</a>
+                    </if>
+                </volist>
+            </div>
+        </div>
+    </div>
+    <!-- content end -->
+</block>
+

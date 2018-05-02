@@ -1,0 +1,80 @@
+<extend name="Public/base" />
+<block name="btnarea">
+</block>
+
+<block name="body">
+	<include file="Public/search" />
+	<!-- 数据列表 -->
+	<div class="data-table table-striped" style="text-align: center;">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable">
+			<thead>
+			<tr class="text-center">
+				<th width="20px"></th>
+				<th width="120px"><span class="sort" ectype="order_by" fieldname="addtime">日期</span></th>
+				<th width="80px"><span class="sort" ectype="order_by" fieldname="uname">操作者</span></th>
+				<th width="80px"><span class="sort" ectype="order_by" fieldname="a.name">动作</span></th>
+				<th width="80px"><span class="sort" ectype="order_by" fieldname="t.name">对象类型</span></th>
+				<th width="80px"><span class="sort" ectype="order_by" fieldname="outkey">ID</span></th>
+				<th>对象名称</th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo">
+					<tr>
+						<td></td>
+						<td>{$vo.addtime|date="Y-m-d H:i",###}</td>
+						<td>{$vo.uname}</td>
+						<td>{$vo.action_name}</td>
+						<td>{$vo.outtype_name}</td>
+						<td>{$vo.outkey}</td>
+						<td>{$vo.comment}</td>
+					</tr>
+				</volist>
+				<else />
+				<td colspan="7" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+			</notempty>
+			</tbody>
+			<tfoot>
+			<tr>
+				<td colspan='7'>
+					<div class="table-actions clearfix">
+
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+			</tfoot>
+		</table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+        //搜索功能
+        $("#search").click(function(){
+            var url = $(this).attr('url');
+            var query  = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+            query = query.replace(/^&/g,'');
+            if( url.indexOf('?')>0 ){
+                url += '&' + query;
+            }else{
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function(e){
+            if(e.keyCode === 13){
+                $("#search").click();
+                return false;
+            }
+        });
+        //导航高亮
+        highlight_subnav("{:U('Dynamics/index')}");
+	</script>
+</block>

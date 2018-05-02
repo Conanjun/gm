@@ -1,0 +1,125 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 报价审批控制器
+ */
+class OfferConfigController extends AdminController {
+
+	/**
+	 报价审批设置
+	 *
+	 */
+	public function index() {
+	    if(IS_POST){
+	        $status=I('post.status');
+	        if($status){
+                $data=array('rname'=>I('post.rname'),'disoff'=>I('post.disoff'),'money'=>I('post.money'),'roleid'=>I('post.roleid'));
+            }else{
+	             $data=array('rname'=>I('post.rnames'),'money'=>I('post.moneys'),'roleid'=>I('post.roleids'));
+            }
+	        $newdata=array();
+	        foreach($data as $key=>$value){
+	             foreach($value as $k=>$v){
+	                 $newdata[$k][$key]=$v;
+                 }
+            }
+            foreach($newdata as $va){
+                 if($va['disoff']&&($va['disoff']<0 || $va['disoff']>100)){
+	                    $this->error('请填写正确的折扣范围(0-100)');
+                    }
+                    if($va['disoff']){
+                       $result=M('offerconfig')->field('roleid,disoff,money')->where(array('status'=>$status))->select();
+                       foreach($result as $key=>$value){
+                           $res[$value['roleid']]=array('money'=>$value['money'],'disoff'=>$value['disoff']);
+                       }
+                        if ($va['roleid'] == 4) {
+                            if ($va['disoff'] < $res[3]['disoff']) {
+                                $this->error("客户经理审批折扣数值应大于客户群经理审批折扣数值");
+                            }
+                        }
+                        if ($va['roleid'] == 3) {
+                            if($va['disoff']>$res[4]['disoff']){
+                                $this->error("客户群经理审批折扣数值应小于客户经理审批折扣数值");
+                            }
+                            if ($va['disoff'] < $res[2]['disoff']) {
+                                $this->error("客户群经理审批折扣数值应大于项目总监审批折扣数值");
+                            }
+                        }
+                        if ($va['roleid'] == 2) {
+                           if($va['disoff']>$res[3]['disoff']){
+                               $this->error("项目总监审批折扣数值应小于客户群经理审批折扣数值");
+                           }
+                            if ($va['disoff'] < $res[1]['disoff']) {
+                                $this->error("项目总监审批折扣数值应大于企业事业部副总裁审批折扣数值");
+                            }
+
+                        }
+                         if ($va['roleid'] == 1) {
+                           if($va['disoff'] >$res[2]['disoff']){
+                               $this->error("企业事业部副总裁审批折扣数值应小于项目总监审批折扣数值");
+                           }
+                        }
+                    }
+
+                if($va['money']){
+                    $result2=M('offerconfig')->field('roleid,money')->where(array('status'=>$status))->select();
+                     foreach($result2 as $k=>$v){
+                           $res2[$v['roleid']]=array('money'=>$v['money']);
+                       }
+                     if($va['roleid']==4){
+                         if($va['money']>$res2[3]['money']){
+                             $this->error('客户经理审批金额应小于群经理审批金额');
+                         }
+                     }
+                      if($va['roleid']==3){
+                          if($va['money']<$res2[4]['money']){
+                               $this->error('客户群经理审批金额应大于客户经理审批金额');
+                          }
+                           if($va['money']>$res2[2]['money']){
+                               $this->error('客户群经理审批金额应小于项目总监审批金额');
+                          }
+                     }
+                      if($va['roleid']==2){
+                          if($va['money']<$res2[3]['money']){
+                               $this->error('项目总监审批金额应大于客户群经理审批金额');
+                          }
+                           if($va['money']>$res2[1]['money']){
+                               $this->error('项目总监审批金额应小于企业事业部副总裁审批金额');
+                          }
+                     }
+                     if($va['roleid']==1){
+                         if($va['money']<$res2[2]['money']){
+                             $this->error('企业事业部副总裁审批金额应大于总监审批金额');
+                         }
+                     }
+                }
+	            $va['updatetime']=time();
+	            M('offerconfig')->where(array('roleid'=>$va['roleid'],'status'=>$status))->save($va);
+            }
+            $this->redirect('OfferConfig/index',array('status'=>$status));
+        }else{
+	        $status= I('get.status','1');
+            $this->assign('offerState',$status);
+            $order = "roleid desc";
+            $list = M('offerconfig')->field('ocid,disoff,money,roleid,rname,status')->order($order)->select();
+            $this->assign('list', $list);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '报价审批', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->meta_title = '报价审批';
+            $this->display();
+        }
+
+	}
+
+}

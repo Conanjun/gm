@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<style>
+    * { margin: 0; padding: 0; }
+    body { background: #f7f7f7; }
+    a { text-decoration: none; }
+    .se-mask { display: none; position: fixed; top: 0; left: 0; z-index: 111; background: rgba(0,0,0,.5); width: 100%; height: 100%; z-index: 110; }
+    .se-change { display: none; position: absolute; z-index: 111; left: 50%; top: 50%; margin: -250px 0 0 -350px; width: 700px; height: 500px; padding: 15px 10px; background: #fff; overflow: hidden; }
+    .se-change .close { position: absolute; top: 10px; right: 10px; width: 14px; height: 14px; background: url('icon-close.png') center no-repeat; background-size: cover; }
+    .se-change .pull-left { float: left; }
+    .se-change .pull-right { float: right; }
+    .se-change .change-item { width: 340px; }
+    .se-change .change-item h3 { height: 30px; line-height: 30px; margin: 0; font-size: 12px; border-bottom: 1px solid #e7e7e7; font-weight: normal; padding-left: 15px; color: #999; }
+    .se-change .change-item ._scroll { height: 420px; margin: 5px 0 15px; overflow: hidden; }
+    .se-change .change-item ._scroll ,
+    .se-change .change-item ._panel-box { position: relative; }
+    .se-change .change-item ._panel-item { width: 310px; height: 24px; line-height: 24px; font-size: 12px; padding-left: 15px; border: 1px solid #fff; cursor: pointer; transition: all .3s; }
+    .se-change .pull-left ._panel-item { background: url('icon-arrow-right-g.png') 96% center no-repeat; }
+    .se-change .pull-left ._panel-item.active ,
+    .se-change .pull-left ._panel-item:hover { background: #ecf0f1 url('icon-arrow-right.png') 96% center no-repeat; border-color: #c1c5c6; }
+    /*.change .pull-right ._panel-item:hover ,*/
+    .se-change ._panel-item.checked { background: #ecf0f1 url('checked.png') 96% center no-repeat; border-color: #ecf0f1; color: #7540d8; }
+    .se-change .change-button { margin-top: 15px; font-size: 0; text-align: center; }
+    .se-change .change-button a { display: inline-block; vertical-align: top; width: 108px; height: 30px; line-height: 30px; font-size: 14px; margin: 0 15px; }
+    .se-change .change-button .reset { background: #ecf0f1; color: #666; }
+    .se-change .change-button .submit { background: #7540d8; color: #fff; }
+</style>
+
+<input type="text" id="change" readonly data-vals="11" data-type="0" value="内科21" data-class="child" style="margin: 50px; height: 50px; border: 2px solid red; width: 200px">
+
+<div class="se-mask"></div>
+<div class="se-change clearfix">
+
+    <div class="change-item pull-left">
+        <h3>科室</h3>
+        <div class="_scroll">
+            <div class="_panel-box _panel-parent" data-class="parent">
+            </div>
+        </div>
+    </div>
+
+    <div class="change-item pull-right">
+        <h3>科室</h3>
+        <div class="_scroll">
+            <div class="_panel-box _panel-child" data-class="child">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="change-button">
+        <a href="javascript:void(0);" class="reset">取消</a>
+        <a href="javascript:void(0);" class="submit">确定</a>
+    </div>
+
+    <span class="close"></span>
+
+</div>
+
+<script src="__JSNEW__/department/jquery.min.js"></script>
+<script src="__JSNEW__/department/yi-scroll.js"></script>
+<script src="__JSNEW__/department/project.department.js"></script>
+<script>
+
+    $(function(){
+        $("._scroll").yi_scroll();
+
+        // 循环数据
+        var _parent = '' ,
+            _child  = '';
+
+        for ( var i = 0; i < data.length; i++ ) {
+            _parent += '<div class="_panel-item" value="' + data[i].id + '">' + data[i].name + '</div>';
+        }
+
+        var _parentBox = $('._panel-parent'),
+            _childBox  = $('._panel-child');
+
+        _parentBox.empty().append(_parent);
+
+        _parent = '';
+
+        _parentBox.on('click', '._panel-item', function(){
+            var _this = $(this) ,
+                _vals = _this.attr('value');
+
+            $('._panel-parent ._panel-item').removeClass('active');
+
+            for( var k = 0; k < data[_vals].array.length; k++ ) {
+                var res = data[_vals].array[k];
+                _child += '<div class="_panel-item" value="' + res.value + '">' + res.name + '</div>';
+            }
+
+            $('._panel-item').removeClass('checked');
+            _this.addClass('checked');
+
+            _childBox.attr('data-type',_vals)
+            _childBox.empty().append(_child);
+
+            _child = '';
+        })
+
+        _childBox.on('click', '._panel-item', function(){
+            var _this = $(this),
+                _vals = _this.parent().attr('data-type');
+
+            $('._panel-item').removeClass('checked');
+            _this.addClass('checked');
+
+            _parentBox.find('._panel-item').eq(_vals).addClass('active').siblings().removeClass('active');
+        })
+
+        $('.close').on('click', function(){
+            // 关闭的时候清除选择项目
+            // $('._panel-item').removeClass('checked , active');
+            $('.se-mask , .se-change').fadeOut();
+            // $('')
+        })
+
+        $('.reset').on('click', function(){
+            // $('._panel-item').removeClass('active , checked');
+            $('.se-mask , .se-change').fadeOut();
+        })
+
+        $('.submit').on('click', function(){
+            $('.se-mask , .se-change').fadeOut();
+            $('#change').val($('.checked').text());
+            $('#change').attr({
+                'data-vals': $('.checked').attr('value'),
+                'data-type': $('._panel-child').attr('data-type'),
+                'data-class': $('.checked').parent().attr('data-class')
+            });
+        })
+
+        // 打开select
+        $('#change').on('click', function(){
+            $('.se-mask , .se-change').fadeIn();
+
+            var _this  	=  	$(this),
+                _text 	= 	_this.val(),
+                _vals  	= 	_this.attr('data-vals'),
+                _type 	= 	_this.attr('data-type'),
+                _class  = 	_this.attr('data-class'),
+                _pitem  = 	$('._panel-parent ._panel-item');
+
+            // console.log(data[_type]);
+            // console.log(_type);
+
+            if( _class == 'parent' ){
+                for ( var i = 0; i < _pitem.length; i++ ) {
+                    if ( _pitem.eq(i).text() == _text ) {
+                        _pitem.eq(i).addClass('checked');
+                    }
+                }
+            } else {
+                for ( var i = 0; i < data[_type].array.length; i++ ) {
+                    var res = data[_type].array[i];
+                    _child += '<div class="_panel-item" value="' + res.value + '">' + res.name + '</div>';
+                    if ( _text == res.name ) {
+                        _child += '<div class="_panel-item checked" value="' + res.value + '">' + res.name + '</div>';
+                    }
+                }
+                _pitem.eq(_type).addClass('active');
+                _childBox.attr('data-type',_type)
+                _childBox.empty().append(_child);
+
+                _child = '';
+            }
+        })
+
+    })
+
+</script>
+
+</body>
+</html>

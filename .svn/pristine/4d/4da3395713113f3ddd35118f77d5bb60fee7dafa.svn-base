@@ -1,0 +1,56 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+class PcpModel extends Model
+{
+
+    protected $pk = 'pcpid';
+
+    // 获取沟通频率
+    public function getFrequency()
+    {
+        $map = [];
+        $map['d.d_code'] = 'pcp_frequency';
+        $list = M('Dictionary')->alias('d')
+            ->field('d.d_key,d.d_value')
+            ->where($map)
+            ->select();
+        return $list;
+    }
+
+    // 获取沟通方式
+    public function getType()
+    {
+        $map = [];
+        $map['d.d_code'] = 'pcp_type';
+        $list = M('Dictionary')->alias('d')
+            ->field('d.d_key,d.d_value')
+            ->where($map)
+            ->select();
+        return $list;
+    }
+
+    /**
+     * 按照项目查出数目
+     *
+     * @param $pid
+     *
+     * @return mixed
+     */
+    public function getCount($pid)
+    {
+        $map['pid'] = $pid;
+        $count = $this->where($map)->count();
+        return $count ? 1 : 0;
+    }
+}

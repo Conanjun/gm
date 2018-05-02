@@ -1,0 +1,342 @@
+<extend name="Public/base"/>
+<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <script language="Javascript">browseType = "unclosed";
+
+    </script>
+    <style>
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 1000px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            /*border-left: transparent;*/
+        }
+
+        #childrenForm .chosen-single {
+            border-right: 0px;
+        }
+         #holder{
+             margin:5px 0;
+         }
+
+        .checkbox label, .radio label{
+            margin-bottom:10px;
+            margin-top:10px;
+        }
+    </style>
+    <div id="featurebar">
+        <include file="Public:newtitle"/>
+        <div class="btn-group actions" style="float: right">
+            <a href="javascript:history.go(-1);"  class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+     <div >
+        <div style="">
+            <div style="margin-top:10px;color:#888">
+                <p style="margin-bottom:20px">结项前需检查任务是否完成、文档上传完整、报销完成、同时要上传客户验收凭证，完成后对应项打✔️后方可完成项目</p>
+            </div>
+                    <span style="font-weight:bold;color:#21841d">结项前检查</span>
+            <form action="{:U('Plan/closure?id='.$p['pid'])}" method="post" enctype="multipart/form-data">
+                <div>
+                 <div class="checkbox check ">
+                     <label> <input  class="rows-selector" type="checkbox" <if condition="!cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">disabled</if> value="1" onclick="verifytask(this)" name="taskcheck" <if condition="$accept['taskcheck']">checked</if>> 任务完成情况</label>
+                    <div class="actions">
+                        共{$p.taskcount}项任务，完成 {$p.taskfinish} /关闭 {$p.taskclose}   <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])"><a href="{:U('Execute/task_index?id='.$p['pid'])}"><i class="btn icon icon-hand-right">前往处理</i></a></if>
+                    </div>
+                 </div>
+            <div class="checkbox actions " >
+                <label><input <if condition="!cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">disabled</if> type="checkbox"  class="rows-selector" onclick="verifydoc(this)"  value="1" name="doccheck" <if condition="$accept['doccheck']">checked</if> >文档上传情况</label> <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])"><a href="{:U('Execute/doc_index?pid='.$p['pid'])}"><i class="icon icon-cloud btn">上传文档</i></a></if>
+                      <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center;margin-bottom:16px;" id="taskList">
+                                <thead>
+                                <tr>
+                                    <foreach name="docs" item="vo">
+                                    <th  class="text-center" width="70px" >{$vo.name}</th>
+                                    </foreach>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="docs">
+                                    <tr>
+                                        <foreach name="docs" item="vo">
+                                        <td class="dt">
+                                            <if condition="$vo.sum eq 0">
+                                                <img src="__THEME__/default/images/forbid.png" width="10px">
+                                                <else/>
+                                                <a href="{:U('doc/attach?dtid='.$vo['dtid'].'&pid='.$p['pid'])}">{$vo.sum}</a>
+                                            </if>
+                                        </td>
+                                        </foreach>
+                                    </tr>
+
+                                <else/>
+                                    <tr><td class="text-center table_nodata"> aOh! 暂时还没有内容! </td></tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+            </div>
+            <div class="checkbox actions ">
+                <label><input <if condition="!cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">disabled</if> type="checkbox" class="rows-selector" value="1" onclick="verifyexpense(this)"  name="expensecheck"  <if condition="$accept['expensecheck']">checked</if>>报销情况  <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])"><a href="{:U('Execute/expense_index?pid='.$p['pid'])}"><i class="icon icon-hand-right btn">前往报销</i></a></if></label>
+                <div>
+                  <table class="table table-condensed table-hover table-striped tablesorter mytable text-center" >
+                            <tbody>
+                             <tr>
+                                 <th class="text-center">成本类型</th>
+                                 <th class="text-center">费用项目</th>
+                                 <th class="text-center">预算</th>
+                                 <th class="text-center">实际支出</th>
+                                 <th class="text-center">预算工时</th>
+                             </tr>
+                             <notempty name="budget">
+                                 <foreach name="budget" item="v">
+                                   <tr>
+                                        <td>{$v.type1}{$v.type}</td>
+                                        <td>{$v.outitem}</td>
+                                        <td>
+                                            <if condition="$v['type'] eq '现金成本' ">{$v.budget|fomatprice}</if>
+                                            <if condition="$v['type'] eq '人力成本' ">{$v.cbudget|fomatprice2}</if>
+                                        </td>
+                                        <td>
+                                            <if condition="$v['type'] eq '现金成本' ">{$v.cost|fomatprice}</if>
+                                            <if condition="$v['type'] eq '人力成本' ">{$v.cost|fomatprice2}</if>
+                                        <td>
+                                            <if condition="$v['type'] eq '现金成本' "> {$v.hours}h</if>
+                                            <if condition="$v['type'] eq '人力成本' "> {$v.chours}h</if>
+                                        </td>
+                                    </tr>
+                                 </foreach>
+
+                             <else/>
+                             <tr>
+                                 <tr><td colspan="5" class="text-center table_nodata"> aOh! 暂时还没有内容! </td></tr>
+                             </tr>
+
+                             </notempty>
+
+                            </tbody>
+
+                        </table>
+                </div>
+            </div>
+            <div class="checkbox pr"  style="width: 700px">
+                
+                <label><input <if condition="!cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">disabled</if> type="checkbox" class="rows-selector" onclick="verifyaccept(this)" value="1" name="voucher" <if condition="$accept['voucher']">checked</if>>客户验证凭证上传</label>
+                <notempty name="file">
+                     <div style="margin-bottom:10px;">
+                         <foreach name="file" item="f">
+                             <div>
+                                 <span style="display:inline-block;padding:5px 5px">{$f.name}.{$f.ext}</span>
+                                 <a href="{:U('doc/download?fid='.$f['fileid'])}" title="点击下载文件">下载</a> <a href="{:U('doc/view?fid='.$f['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$f.name} 预览"> <span class="download">预览</span></a>
+                                 <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])"><if condition="$loginid eq $f['uid']">
+                                     <a href="{:U('Plan/closurefile?fid='.$f['fileid'])}" class="confirm ajax-get"  title="删除">删除</a>
+                                 </if></if>
+                             </div>
+
+                         </foreach>
+                </div>
+                </notempty>
+                <style>
+                    .fileBox ,.fileBox1 {
+                        margin-bottom: 10px;
+                        width: 100%
+                    }
+
+                    table.fileBox td,table.fileBox1 td  {
+                        padding: 0 !important
+                    }
+
+                    .fileBox .input-control > input[type='file'],.fileBox1 .input-control > input[type='file'] {
+                        width: 100%;
+                        height: 100%;
+                        height: 26px;
+                        line-height: 26px;
+                        border: none;
+                        position: relative;
+                    }
+
+                    .fileBox td .btn,.fileBox1 td .btn {
+                        border-radius: 0;
+                        border-left: none
+                    }
+
+
+                    input.form-control {
+                        border-left: 0px
+                    }
+
+                    .file-wrapper.form-control .fileControl {
+                        width: 100%;
+                    }
+
+                    @-moz-document url-prefix() {
+                        .file-wrapper.form-control .fileControl {
+                            margin-top: -3px;
+                        }
+                    }
+                    .btn-op{border-left: 0}
+                </style>
+                <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">
+                <div  style="width: 700px">
+
+                    <table class='fileBox ntable' style="width: 700px">
+                        <tr>
+                            <td style="width:330px;height: 30px" >
+                                <div class='form-control file-wrapper'>
+                                    <input type='file' name='files[]'  onchange='checkSizeAndType(this)'  class='fileControl' tabindex='-1' />
+                                </div>
+                            </td>
+
+                            <td style="width: 300px"><input type='text' name='labels[]' class='form-control'  placeholder='标题' tabindex='-1'/></td>
+                            <td class='w-30px'>
+                                <a href='javascript:void(0);' onclick='delFile(this)' style="padding: 6px 10px" class='btn-op btn-block'><i class='icon-remove'></i></a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <a href="javascript:;" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+                </if>
+            </div>
+            <div class="form-condensed">
+                    <div class="rightdiv">
+                        <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">
+                            <a href="{:U('ProjectNew/finish?id='.$p['pid'])}" data-width="800" data-height="600" class="btn iframe"><i class="icon-project-close icon-off"></i> 完成项目</a>
+                        </if>
+                        <if condition="cando('ProjectNew/finish',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <button  class='btn btn-primary' onclick="baocun(this)" ><i class="icon-save"></i> 保存</button></if>
+                    </div>
+              <!--  <a href="{:U('Plan/close?id='.$accept['pid'])}" onclick="close(this)" class="btn"  >关闭项目</a>-->
+
+            </div>
+            <div style="clear: both;"></div>
+            </form>
+
+        </div>
+
+    </div>
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        $(function(){
+            $("#btn-addrow").click(function(){
+                var obj = $(".fileBox").last();
+                addItem(obj);
+            });
+        })
+        highlight_subnav("{:U('ProjectNew/index')}");
+        function baocun(){
+            $('form').submit();
+        }
+      function close(){
+            $("input[type='checkbox']").each(function(){
+                var num=$(this).val();
+                console.log(num)
+            })
+      }
+        function delFile(clickedButton) {
+            if ($('.fileBox').size() == 1) return;
+            $(clickedButton).closest('.fileBox').remove();
+            updateID();
+        }
+        function updateID() {
+            i = 1;
+            $('.fileID').each(function () {
+                $(this).html(i++)
+            });
+        }
+        function addItem(obj)
+        {
+            var $inputgroup = $(obj);
+            $inputgroup.after($inputgroup.clone()).next('.fileBox').find('input').val('');
+            $inputgroup.next().find("div.chosen-container").remove();
+
+        }
+        function checkSizeAndType(obj) {
+            if (typeof($(obj)[0].files) != 'undefined') {
+                var maxUploadInfo = '500M';
+                var sizeType = {'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024};
+                var unit = maxUploadInfo.replace(/\d+/, '');
+                var maxUploadSize = maxUploadInfo.replace(unit, '') * sizeType[unit];
+                var fileSize = 0;
+                $("[type='file']").each(function () {
+                    var length=$(this)[0].files.length;
+                    if(length>0){
+                        fileName = $(this)[0].files[0].name;
+                        dotPos = fileName.lastIndexOf('.');
+                        fileType = fileName.substring(dotPos + 1);
+                        if ((',' + dangerFiles + ',').indexOf((',' + fileType + ',')) != -1) alert(' 您选择的文件存在安全风险，系统将不予上传。');
+                        if ($(this).val()) fileSize += $(this)[0].files[0].size;
+                    }
+
+                })
+                if (fileSize > maxUploadSize) {alert(' 文件大小已经超过500M限制，不能直接上传！');
+                    var a=$(obj).val('');
+                    return false
+                }//Check file size.
+            }
+        }
+        function verifytask(obj){
+            var pid = "{$pid}";
+            if($(obj).attr('checked') != undefined) {
+                $.post("{:U('verifytask')}",{pid:pid},function(response){
+                    if(response.done == false){
+                        alert('项目还有任务没有关闭或完成');
+                        $(obj).attr('checked',false);
+                    }
+                },"jsonp");
+            }
+        }
+        function verifydoc(obj){
+            var pid = "{$pid}";
+            if($(obj).attr('checked') != undefined) {
+                $.post("{:U('verifydoc')}", {pid: pid}, function (response) {
+                    if (response.done == false) {
+                        alert('请上传文档');
+                        $(obj).attr('checked', false);
+                    }
+                }, "jsonp");
+            }
+        }
+        function verifyexpense(obj){
+            var pid = "{$pid}";
+            if($(obj).attr('checked') != undefined) {
+                $.post("{:U('verifyexpense')}", {pid: pid}, function (response) {
+                    if (response.done == false) {
+                        alert('项目还有报销单没有未生效');
+                        $(obj).attr('checked', false);
+                    }
+                }, "jsonp");
+            }
+        }
+        function verifyaccept(obj){
+            var pid = "{$pid}";
+            if($(obj).attr('checked') != undefined) {
+                $.post("{:U('verifyaccept')}", {pid: pid}, function (response) {
+                    if (response.done == false) {
+                        alert('请上传客户验证凭证');
+                        $(obj).attr('checked', false);
+                    }
+                }, "jsonp");
+            }
+        }
+    </script>
+</block>

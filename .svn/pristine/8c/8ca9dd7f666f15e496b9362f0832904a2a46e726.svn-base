@@ -1,0 +1,146 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('DENTAL_FEEDBACK')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/CustomerFeed/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('ORDER_CNAME')}</label>
+                                                <input  class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('C_RESHIP')}</label>
+                                                <input   class="form-control" type="text" name="sname" value="{$Think.get.sname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('FEED_TYPE')}</label>
+                                                <select name="type" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="feed_type" id="sl">
+                                                    	 <option value="{$sl.d_key}" <if condition="$Think.get.type eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('STATE')}</label>
+                                                <select name="state" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="feed_status" id="sl">
+                                                    	 <option value="{$sl.d_key}" <if condition="$Think.get.state eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            
+                                            <td>
+                                                <label>{:L('FEED_TIME')}</label>
+                                                <input class="form-control" style="width: 110px;"  type="text" id="addtime_from" name="addtime_from" value="{$Think.get.addtime_from}">-
+                                                 <input class="form-control" style="width: 110px;"  type="text" id="addtime_to" name="addtime_to" value="{$Think.get.addtime_to}">
+                                            </td>
+                                            
+                                             <td>
+                                                <label>{:L('S_TIME')}</label>
+                                                <input class="form-control" style="width: 110px;"  type="text" id="backtime_from" name="backtime_from" value="{$Think.get.backtime_from}">-
+                                                 <input class="form-control" style="width: 110px;"  type="text" id="backtime_to" name="backtime_to" value="{$Think.get.backtime_to}">
+                                            </td>
+                                            
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('CustomerFeed/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="state">{:L('STATE')}<i class="fa fa-sort"></i></span></th>								
+									<th style="text-align: left"><span>{:L('ORDER_CNAME')}</span></th>
+                                    <th style="text-align: left"><span>{:L('C_RESHIP')}</span></th>
+                                    
+                                    <th style="width: 100px"><span>{:L('FEED_TYPE')}</span></th>
+                                    <th style="text-align: left"><span>{:L('FEED_CONTENT')}</span></th>
+									<th style="width: 150px"><span ectype="order_by" fieldname="addtime">{:L('FEED_TIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 100px"><span>{:L('FEED_P')}</span></th>
+									<th style="width: 150px"><span ectype="order_by" fieldname="backtime">{:L('S_TIME')}<i class="fa fa-sort"></i></span></th>
+									<th style="width: 120px;text-align: right;">{:L('OP')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td style="text-align: left">{$vo['d_value']}</td>
+                                            <td style="text-align: left">{$vo['name']}</td>
+                                            <td style="text-align: left">{$vo['sname']}</td>
+                                            <td>{$vo['ftype']}</td>
+                                            <td style="text-align: left">{$vo['content']}</td>
+                                            <td><if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i",###}<else/>-</if></td>
+                                            <td>{$vo['nickname']}</td>
+                                            <td><if condition="$vo['backtime']">{$vo['backtime']|date="Y-m-d H:i",###}<else/>-</if></td>
+                                             <td  style="text-align: right;">
+                                                <a href="{:U('CustomerFeed/view?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('VIEW')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+            $('#addtime_from').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+            $('#addtime_to').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+            $('#backtime_from').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+            $('#backtime_to').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+        });
+    </script>
+</block>
+

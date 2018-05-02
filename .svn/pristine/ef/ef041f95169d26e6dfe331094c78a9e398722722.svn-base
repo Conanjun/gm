@@ -1,0 +1,1338 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <link href="__CSS__/in/iviews-order.css" rel="stylesheet">
+    <link href="__CSS__/in/stylesheet.css" rel="stylesheet">
+    <script src="__JS__/in/vue.js"></script>
+    <link href="__CSS__/in/piezas_dentales.css" rel="stylesheet">
+    <style>
+        #tt_2,#tt_3,#tt_4{display: none}
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+        .control-span{
+            font-weight: normal;
+            font-size: 14px;
+            color: #999;
+        }
+        .col-sm-label{
+            font-weight: normal;
+            font-size: 14px;
+            color: #999;
+            float: left;
+        }
+
+        [v-cloak] {
+            display: none !important;
+        }
+        #tt_1,#tt_2,#tt_3,#tt_4 {
+            border-top: 0;
+            padding-top: 0px;
+        }
+    </style>
+    <script>
+       $(function(){
+           $("[id^='t_']").click(function(){
+               $("[id^='t_']").parent().removeClass("active");
+               $(this).parent().addClass("active");
+
+               $("[id^='tt_']").hide();
+               $("#t"+$(this).attr("id")).show();
+           });
+       });
+    </script>
+	
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<link href="__CSS__/in/iviews-order.css" rel="stylesheet"  type="text/css" />
+
+    <!-- content begin -->
+    <div class="wrapper wrapper-content" id="app">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('ORDER_MANAGE')}
+                            <small>{:L('VIEW')}&nbsp;{$info.order_sn}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <if condition="($info['state'] gt 60) && ($info['state'] lt 110)" >
+                                <a href="{:U('Order/change?id='.$vo['order_id'])}" class="btn btn-sm btn-primary confirm ajax-get">{:L('TASK_CHANGE')}</a>
+                            </if>
+                            <if condition="$info['state'] eq 50">
+                                <a href="{:U('Order/confirm?id='.$vo['order_id'])}" class="btn btn-sm btn-primary confirm ajax-get">{:L('TASK_CONFIRM')}</a>
+                            </if>
+                            <if condition="($info['state'] eq 120 && $info['hasmaking'] eq 1) or ($info['state'] eq -1) or ($info['state'] eq 70 && $info['hasmaking'] eq 0 && $info['hasdesign'] eq 1)">
+                                <a href="javascript:;" id="close" class="btn btn-primary btn-sm">{:L('CLOSE_ORDER')}</a>
+                            </if>
+                            <if condition="$info['state'] eq 110">
+                                <a href="javascript:;" id="confirm_goods" class="btn btn-primary btn-sm">{:L('CONFIRM_GOODS')}</a>
+                            </if>
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="javascript:;" id="t_1">基本信息</a></li>
+                        <li><a href="javascript:;" id="t_2">资料&方案</a></li>
+                        <li><a href="javascript:;" id="t_3">费用信息</a></li>
+                        <li><a href="javascript:;" id="t_4">操作记录</a></li>
+                    </ul>
+
+                    <div class="wrapper wrapper-content" id="tt_1">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <!-- title -->
+                                    <div class="ibox-content">
+                                        <form  class="form-horizontal">
+                                            <div class="iviews-order-form">
+                                                <div class="form-group">
+                                                <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('ORDER_STYPE')}</label>
+                                                <div class="col-sm-1">
+                                                    <p class="form-control-static">{$info.dv2}</p>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="hr-line-dashed"></div>
+                                            <div class="iviews-order-form">
+                                                <div class="form-group">
+                                                <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('SERVICE_NAME')}</label>
+                                                <div class="col-sm-4">
+                                                    <p class="form-control-static"><span class="control-span">{:L('PROSCH')}:</span> <if condition="$info['hasdesign']">{:L('DESIGHOP')}</if><if condition="$info['hasmaking']">&nbsp;&nbsp;{:L('MODELMAKE')}</if></p>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <p class="form-control-static"><span class="control-span">{:L('NORMALS')}:</span> <if condition="$ns">{$ns|L}</if></p>
+                                                </div>
+                                                <label class="col-sm-2 col-sm-offset-1 control-label"></label>
+                                                <div class="col-sm-4">
+                                                    <p class="form-control-static"><span class="control-span">{:L('OTHERS')}:</span> <if condition="$os">{$os|L}</if></p>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <p class="form-control-static"><span class="control-span">{:L('ORDER_UG')}:</span> <if condition="$info['isurgent']">
+                                                        {:L('YES')}
+                                                        <else/>
+                                                        {:L('NO')}
+                                                    </if></p>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="hr-line-dashed"></div>
+                                            <div class="iviews-order-form">
+                                                <div class="form-group">
+                                                <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('CUSTOMERINFO')}</label>
+                                                <div class="col-sm-9">
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <p class="form-control-static"><span class="control-span">{:L('DEINFO')}:</span>  {$orderext.dername} {$orderext.deaddr}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <p class="form-control-static"><span class="control-span">{:L('SHIPINFO')}:</span> {$orderext.shiprname} {$orderext.shipaddr}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('SHIPUNAME')}:</span> {$orderext.shipuname}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('SHIPTEL')}:</span> {$orderext.shiptel}</p>
+                                                        </div>
+                                                    </div>
+                                                    <br>
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('DOCINFO')}:</span> {$orderext.doctor} {$orderext.doctor_tel}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('DOCOSSINFO')}:</span> {$orderext.doctorass} {$orderext.doctorass_tel}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('ADOCINFO')}:</span> {$orderext.doctor1} {$orderext.doctor1_tel}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('ADOCOSSINFO')}:</span> {$orderext.doctorass1} {$orderext.doctorass1_tel}</p>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="hr-line-dashed"></div>
+                                            <div class="iviews-order-form">
+                                                <div class="form-group">
+                                                <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('PAINFO')}</label>
+                                                <div class="col-sm-9">
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('MNAME')}:</span> {$info.pname}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('SEX')}:</span> <eq name="info.psex" value="1">{:L('MAN')}<else/><eq name="info.psex" value="2">{:L('WOMAN')}<else/>{:L('SECRECY')}</eq></eq></p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('P_BR')}:</span> <if condition="$orderext['pebirth']">{$orderext['pebirth']|date="Y-m-d H:i",###}<else/>-</if></p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('AGE')}:</span> {$orderext.peage}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <p class="form-control-static"><span class="control-span">{:L('PAZHUSHU')}:</span>{$orderext1.pedesc}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('REPAIRBODY')}:</span> {$orderext1.xft}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('PERIOD')}:</span> {$orderext1.yzy}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('TOOTHLOOSE')}:</span> {$orderext1.sd}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('FIXTYPE')}:</span> {$orderext1.rt}</p>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <p class="form-control-static"><span class="control-span">{:L('PLANOPTIME')}:</span> <if condition="$orderext1['surgerytime']">{$orderext1['surgerytime']|date="Y-m-d H:i",###}<else/>-</if></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="hr-line-dashed"></div>
+                                            <div class="iviews-order-form">
+                                                <div class="form-group" style="overflow: hidden;">
+                                                    <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('MISSTOOTH')}</label>
+                                                    <div id="img_pz" class="col-md-offset-1 col-md-11">
+                                                        <div id="pz_dentales">
+                                                            <div class="d_sup1 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup18" value="valuable" id="sup1">
+                                                                <label for="sup1"></label>
+                                                            </div>
+                                                            <div class="d_sup2 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup17" value="valuable" id="sup2">
+                                                                <label for="sup2"></label>
+                                                            </div>
+                                                            <div class="d_sup3 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup16" value="valuable" id="sup3">
+                                                                <label for="sup3"></label>
+                                                            </div>
+                                                            <div class="d_sup4 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup15" value="valuable" id="sup4">
+                                                                <label for="sup4"></label>
+                                                            </div>
+                                                            <div class="d_sup5 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup14" value="valuable" id="sup5">
+                                                                <label for="sup5"></label>
+                                                            </div>
+                                                            <div class="d_sup6 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup13" value="valuable" id="sup6">
+                                                                <label for="sup6"></label>
+                                                            </div>
+                                                            <div class="d_sup7 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup12" value="valuable" id="sup7">
+                                                                <label for="sup7"></label>
+                                                            </div>
+                                                            <div class="d_sup8 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup11" value="valuable" id="sup8">
+                                                                <label for="sup8"></label>
+                                                            </div>
+                                                            <div class="d_sup9 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup21" value="valuable" id="sup9">
+                                                                <label for="sup9"></label>
+                                                            </div>
+                                                            <div class="d_sup10 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup22" value="valuable" id="sup10">
+                                                                <label for="sup10"></label>
+                                                            </div>
+                                                            <div class="d_sup11 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup23" value="valuable" id="sup11">
+                                                                <label for="sup11"></label>
+                                                            </div>
+                                                            <div class="d_sup12 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup24" value="valuable" id="sup12">
+                                                                <label for="sup12"></label>
+                                                            </div>
+                                                            <div class="d_sup13 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup25" value="valuable" id="sup13">
+                                                                <label for="sup13"></label>
+                                                            </div>
+                                                            <div class="d_sup14 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup26" value="valuable" id="sup14">
+                                                                <label for="sup14"></label>
+                                                            </div>
+                                                            <div class="d_sup15 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup27" value="valuable" id="sup15">
+                                                                <label for="sup15"></label>
+                                                            </div>
+                                                            <div class="d_sup16 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup28" value="valuable" id="sup16">
+                                                                <label for="sup16"></label>
+                                                            </div>
+                                                            <!--INFERIOR-->
+                                                            <div class="d_inf1 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf48" value="valuable" id="inf1">
+                                                                <label for="inf1"></label>
+                                                            </div>
+                                                            <div class="d_inf2 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf47" value="valuable" id="inf2">
+                                                                <label for="inf2"></label>
+                                                            </div>
+                                                            <div class="d_inf3 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf46" value="valuable" id="inf3">
+                                                                <label for="inf3"></label>
+                                                            </div>
+                                                            <div class="d_inf4 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf45" value="valuable" id="inf4">
+                                                                <label for="inf4"></label>
+                                                            </div>
+                                                            <div class="d_inf5 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf44" value="valuable" id="inf5">
+                                                                <label for="inf5"></label>
+                                                            </div>
+                                                            <div class="d_inf6 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf43" value="valuable" id="inf6">
+                                                                <label for="inf6"></label>
+                                                            </div>
+                                                            <div class="d_inf7 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf42" value="valuable" id="inf7">
+                                                                <label for="inf7"></label>
+                                                            </div>
+                                                            <div class="d_inf8 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf41" value="valuable" id="inf8">
+                                                                <label for="inf8"></label>
+                                                            </div>
+                                                            <div class="d_inf9 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf31" value="valuable" id="inf9">
+                                                                <label for="inf9"></label>
+                                                            </div>
+                                                            <div class="d_inf10 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf32" value="valuable" id="inf10">
+                                                                <label for="inf10"></label>
+                                                            </div>
+                                                            <div class="d_inf11 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf33" value="valuable" id="inf11">
+                                                                <label for="inf11"></label>
+                                                            </div>
+                                                            <div class="d_inf12 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf34" value="valuable" id="inf12">
+                                                                <label for="inf12"></label>
+                                                            </div>
+                                                            <div class="d_inf13 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf35" value="valuable" id="inf13">
+                                                                <label for="inf13"></label>
+                                                            </div>
+                                                            <div class="d_inf14 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf36" value="valuable" id="inf14">
+                                                                <label for="inf14"></label>
+                                                            </div>
+                                                            <div class="d_inf15 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf37" value="valuable" id="inf15">
+                                                                <label for="inf15"></label>
+                                                            </div>
+                                                            <div class="d_inf16 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf38" value="valuable" id="inf16">
+                                                                <label for="inf16"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" style="overflow: hidden;">
+                                                    <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('SEEDTOOTH')}</label>
+                                                    <div id="img_pz_2" class="col-md-offset-1 col-md-11">
+                                                        <div id="pz_dentales_2">
+                                                            <div class="d_sup1 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup18" value="valuable" id="sup1_2">
+                                                                <label for="sup1_2"></label>
+                                                            </div>
+                                                            <div class="d_sup2 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup17" value="valuable" id="sup2_2">
+                                                                <label for="sup2_2"></label>
+                                                            </div>
+                                                            <div class="d_sup3 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup16" value="valuable" id="sup3_2">
+                                                                <label for="sup3_2"></label>
+                                                            </div>
+                                                            <div class="d_sup4 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup15" value="valuable" id="sup4_2">
+                                                                <label for="sup4_2"></label>
+                                                            </div>
+                                                            <div class="d_sup5 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup14" value="valuable" id="sup5_2">
+                                                                <label for="sup5_2"></label>
+                                                            </div>
+                                                            <div class="d_sup6 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup13" value="valuable" id="sup6_2">
+                                                                <label for="sup6_2"></label>
+                                                            </div>
+                                                            <div class="d_sup7 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup12" value="valuable" id="sup7_2">
+                                                                <label for="sup7_2"></label>
+                                                            </div>
+                                                            <div class="d_sup8 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup11" value="valuable" id="sup8_2">
+                                                                <label for="sup8_2"></label>
+                                                            </div>
+                                                            <div class="d_sup9 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup21" value="valuable" id="sup9_2">
+                                                                <label for="sup9_2"></label>
+                                                            </div>
+                                                            <div class="d_sup10 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup22" value="valuable" id="sup10_2">
+                                                                <label for="sup10_2"></label>
+                                                            </div>
+                                                            <div class="d_sup11 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup23" value="valuable" id="sup11_2">
+                                                                <label for="sup11_2"></label>
+                                                            </div>
+                                                            <div class="d_sup12 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup24" value="valuable" id="sup12_2">
+                                                                <label for="sup12_2"></label>
+                                                            </div>
+                                                            <div class="d_sup13 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup25" value="valuable" id="sup13_2">
+                                                                <label for="sup13_2"></label>
+                                                            </div>
+                                                            <div class="d_sup14 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup26" value="valuable" id="sup14_2">
+                                                                <label for="sup14_2"></label>
+                                                            </div>
+                                                            <div class="d_sup15 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup27" value="valuable" id="sup15_2">
+                                                                <label for="sup15_2"></label>
+                                                            </div>
+                                                            <div class="d_sup16 diente">
+                                                                <input type="checkbox" class="diente_sup" name="sup28" value="valuable" id="sup16_2">
+                                                                <label for="sup16_2"></label>
+                                                            </div>
+                                                            <!--INFERIOR-->
+                                                            <div class="d_inf1 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf48" value="valuable" id="inf1_2">
+                                                                <label for="inf1_2"></label>
+                                                            </div>
+                                                            <div class="d_inf2 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf47" value="valuable" id="inf2_2">
+                                                                <label for="inf2_2"></label>
+                                                            </div>
+                                                            <div class="d_inf3 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf46" value="valuable" id="inf3_2">
+                                                                <label for="inf3_2"></label>
+                                                            </div>
+                                                            <div class="d_inf4 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf45" value="valuable" id="inf4_2">
+                                                                <label for="inf4_2"></label>
+                                                            </div>
+                                                            <div class="d_inf5 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf44" value="valuable" id="inf5_2">
+                                                                <label for="inf5_2"></label>
+                                                            </div>
+                                                            <div class="d_inf6 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf43" value="valuable" id="inf6_2">
+                                                                <label for="inf6_2"></label>
+                                                            </div>
+                                                            <div class="d_inf7 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf42" value="valuable" id="inf7_2">
+                                                                <label for="inf7_2"></label>
+                                                            </div>
+                                                            <div class="d_inf8 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf41" value="valuable" id="inf8_2">
+                                                                <label for="inf8_2"></label>
+                                                            </div>
+                                                            <div class="d_inf9 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf31" value="valuable" id="inf9_2">
+                                                                <label for="inf9_2"></label>
+                                                            </div>
+                                                            <div class="d_inf10 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf32" value="valuable" id="inf10_2">
+                                                                <label for="inf10_2"></label>
+                                                            </div>
+                                                            <div class="d_inf11 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf33" value="valuable" id="inf11_2">
+                                                                <label for="inf11_2"></label>
+                                                            </div>
+                                                            <div class="d_inf12 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf34" value="valuable" id="inf12_2">
+                                                                <label for="inf12_2"></label>
+                                                            </div>
+                                                            <div class="d_inf13 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf35" value="valuable" id="inf13_2">
+                                                                <label for="inf13_2"></label>
+                                                            </div>
+                                                            <div class="d_inf14 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf36" value="valuable" id="inf14_2">
+                                                                <label for="inf14_2"></label>
+                                                            </div>
+                                                            <div class="d_inf15 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf37" value="valuable" id="inf15_2">
+                                                                <label for="inf15_2"></label>
+                                                            </div>
+                                                            <div class="d_inf16 diente">
+                                                                <input type="checkbox" class="diente_inf" name="inf38" value="valuable" id="inf16_2">
+                                                                <label for="inf16_2"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group" style="overflow: hidden;">
+                                                    <label class="col-sm-2 col-sm-offset-1 control-label"></label>
+                                                    <div class="row">
+                                                        <div class="col-sm-4">
+                                                            <p class="form-control-static"><span class="control-span">{:L('ZZBRAND')}:</span> {$orderext1.surname}</p>
+                                                        </div>
+                                                        <div class="col-sm-4">
+                                                            <p class="form-control-static"><span class="control-span">{:L('OPTOOL')}:</span> {$orderext1.surname1}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="hr-line-dashed"></div>
+                                            <div class="iviews-order-form">
+                                                <div class="form-group">
+                                                    <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('BLZL')}</label>
+                                                    <div class="col-sm-9">
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <p class="form-control-static"><span class="control-span">{:L('KNMX')}:</span> {$orderext1.knmx}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-sm-12">
+                                                                <p class="form-control-static"><span class="control-span">{:L('REMARKS')}:</span>{$orderext1.note}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <p class="form-control-static"><span class="control-span">{:L('HGDY')}:</span> <eq name="orderext1.print1" value="1">{:L('YES')}<else/>{:L('NO')}</eq></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <p class="form-control-static"><span class="control-span">{:L('MXDY')}:</span> <eq name="orderext1.print2" value="1">{:L('YES')}<else/>{:L('NO')}</eq></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wrapper wrapper-content" id="tt_2">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <!-- title -->
+                                    <div class="ibox-content">
+                                        <div class="iviews-folder" id="drop-zone">
+
+                                            <div class="form-group-cbct-file iviews-folder-button">
+                                                上传文件夹
+                                                <input type="file" name="filesToUpload[]" id="filesToUpload" multiple="multiple" accept="*.dcm" webkitdirectory="" directory="" />
+                                            </div>
+
+                                            <div class="iviews-folder-header clearfix">
+                                                <div class="pull-left iviews-folder-header-nav">
+                                                    <a href="javascript:void(0);" class="gotof">返回上一级</a>
+                                                    <nav>
+                                                    </nav>
+                                                </div>
+                                                <span class="pull-right">已全部加载,共{$count}个</span>
+                                            </div>
+
+                                            <div class="iviews-folder-bodyer">
+                                                <table class="table table-hover" id="folderSee">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-left" width="40%">文件名</th>
+                                                            <th>文件类型</th>
+                                                            <th>大小</th>
+                                                            <th>上传日期</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        
+                                                        <!-- <tr>
+                                                            <td>
+                                                                <if condition="$vo['path'] neq ''">
+                                                                    <span class="iviews-type-folder">{$vo['path']}</span>
+                                                                    <elseif condition="$vo['ext'] eq 'zip'"/>
+                                                                    <span class="iviews-type-zip">{$vo['name']}</span>
+                                                                    <elseif condition="$vo['ftype'] eq 'jpg'"/>
+                                                                    <span class="iviews-type-jpg">{$vo['name']}</span>
+                                                                    <else/>
+                                                                    <span class="iviews-type-zip">{$vo['name']}</span>
+                                                                </if>
+                                                            </td>
+                                                            <td>
+                                                                {$vo['ext']}
+                                                            </td>
+                                                            <td>{$vo['size']|format_bytes}</td>
+                                                            <td>{$vo['addtime']|date='Y-m-d H:i',###}</td>
+                                                        </tr> -->
+                                                    </tbody>
+                                                </table>
+                                                <div class="clearfix" id="folderPages">
+                                                    <div class="btn-group pull-right">
+                                                        <button type="button" class="btn btn-white">
+                                                            <i class="fa fa-chevron-left"></i>
+                                                        </button>
+                                                        <div class="pull-left">
+                                                            <!-- <button class="btn btn-white">1</button>
+                                                            <button class="btn btn-white  active">2</button>
+                                                            <button class="btn btn-white">3</button>
+                                                            <button class="btn btn-white">4</button> -->
+                                                        </div>
+                                                        <button type="button" class="btn btn-white">
+                                                            <i class="fa fa-chevron-right"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wrapper wrapper-content" id="tt_3">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <!-- title -->
+                                    <div class="ibox-content">
+                                        <table
+                                                class="table table-center"
+                                                style="text-align: center">
+                                            <thead>
+
+                                            <tr>
+                                                <th style="width: 100px;text-align: left; padding-left: 10px">{:L('FEE_NAME')}</th>
+                                                <th style="width: 80px;text-align: left">{:L('PAYMENT_METHOD')}</th>
+                                                <th style="width: 80px;text-align: left">{:L('PAYMENT_STATUS')}</th>
+                                                <th style="width: 100px;text-align: left">{:L('AMOUNT_PAYABLE')}</th>
+                                                <th style="width: 80px;text-align: left">{:L('AMOUNT_PAID')}</th>
+                                                <th style="width: 80px;text-align: left">{:L('PAY_CURRENCY')}</th>
+                                                <th style="width: 150px;text-align: left">{:L('ADD_TIME')}</th>
+                                                <th style="width: 150px;text-align: left">{:L('LAST_PAYMENTTIME')}</th>
+                                                <th style="text-align: left">{:L('REMARKS')}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <notempty name="order_pay"> <volist name="order_pay" id="vo">
+                                                <tr>
+                                                    <td style="text-align: left;width: 100px;padding-left: 10px">{$vo.feename}</td>
+                                                    <td style="text-align: left">
+                                                        <if condition="$vo['paytype']==0">
+                                                            {:L('CASH_PAYMENT')}
+                                                            <else/>
+                                                            {:L('PAY_MONTHLY')}
+                                                        </if>
+                                                    </td>
+                                                    <td style="text-align: left">
+                                                        <if condition="$vo['state']==0">
+                                                            {:L('UNPAID')}
+                                                            <else/>
+                                                            {:L('ALREADY_PAID')}
+                                                        </if>
+                                                    </td>
+                                                    <td style="text-align: left">{$vo.money}/{$vo.money1}</td>
+                                                    <td style="text-align: left;">{$vo.pay_money}</td>
+                                                    <td style="text-align: left">{$vo.currency}</td>
+                                                    <td style="text-align: left">
+                                                        <if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                                    </td>
+                                                    <td style="text-align: left">
+                                                        <if condition="$vo['paytime']">{$vo['paytime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                                    </td>
+                                                    <td style="text-align: left">{$vo.note}</td>
+                                                </tr>
+                                            </volist> <else />
+                                                <td colspan="9" class="text-center table_nodata">{:L('NOCONCENT')}</td>
+                                            </notempty>
+                                            </tbody>
+                                        </table></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wrapper wrapper-content" id="tt_4">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <!-- title -->
+                                    <div class="ibox-content">
+                                        <table
+                                                class="table table-center"
+                                                style="text-align: center">
+                                            <thead>
+
+                                            <tr>
+                                                <th style="width: 160px; text-align: left;padding-left: 10px">{:L('ORDER_STATUS')}</th>
+                                                <th style="width: 80px">{:L('OPERATION_USER')}</th>
+                                                <th style="width: 160px">{:L('OPERATION_TIME')}</th>
+                                                <th style="text-align: left">{:L('OPERATION_NOTE')}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <notempty name="order_log"> <volist name="order_log" id="vo">
+                                                <tr>
+                                                    <td style="width: 160px; text-align: left;padding-left: 10px">{$vo.str_state|L}</td>
+                                                    <td style="width: 80px">{$vo.nickname}</td>
+
+                                                    <td style="width: 160px">
+                                                        <if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i",###}<else/>-</if>
+                                                    </td>
+                                                    <td style="text-align: left">{$vo.note}</td>
+                                                </tr>
+                                            </volist> <else />
+                                                <td colspan="4" class="text-center table_nodata">{:L('NOCONCENT')}</td>
+                                            </notempty>
+                                            </tbody>
+                                        </table></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="iviews-order-mask" v-cloak v-if="step6.loadStatus">
+
+                <div class="iviews-order-load">
+                    <span v-cloak :class="{ 'load': step6.flagStatus , 'success': !step6.flagStatus }">{{ step6.flagStatus ? '正在上传' : '上传结束' }}</span>
+                    <a href="javascript:void(0);" class="iv-icon-close"></a>
+
+                    <strong v-if="step6.flagStatus" v-cloak>正在上传: {{ step6.folder[0].file[step6.folder[0].file.length-1].name }}</strong>
+                    <strong v-if="!step6.flagStatus">上传成功</strong>
+
+                    <div class="folder-list">
+                        <div class="folder-size" v-cloak>大小: {{ step6.folder[0].file[step6.folder[0].file.length-1].size | sizeFilter }}</div>
+                        <div class="folder-progress" v-cloak>已上传:
+                            <small>{{ step6.folder[0].file.length }}</small>/{{ step6.folder[0].length }}</div>
+                    </div>
+                    <div class="tips">提示: 请勿关闭页面以免影响文件上传</div>
+
+                </div>
+
+            </div>
+
+            <div class="iviews-order-mask" v-cloak v-if="step6.fileStatus">
+
+                <div class="iviews-order-folder">
+                    <a href="javascript:void(0);" class="iv-icon-close"></a>
+
+                    <div class="iviews-order-folder-header">
+                        <span class="folder-name" v-cloak>{{ step6.folder[0].id }}</span>
+                        <span class="folder-length" v-cloak>共{{ step6.folder[0].length }}个文件</span>
+                        <span class="folder-total" v-cloak>{{ step6.folder[0].total | sizeFilter }} </span>
+                        <a href="javascript:void(0)"></a>
+                    </div>
+
+                    <div class="full-height-scroll" style="height: 480px; overflow-y: scroll">
+                        <table class="table table-striped table-hover">
+                            <tbody>
+                            <tr>
+                                <td class="folder-name">{:L('FILENAME')}</td>
+                                <td class="folder-time">{:L('UPLOADTIME')}</td>
+                                <td class="folder-type">{:L('FILETYPE')}</td>
+                                <td class="folder-size">{:L('FILESIZE')}</td>
+                            </tr>
+                            <tr v-for=" (item,$index) in step6.folder[0].file ">
+                                <td class="folder-name" v-cloak>{{ item.name }}</td>
+                                <td class="folder-time" v-cloak>{{ item.time }}</td>
+                                <td class="folder-type" v-cloak>{{ item.type }}</td>
+                                <td class="folder-size" v-cloak>{{ item.size | sizeFilter }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    </div>
+    <!-- content end -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        {:L('sysnotice')}
+                    </h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+    <script>
+        var error_box = $("#errorModal");
+        $(function () {
+            var $tooh1 =  "{$orderext1['toothposition']}";
+            var $tooh2 =  "{$orderext1['toothposition1']}";
+            var arr1 = [];
+            var arr2 = [];
+            if($tooh1 !=''){
+                arr1 = $tooh1.split(',');
+                for(var i=0;i<arr1.length;i++){
+                    $('#pz_dentales [name="sup'+arr1[i]+'"]').prop('checked',true);
+                    $('#pz_dentales [name="inf'+arr1[i]+'"]').prop('checked',true);
+                }
+            }
+            if($tooh2 !=''){
+                arr2 = $tooh2.split(',');
+                for(var i=0;i<arr2.length;i++){
+                    $('#pz_dentales_2 [name="sup'+arr2[i]+'"]').prop('checked',true);
+                    $('#pz_dentales_2 [name="inf'+arr2[i]+'"]').prop('checked',true);
+                }
+            }
+            $('body').on('click','.iviews-order-load > a',function(){
+                $('body').removeClass('hasMask');
+                $('#page-wrapper > .border-bottom').eq(0).removeClass('hasMask');
+                $('#page-wrapper > .wrapper').eq(0).removeClass('hasMask');
+                order.step6.loadStatus = false;
+            })
+
+            $('body').on('click', '.iviews-order-folder > a', function () {
+                $('body').removeClass('hasMask');
+                $('#page-wrapper > .border-bottom').eq(0).removeClass('hasMask');
+                $('#page-wrapper > .wrapper').eq(0).removeClass('hasMask');
+                order.step6.fileStatus = false;
+            })
+            $('.diente_sup').prop('disabled',true);
+            $('.diente_inf').prop('disabled',true);
+            $("#confirm_goods").click(function () {
+                    var id="{$info.order_id}";
+                    var url = "{:U('Order/confirm_goods')}";
+                    var param = $("#send_form").serialize();
+                    $.ajax({
+                        url: base.url + url ,
+                        type: 'POST' ,
+                        data: {'id':id},
+                        dataType: 'json' ,
+                        beforeSend: function() {
+                        },
+                        success: function(res) {
+                            if( res.status == 1 ) {
+                                window.location.href = res.url;
+                            } else {
+                                modal.text(error_box, res.info);
+                                modal.open(error_box);
+                            }
+                        },
+                        error: function(err) {
+                        }
+                    })
+            });
+            $("#close").click(function () {
+                var id="{$info.order_id}";
+                var url = "{:U('Order/close')}";
+                $.ajax({
+                    url: base.url + url ,
+                    type: 'POST' ,
+                    data: {'id':id},
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            });
+
+            function handleDragOver(evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+            }
+            var dropZone = document.getElementById('drop-zone');
+            // var dropFile = document.getElementById('filesToUpload');
+            dropZone.addEventListener('dragover', handleDragOver, false);
+            
+            function handleFileSelect(evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                var files = [], folder = '',
+                    items = evt.dataTransfer.items;
+            
+                order.step6.loadStatus = true;
+            
+                if ( order.step6.folder.length == 1 ) {
+                    // alert('CBCT只允许上传一个文件夹');
+                    order.step6.loadStatus = false;
+                    $.scojs_message("{:L('CBCT_ONLY_ONE')}", $.scojs_message.TYPE_ERROR);
+                    return false;
+                }
+            
+                function folderRead(entry,ordername) {
+                    var folderObj = { name: entry.name, total: 0, id: ordername, file: [] }
+            
+                    entry.createReader().readEntries(function (entries) {
+                        folderObj.length = entries.length;
+                        // let total = 0;
+                        for (var i = 0; i < entries.length; i++) {
+                            var entrys = entries[i];
+            
+                            if (entrys.isFile) {
+                                entrys.file(function (file) {
+            
+                                    // total += file.size;
+                                    var fileObj = { name: file.name, size: file.size, type: file.type, time: 'ss'}
+                                    // order.step6.loadStatus = true;
+                                    // 打开状态层
+                                    var fd = new FormData();
+                                    fd.append('mypic', file);
+                                    var url = "{:U('Dentist/Order/uploadFile',array('code'=>$code,'sn'=>$sn,'type'=>'cbct'))}";
+                                    /* var path = files[x].webkitRelativePath.split('/');
+                                     path.pop();
+                                     var filename = path.toString().replace(/,/g,'/');*/
+            
+                                    $.ajax({
+                                        url: url,
+                                        method: 'post',
+                                        contentType: false, // 注意这里应设为false
+                                        processData: false,
+                                        cache: false,
+                                        async: true,
+                                        data: fd,
+                                        success: function(res) {
+                                            if ( typeof res == 'string' ) {
+                                                res = JSON.parse(res);
+                                            }
+            
+                                            if (!res) return false;
+                                            fileObj.time = res.msg.addtime;
+                                            fileObj.size = res.msg.size;
+                                            fileObj.type = res.msg.ext;
+                                            folderObj.total += res.msg.size;
+                                            order.step6.flagStatus = true;
+                                            folderObj.file.push(fileObj)
+                                            // total +=res.size;
+                                            if ( folderObj.length == folderObj.file.length ) {
+                                                order.step6.flagStatus = false;
+                                                // order.step6.loadStatus = false;
+                                            }
+                                            $.full.open();
+                                        },
+                                        error: function(error) {
+                                            console.log(error);
+                                        }
+                                    })
+                                    // folderObj.total =  format_bytes(total);
+                                    // folderObj.total = total;
+                                })
+                            } else {
+                                folder = entrys.name;
+                            }
+                        }
+            
+                    });
+                    order.step6.folder.push(folderObj)
+                }
+                for (var i = 0; i < items.length; i++) {
+                    var entry = items[i].webkitGetAsEntry();
+                    if (!entry) {
+                        return;
+                    }
+                    if (entry.isFile) {
+                        $.scojs_message("{:L('PFUPLOADFILE')}", $.scojs_message.TYPE_ERROR);
+                    } else {
+                        folderRead(entry, '{$sn}');
+                    }
+                }
+            }
+            dropZone.addEventListener('drop', handleFileSelect, false);
+            
+            $('#filesToUpload').on('change', function(ev, ordername){
+            
+                order.step6.loadStatus = true;
+            
+                if (order.step6.folder.length == 1) {
+                    order.step6.loadStatus = false;
+                    $.scojs_message("{:L('CBCT_ONLY_ONE')}", $.scojs_message.TYPE_ERROR);
+                    return false;
+                }
+            
+                ordername = '{$sn}'
+            
+                var folderObj = { name: '', id: ordername, total: 0, file: [], length: ev.target.files.length }
+            
+                if ( ev.target.files.length >= 1 ) {
+                    var files = ev.target.files;
+                    // var name = files[0].webkitRelativePath.split('/')[0];
+            
+                    folderObj.name = name;
+            
+                    for ( x in files ) {
+                        if ( files[x].size ) {
+                            let pathArr = files[x].webkitRelativePath.split('/');
+                            pathArr.pop();
+                            if ( files[x].size != 'undefined' && files[x].size >= 0 ) {
+                                //total += files[x].size;
+                                let fileObj = { path: pathArr.toString(), name: files[x].name, size: files[x].size, type: files[x].type, time: '' }
+                                // var fileObj = { name: files[x].name, size: files[x].size, type: files[x].type, time: 'ss' }
+                                var fd = new FormData();
+                                fd.append('mypic', files[x]);
+                                // fd.append('filename', 'ocdf/sdafsd');
+                                var url1 = "{:U('Dentist/Order/uploadFile',array('code'=>$code,'sn'=>$info['order_sn'],'type'=>'pro','vid'=>$vid,'oid'=>$info['order_id']))}";
+                                $.ajax({
+            
+                                    url: url1+'&path='+pathArr.toString(),
+                                    method: 'post',
+                                    contentType: false, // 注意这里应设为false
+                                    processData: false,
+                                    cache: false,
+                                    async: true,
+                                    data: fd,
+                                    success: function (res) {
+                                        // console.log(res);
+                                        // console.log(res.size);
+                                        if (typeof res == 'string') {
+                                            res = JSON.parse(res);
+                                        }
+                                        var data = res;
+                                        if (!data || data == 'false') return false;
+                                        fileObj.time = data.msg.addtime;
+                                        fileObj.size = data.msg.size;
+                                        fileObj.type = data.msg.ext;
+                                        order.step6.flagStatus = true;
+                                        folderObj.file.push(fileObj)
+                                        folderObj.total += data.msg.size;
+                                        if (folderObj.length == folderObj.file.length) {
+                                            order.step6.flagStatus = false;
+                                            // order.step6.loadStatus = false;
+                                        }
+            
+                                        $('.iviews-order-mask').css({
+                                            'position': 'fixed',
+                                            'width': $(window).width(),
+                                            'height': $(window).height(),
+                                            'left': -($('.navbar-default').width() + 15),
+                                            'top': -$('#page-wrapper > .border-bottom').eq(0).height()
+                                        })
+                                        $('body').addClass('hasMask');
+                                        $('#page-wrapper > .border-bottom').eq(0).addClass('hasMask');
+                                        $('#page-wrapper > .wrapper').eq(0).addClass('hasMask');
+                                    },
+                                    error: function (error) {
+                                        console.log(error);
+                                    }
+                                })
+                                // folderObj.total = format_bytes(total);
+                            }
+                        }
+                    }
+                    order.step6.folder.push(folderObj)
+            
+                } else {
+                    order.step6.loadStatus = false;
+                    $.scojs_message('{:L("MISC")}', $.scojs_message.TYPE_ERROR);
+                }
+            
+            })
+
+            // for 数据
+            // url con =   "{:U('Order/file_info')}"+'&pid=0&limit=0'
+            var $oid         =   "{$info.order_id}" ;
+            // var $oid         =   111;
+            var $path_url    =   "{:U('Order/file_info')}",
+                $table       =   $('#folderSee').find('tbody'),
+                $tr          =   '',
+                $page        =   '';
+        
+            var $navs = $('.iviews-folder-header-nav');
+            
+            function getFolder(url) {
+                $.ajax({
+                    url: url,
+                    method: 'get',
+                    dataType: 'json',
+                    success: function (res) {
+                        console.log(res);
+                        $('#folderSee').attr('data-pid',res.pid);
+
+                        if ( res.count == 0 ) {
+                            $.scojs_message("这是个空文件夹", $.scojs_message.TYPE_ERROR);
+                            return false;
+                        }
+
+                        for (var i = 0; i < res.files.length; i++) {
+                            var $file = res.files[i],
+                                $ext = null,
+                                $name = null;
+                            if ($file.ext) {
+                                $name = $file.name;
+                                if ($file.ext == 'zip' || $file.ext == 'rar') {
+                                    $ext = 'zip';
+                                } else {
+                                    $ext = 'jpg';
+                                }
+
+                            } else {
+                                $name = $file.path;
+                                $ext = 'folder';
+                            }
+                            // $tr += '<tr><td>' + $file.size + '</td><td>' + $file.addtime + '</td></tr>'
+                            $tr += '<tr data-pid="' + $file.fid + '" data-type="' + $ext + '"><td><span class="iviews-type-' + $ext + '"></span>' + $name + '</td>' +
+                                '   <td>' + $ext + '</td>' +
+                                '   <td>' + $file.size + '</td>' +
+                                '   <td>' + $file.addtime + '</td></tr>';
+                        }
+                        
+                        for (var k =1; k <= res.pages; k++ ) {
+                            if ( k == (parseInt(res.limit) + 1) ) {
+                                $page += '<button class="btn btn-white active">' + k + '</button>';
+                            } else {
+                                $page += '<button class="btn btn-white">'+ k +'</button>';
+                            }
+                        }
+                        
+
+                        $table.empty().append($tr);
+                        $('#folderPages .pull-left').empty().append($page);
+                        $tr = '';
+                        $page = '';
+                        
+                        // 分页状态
+                        if ($('#folderPages .pull-left').find('.active').text() == 1) {
+                            $('.fa-chevron-left').parent().prop('disabled', true);
+                            $('.fa-chevron-right').parent().prop('disabled', false);
+                        } else if ($('#folderPages .pull-left').find('.active').text() == res.pages) {
+                            $('.fa-chevron-right').parent().prop('disabled', true);
+                            $('.fa-chevron-left').parent().prop('disabled', false);
+                        } else {
+                            $('.fa-chevron-right , .fa-chevron-left').parent().prop('disabled', false);
+                        }
+
+                        // 面包屑导航
+                        if ( $('#folderSee').attr('data-pid') == 0 ) {
+                            $navs.find('a').hide();
+                            $navs.children('nav').css('margin-left','-20px');
+                            $navs.children('nav').empty().append('<span data-pid="'+ res.pid +'">'+res.sn+'</span>');
+                        } else {
+                            $navs.find('a').show();
+                            $navs.children('nav').css('margin-left', '0px');
+                        }
+                        
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                })
+            }
+            
+            // 初次请求
+            getFolder($path_url+'&oid='+$oid)
+
+            // 面包屑导航
+            $navs.on('click','nav > a',function(){
+                
+                $(this).nextAll().remove();
+                var $pid = $(this).attr('data-pid');
+                 $navs.find('nav > a').last().contents().unwrap().wrap('<span data-pid="' + $pid + '"><span>');
+                if ( $(this).attr('data-pid') && $(this).attr('data-pid') == 0 ) {
+                    getFolder($path_url + '&oid=' + $oid)
+                } else {
+                    getFolder($path_url + '&oid=' + $oid + '&pid=' + $(this).attr('data-pid') + '&limit=0');
+                }
+            })
+
+            $navs.on('click', '.gotof', function(){
+                var $pid = $navs.find('nav').find('a').last().attr('data-pid');
+                $navs.find('nav').find('a').last().nextAll().remove();
+                getFolder($path_url + '&oid=' + $oid + '&pid=' + $pid + '&limit=0');
+            })
+
+            // 点击进入下一级
+            $('#folderSee').on('click','tbody > tr',function(){
+                var $self = $(this);
+                
+                if ( $self.attr('data-type') && $self.attr('data-type') == 'folder' ) {
+                    getFolder($path_url+'&oid='+$oid+'&pid='+$self.attr('data-pid')+'&limit=0');
+                    var $pid = $navs.find('nav > span').attr('data-pid');
+                    $navs.find('nav > span').contents().unwrap().wrap('<a data-pid="'+$pid+'"><a>');
+                    $navs.find('nav').append('<span data-pid="'+$self.attr('data-pid')+'">'+$self.find('td').eq(0).text()+'</span>')
+                }
+            })
+
+            // 分页
+            var $pages = $('#folderPages');
+            $pages.on('click','.pull-left > button', function(){
+                var $self = $(this);
+                if ( !$self.hasClass('active') ) {
+                    getFolder($path_url + '&oid=' + $oid + '&pid=' + $('#folderSee').attr('data-pid') + '&limit=' + ($self.text() - 1));
+                }
+            })
+
+            $pages.find('.fa-chevron-right').parent().on('click', function(){
+                var $text = $pages.find('.active').text();
+                getFolder($path_url + '&oid=' + $oid + '&pid=' + $('#folderSee').attr('data-pid') + '&limit=' + $text);
+            })
+
+            $pages.find('.fa-chevron-left').parent().on('click', function () {
+                var $text = $pages.find('.active').prev().text();
+                getFolder($path_url + '&oid=' + $oid + '&pid=' + $('#folderSee').attr('data-pid') + '&limit=' + ($text-1));
+            })
+
+        });
+
+        var order = new Vue({
+            el: '#app',
+            data () {
+                return {
+                    step6: {
+
+                        folder: [] ,
+                        fileStatus: false,
+                        flagStatus: false,
+                        loadStatus: false,
+
+                    },
+                }
+            },
+            updated () {
+                $('.full-height-scroll').slimscroll({
+                    height: '480px'
+                })
+
+                if(order.step6.loadStatus || order.step6.fileStatus) {
+                    $('.iviews-order-mask').css({
+                        'position': 'fixed',
+                        'width': $(window).width(),
+                        'height': $(window).height(),
+                        'left': -($('.navbar-default').width() + 15),
+                        'top': -$('#page-wrapper > .border-bottom').eq(0).height()
+                    })
+                    $('body').addClass('hasMask');
+                    $('#page-wrapper > .border-bottom').eq(0).addClass('hasMask');
+                    $('#page-wrapper > .wrapper').eq(0).addClass('hasMask');
+
+                    $.full.open();
+                } else {
+                    $('.iviews-order-mask').attr('style','');
+                    $('body').removeClass('hasMask');
+                    $('#page-wrapper > .border-bottom').eq(0).removeClass('hasMask');
+                    $('#page-wrapper > .wrapper').eq(0).removeClass('hasMask');
+
+                    $.full.close();
+                }
+            },
+            filters: {
+                sizeFilter (val) {
+                    var $units =   ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+                    for (var $i =0; val >= 1024 && $i < 5; $i++) val /= 1024;
+                    return  val.toFixed(2) + $units[$i];
+                },
+            },
+            methods: {
+                step6FolderDel(index) {
+                    delete_file(index);
+                },
+                step6FolderSee() {
+                    this.step6.fileStatus = true;
+                }
+            }
+        });
+
+        function delete_file(index){
+            var $res = confirm('确定删除吗');
+            if($res){
+                $.get("{:U('Order/delete_file?sn='.$sn)}",function(data){
+                    if(data.done){
+                        order.step6.folder.splice(index,1);
+                        $("#filesToUpload").val('');
+                    }else{
+                        $.scojs_message(data.msg, $.scojs_message.TYPE_ERROR);
+                    }
+                });
+            }
+        }
+
+    </script>
+</block>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{:L('SYSTITLE')}</title>
+
+    <link href="__ROOT__/Admin/css/in/bootstrap.min.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="__ROOT__/Admin/css/in/animate.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/css/in/style.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="__ROOT__/Admin/css/in/stylesheet.css">
+    <link href="__ROOT__/Admin/css/in/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" rel="stylesheet">
+	<link rel="stylesheet" href="__ROOT__/Admin/js/in/plugins/scojs/css/scojs.css">
+    <!-- Mainly scripts -->
+    <script src="__ROOT__/Admin/js/in/jquery-2.1.1.js"></script>
+    <script src="__ROOT__/Admin/js/in/bootstrap.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/iCheck/icheck.min.js"></script>
+
+    <!-- Chosen -->
+    <script src="__ROOT__/Admin/js/in/plugins/chosen/chosen.jquery.js"></script>
+
+    <link href="__ROOT__/Admin/css/in/plugins/chosen/chosen.css" rel="stylesheet">
+
+    <!-- Custom and plugin javascript -->
+    <script src="__ROOT__/Admin/js/in/inspinia.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/pace/pace.min.js"></script>
+
+    <script src="__ROOT__/Admin/js/in/iviews.base.js"></script>
+	<script src="__ROOT__/Admin/js/in/iviews.extend.js"></script>
+
+    <!-- Scojs -->
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.modal.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.confirm.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.message.js"></script>	
+    
+    <script src="__ROOT__/Admin/js/in/mlselection.js"></script>
+    <script src="__ROOT__/Admin/js/in/inline_edit.js"></script>
+
+
+
+    <script>
+
+        $(function(){
+
+            $('.ui-select').chosen();
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $.menu();
+        })
+
+    </script>
+
+</head>
+
+<body class="">
+
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="__ROOT__/Admin/img/profile_small.jpg" style="width: 50px"/>
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="m-t-xs block">
+                                         <strong class="font-bold">{:session('user_auth.username')}</strong>
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                               <li>
+                                    <a data-trigger="modal" data-title="{:L('CHANGE_PASSWORD')}" data-width="1000px" href="{:U('User/updatepassword')}" class="iframe">{:L('CHANGE_PASSWORD')}</a>
+                                </li>
+                                <li>
+                                    <a data-trigger="modal" data-title="{:L('EDIT_PERSONAL_INFORMATION')}" data-width="1000px" href="{:U('User/update')}" class="iframe" >{:L('EDIT_PERSONAL_INFORMATION')}</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="{:U('Public/logout')}">{:L('LOGOUT')}</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>{:L('LANG_SWITCHER')}</span>
+                          <div class="nav-language-list">
+                            <a href="javascript:" data-u="/index.php?s=/Admin/index/changelang/&lang=zh" id="langurl1" class="nav-language-cn">
+                                <span>{:L('ZH_CN')}</span>
+                            </a>
+                            <a href="javascript:" data-u="/index.php?s=/Admin/index/changelang/&lang=en" id="langurl2" class="nav-language-en">
+                                <span>{:L('EN_US')}</span>
+                            </a>
+                        </div>
+                        <script>
+                        $("#langurl1").click(function(){
+                        	$.ajax({
+                     		   type: "POST",
+                     		   url: $(this).data("u"),
+                     		   dataType: 'text',
+                     		   data: {},
+                     		   success: function(data){
+                     		    	window.location.href="{$_url_}";
+                     		   }
+                     		});
+                        });
+                        $("#langurl2").click(function(){
+                        	$.ajax({
+                     		   type: "POST",
+                     		   url: $(this).data("u"),
+                     		   dataType: 'text',
+                     		   data: {},
+                     		   success: function(data){
+                     		    	window.location.href="{$_url_}";
+                     		   }
+                     		});
+                        });
+                        </script>
+                    </li>
+                    <volist name="__MENU__.main" id="menu">
+                        <li>
+                            <a href="javascript:;">
+                                <i class="fa {$menu.icon_class}"></i>
+                                <span class="nav-label">{$menu.title|L}</span>
+                                <notempty name="menu.child">
+                                    <span class="fa arrow"></span>
+                                </notempty>
+                            </a>
+                            <notempty name="menu.child">
+                                <ul class="nav nav-second-level collapse">
+                                    <volist name="menu.child" id="child">
+                                        <li class="{$child.a}">
+                                            <a href="{$child.url|U}">{$child.title|L}</a>
+                                        </li>
+                                    </volist>
+                                </ul>
+                            </notempty>
+                        </li>
+                    </volist>
+                </ul>
+
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">{:L('WELCOME_MESSAGE')}</span>
+                        </li>
+                        <notempty name="list_s">
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-envelope"></i>
+                                <span class="label label-warning">{$count}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-messages">
+                                <volist name="list_s" id="vo">
+                                     <li>
+                                        <div class="dropdown-messages-box">
+
+                                            <div class="media-body">
+                                                <small class="pull-right"></small>
+                                                <strong>{$vo.nickname}</strong>
+                                                <strong>{$vo.title}</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                	 <if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/></if>
+                                                </small>
+                                            </div>
+
+                                        </div>
+                                    </li>
+                                </volist>
+                                <li class="divider"></li>
+                                <li>
+                                    <div class="text-center link-block">
+                                        <a href="{:U('Message/index')}">
+                                            <i class="fa fa-envelope"></i>
+                                            <strong>{:L('READAll')}</strong>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <else/>
+                             <li class="dropdown">
+		                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+		                                <i class="fa fa-envelope"></i>
+		                                <span class="label label-warning">0</span>
+		                            </a>
+		                        </li>
+                        </notempty>
+                        <li>
+                            <a href="{:U('Public/logout')}">
+                                <i class="fa fa-sign-out"></i>{:L('LOGOUT')}
+                            </a>
+                        </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <div class="wrapper wrapper-content animated fadeInRight">
+                <block name="body"></block>
+            </div>
+        </div>
+    </div>
+    <block name="script"></block>
+</body>
+
+</html>

@@ -1,0 +1,167 @@
+<extend name="Public/base" />
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav" style="float: left">
+            <if condition="$actname=='index' or $type neq 'design'">
+             <li  <if condition="$type neq 'design' ">class=" dropdown active" <else/>class="dropdown"</if>>
+				<a href="javascript:;" data-toggle="dropdown">
+                    <eq name='actname' value='needall'>需要我办理的-全部<else/>
+                        <eq name='actname' value='needrun'>需要我办理的<else/><eq name='actname' value='needfinish'>需要我办理的-已完成<else/>
+                            需要我办理的 </eq>
+                    </eq>
+                </eq>
+                    <span class="caret"></span></a>
+
+                <ul class="dropdown-menu">
+					<if condition="cando('Dealt/needall')"><li class="<eq name='actname' value='needall'>active</eq>"><a href="{:U('Dealt/needall')}">全部</a></li></if>
+					<if condition="cando('Dealt/needrun')"><li class="<eq name='actname' value='needrun'>active</eq>"><a href="{:U('Dealt/needrun')}">进行中</a></li></if>
+					<if condition="cando('Dealt/needfinish')"><li class="<eq name='actname' value='needfinish'>active</eq>"><a href="{:U('Dealt/needfinish')}">已完成</a></li></if>
+				</ul>
+
+			</li>
+			<li class=""><a href="{:U('Dealt/designrun')}">我安排的待办</a>
+			</li>
+            <else/>
+               <li><a href="{:U('Dealt/needrun')}">需要我办理的</a></li>
+                  <li  <if condition="$type eq 'design' ">class=" dropdown active" <else/>class="dropdown"</if>>
+                        <a href="javascript:;" data-toggle="dropdown"><eq name='actname' value='designall'>我安排的待办-全部<else/><eq name='actname' value='designrun'>我安排的待办<else/><eq name='actname' value='designfinish'>我安排的待办-已完成<else/>我安排的待办</eq></eq></eq><span class="caret"></span></a>
+
+                        <ul class="dropdown-menu">
+                            <if condition="cando('Dealt/designall')"><li class="<eq name='actname' value='designall'>active</eq>"><a href="{:U('Dealt/designall')}">全部</a></li></if>
+                            <if condition="cando('Dealt/designrun')"><li class="<eq name='actname' value='designrun'>active</eq>"><a href="{:U('Dealt/designrun')}">进行中</a></li></if>
+                            <if condition="cando('Dealt/designfinish')"><li class="<eq name='actname' value='designfinish'>active</eq>"><a href="{:U('Dealt/designfinish')}">已完成</a></li></if>
+                        </ul>
+
+                    </li>
+            </if>
+
+
+
+		<!--	<li class="<eq name='actname' value='index'>active</eq>"><a href="{:U('Dealt/index')}">需要我办理的</a>
+			</li>
+			<li class="<eq name='actname' value='index1'>active</eq>"><a href="{:U('Dealt/index1')}">我安排的待办</a>
+			</li>-->
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+			<li style="float: right">
+			</li>
+		</ul>
+		<div class="actions">
+			<if condition="cando('Dealt/add')">
+				<a href="{:U('Dealt/add')}" class="btn"><i class="icon-plus" class="icon-plus" ></i>&nbsp;新增待办</a>
+
+			</if>
+		</div>
+		<div style="clear: both;"></div>
+
+		<include file="Public/search" />
+	</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" style="text-align: center;">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable">
+    <thead>
+        <tr>
+		<th width="30px"></th>
+		<th class="text-left">待办事项</th>
+		<th width="80px">优先级</th>
+		<th width="80px">状态</th>
+		<th width="80px">发起人</th>
+		<th width="80px">待办人</th>
+		<th width="120px"><span class="sort" ectype="order_by" fieldname="addtime">添加时间</span></th>
+		<th width="120px"><span class="sort" ectype="order_by" fieldname="stime">开始时间</span></th>
+		<th width="120px"><span class="sort" ectype="order_by" fieldname="etime">结束时间</span></th>
+		<th width="120px">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		                 <if condition="$nowDate gt $vo['format_etime'] && $vo['format_etime'] && $vo['state'] neq '已完成' ">
+                            <tr class="taskr">
+                        </if>
+                        <if condition="$nowDate lt $vo['format_etime'] && $vo['format_etime'] && $vo['state'] neq '已完成' ">
+                            <tr>
+                        </if>
+                        <if condition="$nowDate eq $vo['format_etime'] && $vo['format_etime'] && $vo['state'] neq '已完成' ">
+                            <tr class="taskh">
+                        </if>
+
+            <td class="cell-id">
+           <input class="ids" type="checkbox" name="id[]"
+					value="{$vo.todoid}" />
+				</td>
+			<td class="text-left"><if condition="($actname eq designrun ) or ($actname eq designall) or ($actname eq designfinish)"><a href="{:U('Dealt/edit?id='.$vo['todoid'])}"
+						><else/><a href="{:U('Dealt/view?id='.$vo['todoid'])}"></if>{$vo.title}</a></td>
+			<td  <if condition="$vo.type eq '紧急'">class="textr"</if>>{$vo.type}</td>
+			<td style="text-align:center">{$vo.state}</td>
+			<td>{$vo.uname}</td>
+			<td>{$vo.toname}</td>
+			<td>{$vo.addtime|date="Y-m-d H:i",###}</td>
+			<td>{$vo.stime|date="Y-m-d H:i",###}</td>
+			<td>{$vo.etime|date="Y-m-d H:i",###}</td>
+			<td>
+			<a href="{:U('Dealt/view?id='.$vo['todoid'])}"s>查看</a>
+			<in name="vo.uid" value="$uid"><a href="{:U('Dealt/edit?id='.$vo['todoid'])}"
+						>编辑</a>
+				<a href="{:U('Dealt/deletedata?id='.$vo['todoid'])}"
+					class="confirm ajax-get">删除</a></in>
+				
+                </td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="10" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+        <notempty name="_list">
+	<tfoot>
+			<tr>
+				<td colspan='10'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+	            <button class="btn btn-default ajax-post confirm"
+							url="{:U('Dealt/deletedata')}"
+							target-form="ids">删 除</button>
+
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+      </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Dealt/needrun')}");
+	</script>
+</block>

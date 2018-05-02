@@ -1,0 +1,267 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        .outer.with-side #titlebar{
+            margin-bottom:0;
+        }
+       #projectTip{
+           cursor:pointer;
+       }
+        .chosen-container  .chosen-results {
+            max-height: 160px !important;
+        }
+    </style>
+    <script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+    <script>
+        $(function () {
+             $("#pmuid").change(function(){
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+            });
+              var time="{$project['contract_time']}";
+             $('#signtime').datetimepicker({value:time,lang:'ch',timepicker:false,format:'Y/m/d'});
+
+
+
+            $('#projectTip').mouseover(function () {
+                $('#projectTip').popover({"html": true, trigger: "focus"});
+                $('#projectTip').popover('show');
+            });
+            $('#projectTip').mouseleave(function () {
+                $('#projectTip').popover({"html": true, trigger: "focus"});
+                $('#projectTip').popover('hide');
+            });
+            var str = "{$project.contract}";
+            var arr = str.split(',');
+            var options = $("#contract").find("option");
+            for (var i = 0; i < arr.length; i++) {
+                for (var j = 0; j < options.length; j++) {
+                    if (options.eq(j).val() == arr[i]) {
+                        options.eq(j).attr("selected", 'true');
+                    }
+                }
+            }
+            var noResultsMatch     = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'240px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#contract, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+        })
+             function JqValidate(){
+
+                  return   $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    if ($(element).css("display") == 'none') {
+                        $(element).next('div.chosen-container').children().addClass("error");
+                    }
+                },
+                onkeyup: false,
+                rules: {
+                    name: {
+                        required: true,
+                    },
+                    type: {
+                        required: true
+                    },
+                    pmuid: {
+                        required: true
+                    }
+                },
+                messages: {
+                    name: {
+                        required: '项目名称不能为空'
+                    },
+                    type: {
+                        required: '请选择项目类型'
+                    },
+                    pmuid: {
+                        required: '请选择项目经理'
+                    }
+                }
+            }).form();
+
+              }
+
+    </script>
+       <!-- <div id="titlebar">
+            <div id="headTip">
+                <span class="prefix heading" > </span> <strong>创建项目&nbsp;</strong>
+                &lt;!&ndash;  <span style="font-weight:bold;color:#21841d">&nbsp;项目基本信息</span> <span data-toggle="popover" id="projectTip" data-placement="right" data-content="{$info}" title="{$title}"><i class="icon-lightbulb" style="display:inline-block"></i></span>&ndash;&gt;
+            </div>
+        </div>-->
+      <div style="margin-left:20px;">
+          <div style="color:#888;margin-top:10px;" id="projectinfo">
+              <p>创建项目属于项目「立项」阶段。这个阶段需要填写项目的基本信息、干系人、背景、目标、风险等信息，这些信息将会帮助项目团队更好的了解项目，也是对进行下一步的「项目规划」做准备。</p>
+<p style="margin-top:-10px;margin-bottom:2px">请根据下一步提示来填写信息，如果现有信息完整就尽量填写，如果没有的话可以先填写已有信息，根据提示跳过进入下一阶段，待获取信息时再填</p>
+          </div>
+            <span class="grhead">项目基本信息</span>
+        <!--  <div>
+              <p style="font-weight:bold;color:#21841d;margin-top:10px;margin-bottom:0;">项目基本信息</p>
+                <p style="margin-top:0;margin-bottom:0;color:#888">创建项目属于项目「立项」阶段。这个阶段需要填写项目的基本信息、干系人、背景、目标、风险等信息，这些信息将会帮助项目团队更好的了解项目，也是对进行下一步的「项目规划」做准备。</p>
+<p style="color:#888;margin-bottom:0">请根据下一步提示来填写信息，如果现有信息完整就尽量填写，如果没有的话可以先填写已有信息，根据提示跳过进入下一阶段，待获取信息时再填</p>
+          </div>-->
+
+        </div>
+         <form action="{:U('index',array('edit'=>1))}" method='post' class="form-condensed" style="margin-left:20px">
+            <table class="table-form mytable table ntable" style="width:1060px;border:0;" >
+                <tr>
+                    <th style="width: 100px">项目名称<span class="required"></span></th>
+                    <td> <input type="hidden" name="pid" value="{$project['pid']}">
+                            <input type="text" name="name" id="name" value="{$project[name]}" data-toggle="popover" data-placement="top" data-content="项目名称不可为空" class="form-control" autocomplete="off" style="width:240px;float: none" placeholder="">
+                    </td>
+                   <th>项目类型<span class="required"></th>
+                    <td>
+                        <div style="width: 240px">
+                                <select name="type" class="form-control searchSelect chosen ">
+                                    <volist name="types" id="vo">
+                                        <option value="{$vo.d_value}" <if condition="$project['type'] eq $vo['d_value']">selected</if>>{$vo.d_key}</option>
+                                    </volist>
+                                </select>
+                            </div>
+                    </td>
+                    <th>项目经理 <span class="required"></th>
+                    <td>
+                        <div style="width: 240px">
+                                <input type="hidden" name="pm" value="{$uanme}">
+                                <input type="hidden" name="salename" >
+                                <select name="pmuid"  class="form-control searchSelect chosen" id="pmuid" data-toggle="popover" data-placement="top" data-content="项目名称不可为空">
+                                    <option value=""></option>
+                                    <volist name="pm" id="vo">
+                                        <option value="{$vo.uid}" <if condition="$project['pmuid']==$vo['uid'] or $vo['uid']==$uid ">selected</if>>{$vo.nickname}</option>
+                                    </volist>
+                                </select>
+                            </div>
+                    </td>
+                </tr>
+                 <tr>
+                    <th style="width: 100px">合同号</th>
+                     <td>  <div style="width: 240px">
+								<select name="contract[]" id="contract" multiple="" class="form-control" data-placeholder="请选择..." style="display:none">
+									<volist name="contracts" id="vo">
+										<option value="{$vo.contract_no}" data-name="{$vo.name}">{$vo.contract_no}</option>
+									</volist>
+								</select>
+							</div>
+                     </td>
+                     <th>客户名称</th>
+                     <td><div style="width: 240px;">
+								<select name="cid" class="form-control searchSelect chosen" id="cid">
+									<volist name="customer" id="vo">
+										<option value=""></option>
+										<option value="{$vo.cid}" <if condition="$project[cid] eq $vo['cid']">selected </if>>{$vo.name}</option>
+									</volist>
+								</select>
+							</div>
+                     </td>
+                     <th>客户经理</th>
+                     <td><div style="width: 240px;">
+								<select name="sale" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="pm" id="vo">
+										<option value="{$vo.uid}"<if condition="$project['sale'] eq $vo['uid']">selected</if> >{$vo.nickname}</option>
+									</volist>
+								</select>
+							</div></td>
+                </tr>
+                <tr>
+                      <th style="width: 100px">顾问</th>
+                     <td>
+                       <div style="width:240px;">
+								<select name="adviser"class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="advisers" id="vo">
+                                        <option value="{$vo.uid}" <if condition="$project['adviser'] eq $vo['nickname']">selected</if> >{$vo.nickname}</option>
+									</volist>
+								</select>
+							</div>
+                     </td>
+                    <th>合同金额</th>
+                    <td> <input type="text" name="money"  value="{$project['money']}" class="form-control" autocomplete="off" style="width: 240px;float: none" ></td>
+                    <th>合同签订日期</th><td> <input type="text" name="contract_time"  id="signtime" class="form-control" autocomplete="off" style="width: 240px;float: none"></td>
+                </tr>
+            </table>
+             <div style="width:1060px;margin-top:10px">
+               <div style="float: right;margin-right: 23px;">
+                <!--margin-left:66px;margin-bottom:10px; -->
+                   <a href="javascript:window.parent.choose()"  class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                   <a href="javascript:;"  class="btn btn-primary"  onclick="baocun();"> <i class="icon-save"></i> 保存</a>
+            </div>
+                 </div>
+            <div style="clear:both"></div>
+        </form>
+      <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;"><div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+</block>
+<block name="script">
+    <script>
+        //导航高亮
+	highlight_subnav("{:U('ProjectNewFromMe/index')}");
+        function baocun(){
+            var t=true,pname=$("#name").val();
+            if(pname=='' || pname==undefined || pname==null){
+                var tip="<p style='color:red'>项目名称不可以为空</p>";
+                $('#name').attr('data-content',tip);
+                $("#name").popover({"html": true, trigger: "focus"});
+                $("#name").popover('show');
+                $('#name').focus();return false;
+                t=false;
+            }else{
+                $("#name").popover({"html": true, trigger: "focus"});
+                $("#name").popover('destroy');
+            }
+            /*   var pm=$("#pmuid").val();
+            console.log(pm);
+             pcheck=true;
+             if(pm=="" || pm==undefined ||pm==null){
+              var pmtip="<p style='color:red'>项目经理不可以为空</p>";
+                $('#pmuid').attr('data-content',pmtip);
+                $("#pmuid").popover({"html": true, trigger: "focus"});
+                $("#pmuid").popover('show');
+                $('#pmuid').focus();return false;
+                t=false;
+             }*/
+            if(t && JqValidate()){
+                $('form').submit();
+                $("#loadertip").show();
+            }
+
+		}
+		  $("#name").live('blur',function(){
+            var name=$(this).val();
+            if(name !=''|| name !=undefined || name!=null){
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('destroy');
+
+            }
+        })
+        $("#contract").change(function () {
+            var name = $(this).find("option:selected").last().data('name');
+            var select = $("#cid");
+            var cid = select.val();
+            var cname = select.find("option:selected").text();
+            if (!cid || cname == '') {
+                $("#cid option").each(function () {
+                    var txt = $(this).text();
+                    if(txt == name) {
+                        $(this).attr('selected','true');
+                        $("[name='cid']").trigger('chosen:updated');
+                    }
+                });
+
+            }
+
+        });
+    </script>
+</block>

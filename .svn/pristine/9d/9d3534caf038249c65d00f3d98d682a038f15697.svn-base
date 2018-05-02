@@ -1,0 +1,92 @@
+<?php
+
+namespace Admin\Controller;
+
+use Think\Controller;
+
+class CustomerApiController extends Controller
+{
+    /*
+     * 添加客户的接口 (通过邮箱获取所有人) POST : LGW
+     *
+     */
+    public function setCustomer()
+    {
+        $name = I("post.name", '');         // 名称
+        $shortsign = I('post.shortsign');   // 简称
+        $tel = I("post.tel", '');           // 座机
+        $trade = I("post.trade", '');       // 行业
+        $type = I("post.type", '');         // 类型
+        $contact = I("post.contact", '');   // 联系人
+        $phone = I("post.phone", '');       // 电话
+        $fax = I("post.fax", '');           // 传真
+        $pcompany = I("post.pcompany");     // 母公司
+        $site = I("post.site");             // 网址
+        $note = I("post.note", '');         // 说明
+        $address = I("post.address");       // 地址
+        $employees = I("post.employees");   // 员工数
+        $email = I("post.email", '');       // 邮箱
+        $msg = ''; // 错误信息
+
+        // 名称 联系人 联系电话 不能为空
+        empty($name) and $msg = '客户名称不能为空';
+        //empty($contact) and $msg = '联系人名称不能为空';
+        //empty($phone) and $msg = '联系人电话不能为空';
+        $msg and $this->json_error($msg);
+        // 根据邮箱查询信息
+        $ucenterMember = D('UcenterMember');
+        $uData = $ucenterMember->getInformation($email);
+        $owner = $uData['uid'];
+        $ownername = $uData['username'];
+        $uid = $uData['uid'];
+        $uname = $uData['nickname'];
+        $qq = $uData['qq'];
+
+        $code = $this->_getcode();
+        $data = [
+            'name' => $name,
+            'code' => $code,
+            'shortsign' => $shortsign,
+            'tel' => $tel,
+            'trade' => $trade,
+            'type' => $type,
+            'contact' => $contact,
+            'phone' => $phone,
+            'owner' => $owner,
+            'fax' => $fax,
+            'qq' => $qq,
+            'pcompany' => $pcompany,
+            'site' => $site,
+            'note' => $note,
+            'address' => $address,
+            'employees' => $employees,
+            'addtime' => time(),
+            'uid' => $uid,
+            'uname' => $uname,
+            'ownername' => $ownername,
+        ];
+
+        $result = D('Customer')->add($data);
+
+        if ($result === false) $this->json_error('客户添加失败！');
+
+        $this->json_result('','客户添加成功！');
+
+
+    }
+
+    /**
+     * 生成客户编码
+     */
+
+    private function _getcode()
+    {
+        $code = "C" . mt_rand(10000000, 99999999);
+        $data = M('Customer')->where("code='" . $code . "'")->find();
+        if ($data) {
+            $this->_getcode();
+        } else {
+            return $code;
+        }
+    }
+}

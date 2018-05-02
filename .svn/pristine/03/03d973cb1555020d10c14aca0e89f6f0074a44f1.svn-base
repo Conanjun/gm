@@ -1,0 +1,653 @@
+<?php
+
+namespace Admin\Controller;
+
+// 项目概览 : LGW
+use Admin\Common\Super\ProjectBudget;
+use Admin\Common\Super\Task;
+
+class ProjectViewController extends AddonsController
+{
+	private $db;
+	private $today;
+
+	// 构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->db = D('Project');
+		$this->today = strtotime(date('Y-m-d'));
+	}
+
+	// 项目详情
+	public function view()
+	{
+		$project = $this->baseMessage();    // 基本信息
+		$pid = $project['pid'];
+		$kpi = M('Project_kpi')->where('pid=' . $pid)->order('kid asc')->select();    // kpi
+		$milestone = D('Milestone')->getMilestoneByPid($pid);    // 里程碑
+		$task = D('Task')->getTaskByPid($pid);    // 项目范围
+		$takePart = D('TakePart')->getTakePartByPid($pid);    // 参与成员
+		// 成本预算
+		$projectBudget = D('ProjectBudget')->getProjectBudgetByPid($pid);
+		$cashCost = D('ProjectBudget')->getProjectBudgetByPid($pid, ProjectBudget::CASH_BUDGET);      // 现金成本
+		$thirdCost = D('ProjectBudget')->getProjectBudgetByPid($pid, ProjectBudget::THIRD_BUDGET);    // 第三方成本
+		$cashBudgets = array_column($cashCost, 'budget');    // 预算现金成本
+		$thirdBudgets = array_column($thirdCost, 'budget');    // 预算第三方成本
+		$cashBudget = array_sum($cashBudgets);    // 预算现金成本总和
+		$thirdBudget = array_sum($thirdBudgets);    // 预算第三方成本总和
+		$hours = array_column($projectBudget, 'chours'); // 预计工时
+		$hoursSum = array_sum($hours);    // 预计工时总和
+		$budGet = [];
+		$budGet['cashBudget'] = $cashBudget;
+		$budGet['thirdBudget'] = $thirdBudget;
+		$budGet['hoursSum'] = $hoursSum;
+		//报销
+		$resultExpense = D('Expense')->getExpenseByPid($pid);
+		$amounts = array_column($resultExpense, 'amount');    // 报销金额
+		$amount = array_sum($amounts);    // 报销金额总和
+		$ratio = round(($amount / $project['money']) * 100, 2);    // 占总项目金额
+		$hasBeens = array_column($task, 'finishours');
+		$hasBeen = array_sum($hasBeens);    // 实际已投入总和
+		$expense = [];
+		$expense['amount'] = $amount;
+		$expense['ratio'] = $ratio;
+		$expense['hoursSum'] = $hoursSum;
+		$expense['hasBeen'] = $hasBeen;
+		// 项目文档
+		$docs = D('Doc')->getDocByPid($pid);
+
+		// 风险
+		$risks = D('Risk')->getRiskByPid($pid);
+		$level = [];
+		$grade = [];
+		if (!empty($risks)) {
+			foreach ($risks as $k => $v) {
+				if ($v['level'] == '高' || $v['level'] == '紧急') {
+					$level[] = $v;
+				}
+				if ($v['grade'] == '大') {
+					$grade[] = $v;
+				}
+			}
+		}
+		$risk = [];
+		$risk['num'] = count($risks);    // 总数
+		$risk['level'] = count($level);  // 等级高的
+		$risk['grade'] = count($grade);  // 影响大的
+		//变更
+		$alters = D('ProjectAlter')->where('pid=' . $pid)->select();
+		/* if(!empty($alters)){
+		 foreach($alter as $k => $v){
+
+		 }
+		 }*/
+		$alter = array();
+		$alter['num'] = count($alters);
+		$alter['fwn'] = count($alters);
+		$alter['fww'] = count($alters);
+		$this->assign('alter', $alter);
+
+		//干系人
+		$holder = M('related')->field('rid,name,dept')->where(array('pid' => $pid))->select();
+		$this->assign('holder', $holder);
+		//项目范围
+		$scope = M('ProjectService')->distinct(true)->alias('t')
+		->field("pc.name as p1name,pc2.name as p2name")
+		->join("ot_project_config pc  on t.pcid = pc.pid")
+		->join("ot_project_config pc2  on  CONCAT(pc.path) like CONCAT('%,',pc2.pid,',%') and pc2.grade=2")
+		->where("t.pid = " . $pid)->order("pc2.pid")->select();
+		$newscope = array();
+		foreach ($scope as $k => $v) {
+			$newscope[$v['p2name']] .= $v['p1name'] . '、';
+		}
+		$takePart1 = array();
+		foreach ($takePart as $k => $v) {
+			$takePart1[$v['title']] .= $v['uname'] . '、';
+		}
+		foreach ($takePart1 as $kk => $vv) {
+			$takePart1[$kk] = implode('、', array_unique(explode('、', trim($vv, '、'))));
+		}
+		$w1 = " 1=1 and pid =$pid";
+		$w2 = " and outtype ='ot_project'";
+		$condition ['_string'] = "(($w1 $w2))";
+		$logs = M("Log")->where($condition)->order("addtime asc")->select();
+		$olddata = [];
+		$newdata = [];
+		if ($logs) {
+			foreach ($logs as $k => $v) {
+				$hs = M("History")->where("logid='{$v['logid']}'")->select();
+				if ($hs) {
+					foreach ($hs as $kk => $vv) {
+						$hs[$kk]['fname'] = tf_name('ot_project', $vv['field']);
+						switch ($vv['field']) {
+							case "cid":
+								$oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+								if ($oldtemp) {
+									$olddata = $oldtemp['name'];
+								}
+								if ($olddata) {
+									$hs[$kk]['olddata'] = $olddata;
+								}
+
+								$newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+								if ($newtemp) {
+									$newdata = $newtemp['name'];
+								}
+								if ($newdata) {
+									$hs[$kk]['newdata'] = $newdata;
+								}
+
+								break;
+
+							case "pstime":
+							case "petime":
+							case "livetime":
+							case "addtime":
+							case "assignedtime":
+								$hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+								$hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+								break;
+							case "state":
+								$mod = M("Dictionary");
+								$orow = $mod->field("d_key")->where("d_code='project_state' and d_value='{$vv['olddata']}'")->find();
+								if ($orow) {
+									$hs[$kk]['olddata'] = $orow["d_key"];
+								}
+								$nrow = $mod->field("d_key")->where("d_code='project_state' and d_value='{$vv['newdata']}'")->find();
+								if ($orow) {
+									$hs[$kk]['newdata'] = $nrow["d_key"];
+								}
+								break;
+
+							default:
+								break;
+						}
+					}
+
+					$logs[$k]['hs'] = $hs;
+				}
+			}
+		}
+		$this->assign("logs", $logs);
+		$takezxr = $takePart1['项目执行'];
+		$this->assign('scope', $newscope);
+		$this->assign('actionName', ACTION_NAME);
+		$this->assign('risk', $risk);
+		$this->assign('docs', $docs);
+		$this->assign('expense', $expense);
+		$this->assign('budget', $budGet);
+		$this->assign('tplist', $takePart1);
+		$this->assign('takezxr', $takezxr);
+		$this->assign('tlist', $task);
+		$this->assign('mlist', $milestone);
+		$this->rootMbx($project['name'], $project['pid']);   // 底部面包屑
+		$this->assign('kpi', $kpi);
+		$this->assign('p', $project);
+		$this->display();
+	}
+
+	// 项目的基本信息
+	public function baseMessage($a = 0)
+	{
+
+		$id = I("get.id");
+		empty($id) and $this->error('项目不存在！');
+		$a and $where = " and 1=1 ";
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$a == 0 and $where = " and  p.del = 0";
+		/*
+		 *   and (p.pmid=".UID." or EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade."))))
+		 * */
+		$project = $this->db
+		->field('p.*,o.code oname,o.chance_code,d1.d_key sname,d2.d_key levelc,c.name cname,d3.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_offer o on p.oid = o.oid', 'LEFT')
+		->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+		->join('ot_customer c on p.cid = c.cid', 'LEFT')
+		->join('ot_member m on p.sale = m.uid', 'LEFT')
+		->where('p.pid=' . $id . $where)
+		->find();
+		if (empty($project)) {
+			$this->error('项目不存在！');
+		}
+		//任务清单数量
+		$count = M('projectService')->alias('s')->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_service s1 ON s1.sid = s.sid', 'LEFT')
+		->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+		->where('s.pid=' . $id)->count();
+		//任务挣值
+		$taskamount = M('task')->where(array('pid' => $id, 'delete' => 0))->sum('amount');
+		$project['taskamount'] = $taskamount;
+		//任务总数
+		$tasknum = M('projectService')->where(array('pid' => $id))->count();
+		//任务未分配数量
+		$unassigned = M('projectService')->where('pid=' . $id . ' and assigneduid =0 and state=0  ')->count();
+		//任务已分配数量
+		$assigned = M('projectService')->where('pid=' . $id . ' and assigneduid >0 and state=0 ')->count();
+		//任务已启动
+		$startup = M('projectService')->where('pid=' . $id . ' and state >0 ')->count();
+		//任务完成
+		$taskfinish = M('task')->where(array('pid' => $id, 'state' => 3, 'delete' => 0))->count();
+		//任务未完成
+
+		$taskunfinish = M('task')->where('pid=' . $id . ' and state !=3 and state!=-1 and state!=0 and state!=5')->count();
+		$taskunfinish = (int)$taskunfinish + (int)$unassigned;
+		//任务关闭
+		$taskclose = M('task')->where(array('pid' => $id, 'state' => '-1', 'delete' => 0))->count();
+		//预算内
+		$budgetin = M('projectService')->where('pid=' . $id . ' and type="预算内"')->count();
+		//预算外
+		$budgetout = M('projectService')->where('pid=' . $id . ' and type="预算外"')->count();
+		//变更数
+		$budgetchange = M('projectService')->where('pid=' . $id . ' and type="变更"')->count();
+		$project['budgetin'] = $budgetin;
+		$project['budgetout'] = $budgetout;
+		$project['budgetchange'] = $budgetchange;
+		$project['taskfinish'] = $taskfinish;
+		$project['taskunfinish'] = $taskunfinish;
+		$project['taskclose'] = $taskclose;
+		$project['startup'] = $startup;
+		$project['tasknum'] = $tasknum;
+		$project['assigned'] = $assigned;
+		$project['unassigned'] = $unassigned;
+		$project['taskcount'] = $count;
+		$project['description'] = htmlspecialchars_decode($project['description']);
+		$project['risk'] = htmlspecialchars_decode($project['risk']);
+		$project['feedback'] = htmlspecialchars_decode($project['feedback']);
+		$project['salename'] = get_nickname($project['sale']) ?: get_username($project['sale']);
+		// 日期进度
+		$dateSchedule = $this->dateSchedule($project['pstime'], $project['petime']);
+		//挣值% 项目挣值/项目金额
+		if ($project['money'] != 0) {
+			$earned = round(floatval($project['amount']) / floatval($project['money']) * 100, 2);
+			if ($earned > 100) {
+				$earned = 100;
+			}
+			if ($earned < 0) {
+				$earned = 0;
+			}
+		} else {
+			$earned = 0;
+		}
+
+		$project['earned'] = $earned;
+		// 现金成本/项目金额比
+		$cost = M('Projectbudget')->where(array('pid' => $id, 'type' => '现金成本'))->sum('cost');
+		$project['cash'] = $cost;
+		if ($project != 0) {
+			$cm = round(floatval($cost) / floatval($project['money']) * 100, 2);
+			if ($cm > 100) {
+				$cm = 100;
+			}
+			if ($cm < 0) {
+				$cm = 0;
+			}
+		} else {
+			$cm = 0;
+		}
+		$project['cm'] = $cm;
+		$this->assign('dschedule', $dateSchedule);
+		return $project;
+
+	}
+
+	/**
+	 * 按照项目的开始时间和结束时间求出日期进度  : LGW
+	 *
+	 * @param $pstime // 项目开始时间
+	 * @param $petime // 项目结束时间
+	 *
+	 * @return mixed
+	 */
+	public function dateSchedule($pstime, $petime)
+	{
+		// 如果项目开始时间或结束时间存在没有的情况进度为0
+		if (!$pstime || !$petime) {
+			return 0;
+		}
+		// 如果还没到项目开始时间则进度为零
+		if ($this->today < $pstime) {
+			return 0;
+		}
+
+		// 如果已经超过了项目结束日期则进度为百分百
+		if ($this->today > $petime) {
+			return 100;
+		}
+		$timeGap = $petime - $pstime;
+		// 如果开始和结束是同一天并且时间等于今天则进度为0
+		if ($timeGap == 0 && $this->today == $pstime) {
+			return 0;
+		}
+		$oneDay = 86400;
+		$gapDay = $timeGap / $oneDay + 1;
+		$schedule = $this->today - $pstime;
+		$scheduleDay = $schedule / $oneDay + 1;
+
+		$val = $scheduleDay / $gapDay * 100;
+		return round($val);
+	}
+
+	/**
+	 * 底部面包屑
+	 *
+	 * @param $title
+	 * @param $pid
+	 */
+	public function rootMbx($title, $pid)
+	{
+		$from_route = Cookie('__from_route__') ? Cookie('__from_route__') : '我的项目';
+		$from_url = Cookie('__from_url__') ? Cookie('__from_url__') : U('ProjectView/index');
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+		$root_mbx[] = array('title' => $from_route, 'url' => $from_url);
+		$root_mbx[] = array('title' => $title, 'url' => U('ProjectView/view?id=' . $pid));
+		$root_mbx[] = array('title' => '查看项目', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+		$this->assign('from_url', $from_url);
+	}
+
+	/*预算成本列表*/
+	public function budgetindex()
+	{
+		$id = I('get.id');
+		$order = I('get.order');
+		$sort = I('get.sort');
+		if ($order && $sort) {
+			$sort1 = '';
+			$sort == 'pb.b1' and $sort = "pb.cost/pb.budget*10000/100";
+			$sort == 'pb.b2' and $sort = "pb.finishours/pb.chours*10000/100";
+			$sort == 'pb.budget' and $sort1 = 'pb.cbudget';
+			if ($sort1) {
+				$order_sort = $sort . ' ' . $order . ',' . $sort1 . ' ' . $order;
+
+			} else {
+				$order_sort = $sort . ' ' . $order;
+			}
+
+		} else {
+			$order_sort = 'pb.updatetime desc';
+		}
+		$project = $this->db
+		->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_offer o on p.oid = o.oid', 'LEFT')
+		->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+		->join('ot_customer c on p.cid = c.cid', 'LEFT')
+		->join('ot_member m on p.sale = m.uid', 'LEFT')
+		->where('p.pid=' . $id)
+		->find();
+		$this->assign('p', $project);
+		$page = new \Think\Page(M('projectbudget')->alias('pb')->where(array('pb.pid=' . $id))->count(), 20);
+		$list = M("projectbudget")->alias('pb')
+		->field(array('pb.type1', 'pb.cbudget', 'pb.chours', 'pb.pid', 'pb.finishours',
+                'pb.hours', 'pb.outid', 'pb.hours', 'pb.finishours', 'pb.pbid', 'pb.type', 'pb.budget',
+                'pb.cost', 'pb.cost/pb.budget*10000/100 as bl', 'pb.finishours/pb.chours*10000/100 as b2', 'pb.addtime', 'pb.updatetime', 'pb.outitem'))
+		->where('pb.pid=' . $id)
+		->order($order_sort)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+
+		$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		if ($list) {
+			foreach ($list as $k => $v) {
+				$list[$k]['bl']=round($list[$k]['bl'],2);
+				$list[$k]['b2']=round($list[$k]['b2'],2);
+				if ($v['chours'] == 0.00) {
+					$list[$k]['chours'] = '';
+				} else {
+					$list[$k]['chours'] = $v['chours'] . 'h';
+				}
+				if ($v['hours'] == 0.00) {
+					$list[$k]['hours'] = '';
+				} else {
+					$list[$k]['hours'] = $v['hours'] . 'h';
+				}
+				if ($v['finishours'] == 0.00) {
+					$list[$k]['finishours'] = '';
+				} else {
+					$list[$k]['finishours'] = $v['finishours'] . 'h';
+				}
+				if (empty($v['bl'])) {
+					$list[$k]['bl'] = 0;
+				} elseif ($v['bl'] > 100) {
+					$list[$k]['bl'] = 100;
+				}
+				if (empty($v['b2'])) {
+					$list[$k]['b2'] = 0;
+				} elseif ($v['b2'] > 100) {
+					$list[$k]['b2'] = 100;
+				}
+
+			}
+		}
+
+		$this->assign('list', $list);
+		$this->assign('_page', $page->show());
+		$budgetlog = $this->budgetlog($id);
+
+		$this->assign('budgetlog', $budgetlog);
+		$this->display();
+	}
+
+	public function budgetlog($pid)
+	{
+		$map = [];
+		$map['pid'] = $pid;
+		$map['type'] = '现金成本';
+		$column = "sum(budget) as budget,sum(cost) as cost";
+		$cashTotal = M('Projectbudget')->field($column)->where($map)->find();   // 现金
+		$map['type'] = '人力成本';
+		$column = "type1,sum(chours) as chours,sum(finishours) as finishours";
+		$laborTotal = M('Projectbudget')->field($column)->where($map)->group('type1')->select();    // 人力
+		$total = $cashTotal['budget'];
+		$costtotal = $cashTotal['cost'];
+		$notTotal = $total - $costtotal;
+		$notTotal < 0 and $notTotal = 0;
+		$hours1 = $hours2 = $hours3 = number_format(0,1);
+		$finishours1 = $finishours2 = $finishours3 = number_format(0,1);
+		foreach ($laborTotal as $k => $v) {
+			if ($v['type1'] == '预算内') {
+				$hours1 = $v['chours'];
+				$finishours1 = $v['finishours'];
+			}
+			if ($v['type1'] == '预算外') {
+				$hours2 = $v['chours'];
+				$finishours2 = $v['finishours'];
+			}
+			if ($v['type1'] == '变更') {
+				$hours3 = $v['chours'];
+				$finishours3 = $v['finishours'];
+			}
+		}
+		$budgetlog = "<span>现金成本 预算<span class='textg'>" . fomatprice($total) . "</span>
+                      发生 <span class='textr'>" . fomatprice($costtotal) . "</span>，
+                      预算内项目工时  预算<span class='textg'>" . $hours1 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours1 . "h</span>，
+                      预算外项目工时  预算<span class='textg'>" . $hours2 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours2 . "h</span> ，
+                      变更项目工时  预算<span class='textg'>" . $hours3 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours3 . "h</span>
+                     </span>";
+
+		return $budgetlog;
+	}
+
+	// 风险详情
+	public function riskView()
+	{
+		$pid = I('get.id');
+		$map = [];
+		$map['r.pid'] = $pid;
+		$count = M('Risk')->alias('r')
+		->field('r.*')
+		->where($map)
+		->count();
+		$page = new \Think\Page($count, 20);
+		$risks = M('Risk')->alias('r')
+		->field('r.*')
+		->where($map)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		foreach ($risks as $k => $v) {
+			$note = '';
+			if ($v['reason']) {
+				$note .= "风险原因：" . $v['reason'] . "<br>";
+			}
+			if ($v['descripttion']) {
+				$note .= "风险描述：" . $v['descripttion'] . "<br>";
+			}
+			if ($v['plan']) {
+				$note .= "下一步计划：" . $v['plan'] . "<br>";
+			}
+			$risks[$k]['note'] = $note;
+		}
+
+		$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('risks', $risks);
+		$this->display();
+	}
+
+	// 报销详情
+	public function expenseView()
+	{
+		$pid = I('get.id');
+		$map = [];
+		//$map['e.uid'] = UID;
+		$map['e.pid'] = $pid;
+		$count = M('expense')->alias('e')
+		->field('e.uid,p.name as pname,d.d_key,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+		->join('ot_project  p on p.pid=e.pid', 'left')
+		->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'', 'left')
+		->where($map)
+		->count();
+		$page = new \Think\Page($count, 20);
+		$expenses = M('expense')->alias('e')
+		->field('e.uid,p.name as pname,d.d_key,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+		->join('ot_project  p on p.pid=e.pid', 'left')
+		->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'', 'left')
+		->where($map)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+
+		$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('expenses', $expenses);
+		$this->display();
+	}
+
+	public function service()
+	{
+		$id = I("get.id");
+		if (empty($id)) {
+			$this->error('项目不存在！');
+		}
+
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = 's.sort_order asc';
+		}
+		$Model = M('ProjectService');
+		$where ['_string'] = "  s.pid='{$id}'";
+		$count = $Model->alias('s')->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_service s1 ON s1.sid = s.sid', 'LEFT')
+		->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+		->where($where)->count();
+		$Page = new \Think\Page ($count, 20);
+
+		$list = $Model->alias('s')->field(array(
+            's.*', 'd.d_key as state', 'd1.d_key as taskstate', 't.state as tstate', 't.petime as tpetime', 'm.name as o_name',
+            'g.name as gname', 's1.name as sname', 's1.description as s_description', 'p.name as pname', 'p.pid as pid',
+            '(select count(1) from ot_service_doc sd where sd.sid = s.sid) as sdc'
+            ))->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_service s1 ON s1.sid = s.sid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_dictionary d ON d.d_value = s.state and d.d_code=\'project_service_state\'', 'LEFT')
+            ->join('ot_task t ON s.psid = t.psid', 'LEFT')
+            ->join('ot_dictionary d1 ON d1.d_value = t.state and d1.d_code=\'taskstatus\'', 'LEFT')
+            ->where($where)->order($order)->select();
+            $today = strtotime(date('Y-m-d'));
+            $nlist = array();
+            if ($list) {
+            	foreach ($list as $k => $v) {
+            		// 如果认为状态不是已关闭或已完成则判断是否延期
+            		if ($v['tstate'] != Task::CLOSE && $v['tstate'] != Task::FINISHED) {
+            			$petime = $v['tpetime'];
+            			$num = (int)$petime - (int)$today;
+            			if ($petime&&$num < 0) {
+            				$list[$k]['taskstate'] = '已延期';
+            				$list[$k]['tstate'] = 9;
+            			}
+            		}
+            		if ($v['sid']) {
+            			$stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+            			$sdescription = $stemp['description'];
+            			$smid = $stemp['mid'];
+            			$smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+            			if ($sdescription || $smh) {
+            				$list[$k]['bulb'] = 1;
+            			}
+            		}
+            		if ($v['s_description']) {
+            			$str = strip_tags(htmlspecialchars_decode($v['s_description']));
+            			$list[$k]['title_show'] = $str;
+            		} else {
+            			if ($v['gname']) {
+            				$list[$k]['title_show'] = $v['gname'] . '-' . $v['o_name'] . '-' . $v['sname'];
+            			} else {
+            				if ($v['o_name'] || $v['sname']) {
+            					$list[$k]['title_show'] = $v['o_name'] . '-' . $v['sname'];
+            				} else {
+            					$list[$k]['title_show'] = $v['title'];
+            				}
+
+            			}
+
+            		}
+            	}
+
+            	foreach ($list as $k => $v) {
+            		$listpid = $v['pid'] ?: 'xx';
+            		$nlist[$listpid]['mid'] = $listpid;
+            		$nlist[$listpid]['mname'] = $v['pname'];
+            		$nlist[$listpid]['list'][] = $v;
+            	}
+            }
+            $this->assign('_list', $nlist);
+            $this->display();
+
+	}
+
+	public function alter_view()
+	{
+		$pid = I('get.id', 0);
+		$count = M('ProjectAlter')->where('pid=' . $pid)->count();
+		$page = new \Think\Page($count, 20);
+		$alter = M('ProjectAlter')->where('pid=' . $pid)->select();
+		$this->assign('alters', $alter);
+		$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->display();
+	}
+
+}

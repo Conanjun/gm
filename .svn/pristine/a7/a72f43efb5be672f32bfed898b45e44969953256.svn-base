@@ -1,0 +1,134 @@
+<extend name="Public/base" />
+<block name="navhead">
+    <li data-id="list" class=""><a id="currentItem"
+                                   href="javascript:showSearchMenu()">{:cookie('project_name')}
+        <span class="icon-caret-down"></span>
+    </a>
+        <div id="dropMenu">
+        </div>
+    </li>
+    <li class="right"><a href="{:U('ProjectService/add')}"><i
+            class="icon-plus"></i>&nbsp;添加内容</a></li>
+</block>
+<block name="btnarea">
+</block>
+
+<block name="body">
+    <include file="Public/search" />
+    <script language="Javascript">browseType = "unclosed";</script>
+    <style>
+        #sonModule,#moduleBox>span>input,#moduleBox>table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table+.col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+    </style>
+    <div class="with-side">
+        <div class="side">
+            <a class="side-handle" data-id="companyTree">
+                <i class="icon-caret-left"></i>
+            </a>
+            <div class="side-body">
+                <div class="panel panel-sm">
+                    <div class="panel-heading nobr">
+                        <i class="icon-sitemap"></i>
+                        <strong>标准项目</strong>
+                    </div>
+                    <div class='panel-body'>
+                        {$ProjectConfig}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main">
+            <script>setTreeBox();</script>
+            <form id="projectsForm" class="form-condensed" method="post" action="{:U('bulk_edit')}">
+                <table
+                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+                <thead>
+                <tr>
+                    <th style="width: 30px"></th>
+                    <th class="text-left" ><span class="sort" ectype="order_by" fieldname="static">标准项目</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">项目组</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">模块</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">标准内容</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">标题</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">状态</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">开始时间</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">结束作日</span></th>
+                    <th class=""  ><span class="sort" ectype="order_by" fieldname="static">工作日</span></th>
+                    <th class=""  ><span class="sort" ectype="order_by" fieldname="static">执行人</span></th>
+                    <th class=""  ><span class="sort" ectype="order_by" fieldname="static">审核人</span></th>
+                    <th class=""  ><span class="sort" ectype="order_by" fieldname="static">排序</span></th>
+                    <th class=""  ><span class="sort" ectype="order_by" fieldname="static">里程碑</span></th>
+                    <th class="" ><span class="sort" ectype="order_by" fieldname="static">交付清单</span></th>
+                    <th class="" >操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="cell-id"><input class="ids" type="checkbox" name="id[]"  value="1" /></td>
+                    <td style="text-align: left">测试项目</td>
+                    <td>丁香园</td>
+                    <td>第一组</td>
+                    <td>MG动画视频</td>
+                    <td></td>
+                    <td>进行中</td>
+                    <td>08-26</td>
+                    <td>09-26</td>
+                    <td>20</td>
+                    <td>管理员</td>
+                    <td>管理员</td>
+                    <td>1</td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <a href="{:U('ProjectService/edit?id='.$vo['sid'])}">编辑</a>
+                        <a href="{:U('ProjectService/edit?id='.$vo['sid'])}">删除</a>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan='16'>
+                        <div class="table-actions clearfix">
+                            <div class="checkbox btn">
+                                <label><input type="checkbox" data-scope=""
+                                              class="rows-selector"> 选择</label>
+                            </div>
+                            <button type="submit" id="submit" class="btn btn-default" >批量编辑</button>
+                            <button class="btn btn-default ajax-post confirm"
+                                    url="{:U('ProjectService/del_service')}"
+                                    target-form="ids">删 除</button>
+                        </div>
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+            </form>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        $(function(){
+            $("#list{:cookie('project_pid')}").attr('class','active')
+        })
+        var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'ProjectService','index'=>'index'))}";
+        function choose() {
+            $.closeModal();
+        }
+        //导航高亮
+        highlight_subnav("{:U('ProjectService/index')}");
+    </script>
+</block>

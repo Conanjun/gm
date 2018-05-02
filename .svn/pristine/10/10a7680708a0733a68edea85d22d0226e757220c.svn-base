@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Empty Page</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="../css/animate.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../js/plugins/scojs/css/scojs.css">
+
+    <link href="../css/stylesheet.css" rel="stylesheet">
+
+</head>
+
+<body class="">
+
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="../img/profile_small.jpg" />
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">David Williams</strong>
+                                    </span>
+                                    <span class="text-muted text-xs block">Art Director
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                    <a href="profile.html">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="contacts.html">Contacts</a>
+                                </li>
+                                <li>
+                                    <a href="mailbox.html">Mailbox</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="login.html">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>切换语言</span>
+                        <div class="nav-language-list">
+                            <a href="" class="nav-language-cn">
+                                <span>汉语</span>
+                            </a>
+                            <a href="" class="nav-language-en">
+                                <span>英语 </span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">系统管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">牙医管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-envelope"></i>
+                            <span class="nav-label">订单管理 </span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li class="active">
+                                <a href="javascript:void(0);">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">植牙订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">矫正订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">待处理订单</span>
+                                    <span class="label label-warning pull-right">16/24</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">订单消息</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">物流管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">财务管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">投诉建议</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">数据分析</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="搜索" class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">欢迎: 管理员</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> 退出
+                            </a>
+                        </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <!-- content begin -->
+            <div class="wrapper wrapper-content">
+
+                <!-- alert -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">alert提示静态样式</div>
+                            <div class="ibox-content">
+                                <div class="alert alert-success">
+                                    alert提示信息-成功
+                                    <a class="alert-link" href="#">link</a>.
+                                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                </div>
+                                <div class="alert alert-info"> 
+                                    alert提示信息-消息
+                                    <a class="alert-link" href="#">link</a>.
+                                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                </div>
+                                <div class="alert alert-warning">
+                                    alert提示信息-警告
+                                    <a class="alert-link" href="#">link</a>.
+                                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                </div>
+                                <div class="alert alert-danger">
+                                    alert提示信息-失败
+                                    <a class="alert-link" href="#">link</a>.
+                                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- alert -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">form验证状态</div>
+                            <div class="ibox-content form-horizontal">
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">正常</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <div class="hr-line-dashed"></div>
+
+                                <div class="form-group has-error">
+                                    <label class="col-sm-2 control-label">错误提示</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="hr-line-dashed"></div>
+
+                                <div class="form-group has-warning">
+                                    <label class="col-sm-2 control-label">警告提示</label>
+                                
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="hr-line-dashed"></div>
+
+                                <div class="form-group has-success">
+                                    <label class="col-sm-2 control-label">成功提示</label>
+                                
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- tips -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">modal/confirm样式</div>
+                            <div class="ibox-content">
+                                <a data-trigger="modal" href="../mailbox.html .file-manager" data-title="标题" class="btn btn-primary">modal with href</a>
+                                <a data-trigger="modal" href="#" data-content="内容内容内容" data-title="标题" href="" class="btn btn-success">modal with data</a>
+                                <a data-trigger="confirm" href="demo/del" data-content="是否删除内容?" data-title="标题提示" class="btn btn-warning">confirm with href</a>
+                                <a data-trigger="confirm" data-type="get" data-ajax="demo/del" data-content="是否删除内容?" data-title="标题提示" class="btn btn-info">confirm with href</a>
+                                <a data-trigger="confirm" data-type="post" data-param="{id:1}" data-ajax="demo/del" data-content="是否删除内容?" data-title="标题提示" class="btn btn-info">confirm with href</a>
+                                <a id="maskIn" class="btn btn-danger">打开mask</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- status -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">tooltip</div>
+                            <div class="ibox-content">
+                                <div class="tooltip-demo">
+                                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="left" title="Tooltip on left">Tooltip on left</button>
+                                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Tooltip on top">Tooltip on top</button>
+                                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Tooltip on bottom">Tooltip on bottom</button>
+                                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Tooltip on right">Tooltip on right</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--  -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">Popover</div>
+                            <div class="ibox-content">
+                                <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="left" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+                                    on left
+                                </button>
+                                <button type="button" class="btn btn-success" data-container="body" data-toggle="popover" data-placement="top" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+                                    on top
+                                </button>
+                                <button type="button" class="btn btn-warning" data-container="body" data-toggle="popover" data-placement="bottom" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+                                    on bottom
+                                </button>
+                                <button type="button" class="btn btn-info" data-container="body" data-toggle="popover" data-placement="right" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">
+                                    on right
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">message提示</div>
+                            <div class="ibox-content">
+                                <button class="btn btn-primary" id="message_trigger_ok">信息提示-正常</button>
+                                <button class="btn btn-danger" id="message_trigger_err">信息提示-错误</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="ibox">
+                            <div class="ibox-title">table增加</div>
+                            <div class="ibox-content">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Username</th>
+                                            <th>Control</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>Mark</td>
+                                            <td>Otto</td>
+                                            <td>@mdo</td>
+                                            <td>
+                                                <span class="btn btn-xs btn-danger btn-del">删除</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>Jacob</td>
+                                            <td>Thornton</td>
+                                            <td>@fat</td>
+                                            <td>
+                                                <span class="btn btn-xs btn-danger btn-del">删除</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>Larry</td>
+                                            <td>the Bird</td>
+                                            <td>@twitter</td>
+                                            <td>
+                                                <span class="btn btn-xs btn-danger btn-del">删除</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="clearfix">
+                                    <div class="btn btn-info" id="tr-add">增加tr</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="ibox">
+                            <div class="ibox-title">div增加</div>
+                            <div class="ibox-content form-horizontal ibox-form">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2">文字</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button class="btn btn-danger btn-lg fa fa-times"></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2">文字</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button class="btn btn-danger btn-lg fa fa-times"></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2">文字</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button class="btn btn-danger btn-lg fa fa-times"></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-2 col-sm-offset-10">
+                                        <button class="btn btn-primary btn-lg fa fa-plus"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- content end -->
+
+            <div class="footer">
+                <div>
+                    <strong>Copyright</strong> 该美牙科 &copy; 2018-2019
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="../js/jquery-2.1.1.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="../js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="../js/inspinia.js"></script>
+    <script src="../js/plugins/pace/pace.min.js"></script>
+
+    <script src="../js/iviews.base.js"></script>
+    <script src="../js/iviews.extend.js"></script>
+
+    <!-- Scojs -->
+    <script src="../js/plugins/scojs/js/sco.modal.js"></script>
+    <script src="../js/plugins/scojs/js/sco.confirm.js"></script>
+    <script src="../js/plugins/scojs/js/sco.message.js"></script>
+
+    <script>
+    
+        $(function(){
+
+            function demo () {
+                alert('s');
+            }
+
+            // 展开消息
+            $('#message_trigger_ok').on('click', function (e) {
+                e.preventDefault();
+                $.scojs_message('This is an info message', $.scojs_message.TYPE_OK);
+            });
+            $('#message_trigger_err').on('click', function (e) {
+                e.preventDefault();
+                $.scojs_message('This is an error message', $.scojs_message.TYPE_ERROR);
+            });
+
+            // table增加
+            $('.table').on('click', '.btn-del', function(){
+                $(this).closest('tr').slideUp(function(){
+                    $(this).remove();
+                })
+            })
+
+            $('#tr-add').on('click', function(){
+               var _table = $(this).parent().prev('.table').find('tbody');
+               _table.append(_table.find('tr').eq(0).clone());
+            })
+
+            $('.ibox-form .fa-plus').on('click', function(){
+                $(this).closest('.form-group').before( $(this).closest('.form-group').prev().clone(true) );
+            })
+
+            $('.ibox-form').on('click', '.fa-times', function(){
+                $(this).closest('.form-group').slideUp(function(){
+                    $(this).remove();
+                })
+            })
+
+            // 
+            // $.menu();        菜单定位
+            // $.mask.open();   打开mask
+            // $.mask.close();  关闭mask
+            // 
+
+            // 打开菜单
+            $.menu();
+
+            // 打开mask
+            $('#maskIn').on('click', function(){
+                $.mask.open();
+                
+                setTimeout(function(){
+                    $.mask.close();
+                },1500)
+            })
+
+        })
+
+    </script>
+
+</body>
+
+</html>

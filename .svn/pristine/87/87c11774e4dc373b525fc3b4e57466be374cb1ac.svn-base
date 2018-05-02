@@ -1,0 +1,87 @@
+<extend name="Public/base"/>
+
+<block name="body">
+    <div id="featurebar">
+        <div class="actions">
+            <form method="post" action="{:U('Bak/backup')}" enctype="multipart/form-data">
+                <div class="btn-group" style="margin-right: 10px">
+                    <a  class="btn" href="javascript:;"  data-loading="稍候..." autocomplete="off" onclick="$('#l1').show();$('#l2').show();$('form').submit();" ><i class="icon-stack"></i>立即备份</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 应用列表 -->
+    <div class="data-table table-striped">
+        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+                <tr>
+                    <th width="30px">
+                    </th>
+                    <th class="text-left">备份名称</th>
+                    <th width="80">数据大小</th>
+                    <th width="140">备份时间</th>
+                    <th width="80">还原次数</th>
+                    <th width="80">备份人</th>
+                    <th width="100">操作</th>
+                </tr>
+            </thead>
+            <notempty  name="lists">
+            <tbody>
+                <volist name="lists" key="key" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                            <input class="ids" type="checkbox" name="id[]" value="{$vo.id}"/>
+                        </td>
+                        <td class="text-left">{$vo['name']}</td>
+                        <td>{$vo['size']}</td>
+                        <td>{$vo['addtime']|date='Y-m-d H:i',###}</td>
+                        <td>{$vo['rlnum']}</td>
+                        <td>{$vo['uname']}</td>
+                        <td class="action">
+                            <a  href="{:U('Bak/download',array('id'=>$vo['id']))}">下载</a>
+                            <a href="{:U('Bak/rl',array('id'=>$vo['id']))}"  data-width="800"
+                               data-height="400" title="还原" class="iframe"> 还原</a>
+                            <a class="confirm ajax-get" href="{:U('Bak/delete',array('id'=>$vo['id']))}">删除</a>
+                        </td>
+                    </tr>
+                </volist>
+            </tbody>
+
+            <tfoot class="scrolled">
+            <tr>
+                <td colspan='7'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <if condition="cando('Offer/delete')">
+                            <button class="btn btn-default ajax-post confirm"
+                                    url="{:U('Bak/delete')}"
+                                    target-form="ids">删 除
+                            </button>
+                        </if>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+                <else/>
+                <tr>
+                    <td colspan="7" class="text-center table_nodata"></td>
+                </tr>
+        </notempty>
+        </table>
+    </div>
+    <!-- /应用列表 -->
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        function choose(){
+            $.closeModal();
+            window.location.href = window.location;
+        }
+    </script>
+</block>

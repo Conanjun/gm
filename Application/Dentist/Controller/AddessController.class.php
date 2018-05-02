@@ -1,0 +1,251 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Dentist\Controller;
+/**
+ * 邮寄地址
+ */
+class AddessController extends AdminController
+{
+	private $model;
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = M('Addess');
+	}
+	
+	/**
+	 *首页
+	 */
+	public function index()
+	{
+		$where = 'uid = '.UID;
+		$count = $this->model->where($where)->count();
+		$page = new \Think\Page($count, 10);
+		$lists = $this->model
+			->where($where)
+			->limit($page->firstRow . ',' . $page->listRows)
+			->select();
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+		$this->assign('_page', $page->show());
+		$this->display();
+	}
+	/**
+	 * 新增
+	 */
+	public function add()
+	{
+		if(IS_POST){
+			$regionid = empty($_POST['regionid'])?'':trim($_POST['regionid']);
+			$country = '';
+			$province = '';
+			$city = '';
+			if($regionid){
+				$arr = explode(',',$regionid);
+				foreach($arr as $k => $v){
+					if($k == 0){
+						$country = $v;
+					}elseif($k ==1 ){
+						$province = $v;
+					}elseif($k ==2){
+						$city = $v;
+					}
+				}
+			}
+			$regionname = empty($_POST['regionname'])?'':trim($_POST['regionname']);
+			$addr = empty($_POST['addr'])?'':trim($_POST['addr']);
+			$isdefault = I('post.isdefault',0);
+			if($isdefault){
+				$this->model->where('uid='.UID)->save(array('isdefault'=>0));
+			}
+			$snee_tel = I('post.snee_tel',0);
+			$snee = I('post.snee',0);
+			$data = array(
+				'country' =>$country,
+				'province' =>$province,
+				'city' =>$city,
+				'regionname' =>$regionname,
+				'addr' =>$addr,
+				'isdefault' =>$isdefault,
+				'uid' =>UID,
+				'snee_tel'=>$snee_tel,
+				'snee'=>$snee,
+			);
+			$addr_id = $this->model->add($data);
+			if($addr_id){
+				action_log_new(array('outtype' => 'ot_addess', 'outkey' => $addr_id, 'action' => 'add', 'comment' => ''));
+				$this->ajaxReturn(array('done'=>true,'addr_id'=>$addr_id));
+			}else{
+				$this->ajaxReturn(array('done'=>false,'msg'=>L('_OPERATION_FAIL_')));
+			}
+			
+		}else{
+			$this->assign('regions', D("region")->get_options(0));
+			$this->display();
+		}
+	}
+	
+	/**
+	 * 编辑
+	 */
+	public function edit()
+	{
+		if(IS_POST){
+			$Model = M(); // 实例化一个空对象
+			$Model->startTrans(); // 开启事务
+			$addr_id = I('get.id',0);
+			$list = $this->model->where('addr_id='.$addr_id)->find();
+			if(empty($list)){
+				$this->json_error(L('Data_not_exist'),false);
+			}
+			$regionid = empty($_POST['regionid'])?'':trim($_POST['regionid']);
+			$country = '';
+			$province = '';
+			$city = '';
+			if($regionid){
+				$arr = explode(',',$regionid);
+				foreach($arr as $k => $v){
+					if($k == 0){
+						$country = $v;
+					}elseif($k ==1 ){
+						$province = $v;
+					}elseif($k ==2){
+						$city = $v;
+					}
+				}
+			}
+			$regionname = empty($_POST['regionname'])?'':trim($_POST['regionname']);
+			$addr = empty($_POST['addr'])?'':trim($_POST['addr']);
+			$isdefault = I('post.isdefault',0);
+			if($isdefault){
+				$this->model->where('uid='.UID)->save(array('isdefault'=>0));
+			}
+			$snee = I('post.snee','');
+			$snee_tel = I('post.snee_tel','');
+			$data = array(
+				'country' =>$country,
+				'province' =>$province,
+				'city' =>$city,
+				'regionname' =>$regionname,
+				'addr' =>$addr,
+				'isdefault' =>$isdefault,
+				'uid' =>UID,
+				'addr_id'=>$addr_id,
+				'snee_tel'=>$snee_tel,
+				'snee'=>$snee,
+			);
+			$temp = $this->model->save($data);
+			if ($temp !== false) {
+				$history = array();
+				foreach ($data as $key => $vo) {
+					if ($vo != $list[$key]) {
+						$history [] = array(
+							'field' => $key,
+							'olddata' => $list [$key],
+							'newdata' => $vo
+						);
+					}
+				}
+				action_log_new(array('history'=>$history, 'outtype' => 'ot_addess', 'outkey' => $addr_id, 'action' => 'edit', 'comment' => ''));
+				$Model->commit(); // 成功则提交事务
+				$this->ajaxReturn(array('done'=>true,'addr_id'=>$addr_id));
+			} else {
+				$Model->rollback(); // 否则将事务回滚
+				$this->ajaxReturn(array('done'=>false,'msg'=>L('_OPERATION_FAIL_')));
+			}
+		}else{
+			$id = empty($_GET['id'])?0:$_GET['id'];
+			if(empty($id)){
+				$this->json_error(L('PLEASE_SELECT_DATA'),false);
+			}
+			$where = "addr_id = {$id}";
+			$list =$this->model->where($where)->find();
+			if(empty($list)){
+				$this->json_error(L('Data_not_exist'),false);
+			}
+			if($list['city']){
+				$list['regionid'] = $list['city'];
+			}elseif($list['province']){
+				$list['regionid'] = $list['province'];
+			}elseif($list['country']){
+				$list['regionid'] = $list['country'];
+			}else{
+				$list['regionid'] = 0;
+			}
+			$this->assign('list', $list);
+			$this->assign('regions', D("region")->get_options(0));
+			$this->display();
+		}
+	}
+	
+	//异步修改数据
+	public function ajax_col()
+	{
+		$id = empty($_GET['id']) ? 0 : intval($_GET['id']);
+		$column = empty($_GET['column']) ? '' : trim($_GET['column']);
+		$value = isset($_GET['value']) ? trim($_GET['value']) : '';
+		$data = array();
+		
+		if (in_array($column, array('isdefault'))) {
+			$list =$this->model->where("addr_id = '$id'")->find();
+			$data[$column] = $value;
+			$temp = $this->model->where('addr_id=' . $id)->save($data);
+			if($temp !== false){
+				$history = array();
+				foreach ($data as $key => $vo) {
+					if ($vo != $list [$key]) {
+						$history [] = array(
+							'field' => $key,
+							'olddata' => $list [$key],
+							'newdata' => $vo
+						);
+					}
+				}
+				action_log_new(array('history'=>$history, 'outtype' => 'ot_addess', 'outkey' => $id, 'action' => 'edit', 'comment' => ''));
+				echo   'true';
+			}else{
+				return;
+			}
+			
+		} else {
+			return;
+		}
+		return;
+	}
+	
+	/*
+	 * 删除收费项目
+	 * */
+	public function delete()
+	{
+		$id = array_unique(( array )I('id', 0));
+		$id = is_array($id) ? implode(',', $id) : $id;
+		if (empty ($id)) {
+			$this->error(L('PLEASE_SELECT_DATA'));
+		}
+		//查询客户下是否有订单
+		
+		$count = M('order')->where('denid in {$id}')->count();
+		if($count > 0){
+			$this->error(L('CUSTOMERS_HAVE_ORDERS'));
+		}
+		$map ['denid'] = array('in', $id);
+		if (M('Dentist')->where($map)->delete() !== false) {
+			M('Dentist_relation')->where( )->delete();
+			$this->success(L('DELETE_SUCCESS'), U('index'));
+		} else {
+			$this->error(L('DELETE_FAILED'));
+		};
+	}
+	
+}
+
+

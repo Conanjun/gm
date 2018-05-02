@@ -1,0 +1,211 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <style>
+        #fourheading a
+         {
+             color: #333;
+         }
+        #fourheading .active
+        {
+            color: #7865c7;
+        }
+          .form-condensed .btn {
+            margin-right: 10px;
+        !important;
+            border-radius: 4px;
+        !important;
+            padding:2px 12px;
+        !important;
+              float:none;
+        }
+        input[type='file'] {
+                                width: 200px;
+                                height: 100%;
+                                height: 26px;
+                                line-height: 26px;
+                                border: none;
+                                position: relative;
+                                display:inline-block;
+                               /*float:right;*/
+                            }
+        .outer .table{
+            border:none;
+        }
+
+	</style>
+    <script language="Javascript">orderBy = "{$orderBy}";pid="{$p['pid']}"</script>
+	<script>
+      $(function () {
+          var time = "{$mtime}";
+          $('#mtime').datetimepicker({value: time, lang: 'ch', timepicker: true, format: 'Y/m/d H:i'});
+
+      })
+	</script>
+
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <include file="Public:newfourtitle" />
+        <div class="actions" style="float:none">
+            <div class="btn-group">
+               <p>在完成前面一系列准备工作后，你可以准备召开铁三角启动会了。铁三角启动会需要销售、顾问、项目经理、PMO参与,必要时可以邀请支持团队关（待补充）保各方交付物、交付标准和交付时间理解一致。</p>
+            </div>
+    </div>
+    </div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+         <form action="{:U('meet',array('id'=>$p['pid']))}" method='post' class="form-condensed" enctype="multipart/form-data">
+            <table class="table-form mytable table">
+                <notempty name="meet">
+                    <input type="hidden" name="mid" value="{$meet['mid']}">
+                        <tbody>
+                        <tr><th>SOW文件</th>
+                          <td>
+                               <div class="input-group" style="width:600px">
+                          <input type="file"  class="fileControl" name="files[]" value="上传" ><span class="input-group-addon" style=" width:120px;border:none;background-color:#fff;font-weight: bold">
+                              <if condition="$meet['sow']">
+                              {$meet['sowname']}.{$meet['sowext']}</if></span>  <if condition="$meet['sow']">
+                            <a href="{:U('doc/view?fid='.$meet['sow'])}" class="iframe" data-width="1000" data-height="800" title="{$meet['sowname']} 预览"> <span class="download btn">预览</span> </a>
+                            <a href="{:U('doc/download?fid='.$meet['sow'])}"> <span class="download btn">下载</span></a>
+                              <a href="{:U('ProjectNew/meetFile?fid='.$meet['sow'].'&type=sow&pid='.$p['pid'])}"  class="confirm ajax-get btn">删除</a>
+                          </if>
+                             </div>
+                        </tr>
+                        <tr><th>项目方案</th>
+                          <td>
+                                   <div class="input-group" style="width:600px">
+                       <input type="file"  class="fileControl" name="files[]" value="上传" > <span class="input-group-addon" style=" width:120px;border:none;background-color:#fff;font-weight: bold">
+                                  <if condition="$meet['scheme']">
+                                  {$meet['schemename']}.{$meet['schemeext']}</if></span>  <if condition="$meet['scheme']">
+                            <a href="{:U('doc/view?fid='.$meet['scheme'])}" class="iframe" data-width="1000" data-height="800" title="{$meet['sowname']} 预览"> <span class="download btn">预览</span> </a>
+                            <a href="{:U('doc/download?fid='.$meet['scheme'])}"> <span class="download btn">下载</span></a>
+                                  <a href="{:U('ProjectNew/meetFile?fid='.$meet['scheme'].'&type=scheme&pid='.$p['pid'])}"  class="confirm ajax-get btn">删除</a>
+                              </if>
+                         </div>
+                        </tr>
+                    <tr><th>项目合同</th>
+                          <td>
+                               <div class="input-group" style="width:600px">
+                          <input type="file"  class="fileControl" name="files[]" value="上传" > <span class="input-group-addon" style=" width:120px;border:none;background-color:#fff;font-weight: bold">
+                              <if condition="$meet['contract']">
+                              {$meet['conname']}.{$meet['conext']}</if></span>  <if condition="$meet['contract']">
+                            <a href="{:U('doc/view?fid='.$meet['contract'])}" class="iframe" data-width="1000" data-height="800" title="{$meet['sowname']} 预览"> <span class="download btn">预览</span> </a>
+                            <a href="{:U('doc/download?fid='.$meet['contract'])}"> <span class="download btn">下载</span></a>
+                              <a href="{:U('ProjectNew/meetFile?fid='.$meet['contract'].'&type=contract&pid='.$p['pid'])}"  class="confirm ajax-get btn">删除</a>
+                          </if>
+                             </div>
+                        </tr>
+
+                        <tr><th>项目报价单</th>
+                          <td>
+                               <div class="input-group" style="width:600px">
+                          <input type="file"  class="fileControl" name="files[]" value="上传" > <span class="input-group-addon" style=" width:120px;border:none;background-color:#fff;font-weight: bold">
+                              <if condition="$meet['offer']">
+                              {$meet['offername']}.{$meet['offerext']}</if></span>  <if condition="$meet['offer']">
+                            <a href="{:U('doc/view?fid='.$meet['offer'])}" class="iframe" data-width="1000" data-height="800" title="{$meet['offername']} 预览"> <span class="download btn">预览</span> </a>
+                            <a href="{:U('doc/download?fid='.$meet['offer'])}"> <span class="download btn">下载</span></a>
+                              <a href="{:U('ProjectNew/meetFile?fid='.$meet['offer'].'&type=offer&pid='.$p['pid'])}"  class="confirm ajax-get btn">删除</a>
+                          </if>
+                             </div>
+                        </tr>
+                            <tr><th>其它文件</th>
+                          <td>
+                               <div class="input-group" style="width:600px">
+                          <input type="file"  class="fileControl" name="files[]" value="上传" > <span class="input-group-addon" style=" width:120px;border:none;background-color:#fff;font-weight: bold">
+                              <if condition="$meet['other']">
+                              {$meet['othername']}.{$meet['otherext']}</if></span>  <if condition="$meet['other']">
+                            <a href="{:U('doc/view?fid='.$meet['other'])}" class="iframe" data-width="1000" data-height="800" title="{$meet['othername']} 预览"> <span class="download btn">预览</span> </a>
+                            <a href="{:U('doc/download?fid='.$meet['other'])}"> <span class="download btn">下载</span></a>
+                              <a href="{:U('ProjectNew/meetFile?fid='.$meet['other'].'&type=other&pid='.$p['pid'])}"  class="confirm ajax-get btn">删除</a>
+                          </if>
+                             </div>
+                        </tr>
+                    <tr><td colspan="3"><h3>会议纪要</h3></td></tr>
+                    <tr> <th>时间</th><td>
+                     <div class="input-group" style="width:500px">
+                    <input type="text" name="mtime" id="mtime" class="form-control" style="width:200px">   <span class="input-group-addon" style="border:none;background-color:#fff;font-weight: bold">地点</span><input type="text" name="address" value="{$meet['address']}" class="form-control" style="width:350px">
+                     </div>
+                </td</tr>
+                <tr> <th>参会人员</th><td colspan="3"><input type="text" name="takepart" value="{$meet['takepart']}" class="form-control" placeholder="多个参与人用逗号相隔" style="width:595px"></td></tr>
+                <tr><th>会议目的</th><td>
+                   <textarea name="target" style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2">{$meet['target']}</textarea> </td></tr>
+                 <tr><th>讨论记录</th><td>
+                    <textarea name="description" style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2">{$meet['description']}</textarea> </td></tr>
+                 <tr><th>行动计划</th><td>
+                   <textarea name="plan"  style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2">{$meet['plan']}</textarea></td></tr>
+                </tbody>
+                    <else/>
+                    <tbody>
+               <tr><th>SOW文件</th><td><input type="file"  class="fileControl" name="files[]" value="上传" ></td><td></td><td></td></tr>
+                <tr><th>项目方案</th><td><input type="file"  class="fileControl" name='files[]' value="上传" ></td><td></td><td></td></tr>
+                <tr><th>项目合同</th><td><input type="file" name="files[]" value="上传"></td><td></td><td></td></tr>
+                <tr><th>项目报价单</th><td><input type="file" name="files[]" value="上传"></td><td></td><td></td></tr>
+                <tr><th>其它文件</th><td><input type="file" name="files[]" value="上传"></td><td></td><td></td></tr>
+                <tr><td colspan="3"><h3>会议纪要</h3></td></tr>
+                <tr> <th>时间</th><td>
+                     <div class="input-group" style="width:500px">
+                    <input type="text" name="mtime" id="mtime" class="form-control" style="width:200px">   <span class="input-group-addon" style="border:none;background-color:#fff;font-weight: bold">地点</span><input type="text" name="address" class="form-control" style="width:350px">
+                     </div>
+                </td><td></td><td></td></tr>
+                <tr> <th>参会人员</th><td colspan="3"><input type="text" name="takepart" class="form-control" style="width:595px"></td></tr>
+                <tr><th>会议目的</th><td>
+                   <textarea name="target" style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2"></textarea> </td></tr>
+                 <tr><th>讨论记录</th><td>
+                    <textarea name="descripttion" style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2"></textarea> </td></tr>
+                 <tr><th>行动计划</th><td>
+                   <textarea name="plan" style="width: 595px;border: 1px solid rgb(204, 204, 204);" rows="2"></textarea></td></tr>
+                </tbody>
+                </notempty>
+
+            </table>
+             <div style="margin:10px 0 10px 112px">
+                 <button  class="btn" onclick="baocun()">保存</button>
+                 <a href="#" class="btn">取消</a>
+             </div>
+         </form>
+
+    </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+        $(function(){
+            setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+            setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+            //resizetable();
+
+            $(window).resize(function(){
+                //resizetable();
+            });
+
+        });
+        function baocun(){
+            $('form').submit();
+        }
+        function meetFile(obj,url){
+
+
+        }
+
+    </script>
+</block>
+

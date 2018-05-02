@@ -1,0 +1,175 @@
+<extend name="Public/base" />
+<block name="btnarea">
+    <li class="right">
+    </li>
+</block>
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav" style="float: left">
+			<if condition="cando('Budget/project')"><li class="<eq name='actname' value='project'>active</eq>"><a href="{:U('Budget/project')}">我参与的项目</a>
+			</li></if>
+			<if condition="cando('Budget/projectall')"><li class="<eq name='actname' value='projectall'>active</eq>"><a href="{:U('Budget/projectall')}">我管理的项目</a>
+			</li></if>
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+
+		</ul>
+		<div style="clear: both;"></div>
+		<include file="Public/search" />
+	</div>
+	<!-- 数据列表 -->
+	<div class="data-table table-striped" id="projectTaskForm">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+				style="text-align: center"  id="taskList">
+			<thead>
+			<tr>
+				<th r="1" width="30px"></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="name">项目名称</span></th>
+				<th style="text-align:left">合同号</th>
+				<th r="1" style="width:50px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="cid">客户</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="pm">项目经理</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="type">项目类型</span></th>
+				<th style="width:70px"><span class="sort" ectype="order_by" fieldname="level">优先级</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="petime">计划结束</span></th>
+				<th style="width:80px" r="1"><span class="sort" ectype="order_by" fieldname="tasknum">任务/完成</span></th>
+				<th style="width:150px"><span class="sort" ectype="order_by" fieldname="money">金额/挣值</span></th>
+				<th r="1" style="width: 90px;"><span class="sort" ectype="order_by" fieldname="progress">进度</span></th>
+				<th r="1" style="width: 60px;"><span class="sort" ectype="order_by" fieldname="amount">挣值%</span></th>
+				<th r="1" style="width:60px"><span class="sort" ectype="order_by" fieldname="cost">成本%</span></th>
+				<th style="width:120px"><span class="sort" ectype="order_by" fieldname="code">编号</span></th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo">
+					<tr>
+						<td r="1" class="cell-id"><input class="ids" type="checkbox" name="id[]" value="{$vo.pid}" /></td>
+						<td r="1" style="text-align:left"><a href="{:U('Budget/budgetIndex?id='.$vo['pid'])}">{$vo.name}</a></td>
+						<td style="text-align:left">{$vo.contract}</td>
+						<td r="1" 
+						class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'></eq><eq name='vo.state' value='2'>textg</eq><eq name='vo.state' value='3'></eq><eq name='vo.state' value='4'>textr</eq><eq name='vo.state' value='-1'>textc</eq>"
+						>{$vo.sname}</td>
+						<td r="1">{$vo.cname}</td>
+						<td r="1">{$vo.pm}</td>
+						<td r="1">{$vo.type}</td>
+						<td <if condition="$vo['level']==2">style="color:red"</if>>{$vo.levelc}</td>
+						<td r="1"><if condition="$vo['petime']">{$vo.petime|time_format=###,'Y-m-d'}<else/>-</if></td>
+						<td r="1">{$vo.tasknum}/<span class="textg">{$vo.ftasknum}</span></td>
+						<td>{$vo.money|fomatprice}/{$vo.amount|fomatprice}</td>
+						<td r="1" class="text-left">
+							<if condition="$vo['progress']">
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['progress']/2}">
+								<else/>
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+							</if>
+							<small>{$vo.progress}%</small>
+						</td>
+						<td r="1">
+							{$vo['duty']}%
+						</td>
+						<td r="1">
+							{$vo['duty1']}%
+						</td>
+						<td>{$vo.code}</td>
+					</tr>
+				</volist>
+				<else />
+				<tr><td r="1" colspan="15" class="text-center table_nodata" id="colspan_1">aOh! 暂时还没有内容!</td></tr>
+			</notempty>
+			</tbody>
+            <notempty name="_list">
+			<tfoot>
+			<tr>
+				<td r="1" colspan='15' id="colspan_2">
+					<div class="table-actions clearfix">
+					</div>
+
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+
+					<div style="float: right;line-height: 27px;margin-right:10px">
+						{$projectlog}
+					</div>
+				</td>
+			</tr>
+			</tfoot>
+            </notempty>
+		</table>
+	</div>
+</block>
+
+<block name="script"> <script
+		src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+		type="text/javascript">
+	
+		function resizetable(){
+    		var w=$(window).width();
+    		if(w<1400){
+    			$("#taskList").find("th[r!=1]").hide();
+    			$("#taskList").find("td[r!=1]").hide();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+    		}else{
+    			$("#taskList").find("th[r!=1]").show();
+    			$("#taskList").find("td[r!=1]").show();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+    		}
+    	}
+    
+	    $(function(){
+	    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+	    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+	    	
+	    	resizetable();
+	    	
+	    	$(window).resize(function(){
+	    		resizetable();
+	    	});
+	    });
+		
+    //搜索功能
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    //导航高亮
+        highlight_subnav("{:U('Budget/project')}");
+    var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'project'))}";
+
+    var ajaxurl="{:U('Project/ajax_col')}";
+    
+    $("#export").click(function(){
+   	 $("#searchform").attr("target","_blank");
+   	 var my_input = $("<input type='hidden' name='exportexcel' value='1' />");  
+   	 $("#searchform").append(my_input);  
+   	 $("#searchform").submit();
+   	 $("[name='exportexcel']").val("");
+    	 $("#searchform").attr("target","");
+   	});
+
+    function tijiao(id,es_eid){
+        if(confirm("确认提交吗？"))
+            $.post(
+                "{:U('Project/present')}",
+                {'id':id,'eid':es_eid},
+                function(data){
+                    window.location.href = window.location.href;
+                }
+            );
+    }
+</script> </block>

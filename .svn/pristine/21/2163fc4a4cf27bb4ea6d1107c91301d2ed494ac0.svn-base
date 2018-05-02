@@ -1,0 +1,65 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Studio\Controller;
+use Common\Common\Super\Order;
+
+
+/**
+ * 工作室控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class IndexController extends AdminController
+{
+
+	private $meta_title;
+
+	/**
+	 * 工作室首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index()
+	{
+        $stuid = Order::get_stuid(UID);   // 工作室id
+		if (UID) {
+			$this->meta_title = '首页';
+
+			//工作室消息
+            $msg_list = M('Message')->alias('me')
+                ->join("ot_member m on m.uid = me.toid")
+                ->field('me.*,m.nickname')
+                ->where('m.stuid='.$stuid)->order('me.msg_id desc')->limit(3)->select();
+            $this->assign('lists',  $msg_list);
+
+			$this->display();
+		} else {
+			$this->redirect('Public/login');
+		}
+	}
+	/**
+	 * Delete block
+	 *
+	 * @param int $id
+	 */
+	public function delete($id = 0)
+	{
+		$map = [];
+		$map ['bid'] = $id;
+		$map['uid'] = UID;
+		if (M('Block')->where($map)->delete() !== false) {
+			$this->ajaxReturn(array('result' => 'success'));
+		} else {
+			$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+		};
+	}
+
+
+}

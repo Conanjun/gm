@@ -1,0 +1,122 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('STUDIO_ROLE')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('AuthRule/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Studio/AuthRule/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('NAME')}</label>
+                                                <input class="form-control" type="text" name="title" value="{$Think.get.title}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('AuthRule/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="title">{:L('NAME')} <i class="fa fa-sort"></i></span></span></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="fromadmin">{:L('DESIGNER')} <i class="fa fa-sort"></i></span></span></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="sort_order">{:L('ORDER')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 120px">{:L('OP')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['id']}" class="check">
+                                                    <label></label></div>
+                                            </td>
+                                            <td style="text-align: left">{$vo['title']}</td>
+                                            <td style="text-align: left"><if condition="$vo['designer'] == 1"> {:L('YES')} <else/> {:L('NO')} </if></td>
+                                            <td style="text-align: left">{$vo['sort_order']}</td>
+                                            <td style="text-align: right">
+                                                <if condition="$vo['fromadmin'] == 0">
+                                                    <a href="{:U('AuthRule/edit?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                    <a href="{:U('AuthRule/delete?id='.$vo['id'])}" class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                                </if>
+                                                <if condition="$vo['fromadmin'] == 1">
+                                                    <a href="{:U('AuthRule/edit?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                </if>
+                                                <if condition="$vo['fromadmin'] == 2">
+                                                    <a href="{:U('AuthRule/view?id='.$vo['id'])}" class="btn btn-xs btn-primary">{:L('VIEW')}</a>
+                                                </if>
+                                                <!--<a data-trigger="confirm" data-content="{:L('DATANDEL')}" data-title="{:L('DELTITILE')}"-->
+                                                   <!--data-ajax="{:U('AuthRule/del?id='.$vo['id'])}"-->
+                                                   <!--data-type="get"-->
+                                                   <!--data-n1="{:L('DOCANCEL')}"-->
+                                                   <!--data-n2="{:L('CONFIRM')}"-->
+                                                   <!--class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>-->
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    <else />
+                                    <tr>
+                                        <td colspan="5">{:L('NOCONCENT')}</td>
+                                    </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-white">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

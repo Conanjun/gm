@@ -1,0 +1,771 @@
+<extend name="Public/base" />
+<block name="navhead">
+	<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('Offer/veiw?id='.$offer['oid'])}"><i class="icon-map-marker"></i>&nbsp;
+		<if condition="$offer['cname']">
+			{$offer.cname}-{$offer.projectname}
+		<else/>
+			{$offer.projectname}
+		</if>
+	</a>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+	</li></block>
+<block name="btnarea">
+	<li class="right">
+		<!--  <eq name="offer.static" value="1">
+              <a href="{:U('Offer/adddetail?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;调整清单</a>
+              &lt;!&ndash;<eq name="offer.datafrom" value="0"><a href="{:U('Offer/adddetail?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;报价明细</a></li></eq>
+              <eq name="offer.datafrom" value="1"><a href="{:U('Offer/subadd?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;报价明细</a></li></eq>&ndash;&gt;
+          </eq>
+          <eq name="offer.static" value="-1">
+              <a href="{:U('Offer/adddetail?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;调整清单</a>
+              &lt;!&ndash;<eq name="offer.datafrom" value="0"><a href="{:U('Offer/adddetail?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;报价明细</a></li></eq>
+              <eq name="offer.datafrom" value="1"><a href="{:U('Offer/subadd?oid='.$offer[oid])}"><i class="icon-plus"></i>&nbsp;报价明细</a></li></eq>&ndash;&gt;
+          </eq>-->
+		<if condition="($offer['static'] eq 1) or ($offer['static'] eq -1) or (($offer['static'] eq 3))">
+			<a href="{:U('Offer/adddetail?oid='.$offer[oid])}"><i class="icon-list"></i>&nbsp;调整清单</a>
+		</if>
+	</li>
+</block>
+<block name="body">
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<style>
+		.popover {
+			width: 400px
+		}
+
+		.popover table {
+			width: 100%
+		}
+	</style>
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+	<script>
+        $(function(){
+
+            // 销售机会改变时带入项目名称、业务类型、客户 : LGW
+            $("[name='chance_name']").change(function () {
+                // 项目名称
+                var name=$("[name='chance_name']").find("option:selected").attr("oppname");
+                $("[name='projectname']").val(name);
+                // 业务类型
+                var ptype = $("[name='chance_name']").find("option:selected").attr("ptype");
+                $("[name='type'] option").each(function () {
+                    if(ptype == '现有业务') ptype = "已有业务";
+                    $("[name='type']").val(ptype);
+                    $("[name='type']").trigger('chosen:updated');
+                });
+                // 客户
+                var cname=$("[name='chance_name']").find("option:selected").attr("cname");
+                var url = "{:U('Offer/ajaxGetCustomer')}";
+                $.get(url,{'cname': cname},function (result) {
+                    if(result.done)
+                    {
+                        $("[name='cid'] option").each(function () {
+                            var id = $(this).val();
+                            if(result.retval == id) {
+                                $("[name='cid']").val(id);
+                                $("[name='cid']").trigger('chosen:updated');
+                                var phone=$("[name='cid']").find("option:selected").attr("phone");
+                                var contact=$("[name='cid']").find("option:selected").attr("contact");
+                                if(phone!=undefined&&phone!=''){
+                                    $("[name='telno']").val(phone);
+                                }
+                                if(contact!=undefined&&contact!=''){
+                                    $("[name='contacts']").val(contact);
+                                }
+                                if($(this).val()!=""&&$(this).val()!=null){
+                                    $(this).next('div.chosen-container').children().removeClass("error");
+                                }
+                            }
+
+                        });
+                    }  else {
+                        $("[name='cid']").val('');
+                        $("[name='cid']").trigger('chosen:updated');
+                        $("[name='telno']").val('');
+                        $("[name='contacts']").val('');
+                    }
+                });
+            });
+            $("[name='pmid']").change(function(){
+                var pm=$(this).find("option:selected").text();
+                if(pm!=undefined&&pm!=''){
+                    $("[name='pm']").val(pm);
+                }
+            });
+
+            $("[name='apid']").change(function(){
+                var ap=$(this).find("option:selected").text();
+                if(ap!=undefined&&ap!=''){
+                    $("[name='ap']").val(ap);
+                }
+            });
+
+            $("[name='ownner_id']").change(function(){
+                var ownner=$(this).find("option:selected").text();
+                if(ownner!=undefined&&ownner!=''){
+                    $("[name='ownner']").val(ownner);
+                }
+            });
+
+            $("[name='cid']").change(function(){
+                var phone=$("[name='cid']").find("option:selected").attr("phone");
+                var contact=$("[name='cid']").find("option:selected").attr("contact");
+                if(phone!=undefined&&phone!=''){
+                    $("[name='telno']").val(phone);
+                }
+                if(contact!=undefined&&contact!=''){
+                    $("[name='contacts']").val(contact);
+                }
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+            });
+
+            $("[name='amount']").bind("input propertychange",function(){
+                var v=$(this).val();
+                if(v!=undefined&&v!=''&&v>=0){
+                    var rate=$("[name='rate']").val();
+                    if(rate!=undefined&&rate!=''&&rate>=0){
+                        $("[name='amount_notax']").val(parseFloat(v/100*(100-rate)).toFixed(2));
+                    }else{
+                        $("[name='amount_notax']").val(parseFloat(v).toFixed(2));
+                    }
+                }
+            });
+
+            $("[name='rate']").change(function(){
+                var rate=$(this).val();
+                if(rate!=undefined&&rate!=''&&rate>=0){
+                    var v=$("[name='amount']").val();
+                    if(v!=undefined&&v!=''&&v>=0){
+                        $("[name='amount_notax']").val(parseFloat(v/100*(100-rate)).toFixed(2));
+                    }
+                }
+            });
+
+            $("#ches").change(function(){
+                var op=$("#ches").find("option:selected");
+                var iden=$(this).val();
+                if(iden!=undefined&&iden!=''){
+                    var pname=op.attr("pname");
+                    var customer=op.attr("customer");
+                    var contacts=op.attr("contacts");
+                    var telno=op.attr("telno");
+                    var type=op.attr("type");
+                    var ow=op.attr("ow");
+                    var yjamount=op.attr("yjamount");
+                    var service=op.attr("service");
+
+                    if(pname!=undefined&&pname!=''){
+                        $("[name='projectname']").val(pname);
+                    }
+                    if(customer!=undefined&&customer!=''){
+                        $("[name='cid']").val(customer);
+                        $("[name='cid']").trigger('chosen:updated');
+                    }
+                    if(contacts!=undefined&&contacts!=''){
+                        $("[name='contacts']").val(contacts);
+                    }
+                    if(telno!=undefined&&telno!=''){
+                        $("[name='telno']").val(telno);
+                    }
+                    if(type!=undefined&&type!=''){
+                        $("[name='type']").val(type);
+                        $("[name='type']").trigger('chosen:updated');
+                    }
+                    if(ow!=undefined&&ow!=''){
+                        $("[name='ownner']").val(ow);
+                    }
+                    if(yjamount!=undefined&&yjamount!=''){
+                        $("[name='pamount']").val(yjamount);
+                    }
+                    if(service!=undefined&&service!=''){
+                        $("[name='coreservice1']").val(service);
+                    }
+
+
+                    $("[name='coreservice']").hide();
+                    $("[name='coreservice1']").show();
+
+                }else{
+                    $("[name='coreservice']").show();
+                    $("[name='coreservice1']").hide();
+                }
+            });
+
+            $('#starttime').datetimepicker({value:time,step:10,lang:'ch',timepicker:false,format:'Y/m/d'});
+
+            var time="{$offer['signtime']}";
+            $('#signtime').datetimepicker({value:time,step:10,lang:'ch',timepicker:false,format:'Y/m/d'});
+
+            $("#signtime").blur(function(){
+                $('#signtime').datetimepicker('hide');
+            });
+
+            $("#starttime").blur(function(){
+                $('#starttime').datetimepicker('hide');
+            });
+
+
+            jQuery.validator.addMethod("amountLimit", function(value, element) {
+                var returnVal = false;
+                var amountStart = $("input[name='new_amount']").val();
+                var amountEnd = $("input[name='amount']").val();
+                if((parseFloat(amountEnd)>=parseFloat(amountStart))){
+                    returnVal = true;
+                }
+                return returnVal;
+            },"报价金额必须大于计算报价金额");
+
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    if($(element).css("display")=='none'){
+                        $(element).next('div.chosen-container').children().addClass("error");
+                    }
+                },
+                onkeyup: false,
+                rules: {
+                    projectname: {
+                        required: true,
+                    },
+                    cid: {
+                        required: true,
+                    },
+                    contacts: {
+                        required: true,
+                    },
+                    telno: {
+                        required: true,
+                    },
+                    signtime: {
+                        required: true
+                    },
+                    starttime: {
+                        required: true
+                    },
+                    possible: {
+                        max: 100
+                    },
+                    apid: {
+                        required: true
+                    },
+                    amount:{
+                        number:true,
+                        amountLimit:true
+                    },
+                    disoff:{
+                        min:0,
+                        max:100
+                    }
+                },
+                messages: {
+                    projectname: {
+                        required : '请填写项目名称'
+                    },
+
+
+                    cid: {
+                        required : '请选择客户'
+                    },
+                    contacts: {
+                        required : '请填写联系人'
+                    },
+                    telno: {
+                        required : '请填写联系人电话'
+                    },
+                    signtime: {
+                        required: '预计签约时间不能为空'
+                    },
+                    starttime: {
+                        required: '预计开始时间不能为空'
+                    },
+                    possible: {
+                        max: '不能超过100',
+                    },
+                    apid: {
+                        required: '客户经理必选'
+                    },
+                    amount:{
+                        number:'请输入正确的金额',
+                        amountLimit:'请输入正确的金额'
+                    },
+                    disoff:{
+                        min:'不能低于0',
+                        max:'不能超过100'
+                    }
+
+                }
+            });
+            var str1 = "{$therapy}";
+            var arr1 = str1.split(',');
+            var optionss = $("#therapy_area").find("option");
+            for (var i = 0; i < arr1.length; i++) {
+                for (var j = 0; j < optionss.length; j++) {
+                    if (optionss.eq(j).val() == arr1[i]) {
+                        optionss.eq(j).attr("selected", 'true');
+                    }
+                }
+            }
+            var noResultsMatch = '没有匹配结果';
+            var defaultChosenOptions = {
+                no_results_text: noResultsMatch,
+                width: '100%',
+                allow_single_deselect: true,
+                disable_search_threshold: 1,
+                placeholder_text_single: ' ',
+                placeholder_text_multiple: ' ',
+                search_contains: true
+            };
+            $("#therapy_area,#contract,.chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+
+
+
+        });
+        function changechoose(name) {
+            $.closeModal();
+            $('#custom').val(name);
+            $('#choose').text(name);
+        }
+        function close_offer() {
+            $.closeModal();
+            window.location.href = window.location.href;
+        }
+        function discountChange(obj) {
+            var dis = $(obj).val();
+            var that=$(obj);
+            $.ajax({
+                url: "{:U('Offer/tip')}",
+                data: {"id": dis},
+                type: 'get',
+                success: function (response) {
+                    that.qtip({
+                        content: {
+                            title: '报价审批',
+                            text: response
+                        }
+                    });
+                }
+
+            })
+        }
+        $(function(){
+            var ki=0;
+            $('#ftBtn').keyup(function (event) {
+                var that = $(this);
+                var code = event.keyCode;
+                var keys = [8, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105];
+                for (var i = 0; i < keys.length; i++) {
+                    if (keys[i] === code) {
+                        var dis = $(this).val();
+                        $.ajax({
+                            url: "{:U('Offer/tip')}",
+                            data: {"id": dis},
+                            type: 'get',
+                            success: function (response) {
+                                that.attr("data-content",response);
+                                $('#ftBtn').popover({"html":true,trigger: "focus"});
+
+                                //that.attr("data-original-title",response.title);
+                                $('#ftBtn').popover('show');
+                            }
+
+                        })
+                    }else{
+                        var content="输入有误:折扣范围在0-100之间";
+                        that.attr("data-content",content);
+                        $('#ftBtn').popover('show');
+
+                    }
+                }
+
+            }).focus(function(){
+                if(ki==0){
+                    var dis = $(this).val();
+                    that=$(this);
+                    $.ajax({
+                        url: "{:U('Offer/tip')}",
+                        data: {"id": dis},
+                        type: 'get',
+                        success: function (response) {
+                            that.attr("data-content",response);
+                            $('#ftBtn').popover({"html":true,trigger: "focus"});
+                            //that.attr("data-original-title",response.title);
+                            $('#ftBtn').popover('show');
+                        }
+
+                    });
+                    ki++;
+                }
+            });
+            $('#calculate').mouseover(function(){
+                $('#calculate').popover({"html": false, trigger: "focus"});
+                $('#calculate').popover('show');
+            });
+            $('#calculate').mouseleave(function(){
+                $('#calculate').popover({"html": false, trigger: "focus"});
+                $('#calculate').popover('hide');
+            })
+        });
+	</script>
+
+	<div  id="projectTaskForm">
+		<div id="titlebar">
+			<div class="heading">
+				<span class="prefix"><i class="icon-user"></i> </span> <strong><small
+					class="text-muted"><i class="icon-plus"></i> </small> 编辑报价单</strong>
+			</div>
+		</div>
+		<form action="{:U('edit?id='.$offer['oid'])}" method="post" class="form-condensed" style="width: 1100px" enctype="multipart/form-data">
+			<table align="center" class="table table-form mytable ntable" style="border: 0">
+				<tbody>
+				<tr>
+					<th width="120px">销售机会</th>
+					<td width="300px">
+						<input type="hidden" name="chance" value="{$offer.chance}">
+						<input type="hidden" name="chance_code" value="{$offer.chance_code}">
+						<select name="chance_name"id="chance_name" class="form-control searchSelect chosen" >
+							<option value=""></option>
+							<volist name="opportuntys" id="vo">
+								<option  ptype="{$vo.opportunity_type}" oppname="{$vo.opportunity_name}" cname="{$vo['customer']['name']}" value="{$vo.opportunity_id}"
+								<if condition="$vo['opportunity_id'] eq $offer['chance']">selected</if>
+								>{$vo.opportunity_name}</option>
+							</volist>
+						</select>
+					</td>
+					<th width="100px">合同号</th>
+					<td width="300px">
+						<select name="contract_number"id="contract_number" class="form-control searchSelect chosen" >
+							<option value=""></option>
+							<volist name="contracts" id="vo">
+								<option value="{$vo.contract_no}"
+								<if condition="$vo['contract_no'] eq $offer['contract_number']">selected</if>
+								>{$vo.contract_no}</option>
+							</volist>
+						</select>
+					</td>
+					<td width="280px"></td>
+				</tr>
+				<tr>
+					<th>项目名称<span class="required"></span></th>
+					<td colspan="3">
+						<input type="text" name="projectname" placeholder="项目名称"  value="{$offer.projectname}" class="form-control" autocomplete="off" >
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>客户<span class="required"></span></th>
+					<td>
+						<select name="cid"  class="form-control searchSelect chosen" style="display: none;">
+							<option value=""></option>
+							<volist name="cs" id="c">
+								<option <in name="c.cid" value="$offer.cid">selected="selected"</in> phone="{$c.phone}" contact="{$c.contact}" value="{$c.cid}">{$c.name}</option>
+							</volist>
+						</select>
+					</td>
+					<th>联系人<span class="required"></span></th>
+					<td>
+						<input type="text" name="contacts" class="form-control" autocomplete="off" value="{$offer.contacts}" placeholder="联系人" >
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>联系电话<span class="required"></span></th>
+					<td>
+						<input type="text" name="telno" class="form-control" autocomplete="off" value="{$offer.telno}" placeholder="联系电话" >
+					</td>
+					<th>所有人</th>
+					<td>
+						<input type="hidden" name="ownner" value="{$offer['ownner']}" >
+						<select name="ownner_id" class="form-control searchSelect chosen">
+							<option value=""></option>
+							<volist name="pm" id="vo">
+								<option value="{$vo.uid}"  <if condition="$vo['uid'] eq $offer['ownner_id']">selected</if>>{$vo.nickname}</option>
+							</volist>
+						</select>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>业务类型</th>
+					<td>
+						<select name="type" class="form-control searchSelect chosen" style="display: none;">
+							<option value=""></option>
+							<volist name="types" id="vo">
+								<option <in name="vo.d_value" value="$offer.type">selected="selected"</in> value="{$vo.d_value}">{$vo.d_key}</option>
+							</volist>
+						</select>
+					</td>
+					<th>客户经理<span class="required"></span></th>
+					<td>
+						<input type="hidden" name="ap" value="{$offer['ap']}" >
+						<select name="apid" class="form-control searchSelect chosen">
+							<option value=""></option>
+							<volist name="pm" id="vo">
+								<option value="{$vo.uid}" <if condition="$vo['uid'] eq $offer['apid']">selected</if>>{$vo.nickname}</option>
+							</volist>
+						</select>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>预计签约时间<span class="required"></span></th>
+					<td>
+						<input type="text" name="signtime" id="signtime" value="{$offer.signtime}" class="form-control" autocomplete="off">
+					</td>
+					<th>预计开始时间<span class="required"></span></th>
+					<td>
+						<input type="text" name="starttime" id="starttime"  value="{$offer.starttime}" class="form-control" autocomplete="off" >
+					</td>
+					<td></td>
+				</tr>
+
+				<tr>
+					<th>药品名</th>
+					<td>
+						<input type="hidden" name="pm" value="{$offer['pm']}" >
+						<input type="text" name="drug_name"  value="{$offer.drug_name}"  class="form-control" autocomplete="off"  placeholder="药品名">
+					</td>
+					<th>管理费比例</th>
+					<td>
+						<select name="oper_rate" class="form-control searchSelect chosen" style="display: none;">
+							<option value=""></option>
+							<volist name="oper_rates" id="vo">
+								<option <in name="vo.d_value" value="$offer.oper_rate">selected="selected"</in> value="{$vo.d_value}">{$vo.d_key}</option>
+							</volist>
+						</select>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>税率</th>
+					<td>
+						<select name="rate" class="form-control searchSelect chosen" style="display: none;">
+							<option value=""></option>
+							<volist name="rates" id="vo">
+								<option <in name="vo.d_value" value="$offer.rate">selected="selected"</in> value="{$vo.d_value}">{$vo.d_key}</option>
+							</volist>
+						</select>
+					</td>
+					<th>折扣</th>
+					<td>
+						<div class="input-group">
+							<input type="text" name="disoff"  value="{$offer.disoff}" id="ftBtn" data-toggle="popover" data-placement="right" data-content="" title="" class="form-control" autocomplete="off"  placeholder="折扣"  >
+							<span class="input-group-addon fix-border" style="border-right: 1px solid #ccc">%</span>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>销售阶段</th>
+					<td>
+						<select name="step" class="form-control searchSelect chosen">
+							<option value=""></option>
+							<volist name="steps" id="vo">
+								<option value="{$vo.d_key}">{$vo.d_value}</option>
+							</volist>
+						</select>
+					</td>
+					<th>可能性</th>
+					<td>
+						<div class="input-group">
+							<input type="number" name="possible" min="0" max="100"  value="{$offer.possible}" class="form-control" autocomplete="off"  placeholder="可能性">
+							<span class="input-group-addon fix-border" style="border-right: 1px solid #ccc">%</span>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th>实际报价</th>
+					<td colspan="3">
+						<div class="input-group">
+							<input type="hidden" name="new_amount" value="{$offer.new_amount}">
+							<input type="number"  name="amount" id="amount" value="{$offer.amount}" class="form-control" autocomplete="off"  placeholder="应大于计算报价金额" >
+							<span style="color: #f00;width:120px;border-left:0;text-align:center;cursor:pointer;" class="input-group-addon"  id="calculate" data-toggle="popover" data-placement="top" data-content="计算报价">{$offer.new_amount|fomatprice}</span>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th >治疗领域(可多选)</th>
+					<td colspan="3">
+						<div class="input-group">
+							<select name="therapy_area[]"  id="therapy_area" multiple="" class="form-control" data-placeholder="请选择..." style="display: none;">
+								<option value=""></option>
+								<volist name="therapy_areas" id="vo">
+									<option value="{$vo.d_value}">{$vo.d_key}</option>
+								</volist>
+							</select>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+
+				<tr id='fileBox'>
+					<th>附件</th>
+					<td colspan="3">
+						<style>
+							.fileBox {
+								margin-bottom: 10px;
+								width: 100%
+							}
+
+							table.fileBox td {
+								padding: 0 !important
+							}
+
+							.fileBox .input-control > input[type='file'] {
+								width: 100%;
+								height: 100%;
+								height: 26px;
+								line-height: 26px;
+								position: relative;
+							}
+
+							.fileBox td .btn {
+								border-radius: 0;
+								border-left: none
+							}
+
+							/*.file-wrapper.form-control {*/
+							/*border-right: 0;*/
+							/*}*/
+
+							/*.content input {*/
+							/*border-left: 0px*/
+							/*}*/
+
+							/*.file-wrapper.form-control .fileControl {
+								width: 585px;
+							}*/
+
+							@-moz-document url-prefix() {
+								.file-wrapper.form-control .fileControl {
+									margin-top: -3px;
+								}
+							}
+						</style>
+						<div id='fileform'  class="pr">
+							<a href="javascript:;" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+							<script language='Javascript'>dangerFiles = "php,php3,php4,phtml,php5,jsp,py,rb,asp,aspx,ashx,asa,cer,cdx,aspl,shtm,shtml,html,htm";</script>
+							<table class='fileBox' id='fileBox1'>
+								<tr>
+									<td>
+										<div class='form-control file-wrapper' >
+											<input type='file' name='files[]' class='fileControl' tabindex='-1'
+												   onchange='checkSizeAndType(this)'/>
+										</div>
+									</td>
+									<td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)'
+														  class='btn-op btn-block'><i class='icon-remove'></i></a></td>
+								</tr>
+							</table>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				<div style="clear: both;"></div>
+				<tr>
+					<th >备注</th>
+					<td colspan="4">
+						<textarea id="description" name="description" style="height: 170px" class='ckeditor'>{$offer.description}</textarea>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td colspan="4">
+						<div class="rightdiv">
+							<a href="{:U('Offer/index')}" class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+							<a href="javascript:;"  class="btn btn-primary" onclick="baocun();" data-loading="稍候..."><i class="icon-save"></i> 保存</a>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+    $(function(){
+        setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+    });
+    var state = "{$offer.static}";
+    var pid = "{$offer.pid}";
+    //导航高亮
+    highlight_subnav("{:U('Offer/index')}");
+    function baocun(){
+        $('form').attr('action',"{:U('edit?act=1&id='.$offer['oid'])}");
+        if(state==3){
+            if(confirm("是否确认修改已生效的报价单？")){
+                $('form').submit();
+            }
+        }else{
+            $('form').submit();
+        }
+    }
+    function choose(r){
+        $.closeModal();
+        if(r){
+            location.replace("{:U('Offer/index')}");
+        }
+    }
+    $("#chance_name").change(function () {
+        var options=$("#chance_name option:selected");
+        var chance = $(this).val();
+        var chanceCode = options.text();
+        $("[name='chance']").val(chance);
+        $("[name='chance_code']").val(chanceCode);
+    });
+    $("#btn-addrow").click(function(){
+        var obj = $(".fileBox").last();
+        addFile(obj);
+    });
+    function addFile(obj) {
+        obj.after(obj.clone()).next('.fileBox').find('input').val('');
+        setFileFormWidth(0.9);
+        updateID();
+    }
+
+    /**
+     * Delete a file input control.
+     *
+     * @param  object $clickedButton
+     * @access public
+     * @return void
+     */
+    function delFile(clickedButton) {
+        if ($('.fileBox').size() == 1) return;
+        $(clickedButton).closest('.fileBox').remove();
+        updateID();
+    }
+
+    /**
+     * Update the file id labels.
+     *
+     * @access public
+     * @return void
+     */
+    function updateID() {
+        i = 1;
+        $('.fileID').each(function () {
+            $(this).html(i++)
+        });
+    }
+    Think.setValue("coreservice", "{$offer.coreservice|default = 0}");
+    Think.setValue("type", "{$offer.type|default = 0}");
+    Think.setValue("chance", "{$offer.chance|default = 0}");
+    Think.setValue("disoff", "{$offer.disoff|default = 0}");
+    Think.setValue("es_eid", "{$offer.es_eid|default = 0}");
+    Think.setValue("step", "{$offer.step|default = 0}");
+    Think.setValue("possible", "{$offer.possible|default = 0}");
+
+</script> </block>

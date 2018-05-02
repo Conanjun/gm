@@ -1,0 +1,566 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+
+<block name="body">
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+    <link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/n.css" rel="stylesheet" type="text/css"/>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <style>
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 1000px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            /*border-left: transparent;*/
+        }
+
+        #childrenForm .chosen-single {
+            border-right: 0px;
+        }
+
+        #buildList {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #buildList, th {
+        }
+
+        #buildList td {
+            padding: 0
+        }
+
+        .form-condensed .input-group > .input-group-btn > .btn {
+            padding: 5px 13px;
+        }
+
+        #submit, #backBtn {
+            padding: 6px 26px;
+            border-radius: 4px;
+        }
+
+        #backBtn {
+            margin-left: 6px;
+        }
+
+        .btn-block {
+            border-top: 0;
+            height: 30px;
+        }
+
+        form .chosen-single {
+
+            border-top: 0 !important;
+            /*border-bottom:0 !important;*/
+        }
+    </style>
+    <div id="featurebar">
+        <include file="Public:newtitle"/>
+        <div class="btn-group actions" style="float: right">
+            <a href="javascript:history.go(-1);" class="btn" title="返回"><i
+                    class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div id="projectTaskForm">
+        <div class="fnavbox">
+            <div>
+                <include file="Public:newfourtitle"/>
+            </div>
+            <div class="actions">
+                <div class="btn-group">
+                    里程碑计划是指在项目全过程中对项目成败起决定性作用的关键事件。根据项目范围，该项目的里程碑计划如下。
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <!-- 数据列表 -->
+        <script>setTreeBox();</script>
+        <form id="childrenForm" class="form-condensed" method="post" action="{:U('milestone',array('pid'=>$pid))}">
+            <div style="width: 1110px;" class="pr">
+                <a href="javascript:;" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+                <table class="table table-form mytable" id="buildList" style="border-bottom:0;">
+                    <thead>
+                    <tr class="text-center">
+                        <th style="width: 59px">类型</th>
+                        <th style="width: 200px;">事件名称</th>
+                        <th style="width: 200px;">时间点</th>
+                        <th style="width:320px">关联任务</th>
+                        <th style="width:200px">完成时间</th>
+                        <th style="width:90px">完成度</th>
+                        <th style="width:40px">操作</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td id="moduleBox" colspan="7">
+                            <div id="sonModule">
+                                <notempty name="milestone">
+                                    <volist name="milestone" id="vo">
+                                        <div class="row-table addedItem">
+                                            <input type="hidden" name="mid[]" value="{$vo['mid']}">
+                                            <div class="col-table">
+                                                <div class="input-group" style="width:59px;">
+                                                    <input type="text" value="{$vo['type']}" readonly
+                                                           class="form-control" autocomplete="off"
+                                                           style="border-top:0;border-right: 0;border-left: 0;">
+                                                </div>
+                                            </div>
+                                            <div class="col-table">
+                                                <div class="input-group" style="width:200px;">
+                                                    <input type="text" name="name[]" value="{$vo['name']}"
+                                                           class="form-control" autocomplete="off" title="事件名称"
+                                                           style="border-top:0;border-right:0;">
+                                                </div>
+                                            </div>
+                                            <div class="col-table">
+                                                <div class="input-group">
+                                                    <input type="text" name="mtime[]" id="mtime{$vo['mid']}"
+                                                           value="{$vo['mtime']|time_format=###,'Y/m/d'}"
+                                                           title="时间点" class="form-control" placeholder="时间"
+                                                           autocomplete="off"
+                                                           style="width:200px;border-left:1px solid #ccc;border-right:0px;border-top:0 ">
+                                                </div>
+                                                <script>
+                                                    $("#mtime" + "{$vo['mid']}").datetimepicker({
+                                                        step: 10,
+                                                        lang: 'ch',
+                                                        timepicker: false,
+                                                        format: 'Y/m/d'
+                                                    });
+                                                </script>
+                                            </div>
+                                            <div class="col-table">
+                                                <div  style="width: 320px;border-left:0px;border-top:0">
+                                                    <select name="tid[]" class="form-control searchSelect chosen"
+                                                            title="关联任务">
+                                                        <option value=0></option>
+                                                        <volist name="task" id="v">
+                                                            <option value="{$v['tid']}"
+                                                            <if condition="$vo['tid'] == $v['tid']"> selected</if>
+                                                            >{$v.title}</option>
+                                                        </volist>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-table">
+                                                <div class="input-group">
+                                                    <if condition="$vo['tid']">
+                                                        <input type="hidden" name="etime[]" value="{$vo['etime']|date='Y/m/d',###}">
+                                                        <input type="text" name="etime[]"  id="etime{$vo['mid']}"
+                                                        <if condition="$vo['etime']">
+                                                            value="{$vo['etime']|date='Y/m/d',###}"
+                                                            <else/>
+                                                            value=""
+                                                        </if>
+                                                        title="完成时间" class="form-control" placeholder=""
+                                                        autocomplete="off" style="width:
+                                                        198px;border-right:0px;border-top:0" disabled>
+                                                        <else/>
+                                                        <input type="text" name="etime[]" id="etime{$vo['mid']}"
+                                                        <if condition="$vo['etime']">
+                                                            value="{$vo['etime']|date='Y/m/d',###}"
+                                                            <else/>
+                                                            value=""
+                                                        </if>
+                                                        title="完成时间" class="form-control" placeholder=""
+                                                        autocomplete="off" style="width: 198px;border-right:0px
+                                                        ;border-top:0">
+                                                    </if>
+                                                </div>
+                                                <script>
+
+                                                    $("#etime" + "{$vo['mid']}").datetimepicker({
+                                                        step: 10,
+                                                        lang: 'ch',
+                                                        timepicker: false,
+                                                        format: 'Y/m/d'
+                                                    });
+                                                </script>
+                                            </div>
+                                            <div class="col-table">
+                                                <div class="input-group" style="width:91px;border-left:0px">
+                                                    <select name="completion[]" class="form-control searchSelect"
+                                                            title="" style="border-top:0;">
+                                                        <option value=0></option>
+                                                        <for start="0" end="101" name="j">
+                                                            <option value="{$j}"
+                                                            <if condition="$vo['completion'] == $j"> selected</if>
+                                                            >{$j}</option>
+                                                        </for>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-table" style="width: 40px">
+                                                <div class="input-group">
+                                                    </a> </span>
+                                                    <span class="input-group-btn">
+														<a href="javascript:;" style="width: 40px;margin: 0; border-right: 0;" onclick='deletedata(this,"{:U('miledelete?mid='.$vo['mid'])}")' class="btn-op btn-block">
+																		<i class="icon icon-remove"></i>
+                                                        </a> </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </volist>
+                                    <else/>
+                                    <div class="row-table addedItem" style="">
+                                        <div class="input-group" style="width:59px;">
+                                            <input type="text" class="form-control" readonly autocomplete="off"
+                                                   style="border-top:0;border-right: 0;border-left: 0;">
+                                        </div>
+                                        <div class="col-table">
+                                            <div class="input-group" style="width: 200px">
+                                                <input type="text" name="name[]"
+                                                       class="form-control" autocomplete="off" title="事件名称"
+                                                       style="border-top:0;border-right:0;">
+                                            </div>
+                                        </div>
+                                        <div class="col-table">
+                                            <div class="input-group">
+                                                <input type="text" name="mtime[]" id="mtime11"
+                                                       title="时间点" class="form-control" autocomplete="off"
+                                                       style="width: 200px;border-left:1px solid #ccc;border-top:0;border-right:0px ">
+                                            </div>
+                                            <script>
+                                                $("#mtime11").datetimepicker({
+                                                    step: 10,
+                                                    lang: 'ch',
+                                                    timepicker: false,
+                                                    format: 'Y/m/d'
+                                                });
+                                            </script>
+                                        </div>
+                                        <div class="col-table">
+                                            <div  style="width: 320px;border-left:0px">
+                                                <select name="tid[]" class="form-control searchSelect chosen"
+                                                        title="关联任务">
+                                                    <option value=0></option>
+                                                    <foreach name="task" item="v">
+                                                        <option value="{$v['tid']}">{$v.title}</option>
+                                                    </foreach>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-table">
+                                            <div class="input-group">
+                                                <input type="text" name="etime[]" id="etime11" value=""
+                                                       title="完成时间" class="form-control" placeholder=""
+                                                       autocomplete="off"
+                                                       style="width: 198px;border-right:0px;border-top:0 ">
+                                            </div>
+                                            <script>
+
+                                                $("#etime11").datetimepicker({
+                                                    step: 10,
+                                                    lang: 'ch',
+                                                    timepicker: false,
+                                                    format: 'Y/m/d'
+                                                });
+                                            </script>
+                                        </div>
+                                        <div class="col-table">
+                                            <div class="input-group" style="width: 91px;border-left:0px">
+                                                <select name="completion[]" class="form-control searchSelect"
+                                                        style="border-top:0" title="">
+                                                    <option value=''></option>
+                                                    <for start="0" end="101" name="j">
+                                                        <option value="{$j}">{$j}</option>
+                                                    </for>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-table" style="width: 40px">
+                                            <div class="input-group">
+												<span class="input-group-btn"><a
+                                                        href="javascript:;" style="width: 40px;
+    margin: 0;
+    border-right: 0;" onclick="deleteItem(this)"
+                                                        class="btn-op btn-block"><i class="icon icon-remove"></i>
+													</a> </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </notempty>
+                                <div class="row-table addedItem" style="display: none">
+                                    <div class="input-group" style="width:59px;">
+                                        <input type="text" class="form-control" readonly autocomplete="off"
+                                               style="border-top:0;border-right: 0;border-left: 0;">
+                                    </div>
+                                    <div class="col-table">
+                                        <div class="input-group" style="width: 200px">
+                                            <input type="text" name="name[]"
+                                                   class="form-control" autocomplete="off" title="事件名称"
+                                                   style="border-top:0;border-right:0;">
+                                        </div>
+                                    </div>
+                                    <div class="col-table">
+                                        <div class="input-group">
+                                            <input type="text" name="mtime[]"
+                                                   title="时间点" class="form-control" autocomplete="off"
+                                                   style="width: 200px;border-left:1px solid #ccc;border-top:0;border-right:0px ">
+                                        </div>
+                                    </div>
+                                    <div class="col-table">
+                                        <div  style="width: 320px;border-left:0px">
+                                            <select name="tid[]" class="form-control searchSelect chosen"
+                                                    title="关联任务">
+                                                <option value=0></option>
+                                                <foreach name="task" item="v">
+                                                    <option value="{$v['tid']}">{$v.title}</option>
+                                                </foreach>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-table">
+                                        <div class="input-group">
+                                            <input type="text" name="etime[]"  value=""
+                                                   title="完成时间" class="form-control" placeholder=""
+                                                   autocomplete="off"
+                                                   style="width: 198px;border-right:0px;border-top:0 ">
+                                        </div>
+                                    </div>
+                                    <div class="col-table">
+                                        <div class="input-group" style="width: 91px;border-left:0px">
+                                            <select name="completion[]" class="form-control searchSelect"
+                                                    style="border-top:0" title="">
+                                                <option value=''></option>
+                                                <for start="0" end="101" name="j">
+                                                    <option value="{$j}">{$j}</option>
+                                                </for>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-table" style="width: 40px">
+                                        <div class="input-group">
+												<span class="input-group-btn"><a
+                                                        href="javascript:;" style="width: 40px;
+    margin: 0;
+    border-right: 0;" onclick="deleteItem(this)"
+                                                        class="btn-op btn-block"><i class="icon icon-remove"></i>
+													</a> </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div style="width: 1110px;">
+                <div class="rightdiv" style="margin-top:10px">
+                    <button type="button" id="backBtn" class="btn btn-default"
+                            onclick="history.go(-1);"><i
+                            class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回}
+                    </button>
+                    <if condition="cando('ProjectNew/milestone',array($p['uid'],$p['pmuid']))">
+                        <button type="submit" id="submit" class="btn btn-primary"><i class="icon-save"></i> 保存</button>
+                    </if>
+                </div>
+                <div style="clear: both"></div>
+            </div>
+        </form>
+
+        <script>config.onlybody = 'no';</script>
+        <script language="Javascript">
+            $(function () {
+                $("#btn-addrow").click(function () {
+                    var obj = $("#sonModule").children().last();
+                    addItem(obj);
+                });
+            })
+            $('#milestoneTip').mouseover(function () {
+                $('#milestoneTip').popover({"html": true, trigger: "focus"});
+                $('#milestoneTip').popover('show');
+            });
+            $('#milestoneTip').mouseleave(function () {
+                $('#milestoneTip').popover({"html": true, trigger: "focus"});
+                $('#milestoneTip').popover('hide');
+            });
+            $("select[name='tid[]']").change(function () {
+                var task = $(this).find("option:selected").text();
+                if (task != undefined && task != '') {
+                    $(this).parent().parent().next().find("input[name='etime[]']").attr('disabled', 'true');
+                    $(this).parent().parent().next().find("input[name='etime[]']").val('');
+                } else {
+                    $(this).parent().parent().next().find("input[name='etime[]']").removeAttr('disabled');
+                }
+            })
+
+            function choose() {
+                $.closeModal();
+            }
+
+            $(".side-body li a").click(function () {
+                $(this).attr('class').val('active');
+            });
+
+            function deletedata(obj, url) {
+                if (confirm("确定要删除数据吗？")) {
+                    $.ajax({
+                        type: 'get',
+                        url: url,
+                        error: function () {
+                            alert('网络繁忙，请稍后再试');
+                        },
+                        success: function (response) {
+                            if (response.done == true) {
+                                deleteItem(obj);
+                            } else {
+                                alert(response.msg);
+                            }
+                        }
+                    });
+                }
+            }
+
+
+            function addItem(obj) {
+                var $inputgroup = $("#sonModule").find('.row-table:last');
+                $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+
+                $inputgroup.next().find("div.chosen-container").remove();
+                var $del = $inputgroup.next().find(".btn-block");
+                $del.attr('onclick', 'deleteItem(this)');
+                var defaultChosenOptions = {
+                    no_results_text: noResultsMatch,
+                    width: '320px',
+                    allow_single_deselect: true,
+                    disable_search_threshold: 1,
+                    placeholder_text_single: ' ',
+                    placeholder_text_multiple: ' ',
+                    search_contains: true
+                };
+                $inputgroup.next().find(".chosen").children('option').attr('selected',false);
+                $inputgroup.next().find(".chosen").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+                    var $this = $(this);
+                    var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                    var $drop = $chosen.find('.chosen-drop');
+                    $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+                });
+                $inputgroup.next().find("[name^='completion']").val(0);
+                $inputgroup.next().find("[name^='mid']").remove();
+                $inputgroup.next().find(".row-table").attr('style',false);
+                $inputgroup.next().attr('style',false);
+                $inputgroup.next().find("[name^='mtime']").datetimepicker({
+                    step: 10,
+                    lang: 'ch',
+                    timepicker: false,
+                    format: 'Y/m/d'
+                });
+                $inputgroup.next().find("[name^='etime']").datetimepicker({
+                    step: 10,
+                    lang: 'ch',
+                    timepicker: false,
+                    format: 'Y/m/d'
+                });
+            }
+
+            function insertItem(obj) {
+                var $inputgroup = $(obj).closest('.row-table');
+                var insertHtml = $('#insertItemBox').children('.row-table').clone();
+                $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+                updateItemOrder();
+            }
+
+            function updateItemOrder() {
+                var order = 10;
+                $('#sonModule').children('.row-table').each(function () {
+                    if ($(this).find("input[name*='order']").length > 0) {
+                        console.log(order);
+                        $(this).find("input[name*='order']").val(order);
+                        order += 10;
+                    }
+                });
+
+                $('#maxOrder').val(order - 10);
+            }
+
+            function deleteItem(obj) {
+                console.log($(obj).closest('.row-table').siblings('.row-table').find('i.icon-remove').size());
+                if ($(obj).closest('.row-table').siblings('.row-table.addedItem').find('i.icon-remove').size() <= 0) return;
+                $(obj).closest('.row-table').remove();
+            }
+
+            function syncModule(rootID, type) {
+                moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+                type = type == 'task' ? 'task' : 'story';
+
+                link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+                $.getJSON(link, function (modules) {
+                    if (modules.length == 0) return false;
+                    $('.helplink').addClass('hidden');
+                    var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+                    $.each(modules, function (key, module) {
+                        $('.row-table').each(function () {
+                            moduleName = $(this).find('input[id^=modules]').val();
+                            if (moduleName == module.name) modules[key] = null;
+                            if (!moduleName) $(this).closest('.row-table').remove();
+                        })
+                    });
+
+                    $.each(modules, function (key, module) {
+                        if (module) {
+                            $('#sonModule').append($inputgroup);
+                            $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+                            $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                        }
+                    })
+                    $('#sonModule').append($inputgroup);
+                })
+            }
+
+            function syncProductOrProject(obj, type) {
+                if (type == 'product') viewType = 'story';
+                if (type == 'project') viewType = 'task';
+                link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+                $.getJSON(link, function (modules) {
+                    $('.helplink').addClass('hidden');
+                    $('#' + type + 'Module').empty();
+                    $.each(modules, function (key, value) {
+                        $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+                    });
+                    $('#' + type + 'Module').trigger("chosen:updated");
+                })
+                $('#copyModule').attr('onclick', null);
+                $('#copyModule').bind('click', function () {
+                    syncModule(obj.value, viewType)
+                });
+            }
+
+            function toggleCopy() {
+                var $copy = $('table.copy');
+                if ($copy.size() == 0) return false;
+                $copy.toggle();
+            }
+
+            $(document).ready(function () {
+                toggleCopy();
+                $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+                $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+            });
+
+        </script>
+</block>
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{$from_url}");
+    </script>
+</block>

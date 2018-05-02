@@ -1,0 +1,137 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('DENTAL_FEEDBACK')}
+                            <small>{:L('INFO')}</small>
+                        </h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                             <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('STATUS')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text"  class="form-control" value="{$data.status}">
+                                </div>
+                            </div>
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('STUDIO')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text"  class="form-control" value="{$data.sname}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEED_TYPE')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text"  class="form-control" value="{$data.type}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEED_CONTENT')}</label>
+                                <div class="col-sm-3">
+                                    <textarea id="description" name="content" style="width: 400px;height: 170px;">{$data.content}</textarea>
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SUBMIT_TIME')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text"  class="form-control" value="{$data.addtime|date='Y-m-d',###}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SUBMIT_USER')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text"  class="form-control" value="{$data.nickname}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('RESPOND_TIME')}</label>
+                                <div class="col-sm-3">
+                                    <if condition="$data.backtime neq 0">
+                                        <input type="text"  class="form-control" value="{$data.backtime|date='Y-m-d',###}">
+                                        <else/>
+                                        <input type="text"  class="form-control" value="">
+                                    </if>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

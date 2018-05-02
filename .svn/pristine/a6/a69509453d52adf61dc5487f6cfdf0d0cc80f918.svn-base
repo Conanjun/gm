@@ -1,0 +1,1960 @@
+#pz_dentales input[type=checkbox] ,
+#pz_dentales_2 input[type=checkbox] {
+	display: none;
+}
+
+#img_pz,
+#img_pz_2 {
+	position: relative;
+}
+
+#pz_dentales,
+#pz_dentales_2,
+#pz_dentales_3,
+#pz_dentales_5,
+#pz_dentales_7 {
+	width: 850px;
+	height: 456px;
+	background: url('/Admin/images/pz/image_radiografia.jpg') no-repeat;
+}
+
+input[type=checkbox] + label ,
+input[type=checkbox]:checked + label {
+	background-repeat: no-repeat;
+	background-size: contain;
+	display: inline-block;
+	padding: 0 0 0 0px;
+}
+
+/*
+*D1
+*/	
+.d_sup1 {
+	position: absolute;
+	top: 152px;
+	left: 197px;
+}
+
+.d_sup1 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup1.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup1 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_1_select.png');
+	width: 36px;
+	height: 72px;
+}
+/*
+*D2
+*/	
+.d_sup2 {
+	position: absolute;
+	top: 164px;
+	left: 222px;
+}
+
+.d_sup2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup2.png');
+	width: 43px;
+	height: 68px;
+}
+
+.d_sup2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_2_select.png');
+	width: 43px;
+	height: 68px;
+}
+/*
+*D3
+*/	
+.d_sup3 {
+	position: absolute;
+	top: 170px;
+	left: 258px;
+}
+
+.d_sup3 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup3.png');
+	width: 40px;
+	height: 71px;
+}
+
+.d_sup3 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_3_select.png');
+	width: 40px;
+	height: 71px;
+}
+/*
+*D4
+*/	
+.d_sup4 {
+	position: absolute;
+	top: 172px;
+	left: 295px;
+}
+
+.d_sup4 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup4.png');
+	width: 29px;
+	height: 77px;
+}
+
+.d_sup4 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_4_select.png');
+	width: 29px;
+	height: 77px;
+}
+/*
+*D5
+*/	
+.d_sup5 {
+	position: absolute;
+	top: 172px;
+	left: 322px;
+}
+
+.d_sup5 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup5.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup5 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_5_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D6
+*/	
+.d_sup6 {
+	position: absolute;
+	top: 168px;
+	left: 350px;
+}
+
+.d_sup6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup6.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_6_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D7
+*/	
+.d_sup7 {
+	position: absolute;
+	top: 178px;
+	left: 379px;
+}
+
+.d_sup7 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup7.png');
+	width: 36px;
+	height: 83px;
+}
+
+.d_sup7 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_7_select.png');
+	width: 36px;
+	height: 83px;
+}
+/*
+*D8
+*/	
+.d_sup8 {
+	position: absolute;
+	top: 182px;
+	left: 406px;
+}
+
+.d_sup8 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup8.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup8 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_8_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D9
+*/	
+.d_sup9 {
+	position: absolute;
+	top: 181px;
+	left: 437px;
+}
+
+.d_sup9 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup9.png');
+	width: 36px;
+	height: 87px;
+}
+
+.d_sup9 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_9_select.png');
+	width: 36px;
+	height: 87px;
+}
+/*
+*D10
+*/	
+.d_sup10 {
+	position: absolute;
+	top: 180px;
+	left: 468px;
+}
+
+.d_sup10 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup10.png');
+	width: 36px;
+	height: 84px;
+}
+
+.d_sup10 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_10_select.png');
+	width: 36px;
+	height: 84px;
+}
+/*
+*D11
+*/	
+.d_sup11 {
+	position: absolute;
+	top: 170px;
+	left: 492px;
+}
+
+.d_sup11 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup11.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup11 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_11_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D12
+*/	
+.d_sup12 {
+	position: absolute;
+	top: 177px;
+	left: 522px;
+}
+
+.d_sup12 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup12.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup12 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_12_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D13
+*/	
+.d_sup13 {
+	position: absolute;
+	top: 173px;
+	left: 553px;
+}
+
+.d_sup13 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup13.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup13 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_13_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D14
+*/	
+.d_sup14 {
+	position: absolute;
+	top: 171px;
+	left: 577px;
+}
+
+.d_sup14 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup14.png');
+	width: 41px;
+	height: 73px;
+}
+
+.d_sup14 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_14_select.png');
+	width: 41px;
+	height: 73px;
+}
+/*
+*D15
+*/	
+.d_sup15 {
+	position: absolute;
+	top: 162px;
+	left: 609px;
+}
+
+.d_sup15 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup15.png');
+	width: 46px;
+	height: 76px;
+}
+
+.d_sup15 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_15_select.png');
+	width: 46px;
+	height: 76px;
+}
+/*
+*D16
+*/	
+.d_sup16 {
+	position: absolute;
+	top: 155px;
+	left: 644px;
+}
+
+.d_sup16 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup16.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup16 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_16_select.png');
+	width: 36px;
+	height: 64px;
+}
+
+
+/*
+*I1
+*/	
+.d_inf1 {
+	position: absolute;
+	top: 242px;
+	left: 192px;
+}
+
+.d_inf1 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf1.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf1 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_1_select.png');
+	width: 57px;
+	height: 64px;
+}
+/*
+*I2
+*/	
+.d_inf2 {
+	position: absolute;
+	top: 256px;
+	left: 226px;
+}
+
+.d_inf2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf2.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_2_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I3
+*/	
+.d_inf3 {
+	position: absolute;
+	top: 267px;
+	left: 262px;
+}
+
+.d_inf3 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf3.png');
+	width: 54px;
+	height: 77px;
+}
+
+.d_inf3 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_3_select.png');
+	width: 54px;
+	height: 77px;
+}
+/*
+*I4
+*/	
+.d_inf4 {
+	position: absolute;
+	top: 278px;
+	left: 309px;
+}
+
+.d_inf4 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf4.png');
+	width: 33px;
+	height: 77px;
+}
+
+.d_inf4 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_4_select.png');
+	width: 33px;
+	height: 77px;
+}
+/*
+*I5
+*/	
+.d_inf5 {
+	position: absolute;
+	top: 283px;
+	left: 337px;
+}
+
+.d_inf5 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf5.png');
+	width: 32px;
+	height: 81px;
+}
+
+.d_inf5 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_5_select.png');
+	width: 32px;
+	height: 81px;
+}
+/*
+*I6
+*/	
+.d_inf6 {
+	position: absolute;
+	top: 278px;
+	left: 367px;
+}
+
+.d_inf6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf6.png');
+	width: 29px;
+	height: 93px;
+}
+
+.d_inf6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_6_select.png');
+	width: 29px;
+	height: 93px;
+}
+/*
+*I7
+*/	
+.d_inf7 {
+	position: absolute;
+	top: 277px;
+	left: 394px;
+}
+
+.d_inf7 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf7.png');
+	width: 24px;
+	height: 87px;
+}
+
+.d_inf7 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_7_select.png');
+	width: 24px;
+	height: 87px;
+}
+/*
+*I8
+*/	
+.d_inf8 {
+	position: absolute;
+	top: 276px;
+	left: 417px;
+}
+
+.d_inf8 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf8.png');
+	width: 22px;
+	height: 83px;
+}
+
+.d_inf8 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_8_select.png');
+	width: 22px;
+	height: 83px;
+}
+/*
+*I9
+*/	
+.d_inf9 {
+	position: absolute;
+	top: 278px;
+	left: 435px;
+}
+
+.d_inf9 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf9.png');
+	width: 23px;
+	height: 77px;
+}
+
+.d_inf9 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_9_select.png');
+	width: 23px;
+	height: 77px;
+}
+/*
+*I10
+*/	
+.d_inf10 {
+	position: absolute;
+	top: 281px;
+	left: 455px;
+}
+
+.d_inf10 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf10.png');
+	width: 27px;
+	height: 86px;
+}
+
+.d_inf10 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_10_select.png');
+	width: 27px;
+	height: 86px;
+}
+/*
+*I11
+*/	
+.d_inf11 {
+	position: absolute;
+	top: 281px;
+	left: 478px;
+}
+
+.d_inf11 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf11.png');
+	width: 28px;
+	height: 88px;
+}
+
+.d_inf11 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_11_select.png');
+	width: 28px;
+	height: 88px;
+}
+/*
+*I12
+*/	
+.d_inf12 {
+	position: absolute;
+	top: 287px;
+	left: 504px;
+}
+
+.d_inf12 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf12.png');
+	width: 34px;
+	height: 78px;
+}
+
+.d_inf12 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_12_select.png');
+	width: 34px;
+	height: 78px;
+}
+/*
+*I13
+*/	
+.d_inf13 {
+	position: absolute;
+	top: 281px;
+	left: 529px;
+}
+
+.d_inf13 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf13.png');
+	width: 39px;
+	height: 77px;
+}
+
+.d_inf13 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_13_select.png');
+	width: 39px;
+	height: 77px;
+}
+/*
+*I14
+*/	
+.d_inf14 {
+	position: absolute;
+	top: 272px;
+	left: 558px;
+}
+
+.d_inf14 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf14.png');
+	width: 57px;
+	height: 78px;
+}
+
+.d_inf14 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_14_select.png');
+	width: 57px;
+	height: 78px;
+}
+/*
+*I15
+*/	
+.d_inf15 {
+	position: absolute;
+	top: 258px;
+	left: 593px;
+}
+
+.d_inf15 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf15.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf15 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_15_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I16
+*/	
+.d_inf16 {
+	position: absolute;
+	top: 245px;
+	left: 626px;
+}
+
+.d_inf16 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf16.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf16 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_16_select.png');
+	width: 57px;
+	height: 64px;
+}
+/*********************
+	SECCION 6
+**********************/
+/*
+*D1
+*/	
+.d_sup1_6 {
+	position: absolute;
+	top: 152px;
+	left: 197px;
+}
+
+.d_sup1_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup1.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup1_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_1_select.png');
+	width: 36px;
+	height: 72px;
+}
+/*
+*D2
+*/	
+.d_sup2_6 {
+	position: absolute;
+	top: 164px;
+	left: 222px;
+}
+
+.d_sup2_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup2.png');
+	width: 43px;
+	height: 68px;
+}
+
+.d_sup2_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_2_select.png');
+	width: 43px;
+	height: 68px;
+}
+/*
+*D3
+*/	
+.d_sup3_6 {
+	position: absolute;
+	top: 170px;
+	left: 258px;
+}
+
+.d_sup3_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup3.png');
+	width: 40px;
+	height: 71px;
+}
+
+.d_sup3_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_3_select.png');
+	width: 40px;
+	height: 71px;
+}
+/*
+*D4
+*/	
+.d_sup4_6 {
+	position: absolute;
+	top: 172px;
+	left: 295px;
+}
+
+.d_sup4_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup4.png');
+	width: 29px;
+	height: 77px;
+}
+
+.d_sup4_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_4_select.png');
+	width: 29px;
+	height: 77px;
+}
+/*
+*D5
+*/	
+.d_sup5_6 {
+	position: absolute;
+	top: 172px;
+	left: 322px;
+}
+
+.d_sup5_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup5.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup5_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_5_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D6
+*/	
+.d_sup6_6 {
+	position: absolute;
+	top: 168px;
+	left: 350px;
+}
+
+.d_sup6_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup6.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup6_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_6_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D7
+*/	
+.d_sup7_6 {
+	position: absolute;
+	top: 178px;
+	left: 379px;
+}
+
+.d_sup7_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup7.png');
+	width: 36px;
+	height: 83px;
+}
+
+.d_sup7_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_7_select.png');
+	width: 36px;
+	height: 83px;
+}
+/*
+*D8
+*/	
+.d_sup8_6 {
+	position: absolute;
+	top: 182px;
+	left: 406px;
+}
+
+.d_sup8_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup8.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup8_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_8_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D9
+*/	
+.d_sup9_6 {
+	position: absolute;
+	top: 181px;
+	left: 437px;
+}
+
+.d_sup9_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup9.png');
+	width: 36px;
+	height: 87px;
+}
+
+.d_sup9_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_9_select.png');
+	width: 36px;
+	height: 87px;
+}
+/*
+*D10
+*/	
+.d_sup10_6 {
+	position: absolute;
+	top: 180px;
+	left: 468px;
+}
+
+.d_sup10_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup10.png');
+	width: 36px;
+	height: 84px;
+}
+
+.d_sup10_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_10_select.png');
+	width: 36px;
+	height: 84px;
+}
+/*
+*D11
+*/	
+.d_sup11_6 {
+	position: absolute;
+	top: 170px;
+	left: 492px;
+}
+
+.d_sup11_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup11.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup11_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_11_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D12
+*/	
+.d_sup12_6 {
+	position: absolute;
+	top: 177px;
+	left: 522px;
+}
+
+.d_sup12_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup12.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup12_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_12_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D13
+*/	
+.d_sup13_6 {
+	position: absolute;
+	top: 173px;
+	left: 553px;
+}
+
+.d_sup13_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup13.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup13_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_13_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D14
+*/	
+.d_sup14_6 {
+	position: absolute;
+	top: 171px;
+	left: 577px;
+}
+
+.d_sup14_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup14.png');
+	width: 41px;
+	height: 73px;
+}
+
+.d_sup14_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_14_select.png');
+	width: 41px;
+	height: 73px;
+}
+/*
+*D15
+*/	
+.d_sup15_6 {
+	position: absolute;
+	top: 162px;
+	left: 609px;
+}
+
+.d_sup15_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup15.png');
+	width: 46px;
+	height: 76px;
+}
+
+.d_sup15_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_15_select.png');
+	width: 46px;
+	height: 76px;
+}
+/*
+*D16
+*/	
+.d_sup16_6 {
+	position: absolute;
+	top: 155px;
+	left: 644px;
+}
+
+.d_sup16_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup16.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup16_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_16_select.png');
+	width: 36px;
+	height: 64px;
+}
+
+
+/*
+*I1
+*/	
+.d_inf1_6 {
+	position: absolute;
+	top: 242px;
+	left: 192px;
+}
+
+.d_inf1_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf1.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf1_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_1_select.png');
+	width: 57px;
+	height: 64px;
+}
+/*
+*I2
+*/	
+.d_inf2_6 {
+	position: absolute;
+	top: 256px;
+	left: 226px;
+}
+
+.d_inf2_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf2.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf2_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_2_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I3
+*/	
+.d_inf3_6 {
+	position: absolute;
+	top: 267px;
+	left: 262px;
+}
+
+.d_inf3_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf3.png');
+	width: 54px;
+	height: 77px;
+}
+
+.d_inf3_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_3_select.png');
+	width: 54px;
+	height: 77px;
+}
+/*
+*I4
+*/	
+.d_inf4_6 {
+	position: absolute;
+	top: 278px;
+	left: 309px;
+}
+
+.d_inf4_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf4.png');
+	width: 33px;
+	height: 77px;
+}
+
+.d_inf4_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_4_select.png');
+	width: 33px;
+	height: 77px;
+}
+/*
+*I5
+*/	
+.d_inf5_6 {
+	position: absolute;
+	top: 283px;
+	left: 337px;
+}
+
+.d_inf5_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf5.png');
+	width: 32px;
+	height: 81px;
+}
+
+.d_inf5_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_5_select.png');
+	width: 32px;
+	height: 81px;
+}
+/*
+*I6
+*/	
+.d_inf6_6 {
+	position: absolute;
+	top: 278px;
+	left: 367px;
+}
+
+.d_inf6_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf6.png');
+	width: 29px;
+	height: 93px;
+}
+
+.d_inf6_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_6_select.png');
+	width: 29px;
+	height: 93px;
+}
+/*
+*I7
+*/	
+.d_inf7_6 {
+	position: absolute;
+	top: 277px;
+	left: 394px;
+}
+
+.d_inf7_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf7.png');
+	width: 24px;
+	height: 87px;
+}
+
+.d_inf7_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_7_select.png');
+	width: 24px;
+	height: 87px;
+}
+/*
+*I8
+*/	
+.d_inf8_6 {
+	position: absolute;
+	top: 276px;
+	left: 417px;
+}
+
+.d_inf8_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf8.png');
+	width: 22px;
+	height: 83px;
+}
+
+.d_inf8_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_8_select.png');
+	width: 22px;
+	height: 83px;
+}
+/*
+*I9
+*/	
+.d_inf9_6 {
+	position: absolute;
+	top: 278px;
+	left: 435px;
+}
+
+.d_inf9_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf9.png');
+	width: 23px;
+	height: 77px;
+}
+
+.d_inf9_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_9_select.png');
+	width: 23px;
+	height: 77px;
+}
+/*
+*I10
+*/	
+.d_inf10_6 {
+	position: absolute;
+	top: 281px;
+	left: 455px;
+}
+
+.d_inf10_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf10.png');
+	width: 27px;
+	height: 86px;
+}
+
+.d_inf10_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_10_select.png');
+	width: 27px;
+	height: 86px;
+}
+/*
+*I11
+*/	
+.d_inf11_6 {
+	position: absolute;
+	top: 281px;
+	left: 478px;
+}
+
+.d_inf11_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf11.png');
+	width: 28px;
+	height: 88px;
+}
+
+.d_inf11_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_11_select.png');
+	width: 28px;
+	height: 88px;
+}
+/*
+*I12
+*/	
+.d_inf12_6 {
+	position: absolute;
+	top: 287px;
+	left: 504px;
+}
+
+.d_inf12_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf12.png');
+	width: 34px;
+	height: 78px;
+}
+
+.d_inf12_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_12_select.png');
+	width: 34px;
+	height: 78px;
+}
+/*
+*I13
+*/	
+.d_inf13_6 {
+	position: absolute;
+	top: 281px;
+	left: 529px;
+}
+
+.d_inf13_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf13.png');
+	width: 39px;
+	height: 77px;
+}
+
+.d_inf13_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_13_select.png');
+	width: 39px;
+	height: 77px;
+}
+/*
+*I14
+*/	
+.d_inf14_6 {
+	position: absolute;
+	top: 272px;
+	left: 558px;
+}
+
+.d_inf14_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf14.png');
+	width: 57px;
+	height: 78px;
+}
+
+.d_inf14_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_14_select.png');
+	width: 57px;
+	height: 78px;
+}
+/*
+*I15
+*/	
+.d_inf15_6 {
+	position: absolute;
+	top: 258px;
+	left: 593px;
+}
+
+.d_inf15_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf15.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf15_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_15_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I16
+*/	
+.d_inf16_6 {
+	position: absolute;
+	top: 245px;
+	left: 626px;
+}
+
+.d_inf16_6 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf16.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf16_6 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_16_select.png');
+	width: 57px;
+	height: 64px;
+}
+/*********************
+	SECCION 6 - 2
+**********************/
+/*
+*D1
+*/	
+.d_sup1_2 {
+	position: absolute;
+	top: 152px;
+	left: 197px;
+}
+
+.d_sup1_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup1.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup1_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_1_select.png');
+	width: 36px;
+	height: 72px;
+}
+/*
+*D2
+*/	
+.d_sup2_2 {
+	position: absolute;
+	top: 164px;
+	left: 222px;
+}
+
+.d_sup2_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup2.png');
+	width: 43px;
+	height: 68px;
+}
+
+.d_sup2_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_2_select.png');
+	width: 43px;
+	height: 68px;
+}
+/*
+*D3
+*/	
+.d_sup3_2 {
+	position: absolute;
+	top: 170px;
+	left: 258px;
+}
+
+.d_sup3_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup3.png');
+	width: 40px;
+	height: 71px;
+}
+
+.d_sup3_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_3_select.png');
+	width: 40px;
+	height: 71px;
+}
+/*
+*D4
+*/	
+.d_sup4_2 {
+	position: absolute;
+	top: 172px;
+	left: 295px;
+}
+
+.d_sup4_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup4.png');
+	width: 29px;
+	height: 77px;
+}
+
+.d_sup4_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_4_select.png');
+	width: 29px;
+	height: 77px;
+}
+/*
+*D5
+*/	
+.d_sup5_2 {
+	position: absolute;
+	top: 172px;
+	left: 322px;
+}
+
+.d_sup5_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup5.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup5_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_5_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D6
+*/	
+.d_sup6_2 {
+	position: absolute;
+	top: 168px;
+	left: 350px;
+}
+
+.d_sup6_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup6.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup6_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_6_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D7
+*/	
+.d_sup7_2 {
+	position: absolute;
+	top: 178px;
+	left: 379px;
+}
+
+.d_sup7_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup7.png');
+	width: 36px;
+	height: 83px;
+}
+
+.d_sup7_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_7_select.png');
+	width: 36px;
+	height: 83px;
+}
+/*
+*D8
+*/	
+.d_sup8_2 {
+	position: absolute;
+	top: 182px;
+	left: 406px;
+}
+
+.d_sup8_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup8.png');
+	width: 36px;
+	height: 82px;
+}
+
+.d_sup8_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_8_select.png');
+	width: 36px;
+	height: 82px;
+}
+/*
+*D9
+*/	
+.d_sup9_2 {
+	position: absolute;
+	top: 181px;
+	left: 437px;
+}
+
+.d_sup9_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup9.png');
+	width: 36px;
+	height: 87px;
+}
+
+.d_sup9_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_9_select.png');
+	width: 36px;
+	height: 87px;
+}
+/*
+*D10
+*/	
+.d_sup10_2 {
+	position: absolute;
+	top: 180px;
+	left: 468px;
+}
+
+.d_sup10_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup10.png');
+	width: 36px;
+	height: 84px;
+}
+
+.d_sup10_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_10_select.png');
+	width: 36px;
+	height: 84px;
+}
+/*
+*D11
+*/	
+.d_sup11_2 {
+	position: absolute;
+	top: 170px;
+	left: 492px;
+}
+
+.d_sup11_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup11.png');
+	width: 36px;
+	height: 97px;
+}
+
+.d_sup11_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_11_select.png');
+	width: 36px;
+	height: 97px;
+}
+/*
+*D12
+*/	
+.d_sup12_2 {
+	position: absolute;
+	top: 177px;
+	left: 522px;
+}
+
+.d_sup12_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup12.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup12_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_12_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D13
+*/	
+.d_sup13_2 {
+	position: absolute;
+	top: 173px;
+	left: 553px;
+}
+
+.d_sup13_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup13.png');
+	width: 36px;
+	height: 80px;
+}
+
+.d_sup13_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_13_select.png');
+	width: 36px;
+	height: 80px;
+}
+/*
+*D14
+*/	
+.d_sup14_2 {
+	position: absolute;
+	top: 171px;
+	left: 577px;
+}
+
+.d_sup14_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup14.png');
+	width: 41px;
+	height: 73px;
+}
+
+.d_sup14_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_14_select.png');
+	width: 41px;
+	height: 73px;
+}
+/*
+*D15
+*/	
+.d_sup15_2 {
+	position: absolute;
+	top: 162px;
+	left: 609px;
+}
+
+.d_sup15_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup15.png');
+	width: 46px;
+	height: 76px;
+}
+
+.d_sup15_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_15_select.png');
+	width: 46px;
+	height: 76px;
+}
+/*
+*D16
+*/	
+.d_sup16_2 {
+	position: absolute;
+	top: 155px;
+	left: 644px;
+}
+
+.d_sup16_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_sup16.png');
+	width: 36px;
+	height: 64px;
+}
+
+.d_sup16_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_sup_16_select.png');
+	width: 36px;
+	height: 64px;
+}
+
+
+/*
+*I1
+*/	
+.d_inf1_2 {
+	position: absolute;
+	top: 242px;
+	left: 192px;
+}
+
+.d_inf1_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf1.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf1_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_1_select.png');
+	width: 57px;
+	height: 64px;
+}
+/*
+*I2
+*/	
+.d_inf2_2 {
+	position: absolute;
+	top: 256px;
+	left: 226px;
+}
+
+.d_inf2_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf2.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf2_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_2_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I3
+*/	
+.d_inf3_2 {
+	position: absolute;
+	top: 267px;
+	left: 262px;
+}
+
+.d_inf3_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf3.png');
+	width: 54px;
+	height: 77px;
+}
+
+.d_inf3_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_3_select.png');
+	width: 54px;
+	height: 77px;
+}
+/*
+*I4
+*/	
+.d_inf4_2 {
+	position: absolute;
+	top: 278px;
+	left: 309px;
+}
+
+.d_inf4_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf4.png');
+	width: 33px;
+	height: 77px;
+}
+
+.d_inf4_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_4_select.png');
+	width: 33px;
+	height: 77px;
+}
+/*
+*I5
+*/	
+.d_inf5_2 {
+	position: absolute;
+	top: 283px;
+	left: 337px;
+}
+
+.d_inf5_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf5.png');
+	width: 32px;
+	height: 81px;
+}
+
+.d_inf5_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_5_select.png');
+	width: 32px;
+	height: 81px;
+}
+/*
+*I6
+*/	
+.d_inf6_2 {
+	position: absolute;
+	top: 278px;
+	left: 367px;
+}
+
+.d_inf6_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf6.png');
+	width: 29px;
+	height: 93px;
+}
+
+.d_inf6_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_6_select.png');
+	width: 29px;
+	height: 93px;
+}
+/*
+*I7
+*/	
+.d_inf7_2 {
+	position: absolute;
+	top: 277px;
+	left: 394px;
+}
+
+.d_inf7_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf7.png');
+	width: 24px;
+	height: 87px;
+}
+
+.d_inf7_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_7_select.png');
+	width: 24px;
+	height: 87px;
+}
+/*
+*I8
+*/	
+.d_inf8_2 {
+	position: absolute;
+	top: 276px;
+	left: 417px;
+}
+
+.d_inf8_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf8.png');
+	width: 22px;
+	height: 83px;
+}
+
+.d_inf8_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_8_select.png');
+	width: 22px;
+	height: 83px;
+}
+/*
+*I9
+*/	
+.d_inf9_2 {
+	position: absolute;
+	top: 278px;
+	left: 435px;
+}
+
+.d_inf9_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf9.png');
+	width: 23px;
+	height: 77px;
+}
+
+.d_inf9_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_9_select.png');
+	width: 23px;
+	height: 77px;
+}
+/*
+*I10
+*/	
+.d_inf10_2 {
+	position: absolute;
+	top: 281px;
+	left: 455px;
+}
+
+.d_inf10_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf10.png');
+	width: 27px;
+	height: 86px;
+}
+
+.d_inf10_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_10_select.png');
+	width: 27px;
+	height: 86px;
+}
+/*
+*I11
+*/	
+.d_inf11_2 {
+	position: absolute;
+	top: 281px;
+	left: 478px;
+}
+
+.d_inf11_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf11.png');
+	width: 28px;
+	height: 88px;
+}
+
+.d_inf11_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_11_select.png');
+	width: 28px;
+	height: 88px;
+}
+/*
+*I12
+*/	
+.d_inf12_2 {
+	position: absolute;
+	top: 287px;
+	left: 504px;
+}
+
+.d_inf12_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf12.png');
+	width: 34px;
+	height: 78px;
+}
+
+.d_inf12_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_12_select.png');
+	width: 34px;
+	height: 78px;
+}
+/*
+*I13
+*/	
+.d_inf13_2 {
+	position: absolute;
+	top: 281px;
+	left: 529px;
+}
+
+.d_inf13_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf13.png');
+	width: 39px;
+	height: 77px;
+}
+
+.d_inf13_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_13_select.png');
+	width: 39px;
+	height: 77px;
+}
+/*
+*I14
+*/	
+.d_inf14_2 {
+	position: absolute;
+	top: 272px;
+	left: 558px;
+}
+
+.d_inf14_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf14.png');
+	width: 57px;
+	height: 78px;
+}
+
+.d_inf14_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_14_select.png');
+	width: 57px;
+	height: 78px;
+}
+/*
+*I15
+*/	
+.d_inf15_2 {
+	position: absolute;
+	top: 258px;
+	left: 593px;
+}
+
+.d_inf15_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf15.png');
+	width: 57px;
+	height: 70px;
+}
+
+.d_inf15_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_15_select.png');
+	width: 57px;
+	height: 70px;
+}
+/*
+*I16
+*/	
+.d_inf16_2 {
+	position: absolute;
+	top: 245px;
+	left: 626px;
+}
+
+.d_inf16_2 input[type=checkbox] + label {
+	background: url('/Admin/images/pz/diente_inf16.png');
+	width: 57px;
+	height: 64px;
+}
+
+.d_inf16_2 input[type=checkbox]:checked + label {
+	background: url('/Admin/images/pz/diente_inf_16_select.png');
+	width: 57px;
+	height: 64px;
+}

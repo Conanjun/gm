@@ -1,0 +1,108 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Studio\Controller;
+
+/**
+ * 工作室 投诉意见管理控制器 : LGW
+ */
+class FeedbackController extends AdminController
+{
+    private $model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model = D('Feedback');    // 投诉意见Model
+    }
+
+    /**
+     *投诉意见管理首页
+     */
+    public function index()
+    {
+        $stuid = $this->get_stuid(UID);    // 工作室id
+
+        $where = " 1=1 and f.stuid={$stuid}";
+        $filter= '';
+        $name = empty($_GET['name'])?'':trim($_GET['name']);
+        $discount = empty($_GET['discount'])?'':trim($_GET['discount']);
+        if($name){
+            $filter .= " and p.pname like '%{$name}%'";
+        }
+        if($discount){
+            $filter .= " and p.discount like '%{$discount}%'";
+        }
+        $servicetype = empty($_GET['servicetype'])?'':trim($_GET['servicetype']);//code
+        if($servicetype){
+            $filter .= " and  p.servicetype like '%{$servicetype}%'";
+        }
+
+        $where .= $filter;
+
+        $count = $this->model->countNum($where);
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('f')
+            ->join('left join ot_studio s on f.stuid = s.stuid')
+            ->join('left join ot_member m on m.uid = f.uid')
+            ->join("left join ot_dictionary dic on dic.d_key = f.type and dic.d_code='feed_type'")
+            ->join("left join ot_dictionary dicc on dicc.d_key = f.state and dicc.d_code='feed_status'")
+            ->field('dicc.d_value as status ,dic.d_value as type,s.name as sname,m.nickname,f.content,f.addtime,f.backtime,f.id')
+            ->where($where)
+            ->group('f.id')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+
+        $feed_type = M('Dictionary')->where("d_code = 'feed_type' and d_del =1")->select();
+        $this->assign('feed_type', $feed_type);
+
+        $feed_status = M('Dictionary')->where("d_code = 'feed_status' and d_del =1")->select();
+        $this->assign('feed_status', $feed_status);
+
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+        $this->display();
+    }
+
+    /**
+     * 查看明细
+     */
+    public function info()
+    {
+        $id = empty($_GET['id'])?0:$_GET['id'];
+        if (empty($id)) {
+            $this->error('字典数据不存在！');
+        }
+
+        $data = $this->model
+            ->alias('f')
+            ->join('left join ot_studio s on f.stuid = s.stuid')
+            ->join('left join ot_member m on m.uid = f.uid')
+            ->join("left join ot_dictionary dic on dic.d_key = f.type and dic.d_code='feed_type'")
+            ->join("left join ot_dictionary dicc on dicc.d_key = f.state and dicc.d_code='feed_status'")
+            ->field('dicc.d_value as status ,dic.d_value as type,s.name as sname,m.nickname,f.content,f.addtime,f.backtime,f.id')
+            ->where('f.id='.$id)
+            ->group('f.id')
+            ->find();
+
+        $this->assign('data', $data);
+
+        $this->display();
+    }
+
+    public function get_stuid($uid){
+        $user = M('Member')->where("uid=".$uid)->find();
+        return $user['stuid'];
+    }
+
+}

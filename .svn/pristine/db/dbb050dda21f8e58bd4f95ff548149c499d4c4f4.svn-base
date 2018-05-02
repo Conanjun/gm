@@ -1,0 +1,197 @@
+<extend name="Public/base" />
+<block name="btnarea">
+	<li class="right">
+	</li>
+</block>
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav" style="float: left">
+			<if condition="cando('ProjectEstablish/index')">
+				<li class="<eq name='actname' value='index'>active</eq>">
+					<a href="{:U('ProjectEstablish/index')}">未解决</a>
+			</li></if>
+			<if condition="cando('ProjectEstablish/resolved')">
+				<li class="<eq name='actname' value='resolved'>active</eq>">
+					<a href="{:U('ProjectEstablish/resolved')}">已解决</a>
+				</li></if>
+			<if condition="cando('ProjectEstablish/closed')">
+				<li class="<eq name='actname' value='closed'>active</eq>">
+					<a href="{:U('ProjectEstablish/closed')}">已关闭</a>
+				</li></if>
+			</li></if>
+			<if condition="cando('ProjectEstablish/allindex')"><li class="<eq name='actname' value='allindex'>active</eq>"><a href="{:U('ProjectEstablish/allindex')}">所有</a>
+			</li></if>
+
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+
+		</ul>
+		<div class="actions">
+		<!--	<a href="javascript:;" id="export" class="btn"><i class="icon-file-excel"></i>&nbsp;导出Excel</a>-->
+			<if condition="cando('ProjectEstablish/add')">
+				<a href="{:U('ProjectEstablish/add',array('pid'=>$pid))}" class="btn"><i class="icon-plus"></i>创建Bug</a>
+			</if>
+		</div>
+		<div style="clear: both;"></div>
+		<include file="Public/search" />
+	</div>
+	<!-- 数据列表 -->
+	<div class="data-table table-striped" id="projectTaskForm">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+				style="text-align: center"  id="taskList">
+			<thead>
+
+			<tr>
+				<th r="1" width="30px"></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="title">主题</span></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="pid">项目名称</span></th>
+				<th r="1" style="text-align:left"><span class="sort" ectype="order_by" fieldname="tid">任务名称</span></th>
+				<th r="1" style="width:120px"><span class="sort" ectype="order_by" fieldname="type">跟踪</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="assigneduid">被指派人</span></th>
+				<th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="pstime">开始时间</span></th>
+				<th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="petime">计划完成时间</span></th>
+				<th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="hours">预计时间</span></th>
+				<th r="1" style="width:100px"><span class="sort" ectype="order_by" fieldname="hours">完成工时</span></th>
+				<th r="1" style="width:80px"><span class="sort" ectype="order_by" fieldname="progress">进度</span></th>
+				<th r="1" style="width:80px">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo">
+					<tr>
+						<td r="1" class="cell-id"><input class="ids" type="checkbox" name="id[]" value="{$vo.bugid}" /></td>
+						<td r="1" style="text-align:left"><a href="{:U('ProjectEstablish/view?id='.$vo['bugid'])}">{$vo.title}</a></td>
+						<td r="1"style="text-align:left" >{$vo.name}</td>
+						<td r="1"style="text-align:left">{$vo.task}</td>
+						<td r="1">{$vo.type}</td>
+						<td r="1">{$vo.state}</td>
+						<td r="1">{$vo.assignedname}</td>
+
+						<td r="1"><if condition="$vo['pstime']">{$vo.pstime|time_format=###,'Y-m-d'}<else/>-</if></td>
+						<td r="1"><if condition="$vo['petime']">{$vo.petime|time_format=###,'Y-m-d'}<else/>-</if></td>
+						<td r="1"><if condition="$vo['hours']">{$vo.hours}h<else/>-</if></td>
+						<td r="1"><if condition="$vo['finishhours']">{$vo.finishhours}h<else/>-</if></td>
+						<td r="1" class="text-left">
+							<if condition="$vo['progress']">
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo['progress']/2}">
+								<else/>
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+							</if>
+							<small>{$vo.progress}%</small>
+						</td>
+
+						<td r="1">
+							<if condition="cando('ProjectEstablish/edit',array($vo['uid']))"><a href="{:U('ProjectEstablish/edit?id='.$vo['bugid'])}">编辑</a> </if>
+
+						</td>
+					</tr>
+				</volist>
+				<else />
+				<tr><td r="1" colspan="8" class="text-center table_nodata" id="colspan_1">aOh! 暂时还没有内容!</td></tr>
+			</notempty>
+			</tbody>
+            <notempty name="_list">
+			<tfoot>
+			<tr>
+				<td r="1" colspan='8' id="colspan_2">
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+										  class="rows-selector"> 选择</label>
+						</div>
+						<if condition="cando('ProjectNew/delete')">
+							<button class="btn btn-default ajax-post confirm"
+									url="{:U('ProjectNew/delete')}" target-form="ids">删 除</button>
+						</if>
+					</div>
+
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+
+					<div style="float: right;line-height: 27px;margin-right:10px">
+						{$projectlog}
+					</div>
+				</td>
+			</tr>
+			</tfoot>
+            </notempty>
+		</table>
+	</div>
+</block>
+
+<block name="script"> <script
+		src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+		type="text/javascript">
+
+    function resizetable(){
+        var w=$(window).width();
+        if(w<1400){
+            $("#taskList").find("th[r!=1]").hide();
+            $("#taskList").find("td[r!=1]").hide();
+            $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+        }else{
+            $("#taskList").find("th[r!=1]").show();
+            $("#taskList").find("td[r!=1]").show();
+            $("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+        }
+    }
+
+    $(function(){
+        setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+        resizetable();
+
+        $(window).resize(function(){
+            resizetable();
+        });
+    });
+
+    //搜索功能
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    //导航高亮
+    highlight_subnav("{:U('ProjectEstablish/index')}");
+    var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'project'))}";
+
+    var ajaxurl="{:U('Project/ajax_col')}";
+
+    $("#export").click(function(){
+        $("#searchform").attr("target","_blank");
+        var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+        $("#searchform").append(my_input);
+        $("#searchform").submit();
+        $("[name='exportexcel']").val("");
+        $("#searchform").attr("target","");
+    });
+
+    function tijiao(id,es_eid){
+        if(confirm("确认提交吗？"))
+            $.post(
+                "{:U('Project/present')}",
+                {'id':id,'eid':es_eid},
+                function(data){
+                    window.location.href = window.location.href;
+                }
+            );
+    }
+</script> </block>

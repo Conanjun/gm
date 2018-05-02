@@ -1,0 +1,95 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Dentist\Controller;
+
+
+
+/**
+ * 工作室控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class IndexController extends AdminController
+{
+
+	private $meta_title;
+
+	/**
+	 * 工作室首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index()
+	{
+		if (UID) {
+			$this->meta_title = '首页';
+		
+            
+            
+            //患者数
+            $pnum=M("Patient")->where("denid='".UID."'")->count();
+            
+            $stime= strtotime(date('Ymd 00:00', time()));
+            $etime= strtotime(date('Ymd 00:00', time()))+86400;
+            //今日订单量
+            $otnum=M("Order")->where("denid='".UID."' and addtime>='{$stime}' and addtime<='{$etime}'")->count();
+            //本月订单量
+            $mstime=strtotime(date('Ym01 00:00', time()));
+            $omnum=M("Order")->where("denid='".UID."' and addtime>='{$mstime}' and addtime<='{$etime}'")->count();
+            $this->assign('pnum',$pnum);
+            $this->assign('otnum',$otnum);
+            $this->assign('omnum',$omnum);
+            
+            $xdata=array();
+            $now=time();
+            $ydata1=array();
+            for ($i = 6; $i >=0; $i--) {
+            	$xdata[]=date('m/d',$now-$i*86400);
+            	$stime= strtotime(date('Ymd 00:00', $now-$i*86400));
+            	$etime= strtotime(date('Ymd 00:00', $now-$i*86400))+86400;
+            	
+            	//订单新增量
+            	$count=M("Order")->where("denid='".UID."' and addtime>='{$stime}' and addtime<='{$etime}'")->count();
+            	$ydata1[]=$count;
+            }
+            
+            
+            $this->assign('xdata',json_encode($xdata));
+            $this->assign('ydata1',json_encode($ydata1));
+            
+            $this->display();
+		} else {
+			$this->redirect('Public/login');
+		}
+	}
+
+	public function changelang(){
+		echo '0';
+	}
+
+	/**
+	 * Delete block
+	 *
+	 * @param int $id
+	 */
+	public function delete($id = 0)
+	{
+		$map = [];
+		$map ['bid'] = $id;
+		$map['uid'] = UID;
+		if (M('Block')->where($map)->delete() !== false) {
+			$this->ajaxReturn(array('result' => 'success'));
+		} else {
+			$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+		};
+	}
+
+
+}

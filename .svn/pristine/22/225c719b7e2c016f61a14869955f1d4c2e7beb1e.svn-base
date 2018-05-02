@@ -1,0 +1,48 @@
+<div class="modal-body">
+    <form action="{:U('OrderTaskCw/confirm')}" class="form-horizontal" id="save" method='post' enctype="multipart/form-data">
+        <input type="hidden" name="tid" id="task_id" value="" >
+        <div class="form-group">
+            <div>
+                <table class="table table-center">
+                    <thead>
+                    <tr>
+                        <th style="width: 80px">{:L('FEE_NAME')}</th>
+                        <th style="width: 100px">{:L('PRICE_RMB')}</th>
+                        <th style="width: 80px">{:L('DOLLAR_PRICE')}</th>
+                        <th style="width: 120px">{:L('HANDLE')}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <if condition="$user_state eq 1 ">
+                        <notempty name="pays">
+                            <volist name="pays" id="p">
+                                <tr>
+                                    <td>{$p.feename}</td>
+                                    <td>￥{$p['money']}</td>
+                                    <td>${$p['money1']}</td>
+                                    <td></td>
+                                </tr>
+                            </volist>
+                        </notempty>
+                        <else/>
+                        <notempty name="pays">
+                            <volist name="pays" id="p">
+                                <tr>
+                                    <td><input type="text" value="{$p.feename}"></td>
+                                    <td><input type="text" value="{$p.money}"></td>
+                                    <td><input type="text" value="{$p.money1}"></td>
+                                    <td><a href="javascript:;" id="del_fee_{$p.opid}" item="{$p.opid}">{:L('DELETE')}</a> </td>
+                                </tr>
+                            </volist>
+                        </notempty>
+                    </if>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+    <a href="javascript:void(0);"  onclick="replyon()" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+</div>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{:L('SYSTITLE')}</title>
+
+    <link href="__ROOT__/Admin/css/in/bootstrap.min.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="__ROOT__/Admin/css/in/animate.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/css/in/style.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="__ROOT__/Admin/css/in/stylesheet.css">
+    <link href="__ROOT__/Admin/css/in/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" rel="stylesheet">
+    <link rel="stylesheet" href="__ROOT__/Admin/js/in/plugins/scojs/css/scojs.css">
+    <!-- Mainly scripts -->
+    <script src="__ROOT__/Admin/js/in/jquery-2.1.1.js"></script>
+    <script src="__ROOT__/Admin/js/in/bootstrap.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/iCheck/icheck.min.js"></script>
+
+    <!-- Chosen -->
+    <script src="__ROOT__/Admin/js/in/plugins/chosen/chosen.jquery.js"></script>
+
+    <link href="__ROOT__/Admin/css/in/plugins/chosen/chosen.css" rel="stylesheet">
+
+    <!-- Custom and plugin javascript -->
+    <script src="__ROOT__/Admin/js/in/inspinia.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/pace/pace.min.js"></script>
+    <link href="__CSS__/in/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <script src="__ROOT__/Admin/js/in/iviews.base.js"></script>
+    <script src="__ROOT__/Admin/js/in/iviews.extend.js"></script>
+
+    <!-- Scojs -->
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.modal.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.confirm.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.message.js"></script>
+
+    <script src="__ROOT__/Admin/js/in/mlselection.js"></script>
+    <script src="__ROOT__/Admin/js/in/inline_edit.js"></script>
+
+    <script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+
+
+    <script>
+
+        $(function(){
+
+            $('.ui-select').chosen();
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'icheckbox_square-green',
+            });
+
+            $.menu();
+        })
+
+    </script>
+
+</head>
+
+<body class="">
+    <div id="wrapper">
+        <block name="body"> </block>
+    </div>
+</body>
+</html>
+

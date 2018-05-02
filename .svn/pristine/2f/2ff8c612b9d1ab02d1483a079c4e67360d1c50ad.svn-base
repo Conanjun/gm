@@ -1,0 +1,65 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+/**
+ * 后台首页控制器
+ */
+class Demo4Controller extends AdminController {
+
+    /**
+     * 后台首页
+     * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+     */
+    public function index(){
+         $this->display('Demo1/index');
+    }
+	 public function index1(){
+         $this->display('Demo1/index');
+    }
+	 public function index2(){
+         $this->display('Demo1/index1');
+    }
+	 public function index3(){
+         $this->display('Demo1/index');
+    }
+	public function index4(){
+		$this->display('Demo1/index');
+	}
+	
+	/**
+	 * 我的日历
+	 */
+	public function index5(){
+
+		$taskmod=M("Task");
+		$list=$taskmod->alias('t')
+		->field("t.tid as id,t.title as name,'task' as type,t.pstime as stime,t.petime as etime")
+		->union("SELECT td.todoid as id,td.title as name,'todo' as type,td.stime as stime,td.etime as etime FROM ot_todo td where td.toid='".UID."'")
+		->where(array("t.assigneduid='".UID."'"))->select();
+		
+		if($list){
+			foreach ($list as $k=>$v){
+				$list[$k]['stime']=date('Y-m-d H:i',$v['stime']);
+				$list[$k]['etime']=date('Y-m-d H:i',$v['etime']);
+				if($v['type']=="task"){
+					$list[$k]['url']=U("Task/view?id=".$v['id']);
+				}else{
+					$list[$k]['url']=U("Dealt/view?id=".$v['id']);
+				}
+			}
+		}
+		
+		
+		$this->assign("list",json_encode($list));
+		
+		$this->display('Public/calendar');
+	}
+}

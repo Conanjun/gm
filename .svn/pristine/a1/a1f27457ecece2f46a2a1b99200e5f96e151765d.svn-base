@@ -1,0 +1,169 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <if condition="$pid">
+
+
+        <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+                class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+        </li>
+    </if>
+</block>
+<block name="btnarea">
+
+</block>
+
+
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+                <if condition="cando('Execute/alter_add',array($p['uid'],$p['pmuid']),$p['pid'])">
+                    <a href="{:U('Execute/alter_add?pid='.$pid)}" class="btn"><i class="icon-plus"></i>新变更申请</a>
+                </if>
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+        <div class="clearfix"></div>
+</div>
+    <!-- 数据列表 -->
+    <include file="Public:executetitle" />
+    <div class="data-table table-striped">
+        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="30px"></th>
+                <th width="80px">申请日期</th>
+                <th  class="text-left">变更描述</th>
+                <th  class="text-left">变更原因</th>
+                <th width="100px">发起方</th>
+                <th width="100px">发起人</th>
+                <th width="100px">影响成本</th>
+                <th width="100px">影响工时</th>
+                <th width="80px">状态</th>
+                <th class="oop" width="100px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="alters">
+                <volist name="alters" id="vo">
+                    <tr>
+                        <td class="cell-id"> <input class="ids" type="checkbox" name="paid[]"value="{$vo.paid}"/> </td>
+                        <td>{$vo.add_time||time_format=###,'Y-m-d'}</td>
+                        <td class="text-left"><a href="{:U('alter_view?paid='.$vo['paid'].'&pid='.$pid)}">{$vo.title}</a></td>
+                        <td  class="text-left">{$vo.reason}</td>
+                        <td>{$vo.fqf}</td>
+                        <td>{$vo.fqr}</td>
+                        <td>{$vo.ycost|fomatprice}</td>
+                        <td>{$vo.hours}h</td>
+                        <td>
+                            <if condition="$vo.state eq 1">
+                                已通过
+                                <else/>
+                                未审核
+                            </if>
+                        </td>
+                        <td class="oop">
+                        <em>
+                            <if condition="cando('Execute/alter_edit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                    <a href="{:U('Execute/alter_edit?paid='.$vo['paid'].'&pid='.$vo['pid'])}">编辑</a>
+                                </if>
+                            <if condition="cando('Execute/alter_deletedata',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                    <a href="{:U('Execute/alter_deletedata?paid='.$vo['paid'])}" class="confirm ajax-get">删除</a>
+                                </if>
+                        </em>
+                        </td>
+                    </tr>
+                </volist>
+                <else/>
+                <td colspan="10" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+            <notempty name="alters">
+            <tfoot>
+            <tr>
+                <td colspan='10'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <!--<button class="btn btn-default ajax-post confirm"  url="{:U('Expense/expenseSubmit')}" target-form="ids">提交</button>-->
+                        <if condition="cando('Execute/alter_deletedata',array($p['uid'],$p['pmuid']),$p['pid'])">
+                            <button class="btn btn-default ajax-post confirm" url="{:U('Execute/alter_deletedata')}" target-form="ids">删 除 </button>
+                        </if>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js">
+
+    </script>
+
+    <script type="text/javascript">
+    	$(function(){
+    		var max=0;
+        	$(".oop").each(function(){
+        		if($(this).find("em").size()>0){
+            		var www=$(this).find("em").width();
+            		if(www<40){
+                		www=40;
+                	}
+            		
+            		if(max<www+10){
+            			max=www+10;
+            		}
+            		$(this).width(www+10);
+        		}
+        	});
+        	if($(".oop").size()==1){
+        		$(".oop").width("40px");
+        	}else{
+    	    	$(".oop").each(function(){
+    	    		if($(this).find("em").size()==0){
+    	    			$(this).width(max);
+    	    		}
+    	    	});
+        	}
+    	})
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+
+
+        //导航高亮
+        highlight_subnav('{$from_url}');
+    </script>
+</block>

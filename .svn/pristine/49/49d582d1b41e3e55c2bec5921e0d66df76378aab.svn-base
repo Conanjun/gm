@@ -1,0 +1,170 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('User/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('STUDIO_USER')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('User/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Studio/User/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('MNAME')}</label>
+                                                <input class="form-control w-100" type="text" name="mname" value="{$Think.get.mname}">
+                                            </td>
+                                            <td style="display: none">
+                                                <label>{:L('DNAME')}</label>
+                                                <input class="form-control w-100" type="text" name="dname" value="{$Think.get.dname}">
+                                            </td>
+
+                                            <td>
+                                                <label>{:L('EMAIL')}</label>
+                                                <input class="form-control w-100" type="text" name="email" value="{$Think.get.email}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('UNAME')}</label>
+                                                <input class="form-control w-100" type="text" name="uname" value="{$Think.get.uname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('MOBILE')}</label>
+                                                <input class="form-control w-100" type="text" name="mobile" value="{$Think.get.mobile}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ROLE_NAME')}</label>
+                                                <select name="role_name" class="form-control m-b">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+
+                                                    <volist name="roles" id="r">
+                                                        <option value="{$r.id}" <if condition=" $Think.get.role_name eq $r['id']">selected</if> >{$r.title}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('STATE')}</label>
+                                                <select name="status" class="form-control m-b">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.status eq 1">selected</if>>{:L('OPEN')}</option>
+                                                    <option value="2" <if condition="$Think.get.status eq 2">selected</if>>{:L('CLOSE')} </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('User/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="text-align: left;width: 120px"><span ectype="order_by" fieldname="nickname">{:L('MNAME')} <i class="fa fa-sort"></i></span></span></th>
+                                    <!--  <th><span ectype="order_by" fieldname="d.name">{:L('DNAME')} <i class="fa fa-sort"></i></span></span></th>-->
+                                    <th style="text-align: left;"><span ectype="order_by" fieldname="ag.title">{:L('ROLE_NAME')}<i class="fa fa-sort"></i></span></span></th>
+                                    <th style="text-align: left;"><span ectype="order_by" fieldname="um.email">{:L('email')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 120px"><span ectype="order_by" fieldname="um.username">{:L('UNAME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 120px"><span ectype="order_by" fieldname="um.mobile">{:L('MOBILE')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 80px"><span ectype="order_by" fieldname="status">{:L('STATE')} <i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 170px"><span ectype="order_by" fieldname="um.reg_time">{:L('REG_TIME')} <i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 120px">{:L('OP')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['uid']}" class="check"><label></label></div>
+                                            </td>
+                                            <td style="text-align: left;">{$vo['nickname']}</td>
+                                            <!--  <td>{$vo['dname']}</td>-->
+                                            <td style="text-align: left;">{$vo['title']}</td>
+                                            <td style="text-align: left;">{$vo['email']}</td>
+                                            <td>{$vo['username']}</td>
+                                            <td>{$vo['mobile']}</td>
+                                            <td>
+                                                <if condition="$vo['status']">
+                                                    <img src="__IMG__/positive_enabled.png" ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}" fieldvalue="1" title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}" fieldvalue="0" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                            <td>{$vo['reg_time']|date="Y-m-d H:i:s",###}</td>
+                                            <td style="text-align: RIGHT;">
+                                                <a href="{:U('User/edit?id='.$vo['uid'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                <a data-trigger="confirm" data-content="{:L('DATANDEL')}" data-title="{:L('DELTITILE')}"
+                                                   data-ajax="{:U('User/delete?id='.$vo['uid'])}"
+                                                   data-type="get"
+                                                   data-n1="{:L('DOCANCEL')}"
+                                                   data-n2="{:L('CONFIRM')}"
+                                                   class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    <else />
+                                    <tr>
+                                        <td colspan="9">{:L('NOCONCENT')}</td>
+                                    </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-white">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

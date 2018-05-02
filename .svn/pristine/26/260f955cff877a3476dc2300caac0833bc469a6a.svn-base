@@ -1,0 +1,55 @@
+<extend name="Public/base_choose" />
+
+<block name="body">
+<style>
+    .info_table{
+        line-height: 28px;
+    }
+</style>
+       
+     <div class="outer" style="min-height: 500px;">
+
+<div class="row-table">
+  <div class="col-main">
+  <div class="main" style="margin-left: 0;">
+      <fieldset>
+        <legend>{$file.title} {$file.u_name} {$file.addtime|time_format} </legend>
+        <div class="content">
+           {$file.content}
+        </div>
+      </fieldset>
+       <fieldset>
+        <legend>附件</legend>
+        <div class="content">
+            <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="border: 1px solid #ddd;">
+                <tbody style="text-align: center;">
+                    <notempty name="file['item']">
+                        <volist name="file['item']" id="vo">
+                            <neq name="vo.savepath" value=''>
+                                <tr>
+                                    <td><a style="float: left;" target="_blank" href="{$vo.savepath}">{$vo.name}</a></td>
+                                </tr>
+                            </neq>
+                        </volist>
+                    </notempty>
+                </tbody>
+            </table>
+        </div>
+      </fieldset>
+      <div style="text-align: center;">
+            <a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+        </div>
+    </div>
+  </div>
+</div>
+  </div>
+       
+       
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+    //导航高亮
+    highlight_subnav("{:U('Offer/index')}");
+    </script>
+</block>

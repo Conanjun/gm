@@ -1,0 +1,267 @@
+<extend name="Public/base"/>
+<block name="body">
+	<script src="__JS__/in/echarts.min.js"></script>
+	<!-- content begin -->
+	<div class="wrapper wrapper-content">
+
+		<div class="row">
+			<div class="col-lg-4">
+				<!-- ibox begin -->
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5>{:L('STUDIO_NUM')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<h1 class="no-margins">{$studio_num}</h1>
+						<!--<div class="stat-percent font-bold text-success">98%
+							<i class="fa fa-bolt"></i>
+						</div>-->
+					</div>
+				</div>
+				<!-- ibox end -->
+			</div>
+
+			<div class="col-lg-4">
+				<!-- ibox begin -->
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5>{:L('CLIENT_NUM')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<h1 class="no-margins">{$client_num}</h1>
+						<!--<div class="stat-percent font-bold text-info">20%
+							<i class="fa fa-level-up"></i>
+						</div>-->
+					</div>
+				</div>
+				<!-- ibox end -->
+			</div>
+
+			<div class="col-lg-4">
+				<!-- ibox begin -->
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5>{:L('ORDER_NUM')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<h1 class="no-margins">{$order_num}</h1>
+						<!--<div class="stat-percent font-bold text-info">20%
+							<i class="fa fa-level-up"></i>
+						</div>-->
+					</div>
+				</div>
+				<!-- ibox end -->
+			</div>
+		</div>
+
+		<div class="row">
+
+			<div class="col-lg-6">
+				<div class="ibox">
+
+					<div class="ibox-title">
+						<h5>{:L('STUDIO_CHANGE')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<div class="flot-chart">
+							<div class="flot-chart-content" id="chart1" key="1" style="height: 300px;">
+
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="col-lg-6">
+				<div class="ibox">
+
+					<div class="ibox-title">
+						<h5>{:L('CLIENT_CHANGE')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+
+						<div class="flot-chart">
+							<div class="flot-chart-content" id="chart2" key="2" style="height: 300px;"></div>
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<div class="row">
+
+			<div class="col-lg-6">
+				<div class="ibox">
+
+					<div class="ibox-title">
+						<h5>{:L('ORDER_CHANGE')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<div class="flot-chart">
+							<div class="flot-chart-content" id="chart3" key="3" style="height: 300px;"></div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="col-lg-6">
+				<div class="ibox">
+
+					<div class="ibox-title">
+						<h5>{:L('ADMIN_CHANGE')}</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+							<a class="close-link">
+								<i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+
+					<div class="ibox-content">
+						<div class="flot-chart">
+							<div class="flot-chart-content" id="chart4" key="4" style="height: 300px;"></div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+	<script>
+        var schart1,schart2,schart3,schart4;
+        function iniobj(){
+            try{
+                if(document.getElementById('chart1')!=null){
+                    schart1 = echarts.init(
+                        document.getElementById('chart1')
+					);
+                }
+                if(document.getElementById('chart2')!=null){
+                    schart2 = echarts.init(document.getElementById('chart2'));
+                }
+                if(document.getElementById('chart3')!=null){
+                    schart3 = echarts.init(document.getElementById('chart3'));
+                }
+                if(document.getElementById('chart4')!=null){
+                    schart4 = echarts.init(document.getElementById('chart4'));
+                }
+            }catch(e){}
+        }
+        iniobj();
+        function getobj(id){
+            if(id=='chart1'){
+                return schart1;
+            }
+            if(id=='chart2'){
+                return schart2;
+            }
+            if(id=='chart3'){
+                return schart3;
+            }
+            if(id=='chart4'){
+                return schart4;
+            }
+        }
+
+        $("[id^='chart']").each(function(){
+            var k=$(this).attr("key");
+            var id=this.id;
+            getobj(id).showLoading({
+                text: '正在努力加载...',
+                color: '#AB82FF'
+            });
+            url="/index.php?s=/Admin/index/getdata";
+            $.ajax({
+                type: "POST",
+                url: url,
+                dataType: 'json',
+                data: {k:k},
+                success: function(data){
+                    getobj(id).hideLoading();
+                    if(data.done){
+                        option = {
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: data.retval.x
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [{
+                                data: data.retval.y,
+                                type: 'line',
+                                areaStyle: {}
+                            }]
+                        };
+					}
+                    getobj(id).setOption(option,true);
+                },error:function(){getobj(id).hideLoading();}
+            });
+        });
+	</script>
+	<!-- content end -->
+</block>

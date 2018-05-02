@@ -1,0 +1,31 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: huajie <banhuajie@163.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 行为模型
+ *
+ * @author huajie <banhuajie@163.com>
+ */
+class ReturnResultModel extends Model
+{
+    /**
+     *  记录结果
+     *
+     * @param $result
+     */
+    public function addResult($result)
+    {
+        $data['result'] = $result;
+        $this->add($data);
+    }
+}

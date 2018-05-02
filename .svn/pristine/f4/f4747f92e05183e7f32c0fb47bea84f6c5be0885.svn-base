@@ -1,0 +1,119 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+use Think\Model;
+
+/**
+ * 插件模型
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+
+class ProjectNewModel extends Model {
+    public function __construct() {
+        parent::__construct();
+    }
+
+    //参与项目和执派项目union('select pid from ot_taskpart where uid='.$uid)
+    public function projectList() {
+        $uid = UID;
+        $project = M('takepart')
+            ->field('pid')
+            ->union('select pid from ot_project_service where assigneduid =' . $uid)
+            ->where(array('uid' => $uid))
+            ->select();
+        $pids = $this->arrToStr($project);
+        $result = M('project')->field('pid,name')->where('pid in('.$pids.")")->select();
+        return $result;
+    }
+    public function expense_insert($data){
+        $result=M('expense')->add($data);
+        return $result;
+    }
+    public function expense_list(){
+        $result=M('expense')
+            ->alias('e')
+            ->field('p.name as pname,d.d_key,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+            ->join('ot_project  p on p.pid=e.pid','left')
+            ->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'','left')
+            ->where(['e.uid'=>UID])
+            ->select();
+        return $result;
+    }
+    public function file_insert($fileList){
+       $result=M('file')->add($fileList);
+       return $result;
+   }
+   public function getExpenseInfo($eid){
+        $result=M('expense')->field('f.name,f.savepath,d.d_key,f.ext,e.eid,e.pid,e.state,e.fileid,e.code,e.unit,e.account,e.bank,e.amount,e.innum,e.description,e.type')
+            ->alias('e')
+            ->join('ot_file f on f.fileid=e.fileid','left')
+            ->join('ot_dictionary d on  d.d_value=e.state and d.d_code=\'Reimbursement_static\'','left')
+            ->where(['e.eid'=>$eid])->find();
+        return $result;
+   }
+   public function projectExpense($eid){
+       $result=M('expense')
+            ->alias('e')
+            ->field('p.name as pname,d.d_key,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum')
+            ->join('ot_project  p on p.pid=e.pid','left')
+            ->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'','left')
+            ->where(['e.eid'=>$eid])
+            ->find();
+       return $result;
+   }
+   public function getExpenseSub($eid){
+        $result=M('expense_sub')->field('esid,feecode,feetype,eid,money,note,invoicenum')
+            ->where(['eid'=>$eid])
+            ->select();
+        return $result;
+   }
+   public function expenseDel($id){
+       $result=M('expense')->where(['eid'=>$id])->delete();
+       return $result;
+   }
+   public function expensesubdel($esid){
+         $result=M('expense_sub')->where(['esid'=>$esid])->delete();
+         return $result;
+   }
+   public function expenseUpdate($data){
+       $res=M('expense')->where(['eid'=>$data['eid']])->save($data);
+       return $res;
+   }
+   public function expense_update($eid){
+       $res=M('expense_sub')->where(['eid'=>$eid])->sum('money');
+       $innum=M('expense_sub')->where(['eid'=>$eid])->sum('invoicenum');
+       $result=M('expense')->where(['eid'=>$eid])->save(['amount'=>$res,'innum'=>$innum]);
+      return $result;
+   }
+   public function submitCheck($eid){
+//       检查是否有明细
+       $res_sub=M('expense_sub')->where(['eid'=>$eid])->select();
+       //检查状态
+       $res_state=M('expense')->field('state')->where(['eid'=>$eid,])->find();
+       if(($res_state['state']==1  && $res_sub) ||$res_state['state']==-1){
+           return true;
+       }else{
+           return false;
+       }
+   }
+    //    将数组转换成字符串并用逗号相连
+    function arrToStr($res) {
+        $pid = "";
+        $length = count($res);
+        foreach ($res as $k => $vo) {
+            $pid .= $vo['pid'];
+            if ($k < $length - 1) {
+                $pid .= ',';
+            }
+        }
+        return $pid;
+
+    }
+}

@@ -1,0 +1,56 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <script>
+        $(function(){
+            $("#nr").focus();
+            $("#refuse").click(function(){
+                var type='refuse';
+                var id="{$id}";
+                var nr=CKEDITOR.instances.nr.getData();
+                if(nr)
+                {
+                     $.post("{:U('reply?id='.$id)}",{id:id,type:type,nr:nr},function(result){
+                        if(result.done)
+                        {
+                            window.parent.renovate();
+                        }
+                        else
+                        {
+                            alert(result.msg);
+                        }
+                    },"json");
+                }
+                else
+                {
+                    $("textarea").css("border-color","red");
+                    alert("请填写评论内容");
+                    return;
+                }
+
+            });
+
+
+        });
+
+    </script>
+<center>
+<div style="padding: 15px;">
+<textarea placeholder="请填写评论内容" style="width:100%;height:100px;border: 1px solid #ddd;padding: 5px;float: left;padding: 5px 10px;
+    font-size: 12px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;" name="nr" class="ckeditor"></textarea>
+    <div style="clear: both;"></div>
+    <div style="height: 30px; width: 70px; margin-top: 16px;margin-right: 27px;" class="form-condensed rightdiv">
+    <a id="refuse" href="javascript:;" class="btn btn-primary qqq" data-loading="稍候..."><i class="icon-project-close icon-chat-dot"></i> 评论</a>
+</div>
+
+
+</div>
+</center>
+</block>
+
+
+
+

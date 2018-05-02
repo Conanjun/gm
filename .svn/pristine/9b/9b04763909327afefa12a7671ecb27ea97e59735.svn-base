@@ -1,0 +1,846 @@
+<?php
+
+namespace Admin\Controller;
+
+/*
+ * 报价单控制器
+ */
+class OfferToolsController extends AdminController
+{
+    private $pro_module;
+
+    // 构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->pro_module = D('ProjectConfig');
+    }
+
+    // 报价工具
+    public function index()
+    {
+        $ProjectConfig = M('ProjectConfig')->where('parentid=0')->order('pid asc')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array(
+                'pid' => $pid))->find();
+            $this->assign('pname', $p ['name']);
+        }
+        $this->assign('ppid', $pid);
+        $pid1 = I('get.pid');
+        if (empty ($pid1)) {
+            $pid1 = $pid;
+        }
+
+
+        if (!IS_POST) {
+            $his_temp = I("post.his_temp");
+            $temp = json_decode($his_temp, true);
+            // 更新排序
+            if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+                $sort = strtolower(trim($_GET ['sort']));
+                $order = strtolower(trim($_GET ['order']));
+                if (!in_array($order, array('asc', 'desc'))) {
+                    $sort = 'ot_service.sort_order';
+                    $order = 'asc';
+                }
+            } else {
+                $sort = 'ot_service.sort_order';
+                $order = 'asc';
+            }
+
+            if ($pid1) {
+                $pr01 = $this->pro_module->where('pid=' . $pid1)->find();
+                $where = 'ot_service.pid = ' . $pid1;
+                $this->assign('module_name', $pr01 ['name']);
+            } else {
+                $pr01 = $this->pro_module->find();
+                $pid = $pr01 ['pid'];
+                $where = 'ot_service.pid = ' . $pid;
+                $this->assign('module_name', $pr01 ['name']);
+            }
+//            //左侧导航不显示顶级
+            $url = 'OfferTools/index?ppid=' . $pid . '&pid=';
+            $pro = $this->getpro($url, M('ProjectConfig'), $pid, 0);
+
+            $pro = "<ul class='tree tree-lines' id='tree'>" . substr($pro, 4);
+
+            $this->assign('ProjectConfig', $pro);
+
+
+            // 获取所有的项目
+            $ProjectConfig = M('ProjectConfig')->select();
+            $ppid = I('get.ppid');
+            if (!$ppid) {
+                $this->assign('pname', $ProjectConfig [0] ['name']);
+            } else {
+                $p = M('ProjectConfig')->where(array('pid' => $ppid))->find();
+                $this->assign('pname', $p ['name']);
+            }
+
+            $Model = M('Service');
+            /*$count = $Model->join ( 'ot_module ON ot_module.mid = ot_service.mid', "left" )->where ( $where )->count ();*/
+            /*$count = $Model->join('ot_module m ON m.mid = ot_service.mid',"left")
+             ->join('ot_group ON m.role = ot_group.groupid',"left")
+             ->join('ot_module m1 ON m1.mid = ot_service.remid','left')
+             ->join("ot_dictionary d ON d_code='reqgroup' and d.d_value = ot_service.regroup",'left')
+             ->where($where)->count();
+             $Page = new \Think\Page ( $count, 20 );*/
+            /*$list = $Model->join ( 'ot_module ON ot_module.mid = ot_service.mid', "left" )->field ( array (
+             'ot_service.*',
+             'ot_module.name as o_name'
+             ) )->where ( $where )->order ( $sort . " " . $order, 'ot_service.mid asc' )->select ();*/
+            $list = $Model->join('ot_module m ON m.mid = ot_service.mid', "left")
+                ->join('ot_group ON m.role = ot_group.groupid', "left")
+                ->join('ot_module m1 ON m1.mid = ot_service.remid', 'left')
+                ->join("ot_dictionary d ON d_code='reqgroup' and d.d_value = ot_service.regroup", 'left')
+                ->field(array('ot_service.*', 'd.d_key as regroup_name', 'm1.name as remid_name', 'ot_group.name as g_name', 'm.name as o_name'))
+                ->where($where)
+                ->order($sort . " " . $order, 'ot_service.mid asc')->select();
+
+            // cookie("temp_offer",null);
+            // cookie数据
+            /*$temp = json_decode ( cookie ( "temp_offer" ), true );*/
+
+            $nlist = array();
+            if ($list) {
+                if ($temp && $temp['list']) {
+                    foreach ($list as $k => $v) {
+                        if ($v['sid']) {
+                            $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                            $sdescription = $stemp['description'];
+                            $smid = $stemp['mid'];
+                            $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                            if ($sdescription || $smh) {
+                                $list[$k]['bulb'] = 1;
+                            }
+                        }
+                        $has = false;
+                        foreach ($temp['list'] as $vt) {
+                            if ($vt['sid'] == $v['sid']) {
+                                $has = true;
+                                $row = $vt;
+                                break;
+                            }
+                        }
+
+                        if ($v['description']) {
+                            $str = strip_tags(htmlspecialchars_decode($v['description']));
+                            $list[$k]['title_show'] = $str;
+                        } else {
+                            $list[$k]['title_show'] = $v['g_name'] . '-' . $v['o_name'] . '-' . $v['name'];
+                        }
+
+                        if (empty ($v ['minprice']) || $v ['minprice'] == "0.00") {
+                            $list [$k] ['price'] = $v ['maxprice'];
+                            $list [$k] ['canupdate'] = 0;
+                        } else {
+                            $list [$k] ['price'] = $v ['minprice'];
+                            $list [$k] ['canupdate'] = 1;
+                        }
+
+                        if ($has) {
+                            $list[$k]['quantity'] = $row['quantity'];
+                            $list[$k]['h'] = 1;
+                            $list[$k]['price'] = $row['price'];
+                        }
+                    }
+
+                } else {
+                    foreach ($list as $k => $v) {
+                        if ($v['sid']) {
+                            $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                            $sdescription = $stemp['description'];
+                            $smid = $stemp['mid'];
+                            $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                            if ($sdescription || $smh) {
+                                $list[$k]['bulb'] = 1;
+                            }
+                        }
+                        if (empty ($v ['minprice']) || $v ['minprice'] == "0.00") {
+                            $list [$k] ['price'] = $v ['maxprice'];
+                            $list [$k] ['canupdate'] = 0;
+                        } else {
+                            $list [$k] ['price'] = $v ['minprice'];
+                            $list [$k] ['canupdate'] = 1;
+                        }
+                        if ($v['description']) {
+                            $str = strip_tags(htmlspecialchars_decode($v['description']));
+                            $list[$k]['title_show'] = $str;
+                        } else {
+                            if ($v['g_name']) {
+                                $list[$k]['title_show'] = $v['g_name'] . '-' . $v['o_name'] . '-' . $v['name'];
+                            } else {
+                                $list[$k]['title_show'] = $v['o_name'] . '-' . $v['name'];
+                            }
+                        }
+                    }
+                }
+
+                foreach ($list as $k => $v) {
+                    $nlist[$v['mid']]['mid'] = $v['mid'];
+                    $nlist[$v['mid']]['mname'] = $v['g_name'] . '-' . $v['o_name'];
+                    $nlist[$v['mid']]['list'][] = $v;
+                }
+
+            }
+
+            $this->assign('_list', $nlist);
+            $this->assign('pid', $pid1);
+            $this->assign('pid1', $pid1);
+
+            /*$this->assign ( 'temp', $temp );*/
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/index'));
+            $root_mbx[] = array('title' => '报价工具', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+        /*else {
+            $ps = I ( "post.ps" );
+            $qs = I ( "post.qs" );
+            $ids = I ( "post.ids" );
+            $pid = I ( "post.id", 0 );
+            $his_temp = I ( "post.his_temp" );
+            // 验证数据正确性
+            if ($ids && is_array ( $ids )) {
+            foreach ( $ids as $v ) {
+            if (! $qs || $qs [$v] <= 0 || ((floor ( $qs [$v] ) - $qs [$v]) != 0)) {
+            $this->error ( "请填写正确的数量" );
+            }
+            if (! $ps || $ps [$v] <= 0 || ! is_numeric ( $ps [$v] )) {
+            $this->error ( "请填写正确的价格" );
+            }
+
+            $r = M ( "Service" )->where ( array (
+            "sid" => $v
+            ) )->find ();
+            if (empty ( $r )) {
+            $this->error ( "内容数据不存在，请重新操作" );
+            }
+
+            if (empty ( $r ['minprice'] ) || $r ['minprice'] == "0.00") {
+            if ($ps [$v] != $r ['maxprice']) {
+            $this->error ( "请填写正确的价格" );
+            }
+            } else {
+            if ($ps [$v] < $r ['minprice'] || $ps [$v] > $r ['maxprice']) {
+            $this->error ( "请填写正确的价格" );
+            }
+            }
+            }
+            } else {
+            $this->error ( "请选择要引入的内容" );
+            }
+
+            $service = M ( "Service" )->where ( "pid='{$pid}'" )->select ();
+            if (empty ( $service )) {
+            $this->error ( "内容数据已不存在" );
+            }
+
+            // 验证必选项是否已选中
+            foreach ( $service as $v ) {
+            if ($v ['required'] == 1 && ! in_array ( $v ['sid'], $ids )) {
+            $this->error ( "存在必选内容未选择，请刷新后重新选择" );
+            }
+            }
+
+            // 多选一判断 以及 关联模块判断
+            foreach ( $ids as $v ) {
+            foreach ( $service as $vv ) {
+            if ($v == $vv ['sid'] && $vv ['required'] == 2) {
+            $groupid = $vv ['regroup'];
+            }
+            $mid = $vv ["mid"];
+            }
+            // 多选一判断
+            if ($groupid) {
+            foreach ( $ids as $v1 ) {
+            $res = M ( "Service" )->where ( array (
+            "_string" => "and sid<>'{$v}'",
+            "pid" => $pid,
+            "required" => 2,
+            "regroup" => $groupid,
+            "sid" => $v1
+            ) )->find ();
+            if ($res) {
+            $this->error ( "存在多选一条件限制，请刷新后重新操作" );
+            }
+            }
+            }
+            // 关联模块判断
+            if ($mid) {
+            $ls = M ( "Service" )->where ( array (
+            "remid" => $mid,
+            "required" => 3,
+            "pid" => $pid
+            ) )->select ();
+            if ($ls) {
+            foreach ( $ls as $v ) {
+            if (! in_array ( $v ['sid'], $ids )) {
+            $this->error ( "存在关联模块内容未选中，请刷新后重新操作" );
+            }
+            }
+            }
+            }
+            }
+            $Model = M ( 'Service' );
+            $temp = json_decode ( $his_temp, true );
+            if($temp['list']){
+            foreach ($temp['list'] as $k=>$vvv){
+            if($vvv['pid']==$pid){
+            unset($temp['list'][$k]);
+            }
+            }
+            $temp['list']=array_values($temp['list']);
+            }
+
+            $tempdata = array ();
+            foreach ( $ids as $v ) {
+            $row = $Model->alias ( 's' )->field ( array (
+            's.*',
+            'm.name as o_name',
+            'g.name as ganme',
+            'p.name as pname'
+            ) )->join ( 'ot_module m ON m.mid = s.mid', 'LEFT' )->join ( 'ot_project_config p ON m.pid = p.pid', 'LEFT' )->join ( 'ot_group g ON m.role = g.groupid', 'LEFT' )->join ( 'ot_dictionary d ON d.d_value = s.regroup', 'LEFT' )->where ( array (
+            "sid" => $v
+            ) )->find ();
+            if (empty ( $row )) {
+            $this->error ( "内容数据不存在，请重新操作" );
+            }
+
+            $amount = floatval ( $qs [$v] * $ps [$v] );
+            $dis = 0;
+            if ($row ['disoff'] && intval ( $row ['disoff'] ) > 0 && $qs [$v] >= $r ['enough'] && $row ['disoff'] <= 100) {
+            $amount = floatval ( $amount * ($row ['disoff'] / 100) );
+            $dis = floatval ( $qs [$v] * $ps [$v] ) - $amount;
+            }
+            $prename = $row ["pname"] . "-" . $row ["o_name"] . "-" . $row ["ganme"];
+            $tempdata [] = array (
+            "sid" => $v,
+            "price" => $ps [$v],
+            "quantity" => $qs [$v],
+            "amount" => $amount,
+            "discount" => $dis,
+            "prename" => $prename,
+            "name" => $row ['name'],
+            "days" => $row ['days'],
+            "pid"=>$pid
+            );
+            }
+
+            if($temp['list']){
+            $tempdata=array_merge($temp['list'],$tempdata);
+            }
+
+            $t = array ();
+            if ($tempdata) {
+            $t ['list'] = $tempdata;
+            $t ['total'] = 0; // 总金额
+            $t ['a'] = 0; // 报价金额
+            $t ['dis'] = 0; // 优惠金额
+            $t ['day'] = 0; // 优惠金额
+
+            $a = 0;
+            $mdis = 0;
+            $day = 0;
+            foreach ( $tempdata as $vv ) {
+            if ($vv ['amount']) {
+            $a += floatval ( $vv ['amount'] );
+            }
+            if ($vv ['discount']) {
+            $mdis += floatval ( $vv ['discount'] );
+            }
+            if ($vv ['days']) {
+            $day += floatval ( $vv ['days'] );
+            }
+            }
+            $t ['total'] = $a + $mdis;
+            $t ['dis'] = $mdis;
+            $t ['a'] = $a;
+            $t ['day'] = $day;
+            localStorage.temp_offer(json_encode ( $t ));
+            }
+
+            $this->success ( "操作成功", U ( "index?id=" . $pid ) );
+            }*/
+    }
+
+    function ajax_in()
+    {
+        $ps = I("post.ps");
+        $qs = I("post.qs");
+        $ids = I("post.ids");
+        $pid = I("post.id", 0);
+        $his_temp = I("post.his_temp");
+        // 验证数据正确性
+        if ($ids && is_array($ids)) {
+            foreach ($ids as $v) {
+                if (!$qs || $qs [$v] <= 0 || ((floor($qs [$v]) - $qs [$v]) != 0)) {
+                    $this->error("请填写正确的数量");
+                }
+                if (!$ps || $ps [$v] <= 0 || !is_numeric($ps [$v])) {
+                    $this->error("请填写正确的价格");
+                }
+
+                $r = M("Service")->where(array(
+                    "sid" => $v
+                ))->find();
+                if (empty ($r)) {
+                    $this->error("内容数据不存在，请重新操作");
+                }
+
+                if (empty ($r ['minprice']) || $r ['minprice'] == "0.00") {
+                    if ($ps [$v] != $r ['maxprice']) {
+                        $this->error("请填写正确的价格");
+                    }
+                } else {
+                    if ($ps [$v] < $r ['minprice'] || $ps [$v] > $r ['maxprice']) {
+                        $this->error("请填写正确的价格");
+                    }
+                }
+            }
+        } else {
+            $this->error("请选择要引入的内容");
+        }
+
+        $service = M("Service")->where("pid='{$pid}'")->select();
+        if (empty ($service)) {
+            $this->error("内容数据已不存在");
+        }
+
+        // 验证必选项是否已选中
+        foreach ($service as $v) {
+            if ($v ['required'] == 1 && !in_array($v ['sid'], $ids)) {
+                $this->error("存在必选内容未选择，请刷新后重新选择");
+            }
+        }
+
+        // 多选一判断 以及 关联模块判断
+        foreach ($ids as $v) {
+            foreach ($service as $vv) {
+                if ($v == $vv ['sid'] && $vv ['required'] == 2) {
+                    $groupid = $vv ['regroup'];
+                }
+                $mid = $vv ["mid"];
+            }
+            // 多选一判断
+            if ($groupid) {
+                foreach ($ids as $v1) {
+                    $res = M("Service")->where(array(
+                        "_string" => "and sid<>'{$v}'",
+                        "pid" => $pid,
+                        "required" => 2,
+                        "regroup" => $groupid,
+                        "sid" => $v1
+                    ))->find();
+                    if ($res) {
+                        $this->error("存在多选一条件限制，请刷新后重新操作");
+                    }
+                }
+            }
+            // 关联模块判断
+            if ($mid) {
+                $ls = M("Service")->where(array(
+                    "remid" => $mid,
+                    "required" => 3,
+                    "pid" => $pid
+                ))->select();
+                if ($ls) {
+                    foreach ($ls as $v) {
+                        if (!in_array($v ['sid'], $ids)) {
+                            $this->error("存在关联模块内容未选中，请刷新后重新操作");
+                        }
+                    }
+                }
+            }
+        }
+        $Model = M('Service');
+        $temp = json_decode($his_temp, true);
+        $tnew = [];
+        if ($temp['list']) {
+            foreach ($temp['list'] as $k => $vvv) {
+                foreach ($vvv['item'] as $v) {
+                    if ($v['pid'] != $pid) {
+                        $tnew[] = $v;
+                    }
+                }
+            }
+        }
+        $tempdata = [];
+        foreach ($ids as $v) {
+            $row = $Model->alias('s')->field(array(
+                's.*',
+                'm.name as o_name',
+                'g.name as ganme',
+                'p.name as pname',
+                'p.pid'
+            ))->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_project_config p ON m.pid = p.pid', 'LEFT')->join('ot_group g ON m.role = g.groupid', 'LEFT')->join('ot_dictionary d ON d.d_value = s.regroup', 'LEFT')->where(array(
+                "sid" => $v
+            ))->find();
+            if (empty ($row)) {
+                $this->error("内容数据不存在，请重新操作");
+            }
+
+            $amount = floatval($qs [$v] * $ps [$v]);
+            $dis = 0;
+            if ($row ['disoff'] && intval($row ['disoff']) > 0 && $qs [$v] >= $r ['enough'] && $row ['disoff'] <= 100) {
+                $amount = floatval($amount * ($row ['disoff'] / 100));
+                $dis = floatval($qs [$v] * $ps [$v]) - $amount;
+            }
+            if ($row['description']) {
+                $title = strip_tags(htmlspecialchars_decode($row['description']));
+            } else {
+                if ($row ["ganme"]) {
+                    $title = $row ["ganme"] . "-" . $row ["o_name"] . "-" . $row ["name"];
+                } else {
+                    $title = $row ["o_name"] . "-" . $row ["name"];
+                }
+            }
+
+            if ($row ["ganme"]) {
+                $prename = $row ["ganme"] . "-" . $row ["o_name"] . "-" . $row ["name"];
+            } else {
+                $prename = $row ["o_name"] . "-" . $row ["name"];
+            }
+
+            $tempdata [] = array(
+                "sid" => $v,
+                "mid" => $row ["mid"],
+                "price" => $ps [$v],
+                "quantity" => $qs [$v],
+                "amount" => $amount,
+                "discount" => $dis,
+                "title" => $title,
+                "prename" => $prename,
+                "name" => $row ['name'],
+                "days" => $row ['days'],
+                "u" => $row ['unit'],
+                "pid" => $pid,
+                "pname" => $row ['pname'],
+                "ganme" => $row ['ganme'],
+                "o_name" => $row ['o_name'],
+            );
+        }
+
+        if ($tnew) {
+            $tempdata = array_merge($tnew, $tempdata);
+        }
+
+        $t = array();
+        if ($tempdata) {
+            $t ['list'] = $tempdata;
+            $t ['total'] = 0; // 总金额
+            $t ['a'] = 0; // 报价金额
+            $t ['dis'] = 0; // 优惠金额
+            $t ['day'] = 0; // 优惠金额
+
+            $a = 0;
+            $mdis = 0;
+            $day = 0;
+            foreach ($tempdata as $vv) {
+                if ($vv ['amount']) {
+                    $a += floatval($vv ['amount']);
+                }
+                if ($vv ['discount']) {
+                    $mdis += floatval($vv ['discount']);
+                }
+                if ($vv ['days']) {
+                    $day += floatval($vv ['days'] * $vv ['quantity']);
+                }
+            }
+            $t ['total'] = $a + $mdis;
+            $t ['dis'] = $mdis;
+            $t ['a'] = $a;
+            $t ['day'] = $day;
+
+            $tt = array();
+            foreach ($tempdata as $k => $v) {
+                $tt[$v['pid']]['pid'] = $v['pid'];
+                $tt[$v['pid']]['pname'] = $v["pname"];
+                $tt[$v['pid']]['item'][] = $v;
+
+            }
+            $t['list'] = array_values($tt);
+        }
+        $this->json_result($t, '', false);
+    }
+
+    // 工具 - 报价工具 删除 : LGW
+    function tempdel()
+    {
+        $pid = I("id", "");
+        $sid = I("k", "");
+        $his_temp = I("post.his_temp");
+        $temp = json_decode($his_temp, true);
+        $list = [];
+        foreach ($temp['list'] as $k => $v) {
+            if (is_array($v['item'])) {
+                $item = [];
+                foreach ($v['item'] as $key => $val) {
+                    if ($val['sid'] != $sid) {
+                        $item[] = $val;
+                    }
+                }
+                $v['item'] = $item;
+                if (!empty($v['item'])) {
+                    $list[$k] = $v;
+                }
+
+            }
+
+        }
+
+        $temp ['list'] = array_values($list);
+        $tempdata = $temp ['list'];
+
+        if ($tempdata) {
+            $t ['list'] = $tempdata;
+            $t ['total'] = 0; // 总金额
+            $t ['a'] = 0; // 报价金额
+            $t ['dis'] = 0; // 优惠金额
+            $t ['day'] = 0;
+
+            $a = 0;
+            $mdis = 0;
+            $day = 0;
+            foreach ($tempdata as $vv) {
+                if ($vv ['amount']) {
+                    $a += floatval($vv ['amount']);
+                }
+                if ($vv ['discount']) {
+                    $mdis += floatval($vv ['discount']);
+                }
+                if ($vv ['days']) {
+                    $day += floatval($vv ['days']);
+                }
+            }
+            $t ['total'] = $a + $mdis;
+            $t ['dis'] = $mdis;
+            $t ['a'] = $a;
+            $t ['day'] = $day;
+        } else {
+            $t ['list'] = $tempdata;
+            $t ['total'] = 0; // 总金额
+            $t ['a'] = 0; // 报价金额
+            $t ['dis'] = 0; // 优惠金额
+            $t ['day'] = 0;
+        }
+        $this->json_result($t, '', false);
+    }
+
+    private function getpro($url, $module, $id = 0, $ppid = 0)
+    {
+        global $lastMenu;
+        if ($ppid) {
+            $where = 'pid = ' . $ppid . " ";
+        } else {
+            $where = 'parentid = ' . $id . " ";
+        }
+        $data = $module->where($where)->order('sort_order asc')->select();
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($ppid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            $smod = M("Service");
+            foreach ($data as $key => $value) {
+
+                $r = $smod->where("pid='{$value ['pid']}'")->find();
+                if ($r) {
+                    $i = "<img src='/images/d.png' style='width:8px;float: left;margin-top: 5px;margin-right:2px'>";
+                } else {
+                    $i = "";
+                }
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >{$i}" . $value ['name'] . " </a> ";
+                    $this->getpro($url, $module, $value ['pid'], 0);
+                    $lastMenu .= "</li>";
+                } else {
+
+                    if ($smod->where("pid='{$value ['pid']}'")->find()) {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    } else {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a class='textc' id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    }
+
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+
+    public function indexadd()
+    {
+        // 获取所有的项目
+        $ProjectConfig = M('ProjectConfig')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array(
+                'pid' => $pid
+            ))->find();
+            $this->assign('pname', $p ['name']);
+        }
+
+        $pid1 = I('get.pid');
+        if (empty ($pid1)) {
+            $pid1 = $pid;
+        }
+
+        // 获取项目树
+        $ProTree = $this->getpro('ProjectConfig/index?ppid=' . $pid . '&pid=', M('ProjectConfig'), $pid, $pid, 'ProjectConfig/indexadd?ppid=' . $pid . '&pid=', 'ProjectConfig/del?ppid=' . $pid . '&id=');
+        $ProTree = "<ul class='tree tree-lines'>" . substr($ProTree, 4);
+        $this->assign('Project', $ProTree);
+        $this->assign('pid', $pid1);
+
+        // 父级项目
+        $prop = D('ProjectConfig')->where('grade<5 and enabled =1 ')->select();
+        $prop = D('Common/Tree')->toFormatTree($prop, 'name', 'pid', 'parentid');
+        $prop = array_merge(array(
+            0 => array(
+                'pid' => '',
+                'title_show' => '顶级服务',
+                'grade' => ''
+            )
+        ), $prop);
+        $this->assign('prop', $prop);
+        // 项目类型
+        $types = M('dictionary')->where("d_code = 'projectconfig_type'")->field(true)->select(array('order' => 'd_order asc'));
+        $types = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $types);
+        $this->assign('types', $types);
+        // 优先级
+        $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+        $levels = array_merge(array(
+            0 => array(
+                'd_value' => '',
+                'd_key' => '请选择...'
+            )
+        ), $levels);
+        $this->assign('levels', $levels);
+
+        $Pro = M('ProjectConfig')->where("pid = {$pid1}")->field(true)->find();
+        if (I('get.pid', '')) {
+            $this->assign('pro', $Pro);
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '服务配置', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '添加服务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        // 记录当前列表页的cookie
+        Cookie('__forward__', $_SERVER ['REQUEST_URI']);
+        $this->meta_title = '服务配置';
+
+        $this->display();
+    }
+
+    /**
+     * 删除
+     */
+    public function del()
+    {
+        $pid = I('get.id');
+        //检测项目内容和报单明细中是否有引用及子类中是否有引用的
+        $where = "pc.pid={$pid}  and ( exists(select psid from ot_project_service ps where ps.pcid={$pid}) or exists(select osid from ot_offer_sub os where os.pid={$pid}))";
+        $result = M('ProjectConfig')->alias('pc')->where($where)->find();
+        if ($result) {
+            $this->ajaxReturn(array('done' => 0, 'msg' => '服务在报价明细或项目内容中被引用,不可以删除'));
+        }
+        $id = array_unique(( array )$pid);
+        if (empty ($id)) {
+//                $this->error ( '请选择要操作的数据!' );
+            $this->ajaxReturn(array('done' => 0, 'msg' => '请选择要操作的数据'));
+
+        }
+        $map = array('pid' => array('in', $id));
+        if (M('ProjectConfig')->where($map)->delete()) {
+            foreach ($ids as $vo) {
+                action_log_new(array(
+                    'outtype' => 'ot_project_config',
+                    'outkey' => $vo,
+                    'action' => 'delete',
+                    'comment' => ''
+                ));
+            }
+            $this->success('删除成功');
+        } else {
+//                $this->error ( '删除失败！' );
+            $this->ajaxReturn(array('done' => 0, 'msg' => '删除失败'));
+        }
+    }
+
+    // 计算
+    public function count()
+    {
+        if (IS_POST) {
+            $item = empty ($_REQUEST ['item']) ? '' : $_REQUEST ['item'];
+            $num = empty ($_REQUEST ['num']) ? '' : $_REQUEST ['num'];
+            $item = str_replace('\\', '', $item);
+            $item = str_replace('\"', '"', $item);
+            $item = str_replace("\r", '', $item);
+            $item = str_replace("\n", '\n', $item);
+            $item = json_decode($item, true);
+            $all_discount = 0;
+            $all_amount = 0;
+            if (!empty ($item)) {
+                foreach ($item as $key_p => $val_p) {
+                    $mid = $val_p ['id'];
+                    if (!empty ($val_p ['sub'])) {
+                        foreach ($val_p ['sub'] as $p => $s) {
+                            $service = M("Service")->where("sid='" . $s . "'")->find();
+                            $enough = $service ['enough'];
+                            $disoff = $service ['disoff'];
+                            $discount = 0;
+                            if ($enough > 0 && $disoff > 0 && $num [$mid] [$s] >= $enough) {
+                                $discount = ($service ['price'] * $num [$mid] [$s]) * (100 - $disoff) / 100;
+                            }
+                            $all_discount += $discount;
+                            $all_amount += $service ['price'] * $num [$mid] [$s];
+                            $amount = ($service ['price'] * $num [$mid] [$s]) - $discount;
+                        }
+                    }
+                }
+            }
+
+            $all_surplus = $all_amount - $all_discount;
+            $this->json_result(array(
+                'all_amount' => $all_amount,
+                'all_discount' => $all_discount,
+                'all_surplus' => $all_surplus
+            ), '成功', false);
+        }
+    }
+
+    public function ajaxGetDropMenu()
+    {
+        $url = I('get.module') . '/' . I('get.index') . '?ppid=';
+        $m = M("ProjectConfig");
+
+        $pro = $m->where("parentid=0")->field('pid,name')->select();
+        $list1 = "<input type='text' class='form-control' id='search' value='' placeholder='搜索'/>
+		<div id='searchResult'><div id='defaultMenu' class='search-list'>
+    	<ul>";
+        $list2 = '';
+        foreach ($pro as $vo) {
+            $list2 .= " <li data-id=" . $vo ['pid'] . " data-key='" . str_replace(' ', '', pinyin($vo ['name'], 'all', '--')) . "' ><a href='" . U($url . $vo ['pid']) . "' ><i class='icon-folder-close-alt'></i> " . $vo ['name'] . "</a></li>";
+        }
+        $list3 = "</ul>";
+
+        echo $list1 . $list2 . $list3;
+    }
+}

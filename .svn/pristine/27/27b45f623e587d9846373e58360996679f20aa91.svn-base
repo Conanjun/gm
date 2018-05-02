@@ -1,0 +1,97 @@
+<extend name="Public/base" />
+
+<block name="body">
+<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+	<ul class="nav">
+		<li><a href="{:U('Needread/index')}">待阅</a>
+		</li>
+		<li class="active"><a href="{:U('Needread/index1')}">已阅</a>
+		</li>
+		<li><a href="{:U('Needread/index2')}">全部</a>
+		</li>
+		<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+		<li style="float: right">
+		</li>
+	</ul>
+	<include file="Public/search" />	
+</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" style="text-align: center;">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable">
+    <thead>
+        <tr>
+		<th width="10px"></th>
+		 <th class="text-left">任务</th>
+		 <th class="text-left">审阅意见</th>
+         <th width="80px">状态</th>
+          <th width="120px">提交用户</th>
+          <th width="120px"><span class="sort" ectype="order_by" fieldname="t.addtime">提交时间</span></th>
+         <th width="120px">审阅人</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td class="cell-id"></td>
+			<td class="text-left">
+			<a href="{:U('Needread/view?id='.$vo['rid'])}">{$vo.pname}-{$vo.tasktitle}</a>
+			</td>
+			<td class="text-left">{$vo.content}</td>
+             <td><if condition="$vo['content']==''">待阅<else/>已阅</if></td>
+             <td>{$vo.uname}</td>
+             <td>{$vo.addtime|time_format}</td>
+              <td>{$vo.touname}</td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="7" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+        <notempty name="_list">
+	<tfoot>
+			<tr>
+				<td colspan='7'>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+        </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('Needread/index')}");
+    function renovate(){
+    	$.closeModal();
+    	location.replace(location.href);
+    }
+	</script>
+</block>

@@ -1,0 +1,846 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+
+<block name="body">
+    <style>
+        .info_table {
+            line-height: 28px;
+        }
+
+        .tablesorter thead tr th {
+            font-weight: normal;
+            color: #888;
+        }
+
+        .content {
+            margin-bottom: 30px
+        }
+        p{margin-bottom: 0}
+    </style>
+
+    <div style="min-height: 777px;">
+        <div id="titlebar">
+            <div class="heading" style="padding-right: 277px;">
+                <strong>
+                    {$info.title}
+                    <span class="<eq name='info.state' value='0'>textc</eq><eq name='info.state' value='1'>textc</eq><eq name='info.state' value='2'></eq><eq name='info.state' value='3'>textg</eq><eq name='info.state' value='4'></eq><eq name='info.state' value='5'></eq><eq name='info.state' value='6'>textr</eq><eq name='info.state' value='-1'>textc</eq>">
+        {$info.statestr}
+        </span>
+
+                </strong>
+            </div>
+            <div class="actions">
+                <div class="btn-group" style="margin-right: -15px">
+                    <if condition="cando('Task/start',array($info['assigneduid']),$info['pid'])">
+                        <if condition="$info['state'] == 1">
+                            <a href="{:U('Task/start?id='.$info['tid'])}" data-width="800"
+                               data-height="400" data-title="{$info['title']}-开始" class="btn iframe"><i
+                                    class="icon-project-start icon-play"></i>开始</a>
+                        </if>
+                    </if>
+                    <if condition="cando('Task/finish',array($info['assigneduid']),$info['pid'])">
+                        <if condition="$info['state'] != 3&&$info['state'] != -1&&$info['state'] != 4&&$info['state'] != 5">
+                            <a href="{:U('Task/finish?id='.$info['tid'])}" data-width="1100"
+                               data-height="700" data-title="{$info['title']}-完成" id='finish' class="btn iframe"><i
+                                    class="icon-project-start icon-ok-sign icon-ok"></i>完成</a>
+                        </if>
+                    </if>
+                    <if condition="cando('Task/oppause',array($info['assigneduid']),$info['pid'])">
+                        <if condition="$info['state'] == 2">
+                            <a href="{:U('Task/oppause?id='.$info['tid'])}" data-width="800"
+                               data-height="400" data-title="{$info['title']}-暂停" class="btn iframe"><i
+                                    class="icon-project-start icon-pause"></i>暂停</a>
+                        </if>
+                    </if>
+                    <if condition="cando('Task/opcontinue',array($info['assigneduid']),$info['pid'])">
+                        <if condition="$info['state'] == 5">
+                            <a href="{:U('Task/opcontinue?id='.$info['tid'])}" data-width="800"
+                               data-height="400" data-title="{$info['title']}-继续" class="btn iframe"><i
+                                    class="icon-project-start icon-play"></i>继续</a>
+                        </if>
+                    </if>
+
+                    <if condition="cando('Task/send',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                        <if condition="$info['state'] == 1 || $info['state'] == 2 || $info['state'] == 0">
+                            <a href="{:U('Task/send?id='.$info['tid'])}" data-width="800"
+                               data-height="450" data-title="{$info['title']}-转派" class="btn iframe"><i
+                                    class="icon-hand-right icon-play"></i>转派</a>
+                        </if>
+                    </if>
+
+                    <if condition="cando('Task/close',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                        <if condition="$info['state'] != 3&&$info['state'] != -1 &&$info['state'] != 4">
+                            <a data-width="800" data-height="400"
+                               href="{:U('Task/close?id='.$info['tid'])}" data-title="{$info['title']}-关闭"
+                               class="btn iframe"><i class="icon-project-close icon-off"></i>关闭</a>
+                        </if>
+                    </if>
+                    <if condition="cando('Task/open',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                        <if condition="$info['state'] == 3 || $info['state'] == -1">
+                            <a data-width="1100" data-height="400"
+                               href="{:U('Task/open?id='.$info['tid'])}" data-title="{$info['title']}-开启" class="btn iframe"><i
+                                    class="icon-project-close icon-off"></i>开启</a>
+                        </if>
+                    </if>
+                    <a href="{:U('Task/docadd?tid='.$info['tid'].'&pid='.$info['pid'])}" data-width="1100"
+                       data-height="600" data-title="{$info['title']}-上传文档" class="btn iframe"><i
+                            class="icon-project-putoff icon-cloud"></i>上传文档</a>
+                    <if condition="$info['assigneduid']">
+                        <if condition="cando('Task/warn',array($info['manageruid']),$info['uid'])"><a data-height="400"
+                                                                                                      href="{:U('Task/warn?id='.$info['tid'])}"
+                                                                                                      class="btn iframe"><i
+                                class="icon-project-close icon-info-sign"></i>提醒</a></if>
+                        <if condition="cando('Task/reply',null,$info['pid'])"><a data-height="400"
+                                                               href="{:U('Task/reply?id='.$info['tid'])}"
+                                                               class="btn iframe"><i
+                                class="icon-project-close icon-chat-dot"></i>评论</a></if>
+                    </if>
+
+                    <if condition="cando('Offer/module_file',null,$info['pid'])"><a href="{:U('Offer/module_file?id='.$info['mid'])}"
+                                                                  data-title="{$info['title']}-参考" class="btn iframe"><i
+                            class="icon-copy icon-off"></i>参考</a></if>
+                    <if condition="cando('TaskFromMe/edit',array($info['uid']),$info['pid'])">
+                        <if condition="$info['state'] != -1">
+                            <a href="{:U('TaskFromMe/edit?id='.$info['tid'])}" class="btn " data-title="编辑"><i
+                                    class="icon-common-edit icon-pencil"></i>编辑</a>
+                        </if>
+                    </if>
+                </div>
+
+                </if>
+                <a href="javascript:history.go(-1);" class="btn" data-title="返回"><i
+                        class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+            </div>
+        </div>
+        <div class="row-table">
+            <div class="col-main">
+                <div class="main" style="margin-left: 0;">
+
+                    <fieldset>
+                        <legend>任务说明</legend>
+                        <div class="content">
+                            {$info.description}
+                        </div>
+                    </fieldset>
+                   <!-- <fieldset>
+                        <legend>任务记录</legend>
+                        <div class="content">
+                            <volist name="taskLog" id="l" key="k">
+            <div class="item" style="margin-bottom:10px;padding-bottom: 10px;border-bottom: 1px dashed #ddd">
+                <span style="color: #888">{$l.addtime|time_format}</span>  <strong>{$l.uname}</strong>
+                <span style="color: #888">{$l.action|ac_name}任务</span>  <notempty name="l.ext1">增加{$l.ext1}个实际工时</notempty>
+                <p>{$l.comment}</p>
+			</div>
+                            </volist>
+                        </div>
+                    </fieldset>-->
+
+                    <legend>相关文档</legend>
+                    <div class="content">
+
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">文档名称</th>
+                                    <th style="width: 80px">文档类型</th>
+                                    <th style="width: 80px">大小</th>
+                                    <th style="width: 80px">上传用户</th>
+                                    <th style="width: 120px">上传时间</th>
+                                    <th style="width: 80px">下载数</th>
+                                    <th style="width: 100px">操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="doc">
+                                    <volist name="doc" id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left">
+                                                <if condition="$vo['url']">
+                                                    <if condition="$vo['urlname']">{$vo['urlname']}
+                                                        <else/>
+                                                        {$vo['url']}
+                                                    </if>
+                                                    <else/>
+                                                    {$vo.dname}
+                                                </if>
+                                                 <if condition="$vo['isimg']">
+                                          
+                                                     <a style="display: block;" href="{:U('doc/view?fid='.$vo['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$vo.dname} 预览">
+                                                     <img src="{:U('doc/view?fid='.$vo['fileid'])}" width="60px"></a>
+                                               
+                                        </if>
+                                            </td>
+                                            <td>{$vo.tname}</td>
+                                            <td>
+                                                <if condition="$vo['url']">
+                                                    <else/>
+                                                    {$vo.size}k
+                                                </if>
+                                            </td>
+                                            <td>{$vo.uname}</td>
+                                            <td>{$vo.addtime|time_format}</td>
+                                            <td>{$vo.views}</td>
+                                            <td>
+                                                <if condition="$vo['url']">
+                                                    <a href="{$vo['url']}" data-title="{$vo['url']}" target="_blank">预览</a>
+                                                    <a href="{:U('Task/deleteDoc?id='.$vo['docid'])}" class="confirm ajax-get" title="点击删除文件">删除</a>
+                                                    <else/>
+                                                    <a href="{:U('doc/download?fid='.$vo['fileid'])}" data-title="点击下载文件">下载</a>
+                                                    <a href="{:U('doc/view?fid='.$vo['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$vo.dname} 预览">
+                                                        <span class="download">预览</span></a>
+                                                    <a href="{:U('Task/deleteDoc?id='.$vo['docid'])}" class="confirm ajax-get" data-title="点击删除文件">删除</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                       
+                                    </volist>
+                                    <else/>
+
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <legend>提醒列表</legend>
+                    <div class="content">
+
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">提醒内容</th>
+                                    <th width="80">提醒人</th>
+                                    <th width="90">提醒时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="wlist">
+                                    <volist name="wlist" id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left">{$vo.content}</td>
+
+                                            <td>{$vo.uname}</td>
+                                            <td>{$vo.addtime|date='m-d H:i',###}</td>
+                                        </tr>
+                                    </volist>
+                                    <else/>
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <legend>评论列表</legend>
+                    <div class="content">
+
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">评论内容</th>
+                                    <th width="80">评论人</th>
+                                    <th width="90">评论时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="rlist">
+                                    <volist name="rlist" id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left">{$vo.content}</td>
+                                            <td>{$vo.uname}</td>
+                                            <td>{$vo.addtime|date='m-d H:i',###}</td>
+                                        </tr>
+                                    </volist>
+                                    <else/>
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <notempty name="readlist">
+
+                        <legend>转阅列表</legend>
+                        <div class="content">
+
+                            <div class="data-table table-striped">
+                                <table
+                                        class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                                        style="text-align: center">
+                                    <thead>
+                                    <tr>
+                                        <th width="10px"></th>
+                                        <th style="text-align: left">审阅意见</th>
+                                        <th width="90">审阅人</th>
+                                        <th width="90">提交用户</th>
+                                        <th width="90">提交时间</th>
+                                        <th width="90">状态</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <notempty name="readlist">
+                                        <volist name="readlist" id="vo">
+                                            <tr>
+                                                <td class="cell-id"></td>
+
+                                                <td style="text-align: left">{$vo.content}</td>
+                                                <td>{$vo.touname}</td>
+                                                <td width="90">{$vo.uname}</td>
+                                                <td width="90">{$vo.addtime|date='m-d H:i',###}</td>
+                                                <td>
+                                                    <if condition="$vo['content']==''">待阅
+                                                        <else/>
+                                                        已阅
+                                                    </if>
+                                                </td>
+                                            </tr>
+                                        </volist>
+                                        <else/>
+
+                                    </notempty>
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </notempty>
+
+                    <style>
+                        #actionbox a {
+                            font-weight: normal
+                        }
+
+                        .col-side fieldset#actionbox {
+                            padding-right: 5px;
+                        }
+
+                        .col-side #actionbox #historyItem li span.item {
+                            white-space: nowrap
+                        }
+
+                        .changes blockquote {
+                            font-family: monospace, serif;
+                        }
+                    </style>
+                    <script language="Javascript">
+
+
+                        var fold = '-';
+                        var unfold = '+';
+
+                        function switchChange(historyID) {
+                            $swbtn = $('#switchButton' + historyID);
+                            $showTag = $swbtn.find('.change-show');
+                            if ($showTag.length) {
+                                $swbtn.closest('li').addClass('show-changes');
+                                $showTag.removeClass('change-show').addClass('change-hide');
+                                $('#changeBox' + historyID).show();
+                                $('#changeBox' + historyID).prev('.changeDiff').show();
+                            }
+                            else {
+                                $swbtn.closest('li').removeClass('show-changes');
+                                $swbtn.find('.change-hide').removeClass('change-hide').addClass('change-show');
+                                $('#changeBox' + historyID).hide();
+                                $('#changeBox' + historyID).prev('.changeDiff').hide();
+                            }
+                        }
+
+                        function toggleStripTags(obj) {
+                            var btn = $(obj);
+                            var diffTag = btn.find('.icon-file-code');
+                            if (diffTag.length) {
+                                diffTag.removeClass('icon-file-code').addClass('diff-short');
+                                btn.attr('title', '文本格式');
+                            }
+                            else {
+                                btn.find('.diff-short').removeClass('diff-short').addClass('icon-file-code');
+                                btn.attr('title', '原始格式');
+                            }
+                            var boxObj = $(obj).next();
+                            var oldDiff = '';
+                            var newDiff = '';
+                            $(boxObj).find('blockquote').each(function () {
+                                oldDiff = $(this).html();
+                                newDiff = $(this).next().html();
+                                $(this).html(newDiff);
+                                $(this).next().html(oldDiff);
+                            })
+                        }
+
+                        function toggleShow(obj) {
+                            $showTag = $(obj).find('.change-show');
+                            if ($showTag.length) {
+                                $showTag.removeClass('change-show').addClass('change-hide');
+                                $('#historyItem > li:not(.show-changes) .switch-btn').click();
+                            }
+                            else {
+                                $(obj).find('.change-hide').removeClass('change-hide').addClass('change-show');
+                                $('#historyItem > li.show-changes .switch-btn').click();
+                            }
+                        }
+
+                        function toggleOrder(obj) {
+                            var $orderTag = $(obj).find('.log-asc');
+                            if ($orderTag.length) {
+                                $orderTag.attr('class', 'icon- log-desc');
+                            }
+                            else {
+                                $(obj).find('.log-desc').attr('class', 'icon- log-asc');
+                            }
+                            $("#historyItem li").reverseOrder();
+                            window.editor['lastComment'].remove();
+                            initKindeditor();
+                        }
+
+                        function toggleComment(actionID) {
+                            $('.comment' + actionID).toggle();
+                            $('#lastCommentBox').toggle();
+                            $('.ke-container').css('width', '100%');
+                        }
+
+                        $(function () {
+                            var diffButton = "<a href='javascript:;' onclick='toggleStripTags(this)' class='changeDiff btn-icon' style='display:none;' title='原始格式'><i class='icon- icon-file-code'></i></a>";
+                            var newBoxID = ''
+                            var oldBoxID = ''
+                            $('blockquote').each(function () {
+                                newBoxID = $(this).parent().attr('id');
+                                if (newBoxID != oldBoxID) {
+                                    oldBoxID = newBoxID;
+                                    if ($(this).html() != $(this).next().html()) $(this).parent().before(diffButton);
+                                }
+                            })
+                        })
+                    </script>
+                    <script src="__JSNEW__/raw.js" type="text/javascript"></script>
+
+                    <fieldset id="actionbox" class="actionbox">
+                        <legend>
+                            <i class="icon-time"></i>
+                            操作记录 <a class="btn-icon" href="javascript:;" onclick="toggleOrder(this)"> <span title="切换顺序"
+                                                                                                            class="log-asc icon-"></span></a>
+                            <a class="btn-icon" href="javascript:;" onclick="toggleShow(this);"><span title="切换显示"
+                                                                                                      class="change-show icon-"></span></a>
+                        </legend>
+                        <ol id="historyItem">
+                            <foreach name="logs" item="l" key="k">
+                                <li value="{$k+1}">
+            <span class="item">
+		        {$l.addtime|time_format}, 由 <strong>{$l.uname}</strong> {$l.action|ac_name}。
+		    <if condition="$l.hs &&count($l.hs) gt 0 ">
+		    	<a id="switchButton{$l.logid}" class="switch-btn btn-icon" onclick="switchChange({$l.logid})"
+                   href="javascript:;"><i class="change-show icon-"></i></a>
+		    </if>          
+        	</span>
+                                    <if condition="!empty($l['comment'])">
+                                        <div class="history">
+                                            <div class="changes hide alert" id="changeBox{$l.logid}">
+                                                <volist name="l.hs" id="h">
+                                                    修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为
+                                                    "{$h.newdata}"。<br>
+                                                </volist>
+
+                                            </div>
+                                            <div class="article-content comment4">{$l.comment}</div>
+                                        </div>
+                                        <else/>
+                                        <div class="changes hide alert" id="changeBox{$l.logid}">
+                                            <volist name="l.hs" id="h">
+                                                修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为
+                                                "{$h.newdata}"。<br>
+                                            </volist>
+
+                                        </div>
+                                    </if>
+                                </li>
+                            </foreach>
+                        </ol>
+
+                    </fieldset>
+                </div>
+
+                <div class="actions" style="text-align: center;
+    margin-bottom: 20px;">
+                    <div class="btn-group" style="margin-right: -15px">
+                        <if condition="cando('Task/start',array($info['assigneduid']),$info['pid'])">
+                            <if condition="$info['state'] == 1">
+                                <a href="{:U('Task/start?id='.$info['tid'])}" data-width="800"
+                                   data-height="400" data-title="{$info['title']}-开始" class="btn iframe"><i
+                                        class="icon-project-start icon-play"></i>开始</a>
+                            </if>
+                        </if>
+                        <if condition="cando('Task/finish',array($info['assigneduid']),$info['pid'])">
+                            <if condition="$info['state'] != 3&&$info['state'] != -1&&$info['state'] != 4&&$info['state'] != 5">
+                                <a href="{:U('Task/finish?id='.$info['tid'])}" data-width="800"
+                                   data-height="700" data-title="{$info['title']}-完成" class="btn iframe"><i
+                                        class="icon-project-start icon-ok-sign icon-ok"></i>完成</a>
+                            </if>
+                        </if>
+                        <if condition="cando('Task/oppause',array($info['assigneduid']),$info['pid'])">
+                            <if condition="$info['state'] == 2">
+                                <a href="{:U('Task/oppause?id='.$info['tid'])}" data-width="800"
+                                   data-height="400" data-title="{$info['title']}-暂停" class="btn iframe"><i
+                                        class="icon-project-start icon-pause"></i>暂停</a>
+                            </if>
+                        </if>
+                        <if condition="cando('Task/opcontinue',array($info['assigneduid']),$info['pid'])">
+                            <if condition="$info['state'] == 5">
+                                <a href="{:U('Task/opcontinue?id='.$info['tid'])}" data-width="800"
+                                   data-height="400" data-title="{$info['title']}-继续" class="btn iframe"><i
+                                        class="icon-project-start icon-play"></i>继续</a>
+                            </if>
+                        </if>
+
+                        <if condition="cando('Task/send',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                            <if condition="$info['state'] == 1 || $info['state'] == 2 || $info['state'] == 0">
+                                <a href="{:U('Task/send?id='.$info['tid'])}" data-width="800"
+                                   data-height="450" data-title="{$info['title']}-转派" class="btn iframe"><i
+                                        class="icon-hand-right icon-play"></i>转派</a>
+                            </if>
+                        </if>
+
+                        <if condition="cando('Task/close',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                            <if condition="$info['state'] != 3&&$info['state'] != -1 &&$info['state'] != 4">
+                                <a data-width="800" data-height="400"
+                                   href="{:U('Task/close?id='.$info['tid'])}" data-title="{$info['title']}-关闭"
+                                   class="btn iframe"><i class="icon-project-close icon-off"></i>关闭</a>
+                            </if>
+                        </if>
+                        <if condition="cando('Task/open',array($info['assigneduid'],$info['uid']),$info['pid'])">
+                            <if condition="$info['state'] == 3 || $info['state'] == -1">
+                                <a data-width="800" data-height="400"
+                                   href="{:U('Task/open?id='.$info['tid'])}" data-title="{$info['title']}-开启" class="btn iframe"><i
+                                        class="icon-project-close icon-off"></i>开启</a>
+                            </if>
+                        </if>
+                       <!-- <if condition="cando1(array($info['assigneduid']))">
+                            <if condition="$info['state'] == 2 ">-->
+
+                        <!--    </if>
+                        </if>-->
+                        <a href="{:U('Task/docadd?tid='.$info['tid'].'&pid='.$info['pid'])}" data-width="1100"
+                           data-height="600" data-title="{$info['title']}-上传文档" class="btn iframe"><i
+                                class="icon-project-putoff icon-cloud"></i>上传文档</a>
+                        <if condition="$info['assigneduid']">
+                            <if condition="cando('Task/warn',array($info['manageruid']),$info['uid'])"><a data-height="400"
+                                                                                                          href="{:U('Task/warn?id='.$info['tid'])}"
+                                                                                                          class="btn iframe"><i
+                                    class="icon-project-close icon-info-sign"></i>提醒</a></if>
+                            <if condition="cando('Task/reply',null,$info['pid'])"><a data-height="400"
+                                                                                        href="{:U('Task/reply?id='.$info['tid'])}"
+                                                                                        class="btn iframe"><i
+                                    class="icon-project-close icon-chat-dot"></i>评论</a></if>
+                        </if>
+
+                        <if condition="cando('Offer/module_file',null,$info['pid'])"><a href="{:U('Offer/module_file?id='.$info['mid'])}"
+                                                                                           data-title="{$info['title']}-参考" class="btn iframe"><i
+                                class="icon-copy icon-off"></i>参考</a></if>
+                        <if condition="cando('TaskFromMe/edit',array($info['uid']),$info['pid'])">
+                            <if condition="$info['state'] != -1">
+                                <a href="{:U('TaskFromMe/edit?id='.$info['tid'])}" class="btn " data-title="编辑"><i
+                                        class="icon-common-edit icon-pencil"></i>编辑</a>
+                            </if>
+                        </if>
+                    </div>
+                    <a href="javascript:history.go(-1);" class="btn"  style="margin-left: 10px" data-title="返回"><i
+                            class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                </div>
+
+            </div>
+
+            <div class="col-side">
+                <div class="main main-side" style="margin-left: 0;">
+
+                    <fieldset>
+                        <legend>基本信息</legend>
+                        <table class="table table-data table-condensed table-borderless">
+                            <tbody>
+                            <tr>
+                                <th width="100px">任务名称</th>
+                                <td><strong>{$info.title}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>标准库</th>
+                                <td>{$info.pcname}
+                                    <if condition="$info['gname']!=''">-{$info.gname}</if>
+                                    <if condition="$info['o_name']!=''">-{$info.o_name}</if>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>优先级</th>
+                                <td
+                                <if condition="$info['level']==2">style="color:red"</if>
+                                >{$info.d_key}</td>
+                            </tr>
+                            <tr>
+                                <th>周期</th>
+                                <td>{$info.days}d</td>
+                            </tr>
+                            <tr>
+                                <th>标准工时</th>
+                                <td>{$info.hours}h</td>
+                            </tr>
+                            <tr>
+                                <th>完成工时</th>
+                                <td>{$info.finishours}h</td>
+                            </tr>
+                            <tr>
+                                <th>挣值</th>
+                                <td>
+                                    <if condition="$info['state'] == 3 && $info['amount']">
+                                        {$info['amount']|fomatprice}
+                                    </if>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>任务类型</th>
+                                <td>
+                                    <if condition="$info['delivery'] eq 1">
+                                        交付任务
+                                        <else/>
+                                        {$info.typename}
+                                    </if>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>计划时间</th>
+                                <td>
+                                    <gt name="info.pstime" value="0">{$info.pstime|time_format=###,'Y/m/d'}</gt>
+                                    -
+                                    <if condition="$info['format_petime'] lt $nowDay and $info['state'] neq 3 and $info['state'] neq -1 "><span style="color:#f51212">
+                                          <gt name="info.petime" value="0">{$info.petime|time_format=###,'Y/m/d'}</gt>(已延期)
+                                        </span>
+                                        <else/>
+                                        <gt name="info.petime" value="0">{$info.petime|time_format=###,'Y/m/d'}</gt>
+                                        </if>
+                                </td>
+
+                            </tr>
+
+                            <tr>
+                                <th>实际时间</th>
+                                <td>
+                                    <gt name="info.stime" value="0">{$info.stime|time_format=###,'Y/m/d'}</gt>
+                                    -
+                                    <gt name="info.etime" value="0">{$info.etime|time_format=###,'Y/m/d'}</gt>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>创建人</th>
+                                <td>{$info.uname}</td>
+                            </tr>
+                            <tr>
+                                <th>创建时间</th>
+                                <td>
+                                    <gt name="info.addtime" value="0">{$info.addtime|time_format=###,'Y-m-d H:i'}</gt>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>分派人</th>
+                                <td>{$info.manageruname}</td>
+                            </tr>
+                            <tr>
+                                <th>执行人</th>
+                                <td>{$info.assignedname}</td>
+                            </tr>
+                            <tr>
+                                <th>分派时间</th>
+                                <td>
+                                    <gt name="info.assignedtime" value="0">{$info.assignedtime|time_format=###,'Y-m-d
+                                        H:i'}
+                                    </gt>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>关闭用户</th>
+                                <td>{$info.closeuname}</td>
+                            </tr>
+                            <tr>
+                                <th>关闭原因</th>
+                                <td>{$info.closereason}</td>
+                            </tr>
+                            <tr>
+                                <th>关闭时间</th>
+                                <td>
+                                    <gt name="info.closetime" value="0">{$info.closetime|time_format=###,'Y-m-d H:i'}
+                                    </gt>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>审核用户</th>
+                                <td>{$info.checkuname}</td>
+                            </tr>
+                            <tr>
+                                <th>审核时间</th>
+                                <td>
+                                    <gt name="info.checktime" value="0">{$info.checktime|time_format=###,'Y-m-d H:i'}
+                                    </gt>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>完成用户</th>
+                                <td>{$info.finishuname}</td>
+                            </tr>
+                            <tr>
+                                <th>完成备注</th>
+                                <td>{$info.finishcontent}</td>
+                            </tr>
+
+
+                            </tbody>
+                        </table>
+                    </fieldset>
+
+                    <notempty name="process">
+
+
+                        <legend>审核信息</legend>
+                        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+                               style="border: 1px solid #ddd;">
+                            <tbody style="text-align: center;">
+                            <tr>
+                                <th width="20px" style="padding-left: 20px;"></th>
+                                <th>审核人</th>
+                                <th style="text-align: center;width: 80px">审核状态</th>
+                                <th style="text-align: center;width: 120px">操作时间</th>
+                            </tr>
+                            <notempty name="process">
+                                <foreach name="process" item="vo" key="k">
+                                    <tr style="border-top: 1px solid #f00;">
+                                        <td rowspan="2" style="border-right: 1px solid #ddd;">{$k+1}</td>
+                                        <td style="text-align: left">{$vo.checkname}</td>
+                                        <td class="<if condition=" $vo[
+                                        'state'] == -1 ">textr</if>
+                                        <if condition="$vo['state'] == 1 ">textg</if>
+                                        <if condition="$vo['state'] == 0 ">textc</if>
+                                        ">
+                                        <if condition="$vo['state'] == 0 ">
+                                            未审核
+                                            <elseif condition="$vo['state'] == 1 "/>
+                                            已审核
+                                            <elseif condition="$vo['state'] == -1 "/>
+                                            已拒绝
+                                        </if>
+                                        </td>
+                                        <td>
+                                            <if condition="$vo['state'] == 1 ">
+                                                {$vo.checktime|time_format}
+                                                <elseif condition="$vo['state'] == -1 "/>
+                                                {$vo.refusetime|time_format}
+                                            </if>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" style="text-align: left;">
+                                            <div style="min-height: 50px" class="<if condition=" $vo[
+                                            'state'] == -1 ">textr</if>
+                                            <if condition="$vo['state'] == 1 ">textg</if>
+                                            <if condition="$vo['state'] == 0 ">textc</if>
+                                            ">
+                                            <if condition="$vo['state'] == 1 ">
+                                                {$vo.checknote}
+                                                <elseif condition="$vo['state'] == -1 "/>
+                                                {$vo.refusenote}
+                                            </if>
+                </div>
+                </td>
+                </tr>
+                </foreach>
+                </notempty>
+                </tbody>
+                </table>
+
+                </notempty>
+
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{$from_url}");
+
+        function tijiao() {
+            $('form').attr('action', "{:U('edit?act='.$offer['static'].'&id='.$offer['oid'])}");
+            $('form').submit()
+        }
+
+        function baocun() {
+            $('form').attr('action', "{:U('edit?act=2&id='.$offer['oid'])}");
+            $('form').submit()
+        }
+
+        Think.setValue("coreservice", "{$offer.coreservice|default = 0}");
+        Think.setValue("type", "{$offer.type|default = 0}");
+        Think.setValue("chance", "{$offer.chance|default = 0}");
+        Think.setValue("disoff", "{$offer.disoff|default = 0}");
+
+        function renovate() {
+            $.closeModal();
+            //location.replace(location.href);
+            location.reload(true);
+        }
+
+        function choose(r) {
+            $.closeModal();
+            if (r) {
+                location.reload(true);
+                //location.replace(location.href);
+            }
+        }
+
+    </script>
+</block>

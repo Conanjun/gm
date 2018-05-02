@@ -1,0 +1,45 @@
+.form-condensed .btn {
+	margin-left: 10px;
+font-size: 12px;
+		padding: 6px 20px;
+		border-radius: 4px;
+		
+}
+.ntable th{padding-right: 10px !important;}
+.thtop{vertical-align: top !important;}
+.ntable th .required:after {
+    top: -3px;
+}
+
+.form-condensed .input-group>.input-group-btn>.btn{border-radius:0 }
+.rightdiv{float: right}
+
+
+.btn-op {
+    display: inline-block;
+    padding: 4px 12px;
+    margin-bottom: 0;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.53846154;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: 0;
+    -webkit-transition: all .5s cubic-bezier(.175, .885, .32, 1);
+    -o-transition: all .5s cubic-bezier(.175, .885, .32, 1);
+    transition: all .5s cubic-bezier(.175, .885, .32, 1);
+}
+.btn-op {
+    color: #333;
+    background-color: #f7f7f7;
+    border-color: #dddee1;
+}
+.btn-op:hover{background: #fff}
+

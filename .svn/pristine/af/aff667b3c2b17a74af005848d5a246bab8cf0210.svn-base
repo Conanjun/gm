@@ -1,0 +1,95 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 订单管理控制器
+ */
+class PlatOrderController extends AdminController {
+	private $model;
+	
+	// 构造函数
+	public function __construct() {
+		parent::__construct ();
+		$this->model = D ( 'PlatOrder' ); // 数据字典Model
+	}
+	
+	/**
+	 * 后台字典管理首页
+	 */
+	public function index() {
+		$where = " 1=1 ";
+		$filter = '';
+		$name = I("get.name","");
+		$name && $filter .= " and (o.dename like '%{$name}%' or o.stuname like '%{$name}%' or o.pname like '%{$name}%')";
+		
+		$ordersn=I("get.order_sn","");
+		$ordersn && $filter .= " and o.order_sn like '%{$ordersn}%' ";
+		
+		$state=I("get.state","");
+		$state && $filter .= " and o.state = '{$state}' ";
+		
+		$servicetype=I("get.servicetype","");
+		$servicetype && $filter .= " and o.servicetype = '{$servicetype}' ";
+		
+		$isurgent=I("get.isurgent","");
+		if($isurgent!==""){
+			$filter .= " and o.isurgent = '{$isurgent}' ";
+		}
+		$where .= $filter;
+		
+		// 更新排序
+		if (isset ( $_GET ['sort'] ) && isset ( $_GET ['order'] )) {
+			$sort = strtolower ( trim ( $_GET ['sort'] ) );
+			$order = strtolower ( trim ( $_GET ['order'] ) );
+			if (! in_array ( $order, array (
+					'asc',
+					'desc' 
+			) )) {
+				$sort = 'o.addtime';
+				$order = 'desc';
+			}
+		} else {
+			$sort = 'o.addtime';
+			$order = 'desc';
+		}
+		
+		$count = $this->model->countNum ( $where );
+		$page = new \Think\Page ( $count, 20 );
+		$lists = $this->model->join("left join ot_dictionary d on d.d_key=o.state and d.d_code='orderstatus'")
+		->alias ( 'o' )->where ( $where )->order ( "$sort $order" )->field ( "o.*,d.d_value" )
+		->limit ( $page->firstRow . ',' . $page->listRows )->select ();
+		
+		// var_dump($this->model->getLastSql());
+		
+		$page->setConfig ( 'theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%' );
+		$this->assign ( 'lists', $lists );
+		$this->assign ( '_page', $page->show () );
+		$this->assign ( 'filtered', $filter ? 1 : 0 ); // 是否有查询条件
+		
+		$sl = M ( "Dictionary" )->field ( "d_key,d_value" )->where ( "d_code='orderstatus'" )->order ( "d_order asc" )->select ();
+		if($sl){
+			foreach ($sl as $k=>$v){
+				$sl[$k]["d_value"]=L($v["d_value"]);
+			}
+		}
+		$this->assign ( 'statuslist', $sl );
+		
+		$st = M ( "Dictionary" )->field ( "d_key,d_value" )->where ( "d_code='ser_type'" )->order ( "d_order asc" )->select ();
+		if($st){
+			foreach ($st as $k=>$v){
+				$st[$k]["d_value"]=L($v["d_value"]);
+			}
+		}
+		$this->assign ( 'stypelist', $st );
+		
+		$this->display ();
+	}
+}

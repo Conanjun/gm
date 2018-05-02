@@ -1,0 +1,22 @@
+
+<block name="body">
+	<iframe id='calendar' name='calendar' src='{:U('Index/calshow?id='.$id)}' frameborder='no' allowtransparency='true' scrolling='no' hidefocus='' style='width: 100%; min-height: 760px; left: 0px;'></iframe>
+</block>
+
+<block name="script">
+<script>
+function setIframeHeight(iframe) {
+	if (iframe) {
+	var iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+	if (iframeWin.document.body) {
+	iframe.height = iframeWin.document.documentElement.scrollHeight || iframeWin.document.body.scrollHeight;
+	}
+	}
+	};
+
+	window.onload = function () {
+	//setIframeHeight(document.getElementById('calendar'));
+	};
+	
+</script>
+</block>

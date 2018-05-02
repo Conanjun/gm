@@ -1,0 +1,447 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+
+/**
+ * 待阅管理控制器
+ */
+class NeedreadController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     *待阅管理首页
+     *
+     */
+    public function index()
+    {
+        $map = array();
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Needread/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '任务名称', 'fieldname' => 't.title', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                1 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                2 => array('str' => '审阅意见', 'fieldname' => 'r.content', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                3 => array('str' => '提交用户', 'fieldname' => 'r.uname', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        $map['r.touid'] = UID;
+        $map['_string'] .= " and (r.content='' or r.content is null)";
+        $order = "";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+        $count = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $this->assign('_list', $list);
+        $this->meta_title = '待阅';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '转阅-待阅', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function index1()
+    {
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Needread/index1",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '任务名称', 'fieldname' => 't.title', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                1 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                2 => array('str' => '审阅意见', 'fieldname' => 'r.content', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                3 => array('str' => '提交用户', 'fieldname' => 'r.uname', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        $map['r.touid'] = UID;
+        $map['_string'] .= " and (r.content<>'' and r.content is not null)";
+        $order = "";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+        $count = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $this->assign('_list', $list);
+        $this->meta_title = '已阅';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '转阅-已阅', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function index2()
+    {
+
+        $this->assign('cname', CONTROLLER_NAME);
+        $config = array(
+            "actionURL" => "/Admin/Needread/index2",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '任务名称', 'fieldname' => 't.title', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                1 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                2 => array('str' => '审阅意见', 'fieldname' => 'r.content', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+                3 => array('str' => '提交用户', 'fieldname' => 'r.uname', 'operator' => 'include', 'control' => 'input', 'values' => ''),
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = $this->getCondition();
+
+        $map['r.touid'] = UID;
+        $order = "";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+        $count = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->count();
+        $Page = new \Think\Page ($count, 20);
+
+        $list = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+            ->field("r.*,t.title as tasktitle,p.name as pname")
+            ->where($map)->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $this->assign('_list', $list);
+        $this->meta_title = '全部';
+
+        $Page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $show = $Page->show();
+        $this->assign('_page', $show);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '转阅', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+
+    public function view()
+    {
+        $id = I("id", '');
+        if (empty($id)) {
+            $this->error("转阅数据不存在");
+        }
+        $this->assign('cname', CONTROLLER_NAME);
+        $exmod = M("Toread");
+        $info = $exmod->where("rid='{$id}'")->find();
+
+        if (empty($info)) {
+            $this->error("转阅数据不存在");
+        }
+
+        $this->assign("rinfo", $info);
+
+
+        $tid = $info['tid'];
+
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')->field("t.*,d2.d_key,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+        join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+            ->join("ot_service s on s.sid=t.sid", 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->where("t.tid='{$tid}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+
+        $doc = M("doc")->where("tid=$tid and f.delete=0")->join('ot_file f on d.fileid=f.fileid', 'left')->join('ot_doc_type t on d.dtid=t.dtid', 'left')->
+        field(array(
+            't.name as tname',
+            'f.name as dname',
+            'savepath',
+            'size', 'views', 'd.uname', 'd.addtime', 'note',
+            'd.fileid'
+        ))->order('addtime desc')->select(array('alias' => 'd'));
+
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+        }
+        $this->assign('doc', $doc);
+
+        $task['finishcontent'] = strip_tags($task['finishcontent']);
+        $task['finishcontent'] = trim($task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\t", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace(" ", "", $task['finishcontent']);
+
+        $this->assign('info', $task);
+
+        $wlist = M("TaskWarn")->where("tid='{$tid}'")->order("addtime desc")->select(); //提醒数据
+        $rlist = M("TaskComment")->where("tid='{$tid}'")->order("addtime desc")->select(); //评论数据
+
+        $this->assign('wlist', $wlist);
+        $this->assign('rlist', $rlist);
+
+        //任务转阅列表
+        $readlist = M("Toread")->where("tid='{$tid}'")->select();
+        $this->assign('readlist', $readlist);
+
+
+        //审核进程
+        $process = M("exprocess")->alias('e')->where("exid='" . $tid . "' and type='任务审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $logs = M("Log")->where(array("outtype" => "ot_task", "outkey" => $tid))->order("addtime asc")->select();
+
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        switch ($vv['field']) {
+                            case "projectname":
+                                $hs[$kk]['fname'] = "项目名称";
+                                break;
+                            case "contacts":
+                                $hs[$kk]['fname'] = "联系人";
+                                break;
+                            case "cid":
+                                $hs[$kk]['fname'] = "客户";
+
+                                $oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['name'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['name'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "pm":
+                                $hs[$kk]['fname'] = "项目经理";
+
+                                $oldtemp = M("Member")->where("uid='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['nickname'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Member")->where("uid='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['nickname'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "telno":
+                                $hs[$kk]['fname'] = "联系电话";
+                                break;
+                            case "chance":
+                                $hs[$kk]['fname'] = "销售机会";
+                                break;
+                            case "type":
+                                $hs[$kk]['fname'] = "业务类型";
+                                break;
+                            case "signtime":
+                                $hs[$kk]['fname'] = "预计签约时间";
+
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "starttime":
+                                $hs[$kk]['fname'] = "预计开始时间";
+
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "ownner":
+                                $hs[$kk]['fname'] = "所有人";
+                                break;
+                            case "coreservice":
+                                $hs[$kk]['fname'] = "核心服务";
+                                break;
+                            case "oamount":
+                                $hs[$kk]['fname'] = "原始金额";
+                                break;
+                            case "discount":
+                                $hs[$kk]['fname'] = "优惠金额";
+                                break;
+                            case "amount":
+                                $hs[$kk]['fname'] = "最终金额";
+                                break;
+                            case "amount_notax":
+                                $hs[$kk]['fname'] = "税后金额";
+                                break;
+                            case "rate":
+                                $hs[$kk]['fname'] = "税率";
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "disoff":
+                                $hs[$kk]['fname'] = "折扣";
+
+                                $oldtemp = M("Disdefine")->where("dis='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['name'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Disdefine")->where("dis='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['name'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "step":
+                                $hs[$kk]['fname'] = "销售阶段";
+                                break;
+                            case "possible":
+                                $hs[$kk]['fname'] = "可能性";
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "datafrom":
+                                $hs[$kk]['fname'] = "数据来源";
+                                if ($vv['olddata'] == 0) {
+                                    $hs[$kk]['olddata'] = "标准库引入";
+                                } else if ($vv['olddata'] == 1) {
+                                    $hs[$kk]['olddata'] = "手动填写";
+                                }
+                                break;
+                            default:
+                                $hs[$kk]['fname'] = $vv['field'];
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '转阅', 'url' => U('Needread/index'));
+        $root_mbx[] = array('title' => '查看转阅', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+
+    public function check1()
+    {
+        if (!IS_POST) {
+            $id = array_unique(( array )I('id', 0));
+            if (!is_array($id)) {
+                $id[] = $id;
+            }
+
+            if (empty ($id)) {
+                $this->error('请选择要操作的数据!');
+            }
+            $this->assign('id', implode(',', $id));
+            $this->display("check1");
+        } else {
+
+            $id = explode(",", I('id', ''));
+            $type = I("type", 'refuse');
+            $nr = I("nr", '');
+            if ($id) {
+                try {
+                    $exmodel = D("Toread");
+                    foreach ($id as $v) {
+
+                        //批量审核处理
+                        $thisyw = $exmodel->where("rid='{$v}'")->find();
+                        if (empty($thisyw)) {
+                            $this->json_error("数据已不存在", false);
+                        }
+                        if ($thisyw['touid'] != UID) {
+                            $this->json_error("您不能审阅此数据", false);
+                        }
+                        if ($thisyw['content'] != null && $thisyw['content'] != '') {
+                            $this->json_error("已经审阅过此数据", false);
+                        }
+
+                        if ($type == 'refuse') {
+                            if (empty($nr)) {
+                                $this->json_error("请填写审阅意见", false);
+                            }
+                        }
+
+                        if ($exmodel->save(array("content" => $nr, "rid" => $v)) === false) {
+                            $this->json_error("审阅失败", false);
+                        };
+
+                    }
+
+                } catch (Exception $e) {
+                    $this->json_error("审阅失败", false);
+                }
+
+                $this->json_result(array(), "", false);
+            } else {
+                $this->json_error("数据不正确", false);
+            }
+        }
+    }
+
+}

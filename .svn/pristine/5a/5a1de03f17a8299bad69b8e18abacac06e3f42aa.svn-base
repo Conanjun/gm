@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Empty Page</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="../css/animate.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <!-- plugins -->
+    <link href="../css/plugins/chosen/chosen.css" rel="stylesheet">
+    <link href="../css/plugins/datapicker/datepicker3.css" rel="stylesheet">
+
+
+    <link href="../css/stylesheet.css" rel="stylesheet">
+
+</head>
+
+<body class="">
+
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="../img/profile_small.jpg" />
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">David Williams</strong>
+                                    </span>
+                                    <span class="text-muted text-xs block">Art Director
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                    <a href="profile.html">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="contacts.html">Contacts</a>
+                                </li>
+                                <li>
+                                    <a href="mailbox.html">Mailbox</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="login.html">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>切换语言</span>
+                        <div class="nav-language-list">
+                            <a href="" class="nav-language-cn">
+                                <span>汉语</span>
+                            </a>
+                            <a href="" class="nav-language-en">
+                                <span>英语 </span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">系统管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">牙医管理</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="">
+                            <i class="fa fa-envelope"></i>
+                            <span class="nav-label">订单管理 </span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li>
+                                <a href="javascript:void(0);">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">植牙订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">矫正订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">待处理订单</span>
+                                    <span class="label label-warning pull-right">16/24</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">订单消息</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">物流管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">财务管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">投诉建议</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">数据分析</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="搜索" class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">欢迎: 管理员</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> 退出
+                            </a>
+                        </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <!-- content begin -->
+            <div class="wrapper wrapper-content">
+            
+                <!-- in+ dom -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox float-e-margins">
+                            <!-- title -->
+                            <div class="ibox-title">
+                                <h5>
+                                    创建项目
+                                    <small>项目基本信息</small>
+                                </h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                    <a class="close-link">
+                                        <i class="fa fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- content -->
+                            <div class="ibox-content">
+                
+                                <div class="well">
+                                    <p>
+                                        创建项目属于项目「立项」阶段。这个阶段需要填写项目的基本信息、干系人、背景、目标、风险等信息， 这些信息将会帮助项目团队更好的了解项目，也是对进行下一步的「项目规划」做准备。
+                                    </p>
+                                    <p>
+                                        请根据下一步提示来填写信息，如果现有信息完整就尽量填写，如果没有的话可以先填写已有信息， 根据 提示跳过进入下一阶段，待获取信息时再填
+                                    </p>
+                                </div>
+                
+                                <form action="" method='post' id="form" class="form-horizontal">
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">项目名称</label>
+                                        <div class="col-sm-10">
+                                            <input type="hidden" name="pid" value="{$project['pid']}">
+                                            <input type="text" name="name" id="name" value="{$project[name]}" class="form-control" autocomplete="off" placeholder="请填写项目名称">
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">项目类型</label>
+                
+                                        <div class="col-sm-10">
+                                            <select name="type" class="form-control ui-select">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">项目经理</label>
+                
+                                        <div class="col-sm-10">
+                                            <input type="hidden" name="pm" value="{$uanme}">
+                                            <input type="hidden" name="salename">
+                
+                                            <select name="pmuid" class="form-control ui-select" id="pmuid">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">合同号</label>
+                
+                                        <div class="col-sm-10">
+                                            <select name="contract[]" id="contract" multiple class="form-control ui-select">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">客户名称</label>
+                
+                                        <div class="col-sm-10">
+                                            <select name="cid" class="form-control ui-select" id="cid">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">客户经理</label>
+                
+                                        <div class="col-sm-10">
+                                            <select name="sale" class="form-control ui-select">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">顾问</label>
+                
+                                        <div class="col-sm-10">
+                                            <select name="adviser" class="form-control ui-select">
+                                                <option value="">11</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">合同金额</label>
+                
+                                        <div class="col-sm-10">
+                                            <input type="text" name="money" value="{$project['money']}" class="form-control" autocomplete="off">
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group" id="data_1">
+                                        <label class="col-sm-2 control-label">合同签订日期</label>
+                
+                                        <div class="col-sm-10 ">
+                                            <input type="text" name="contract_time" id="signtime" class="form-control date" value="03/04/2014" autocomplete="off">
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <div class="col-sm-4 col-sm-offset-2">
+                                            <a href="javascript:history.go(-1);" class="btn btn-white" type="button">返回</a>
+                                            <button class="btn btn-primary" type="submit">下一步</button>
+                                        </div>
+                                    </div>
+                
+                                </form>
+                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- content end -->
+            
+            <div class="footer">
+                <div>
+                    <strong>Copyright</strong> 该美牙科 &copy; 2018-2019
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="../js/jquery-2.1.1.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="../js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <script src="../js/plugins/chosen/chosen.jquery.js"></script>
+
+    <!-- Custom and plugin javascript --> 
+    <script src="../js/inspinia.js"></script>
+    <script src="../js/plugins/pace/pace.min.js"></script>
+    <!-- Datepicker -->
+    <script src="../js/plugins/datapicker/bootstrap-datepicker.js"></script>
+    <!-- Jquery Validate -->
+    <script src="../js/plugins/validate/jquery.validate.min.js"></script>
+
+    <script src="../js/iviews.base.js"></script>
+    <script>
+    
+        $(function(){
+
+            $('#data_1 .date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true
+            });
+
+        })
+
+        $('.ui-select').chosen();
+
+    </script>
+
+</body>
+
+</html>

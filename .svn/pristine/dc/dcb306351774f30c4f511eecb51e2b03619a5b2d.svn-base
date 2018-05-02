@@ -1,0 +1,209 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('ORDER_MANAGE')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Dentist/Order/index"/>
+                                    <table id="tt_1">
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('ORDER_SN')}</label>
+                                                <input class="form-control" type="text" name="order_sn" value="{$Think.get.order_sn}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('P_NAME')}</label>
+                                                <input class="form-control" type="text" name="pname" value="{$Think.get.pname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('STU_NAME')}</label>
+                                                <input class="form-control" type="text" name="stuname" value="{$Think.get.stuname}">
+                                            </td>
+
+											<td>
+                                                <label>{:L('EXPRESS')}</label>
+                                                <input class="form-control" type="text" name="express" value="{$Think.get.express}">
+                                            </td>
+											<td>
+                                                <label>{:L('EXPRESSCODE')}</label>
+                                                <input class="form-control" type="text" name="expresscode" value="{$Think.get.expresscode}">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('SERVICETYPE')}</label>
+                                                <select name="pay_type" class="form-control" style="width: 180px">
+                                                        <option>{:L('PLEASE_SELECT')}</option>
+                                                        <volist name="types" id="vo">
+                                                            <option value="{$vo.d_value}"
+                                                            <if condition="$vo.d_value eq $Think.get.servicetype">
+                                                                selected</if>>
+                                                            {$vo.d_value}</option>
+                                                        </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_STATUS')}</label>
+                                                <select name="pay_type" class="form-control" style="width: 180px">
+                                                        <option>{:L('PLEASE_SELECT')}</option>
+                                                        <volist name="states" id="vo">
+                                                            <option value="{$vo.d_value}"
+                                                            <if condition="$vo.d_value eq $Think.get.state">
+                                                                selected</if>>
+                                                            {:L($vo)}</option>
+                                                        </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('Order/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px">{:L('ORDER_SN')} </th>
+                                    <th style="text-align: left">{:L('ORDER_STATUS')} </span></th>
+									<th style="text-align: left">{:L('STU_NAME')} </th>
+									<th style="text-align: left">{:L('P_NAME')}</th>
+                                    <th style="width: 100px">{:L('SERVICETYPE')}</th>
+                                    <th style="width: 100px">{:L('AMOUNT')}</th>
+                                    <th style="width: 80px">{:L('PAYAMOUNT')}</th>
+                                    <th style="width: 100px">{:L('EXPRESS')}</th>
+                                    <th style="width: 80px">{:L('EXPRESSCODE')}</th>
+                                    <th style="width: 100px">{:L('PAYTIME')}</th>
+                                    <th style="width: 80px">{:L('EXPRESSTIME')}</th>
+                                    <th style="width: 100px">{:L('RECEIPTTIME')}</th>
+                                    <th style="width: 80px">{:L('FINISHTIME')}</th>
+                                    <th style="width: 120px">{:L('HANDLE')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>{$vo['order_sn']}</td>
+                                            <td style="text-align: left">
+                                                {:L($vo['state'])}
+                                            </td>
+                                            <td style="text-align: left">{$vo['stuname']}</td>
+											<td style="text-align: left">{$vo['pname']}</td>
+                                            <td>{:L($vo['servicetype'])}</td>
+                                            <td>￥{$vo['amount']}/${$vo['amount1']}</td>
+                                            <td>￥{$vo['payamount']}/${$vo['payamount1']}</td>
+                                            <td style="text-align: left">{$vo['express']}</td>
+                                            <td style="text-align: left">{$vo['expresscode']}</td>
+                                            <td>
+                                                <if condition="$vo['paytime']">{$vo['paytime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['expresstime']">{$vo['expresstime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['receipttime']">{$vo['receipttime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['finishtime']">{$vo['finishtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <a  href="javascript:void(0);"  onclick="reply()" class="btn btn-xs btn-primary">{:L('S_TASK_CONFIRM')}</a>
+                                            </td>
+                                        </tr>
+
+                                        <div class="modal fade" id="edit-form">
+
+                                            <div class="modal-dialog">
+
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <a class="close" href="#" data-dismiss="modal">×</a>
+                                                        <h3>{:L('S_TASK_TASK_SPEC')}</h3>
+                                                    </div>
+                                                    <div class="modal-body">
+
+                                                        <form action="{:U('OrderTaskSw/confirm')}" class="form-horizontal" id="feed_back" method='post' enctype="multipart/form-data">
+                                                            <input type="hidden" name="id" value="{$vo['oid']}" >
+                                                            <div class="form-group">
+                                                                <label class="col-sm-3 control-label">{:L('S_TASK_TASK_SPEC')}</label>
+                                                                <div class="col-sm-9">
+                                                                    <textarea  name="content" style="width: 400px;height: 170px;"></textarea>
+                                                                </div>
+                                                            </div>
+
+                                                        </form>
+
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+                                                        <a href="javascript:void(0);"  onclick="replyon()" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="15">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+       $(function(){
+           Think.setValue("type", "{$Think.get.type|default = 0}");
+       });
+
+        function reply() {
+            $('.ui-select').chosen();
+
+            modal.open('#edit-form');
+        }
+
+        function replyon() {
+            $('#feed_back').submit();
+        }
+    </script>
+</block>
+

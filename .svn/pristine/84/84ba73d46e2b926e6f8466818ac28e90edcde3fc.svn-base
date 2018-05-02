@@ -1,0 +1,476 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+	
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<link href="__CSS__/in/iviews-order.css" rel="stylesheet"  type="text/css" />
+
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('ORDER_MANAGE')}
+                            <small>{:L('VIEW')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <if condition="($info['state'] eq 120 && $info['hasmaking'] eq 1) or ($info['state'] eq -1) or ($info['state'] eq 70 && $info['hasmaking'] eq 0 && $info['hasdesign'] eq 1)">
+                                <a href="javascript:;" id="close" class="btn btn-primary btn-sm">{:L('CLOSE_ORDER')}</a>
+                            </if>
+                            <if condition="$info['state'] eq 110">
+                                <a href="javascript:;" id="confirm_goods" class="btn btn-primary btn-sm">{:L('CONFIRM_GOODS')}</a>
+                            </if>
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content --><div class="row">
+                    <div class="col-sm-12">
+                    <div class="iviews-order">
+                    <div class="iviews-order-content iviews-order-step7">
+
+                                <div class="iviews-order-form">
+                                    <form  class="form-horizontal">
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('ORDER_STYPE')}</label>
+                                            <div class="col-sm-1">
+                                                <p class="form-control-static">{$info.dv2}</p>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('SERVICE_NAME')}</label>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{:L('PROSCH')}: <if condition="$info['hasdesign']">{:L('DESIGHOP')}</if><if condition="$info['hasmaking']">&nbsp;&nbsp;{:L('MODELMAKE')}</if></p>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{:L('NORMALS')}: <if condition="$ns">{$ns|L}</if></p>
+                                            </div>
+                                            <label class="col-sm-2 col-sm-offset-1 control-label"></label>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{:L('OTHERS')}: <if condition="$os">{$os|L}</if></p>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{:L('ORDER_UG')}: <if condition="$info['isurgent']">
+                                                    {:L('YES')}
+                                                    <else/>
+                                                    {:L('NO')}
+                                                </if></p>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('CUSTOMERINFO')}</label>
+                                            <div class="col-sm-9">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <p class="form-control-static">{:L('DEINFO')}:  {$orderext.dername} {$orderext.deaddr}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <p class="form-control-static">{:L('SHIPINFO')}: {$orderext.shiprname} {$orderext.shipaddr}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('SHIPUNAME')}: {$orderext.shipuname}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('SHIPTEL')}: {$orderext.shiptel}</p>
+                                                    </div>
+                                                </div>
+                                                <br>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('DOCINFO')}: {$orderext.doctor} {$orderext.doctor_tel}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('DOCOSSINFO')}: {$orderext.doctorass} {$orderext.doctorass_tel}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('ADOCINFO')}: {$orderext.doctor1} {$orderext.doctor1_tel}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('ADOCOSSINFO')}: {$orderext.doctorass1} {$orderext.doctorass1_tel}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('PAINFO')}</label>
+                                            <div class="col-sm-9">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('MNAME')}: {$info.pname}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('SEX')}: <eq name="info.psex" value="1">{:L('MAN')}<else/><eq name="info.psex" value="2">{:L('WOMAN')}<else/>{:L('SECRECY')}</eq></eq></p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('P_BR')}: <if condition="$orderext['pebirth']">{$orderext['pebirth']|date="Y-m-d H:i",###}<else/>-</if></p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('AGE')}: {$orderext.peage}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <p class="form-control-static">{:L('PAZHUSHU')}:{$orderext1.pedesc}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                    	<p class="form-control-static">{:L('JWBS')}:{$orderext1.pehistory}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('REPAIRBODY')}: {$orderext1.xft}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('PERIOD')}: {$orderext1.yzy}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('TOOTHLOOSE')}: {$orderext1.sd}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('FIXTYPE')}: {$orderext1.rt}</p>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <p class="form-control-static">{:L('PLANOPTIME')}: <if condition="$orderext1['surgerytime']">{$orderext1['surgerytime']|date="Y-m-d H:i",###}<else/>-</if></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('YWBJ')}</label>
+                                            <div class="col-sm-9">
+                                                <div class="row iviews-yawei">
+                                                    <div class="col-sm-4">
+                                                        <img src="" alt="">
+                                                        <volist name="t" id="node">
+                                                        	<input class="auth_rules rules_all" disabled="disabled" <eq name="node.h" value="1"> checked="checked"</eq> type="checkbox">{$node.value}&nbsp;&nbsp;
+                                                        </volist>
+                                                        <span>{:L('QSYWBJ')}</span>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <img src="" alt="">
+                                                         <volist name="t1" id="node">
+                                                        	<input class="auth_rules rules_all" disabled="disabled" <eq name="node.h" value="1"> checked="checked"</eq> type="checkbox">{$node.value}&nbsp;&nbsp;
+                                                        </volist>
+                                                        <span>{:L('NZYWBJ')}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-4">
+                                                        <p class="form-control-static">{:L('ZZBRAND')}: {$orderext1.surgerysystem}</p>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <p class="form-control-static">{:L('OPTOOL')}: {$orderext1.surgerytool}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">{:L('BLZL')}</label>
+                                            <div class="col-sm-9">
+                                                <div class="row">
+                                                    <label class="col-sm-1 control-label">{:L('KNMX')}:</label>
+                                                    <div class="col-sm-11">
+                                                        <p class="form-control-static">{$orderext1.knmx}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row iviews-cbct">
+                                                    <label class="col-sm-1 control-label"> {:L('CBCT')}:</label>
+                                                    <div class="col-sm-11">
+                                                        <img src="" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="row iviews-cbct">
+                                                    <label class="col-sm-1 control-label"> {:L('KNZP')}:</label>
+                                                    <div class="col-sm-3">
+                                                        <img src="{$orderext1.pic1}" alt="">
+                                                    </div>
+                                                    <label class="col-sm-1 control-label"> {:L('MBZP')}:</label>
+                                                    <div class="col-sm-3">
+                                                        <img src="{$orderext1.pic2}" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <label class="col-sm-1 control-label"> {:L('HGDY')}:</label>
+                                                    <div class="col-sm-1">
+                                                        <p class="form-control-static"><eq name="orderext1.print1" value="1">{:L('YES')}<else/>{:L('NO')}</eq></p>
+                                                    </div>
+                                                    <label class="col-sm-1 control-label"> {:L('MXDY')}:</label>
+                                                    <div class="col-sm-1">
+                                                        <p class="form-control-static"><eq name="orderext1.print2" value="1">{:L('YES')}<else/>{:L('NO')}</eq></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="wrapper wrapper-content">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="ibox float-e-margins">
+                                                        <!-- title -->
+                                                        <div class="ibox-title">
+                                                            <h5>{:L('COST_INFORMATION')}</h5>
+                                                        </div>
+                                                        <div class="ibox-content">
+                                                            <table
+                                                                    class="table table-center"
+                                                                    style="text-align: center">
+                                                                <thead>
+
+                                                                <tr>
+                                                                    <th style="width: 100px;text-align: left; padding-left: 10px">{:L('FEE_NAME')}</th>
+                                                                    <th style="width: 80px;text-align: left">{:L('PAYMENT_METHOD')}</th>
+                                                                    <th style="width: 80px;text-align: left">{:L('PAYMENT_STATUS')}</th>
+                                                                    <th style="width: 100px;text-align: left">{:L('AMOUNT_PAYABLE')}</th>
+                                                                    <th style="width: 80px;text-align: left">{:L('AMOUNT_PAID')}</th>
+                                                                    <th style="width: 80px;text-align: left">{:L('PAY_CURRENCY')}</th>
+                                                                    <th style="width: 150px;text-align: left">{:L('ADD_TIME')}</th>
+                                                                    <th style="width: 150px;text-align: left">{:L('LAST_PAYMENTTIME')}</th>
+                                                                    <th style="text-align: left">{:L('REMARKS')}</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                <notempty name="order_pay"> <volist name="order_pay" id="vo">
+                                                                    <tr>
+                                                                        <td style="text-align: left;width: 100px;padding-left: 10px">{$vo.feename}</td>
+                                                                        <td style="text-align: left">
+                                                                            <if condition="$vo['paytype']==0">
+                                                                                {:L('CASH_PAYMENT')}
+                                                                                <else/>
+                                                                                {:L('PAY_MONTHLY')}
+                                                                            </if>
+                                                                        </td>
+                                                                        <td style="text-align: left">
+                                                                            <if condition="$vo['state']==0">
+                                                                                {:L('UNPAID')}
+                                                                                <else/>
+                                                                                {:L('ALREADY_PAID')}
+                                                                            </if>
+                                                                        </td>
+                                                                        <td style="text-align: left">{$vo.money}/{$vo.money1}</td>
+                                                                        <td style="text-align: left;">{$vo.pay_money}</td>
+                                                                        <td style="text-align: left">{$vo.currency}</td>
+                                                                        <td style="text-align: left">
+                                                                            <if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                                                        </td>
+                                                                        <td style="text-align: left">
+                                                                            <if condition="$vo['paytime']">{$vo['paytime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                                                        </td>
+                                                                        <td style="text-align: left">{$vo.note}</td>
+                                                                    </tr>
+                                                                </volist> <else />
+                                                                    <td colspan="9" class="text-center table_nodata">{:L('NOCONCENT')}</td>
+                                                                </notempty>
+                                                                </tbody>
+                                                            </table></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="wrapper wrapper-content">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="ibox float-e-margins">
+                                                        <!-- title -->
+                                                        <div class="ibox-title">
+                                                            <h5>{:L('OPERATION_RECORD')}</h5>
+                                                        </div>
+                                                        <div class="ibox-content">
+                                                            <table
+                                                                    class="table table-center"
+                                                                    style="text-align: center">
+                                                                <thead>
+
+                                                                <tr>
+                                                                    <th style="width: 160px; text-align: left;padding-left: 10px">{:L('ORDER_STATUS')}</th>
+                                                                    <th style="width: 80px">{:L('OPERATION_USER')}</th>
+                                                                    <th style="width: 160px">{:L('OPERATION_TIME')}</th>
+                                                                    <th style="text-align: left">{:L('OPERATION_NOTE')}</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                <notempty name="order_log"> <volist name="order_log" id="vo">
+                                                                    <tr>
+                                                                        <td style="width: 160px; text-align: left;padding-left: 10px">{$vo.str_state|L}</td>
+                                                                        <td style="width: 80px">{$vo.nickname}</td>
+
+                                                                        <td style="width: 160px">
+                                                                            <if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i",###}<else/>-</if>
+                                                                        </td>
+                                                                        <td style="text-align: left">{$vo.note}</td>
+                                                                    </tr>
+                                                                </volist> <else />
+                                                                    <td colspan="4" class="text-center table_nodata">{:L('NOCONCENT')}</td>
+                                                                </notempty>
+                                                                </tbody>
+                                                            </table></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                            </div></div></div></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        {:L('sysnotice')}
+                    </h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+
+    <script>
+        var error_box = $("#errorModal");
+        $(function () {
+            $("#confirm_goods").click(function () {
+                    var id="{$info.order_id}";
+                    var url = "{:U('Order/confirm_goods')}";
+                    var param = $("#send_form").serialize();
+                    $.ajax({
+                        url: base.url + url ,
+                        type: 'POST' ,
+                        data: {'id':id},
+                        dataType: 'json' ,
+                        beforeSend: function() {
+                        },
+                        success: function(res) {
+                            if( res.status == 1 ) {
+                                window.location.href = res.url;
+                            } else {
+                                modal.text(error_box, res.info);
+                                modal.open(error_box);
+                            }
+                        },
+                        error: function(err) {
+                        }
+                    })
+            });
+            $("#close").click(function () {
+                var id="{$info.order_id}";
+                var url = "{:U('Order/close')}";
+                $.ajax({
+                    url: base.url + url ,
+                    type: 'POST' ,
+                    data: {'id':id},
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            })
+        });
+    </script>
+</block>

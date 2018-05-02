@@ -1,0 +1,704 @@
+<extend name="Public/base"/>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+        .tablesorter thead tr th {
+            font-weight: normal;
+            color: #888
+        }
+
+        .content {
+            margin-bottom: 30px
+        }
+
+        .ebtn {
+            color: #fff;
+            background: #AB82FF;
+            font-size: 12px;
+            font-weight: normal;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .ebtn:hover {
+            background: #cbb2ff;
+            color: #fff
+        }
+        .green {
+            color: #229f24;
+        }
+        .main legend{margin-top: 30px;margin-bottom: 20px}
+        .prediv{margin-left: 15px}
+        #basetable th{
+            font-weight:bold;
+            font-size:12px;
+        }
+        #basetable{
+            background-color:#f9f9f9;
+        }
+        #basetable td{
+            font-size:12px;
+
+        }
+        .table-condensed th td{
+            border:1px solid rgb(204, 204, 204);
+            text-align:center;
+        }
+        #holder td{
+            border:1px solid rgb(204, 204, 204);
+            text-align:center;
+        }
+
+    </style>
+    <div id="featurebar">
+<span id="myname" style="color: #000;line-height: 48px"><i
+        class="icon-map-marker"></i> {$p.name}&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+        <div class="actions">
+            <div class="btn-group" style="margin-right: -5px">
+
+            </div>
+            <a href="#" onclick="window.history.back(-1)" class="btn" title="返回"><i
+                    class="icon-goback icon-level-up icon-large icon-rotate-270"></i></a>
+        </div>
+    </div>
+    <div style="min-height: 777px;">
+
+        <div class="row-table">
+            <div class="col-main">
+                <div class="main" style="margin-left: 0;">
+
+                    <legend style="margin-top: 0">项目背景</legend>
+                    <if condition="$p['description']">
+                        <div class="prediv">
+                            {$p.description}</div>
+                        <else/>
+                        <div class="table_nodata1"></div>
+                    </if>
+
+
+                    <legend>项目目标</legend>
+                    <if condition="$p['target']">
+                        <div class="prediv">{$p.target}</div>
+                        <else/>
+                        <div class="table_nodata1"></div>
+                    </if>
+
+                    <legend>KPI</legend>
+
+                    <div class="content">
+
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 60px;text-align: center">编号</th>
+                                    <th style="width: 100px;text-align: center">KPI</th>
+                                    <th style="width: 100px;text-align: center">目标值</th>
+                                    <th style="text-align: left">备注</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="kpi">
+                                    <volist name="kpi" id="vv" key="k">
+                                        <tr>
+                                            <td style="text-align: center">{$k}</td>
+                                            <td >{$vv.name}</td>
+                                            <td>{$vv.value2}</td>
+                                            <td style="text-align: left">{$vv.note}</td>
+                                        </tr>
+                                    </volist> <else/>
+                                <tfoot> <td colspan="4"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>里程碑</legend>
+                    <div class="content">
+
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">事件</th>
+                                    <th style="text-align: left">关联任务</th>
+                                    <th style="width: 80px">时间点</th>
+                                    <th style="width: 100px">完成度</th>
+                                    <th style="width: 100px">创建时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="mlist">
+                                    <volist name="mlist"
+                                            id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left" title="{$vo.name}">{$vo.name}</td>
+                                            <td style="text-align: left" title="{$vo.title}"><a
+                                                    href="{:U('Task/view?id='.$vo['tid'])}"
+                                                    target="_blank">{$vo.title}</a></td>
+                                            <td>{$vo.mtime|time_format=###,'y-m-d'}</td>
+                                            <td style="text-align: left;width: 90px"><strong>
+                                                <if condition="$vo['completion']">
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="{$vo['completion']/2}">
+                                                    <else/>
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="1">
+                                                </if>
+                                                <small>{$vo.completion}%</small>
+                                            </strong></td>
+
+                                            <td>{$vo.addtime|time_format=###,'y-m-d H:i'}</td>
+                                        </tr>
+                                    </volist>
+                                    <else/>
+                                <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                    </div>
+                    <legend>项目范围</legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-striped tablesorter">
+                                <tr>
+                                    <td style="padding-left: 15px">
+                                        <notempty name="scope">
+                                            <foreach  name="scope" item="vo" key="k">
+                                                <if condition="end($scope) eq $scope[$k]">
+                                                    <span style="display:inline-block;padding-right: 10px;margin-right: 10px">{$k}：{$vo|substr=0,-3}</span>
+                                                    <else/>
+                                                    <span style="display:inline-block;padding-right: 10px;border-right:1px solid #ddd ;margin-right: 10px">{$k}：{$vo|substr=0,-3}</span>
+                                                </if>
+                                            </foreach >
+                                            <a href="{:U('ProjectView/service?id='.$p['pid'])}" title="{$p.name}" style="border-left:0px" class=" iframe"  data-width="1100" data-height="600" >详细</a>
+                                            <else/>
+                                            未添加项目范围
+                                        </notempty>
+                                    </td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>参与成员</legend>
+                    <div class="content">
+                        <if condition="$tplist">
+                            <div class="data-table table-striped">
+                                <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" >
+                                    <thead>
+                                    <tr>
+                                        <foreach name="tplist" key="k" item="v">
+                                            <if condition="$k neq '项目执行'">
+                                                <th  style="padding-left: 10px;text-align: left" >{$k}</th>
+                                            </if>
+                                        </foreach>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <foreach name="tplist" key="k" item="v">
+                                            <if condition="$k neq '项目执行'">
+                                                <td style="padding-left: 10px;text-align: left">{$v}</td>
+                                            </if>
+                                        </foreach>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <if condition="$takezxr">
+                                    <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" >
+                                        <thead>
+                                        <tr>
+                                            <th  style="padding-left: 10px;text-align: left">项目执行</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td style="padding-left: 10px;text-align: left">{$takezxr}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </if>
+                            </div>
+                            <else/>
+                            <div class="table_nodata1"></div>
+                        </if>
+                    </div>
+                    <legend>成本预算 </legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-striped ">
+                                <tr>
+                                    <td style="padding-left: 15px">预算现金成本<span class="green">{$budget.cashBudget|fomatprice}</span>，预算第三方成本<span class="green">{$budget.thirdBudget|fomatprice}</span>，预计项目工时<span class="green">{$budget.hoursSum}h</span>
+                                        &nbsp; &nbsp; <a href="{:U('ProjectView/budgetindex?id='.$p['pid'])}" title="{$p.name}" style="border-left:0px" class=" iframe"  data-width="1100" data-height="600" >详细</a>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>报销 </legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter">
+                                <tr>
+                                    <td style="padding-left: 15px">报销金额累积<span class="green">{$expense.amount|fomatprice}</span>占总项目金额<span class="green">{$expense.ratio}%</span>；
+                                        第三方成本报销<span class="green">¥0</span>，占总项目金额<span class="green">0%</span>，预计项目工时<span class="green">{$expense.hoursSum}h</span>，实际已投入<span class="green">{$expense.hasBeen}h</span>
+                                        &nbsp; &nbsp; <a href="{:U('ProjectView/expenseView?id='.$p['pid'])}" title="{$p.name}" style="border-left:0px" class=" iframe"  data-width="1100" data-height="600" >详细</a>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <legend>项目文档 </legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+                                <thead>
+                                <tr>
+                                    <foreach name="docs" key="k" item="vo">
+                                        <th  class="text-center" width="70px" >{$vo.name}</th>
+                                    </foreach>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <foreach name="docs" key="k" item="vo">
+                                        <td class="dt">
+                                            <if condition="$vo.num eq 0">
+                                                <img src="__THEME__/default/images/forbid.png" width="10px">
+                                                <else/>
+                                                <a href="{:U('doc/attach?dtid='.$vo['dtid'].'&pid='.$p['pid'])}">{$vo.num}</a>
+                                            </if>
+                                        </td>
+                                    </foreach>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>风险</legend>
+                    <table class="table table-condensed table-hover table-striped tablesorter">
+                        <tr>
+                            <td style="padding-left: 15px">共登记<span class="green">{$risk.num}</span>条风险，等级高的<span class="green">{$risk.level}</span>条，影响大的<span class="green">{$risk.grade}</span>条
+                                &nbsp; &nbsp; <a href="{:U('ProjectView/riskView?id='.$p['pid'])}" title="{$p.name}" style="border-left:0px" class=" iframe"  data-width="1100" data-height="600" >详细</a>
+                            </th>
+                        </tr>
+                    </table>
+                    <legend>变更</legend>
+                    <table class="table table-condensed table-hover table-striped tablesorter">
+                        <tr>
+                            <td style="padding-left: 15px">共登记<span class="green">{$alter.num}</span>条变更，范围内变更<span class="green">{$alter.fwn}</span>条，范围外的<span class="green">{$alter.fww}</span>条
+                                &nbsp; &nbsp; <a href="{:U('ProjectView/alter_view?id='.$p['pid'])}" title="{$p.name}" style="border-left:0px" class=" iframe"  data-width="1100" data-height="600" >详细</a>
+                            </th>
+                        </tr>
+                    </table>
+
+
+                    <style>
+                        #actionbox a {
+                            font-weight: normal
+                        }
+
+                        .col-side fieldset#actionbox {
+                            padding-right: 5px;
+                        }
+
+                        .col-side #actionbox #historyItem li span.item {
+                            white-space: nowrap
+                        }
+
+                        .changes blockquote {
+                            font-family: monospace, serif;
+                        }
+                    </style>
+                    <script language="Javascript">
+                        var fold = '-';
+                        var unfold = '+';
+
+                        function switchChange(historyID) {
+                            $swbtn = $('#switchButton' + historyID);
+                            $showTag = $swbtn.find('.change-show');
+                            if ($showTag.length) {
+                                $swbtn.closest('li').addClass('show-changes');
+                                $showTag.removeClass('change-show').addClass('change-hide');
+                                $('#changeBox' + historyID).show();
+                                $('#changeBox' + historyID).prev('.changeDiff').show();
+                            }
+                            else {
+                                $swbtn.closest('li').removeClass('show-changes');
+                                $swbtn.find('.change-hide').removeClass('change-hide').addClass('change-show');
+                                $('#changeBox' + historyID).hide();
+                                $('#changeBox' + historyID).prev('.changeDiff').hide();
+                            }
+                        }
+
+                        function toggleStripTags(obj) {
+                            var btn = $(obj);
+                            var diffTag = btn.find('.icon-file-code');
+                            if (diffTag.length) {
+                                diffTag.removeClass('icon-file-code').addClass('diff-short');
+                                btn.attr('title', '文本格式');
+                            }
+                            else {
+                                btn.find('.diff-short').removeClass('diff-short').addClass('icon-file-code');
+                                btn.attr('title', '原始格式');
+                            }
+                            var boxObj = $(obj).next();
+                            var oldDiff = '';
+                            var newDiff = '';
+                            $(boxObj).find('blockquote').each(function () {
+                                oldDiff = $(this).html();
+                                newDiff = $(this).next().html();
+                                $(this).html(newDiff);
+                                $(this).next().html(oldDiff);
+                            })
+                        }
+
+                        function toggleShow(obj) {
+                            $showTag = $(obj).find('.change-show');
+                            if ($showTag.length) {
+                                $showTag.removeClass('change-show').addClass('change-hide');
+                                $('#historyItem > li:not(.show-changes) .switch-btn').click();
+                            }
+                            else {
+                                $(obj).find('.change-hide').removeClass('change-hide').addClass('change-show');
+                                $('#historyItem > li.show-changes .switch-btn').click();
+                            }
+                        }
+
+                        function toggleOrder(obj) {
+                            var $orderTag = $(obj).find('.log-asc');
+                            if ($orderTag.length) {
+                                $orderTag.attr('class', 'icon- log-desc');
+                            }
+                            else {
+                                $(obj).find('.log-desc').attr('class', 'icon- log-asc');
+                            }
+                            $("#historyItem li").reverseOrder();
+                            window.editor['lastComment'].remove();
+                            initKindeditor();
+                        }
+
+                        function toggleComment(actionID) {
+                            $('.comment' + actionID).toggle();
+                            $('#lastCommentBox').toggle();
+                            $('.ke-container').css('width', '100%');
+                        }
+
+                        $(function () {
+                            var diffButton = "<a href='javascript:;' onclick='toggleStripTags(this)' class='changeDiff btn-icon' style='display:none;' title='原始格式'><i class='icon- icon-file-code'></i></a>";
+                            var newBoxID = ''
+                            var oldBoxID = ''
+                            $('blockquote').each(function () {
+                                newBoxID = $(this).parent().attr('id');
+                                if (newBoxID != oldBoxID) {
+                                    oldBoxID = newBoxID;
+                                    if ($(this).html() != $(this).next().html()) $(this).parent().before(diffButton);
+                                }
+                            })
+                        })
+                    </script>
+                    <script src="__JSNEW__/raw.js" type="text/javascript"></script>
+                    <fieldset id="actionbox" class="actionbox" style="margin-top: 30px">
+                        <legend >
+                            <i class="icon-time"></i> 操作记录 <a class="btn-icon"
+                                                              href="javascript:;" onclick="toggleOrder(this)"> <span
+                                title="切换顺序" class="log-asc icon-"></span> </a> <a class="btn-icon"
+                                                                                   href="javascript:;" onclick="toggleShow(this);"><span
+                                title="切换显示" class="change-show icon-"></span> </a>
+                        </legend>
+                        <ol id="historyItem">
+                            <foreach name="logs" item="l" key="k" >
+                                <li value="{$k+1}">
+            <span class="item">
+		        {$l.addtime|time_format}, 由 <strong>{$l.uname}</strong> {$l.action|ac_name}。
+		    <if condition="$l.hs &&count($l.hs) gt 0 ">
+		    	<a id="switchButton{$l.logid}" class="switch-btn btn-icon" onclick="switchChange({$l.logid})" href="javascript:;"><i class="change-show icon-"></i></a>
+		    </if>
+        	</span>
+                                    <if condition="!empty($l['comment'])">
+                                        <div class="history">
+                                            <div class="changes hide alert" id="changeBox{$l.logid}">
+                                                <volist name="l.hs" id="h">
+                                                    修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为 "{$h.newdata}"。<br>
+                                                </volist>
+
+                                            </div>
+                                            <div class="article-content comment4" >{$l.comment}</div>
+                                        </div>
+                                        <else/>
+                                        <div class="changes hide alert" id="changeBox{$l.logid}">
+                                            <volist name="l.hs" id="h">
+                                                修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为 "{$h.newdata}"。<br>
+                                            </volist>
+
+                                        </div>
+                                    </if>
+                                </li>
+                            </foreach>
+                        </ol>
+
+                    </fieldset>
+                </div>
+            </div>
+
+            <div class="col-side">
+                <div class="main main-side" style="margin-left: 0;">
+                    <fieldset>
+                        <legend style="margin-bottom: 0px"><span style="font-size:13px;font-weight:bold">项目基本信息</span></legend>
+                        <table class="table table-data table-condensed table-borderless">
+
+                            <tbody>
+
+                            <tr>
+                                <th>项目流水编号</th>
+                                <td>{$p.code}</td>
+                            </tr>
+                            <tr style="white-space: normal;
+    word-break: break-all;">
+                                <th width="120px">项目名称</th>
+                                <td>{$p.name}</td>
+                            </tr>
+                            <tr>
+                                <th>项目状态</th>
+                                <td>&nbsp;<span style="font-weight: bold;"
+                                    <if condition="$p['state']==4"> class="textr"</if>
+                                    <if condition="$p['state']==2"> class="textg"</if>
+                                    <if condition="$p['state']==0"> class="textc"</if>
+                                    <if condition="$p['state']==-1"> class="textc"</if>
+                                    >{$p.sname}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>项目经理</th>
+                                <td>{$p.pm}</td>
+                            </tr>
+                            <tr>
+                                <th>项目类型</th>
+                                <td>{$p.type}</td>
+                            </tr>
+                            <tr>
+                                <th>合同号</th>
+                                <td>{$p.contract}</td>
+                            </tr>
+                            <tr>
+                                <th>合同金额</th>
+                                <td>{$p.money}</td>
+                            </tr>
+                            <tr>
+                                <th>合同签订日期</th>
+                                <td style="white-space: normal;
+    word-break: break-all;">{$p.contract_time|time_formatymd}</td>
+                            </tr>
+                            <tr>
+                                <th>客户</th>
+                                <td style="white-space: normal;
+    word-break: break-all;">{$p.cname}</td>
+                            </tr>
+                            <tr>
+                                <th>客户经理</th>
+                                <td>{$p.salename}</td>
+                            </tr>
+                            <tr>
+                                <th>顾问</th>
+                                <td>{$p.adviser}</td>
+                            </tr>
+                            <tr><td style="padding: 20px 0;position: relative;padding-left: 20px" colspan="2">
+                            <span class="icon icon-bookmark" style="    position: absolute;
+    left: 0;
+    top: 13px;color: #888"></span><div style="border-bottom:1px dashed #ccc;height: 1px"></div></td></tr>
+                            <tr>
+                                <th>目标科室</th>
+                                <td>{$p.department}</td>
+                            </tr>
+                            <tr>
+                                <th>药品</th>
+                                <td<if condition="$p['level']==2">style="color:red"</if>> {$p.drug_name}</td>
+                            </tr>
+                            <tr>
+                                <th>治疗领域</th>
+                                <td <if condition="$p['level']==2">style="color:red"</if> >{$p.therapy_area}</td>
+                            </tr>
+                            <tr>
+                                <th>推广金额</th>
+                                <td>{$p.promotion|fomatprice}</td>
+                            </tr>
+                            <tr>
+                                <th>预计启动时间</th>
+                                <td>{$p.pstime|time_formatymd}</td>
+                            </tr>
+                            <tr>
+                                <th>预计结束时间</th>
+                                <td>{$p.petime|time_formatymd}</td>
+                            </tr>
+                            <tr>
+                                <th>上线时间</th>
+                                <td>{$p.livetime|time_formatymd}</td>
+                            </tr>
+                            <tr><td style="padding: 20px 0;position: relative;padding-left: 20px" colspan="2">
+                            <span class="icon icon-bookmark" style="    position: absolute;
+    left: 0;
+    top: 13px;color: #888"></span><div style="border-bottom:1px dashed #ccc;height: 1px"></div></td></tr>
+                            <tr>
+                                <th>业务机会名称</th>
+                                <td>{$p.chance_code}</td>
+                            </tr>
+                            <tr>
+                                <th>报价单号</th>
+                                <td>{$p.oname}</td>
+                            </tr>
+                            <tr><td style="padding: 20px 0;position: relative;padding-left: 20px" colspan="2">
+                            <span class="icon icon-bookmark" style="    position: absolute;
+    left: 0;
+    top: 13px;color: #888"></span><div style="border-bottom:1px dashed #ccc;height: 1px"></div></td></tr>
+                            <tr>
+                                <th>任务总数</th>
+                                <td>{$p.tasknum}</td>
+                            </tr>
+                            <tr>
+                                <th>预算内/预算外/变更</th>
+                                <td>{$p['budgetin']} / {$p['budgetout']} / {$p['budgetchange']}</td>
+                            </tr>
+                            <tr>
+                                <th>未分配/已分配/启动</th>
+                                <td>{$p['unassigned']} / {$p['assigned']} / {$p['startup']}</td>
+                            </tr>
+                            <tr>
+                                <th>未完成/完成/关闭</th>
+                                <td>{$p.taskunfinish} / {$p.taskfinish} / {$p.taskclose}</td>
+                            </tr>
+                            <tr>
+                                <th>任务挣值</th>
+                                <td>{$p.amount|fomatprice}</td>
+                            </tr>
+                            <tr >
+                                <th>现金成本</th>
+                                <td>{$p.cash|fomatprice}</td>
+                            </tr>
+                            <tr><td style="padding: 20px 0;position: relative;padding-left: 20px" colspan="2">
+                            <span class="icon icon-bookmark" style="    position: absolute;
+    left: 0;
+    top: 13px;color: #888"></span><div style="border-bottom:1px dashed #ccc;height: 1px"></div></td></tr>
+                            <tr>
+                                <th>日期进度</th>
+                                <td>
+                                    <if condition="$dschedule">
+                                        <img class="progressbar" src="__THEME__/default/images/main/green.png" alt=""
+                                             height="16" width="{$dschedule}">
+                                        <else/>
+                                        <img class="progressbar" src="__THEME__/default/images/main/green.png" alt=""
+                                             height="16" width="1">
+                                    </if>
+                                    {$dschedule}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>进度</th>
+                                <td><if condition="$p['progress']">
+                                    <img class="progressbar" src="__THEME__/default/images/main/green.png" alt=""
+                                         height="16" width="{$p['progress']}">
+                                    <else/>
+                                    <img class="progressbar" src="__THEME__/default/images/main/green.png" alt=""
+                                         height="16" width="1">
+                                </if> {$p['progress']}%</td>
+                            </tr>
+                            <tr>
+                                <th>挣值%</th>
+                                <td>{$p['earned']}%</td>
+                            </tr>
+                            <tr>
+                                <th>现金成本/项目金额</th>
+                                <td>{$p['cm']}%</td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </fieldset>
+                </div>
+                <div>
+                    <div style="font-weight:bold;font-size:12px;margin:10px 0;">干系人</div>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 60px;text-align: center">姓名</th>
+                                    <th style="width: 100px;text-align: center">部门</th>
+                                </tr>
+                                </thead>
+
+                                <notempty name="holder">
+                                    <tbody>
+                                    <volist name="holder" id="vo">
+                                        <tr>
+                                            <td>{$vo['name']}</td>
+                                            <td >{$vo.dept}</td>
+                                        </tr>
+                                    </volist>
+                                    </tbody>
+                                    <else/>
+                                    <tfoot> <td colspan="2"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+
+                            </table>
+                        </div>
+
+                    </div>
+                    <!--<div>
+                        <table class="table table-condensed table-hover table-striped tablesorter mytable" id="holder">
+                            <tbody>
+                             <tr><td>姓名</td><td>部门</td></tr>
+                             <notempty name="holder">
+                                 <foreach name="holder" item="v">
+                                   <tr>
+                                     <td>{$v.name}</td>
+                                     <td>{$v.dept}</td>
+                                    </tr>
+                                 </foreach>
+
+                                 <else/>
+                                 <tr>
+                                     <td></td>
+                                     <td></td>
+                                 </tr>
+
+                             </notempty>
+
+                            </tbody>
+
+                        </table>
+                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        highlight_subnav("{:U('Precycle/index')}");
+    </script>
+</block>

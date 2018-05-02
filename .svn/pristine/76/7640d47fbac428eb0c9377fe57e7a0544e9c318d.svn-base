@@ -1,0 +1,227 @@
+<extend name="Public/base" />
+<block name="body">
+<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+<script>
+$(function(){
+    $('#birthday').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+    jQuery.validator.addMethod("isMobile", function(value, element) {
+        var length = value.length;
+        var mobile = /^(13[0-9]{9})|(18[0-9]{9})|(14[0-9]{9})|(17[0-9]{9})|(15[0-9]{9})$/;
+        return this.optional(element) || (length == 11 && mobile.test(value));
+    }, "请正确填写您的手机号码");
+    $('form').validate({
+	    errorPlacement: function (error, element) {
+	        $(element).next('.field_notice').hide();
+	        var dept =  $(element).find('option:selected').val();
+	        if(!dept || dept == null || dept == undefined){
+	             $(element).next('div.chosen-container').children().addClass("error");
+	         }
+	    },
+	    onkeyup: false,
+        rules: {
+			/* repassword: {
+			 required: true
+			 },
+			 password: {
+			 required: true,
+			 maxlength: 20,
+			 minlength: 6
+			 }*/
+            nickname: {
+                required: true
+            },
+            dept: {
+                required: true
+            },
+            email: {
+                required: true,
+                email:true,
+                remote: {
+                    url: "{:U('User/check_email')}",
+                    type: 'post',
+                    data: {
+                        email: function () {
+                            return $('#email').val();
+                        },
+                        id:"{$m['id']}"
+                    }
+                }
+            },
+            mobile: {
+                required: true,
+                isMobile:true,
+                remote: {
+                    url: "{:U('User/check_mobile')}",
+                    type: 'post',
+                    data: {
+                        mobile: function () {
+                            return $('#mobile').val();
+                        },
+                        id:"{$m['id']}"
+                    }
+                }
+            },
+               jobnum:{
+                remote: {
+                    url: "{:U('User/check_jobnum')}",
+                    type: 'post',
+                    data: {
+                        jobnum: function () {
+                            return $('#jobnum').val();
+                        },
+                        id:"{$m['id']}"
+                    }
+                }
+            },
+        },
+        messages: {
+			/* repassword: {
+			 required: '确认密码必填'
+			 },
+			 password: {
+			 required : '密码不能为空',
+			 maxlength: '密码长度应在6-20个字符之间',
+			 minlength: '密码长度应在6-20个字符之间'
+
+			 }*/
+            nickname: {
+                required: '姓名不能为空',
+            },
+            dept: {
+                required:'请选择部门',
+            },
+            email: {
+                required: '邮箱不能为空',
+                email:'邮箱格式不正确',
+                remote: '邮箱已被占用'
+            },
+            mobile: {
+                required: '手机号不能为空',
+                isMobile:'手机格式不正确',
+                remote: '手机号已被占用'
+            },
+            jobnum:{
+                  remote: '工号已被占用'
+            }
+        }
+	});
+});
+$(function () {
+    $("[name='dept']").change(function(){
+        if($(this).val()!=""&&$(this).val()!=null){
+            $(this).next('div.chosen-container').children().removeClass("error");
+        }
+    });
+})
+</script>
+	  <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('PLATFORM_PERSONNEL')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-default" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('User/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+						<input type="hidden" name="id" value="{$m['id']}">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('UNAME')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="username" id="username" value="{$m['username']}" class="form-control" autocomplete="off" placeholder="请输入用户名,必填不可重复">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PASSWORD')}</label>
+                                <div class="col-sm-10">
+                                    <input type="password" name="password" id="password" value="{$m['password']}" class="form-control" autocomplete="off" placeholder="密码长度应在6-20个字符之间">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('ROLE_NAME')}</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b"  name="roles">
+                                        <option>{:L('PLEASE_SELECT')}</option>
+                                        <volist name="roles" id="r">
+											<option value="{$r.id}" <if condition="$m['group_id'] == $r['id']"> selected </if> >{$r.title}</option>
+										</volist>
+                                    </select>
+                                </div>
+                            </div>
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MNAME')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="nickname" id="nickname" id="nickname" value="{$m['nickname']}" class="form-control" autocomplete="off" placeholder="请输入姓名,必填">
+                                </div>
+                            </div>
+							
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('DNAME')}</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b"  name="dept">
+                                        <option>{:L('PLEASE_SELECT')}</option>
+                                        <volist name="depts" id="r">
+											<option value="{$r.did}" <if condition="$m['dept'] == $r['did']"> selected </if>>{$r.title_show}</option>
+										</volist>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('EMAIL')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="email" class="form-control" id="email" value="{$m['email']}" class="form-control" autocomplete="off"placeholder="请输入邮箱,必填不可重复">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MOBILE')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="mobile" id="mobile" value="{$m['mobile']}" class="form-control" autocomplete="off" placeholder="请输入手机,必填不可重复">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('BIRTHDAY')}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="birthday" id="birthday" value="{$m['birthday']}" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SEX')}</label>
+                                <div class="col-sm-10">
+                                    <div class="i-checks"><label> <input type="radio" value="1" name="sex" <if condition="$m['sex'] == 1"> checked </if>> <i></i> {:L('MAN')} </label></div>
+                                    <div class="i-checks"><label> <input type="radio" value="2" name="sex" <if condition="$m['sex'] == 2"> checked </if>> <i></i> {:L('WOMAN')} </label></div>
+									<div class="i-checks"><label> <input type="radio" value="0" name="sex" <if condition="$m['sex'] == 0"> checked </if>> <i></i> {:L('SECRECY')} </label></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-default" type="button">{:L('BACK')}</a>
+									<a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();" data-loading="稍候..."><i class="icon-save"></i> {:L('SAVE')}</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('User/index')}");
+    </script> </block>

@@ -1,0 +1,53 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 项目风险
+ *
+ * @author
+ */
+class RiskModel extends Model
+{
+
+    // 获取优先级
+    public function getLevel()
+    {
+        $map['d_code'] = 'projectadd_risk_level';
+        return M('Dictionary')->field('d_key,d_value')->where($map)->select();
+    }
+
+    // 影响程度
+    public function getGrade()
+    {
+        $map['d_code'] = 'projectadd_risk_grade';
+        return M('Dictionary')->field('d_key,d_value')->where($map)->select();
+    }
+
+    /**
+     * 获取项目的项目风险
+     *
+     * @param $pid
+     */
+    public function getRiskByPid($pid)
+    {
+        $map = [];
+        $map['r.pid'] = $pid;
+        $list = $this->alias('r')
+            ->field('r.*')
+            ->where($map)
+            ->select();
+        return $list;
+    }
+
+
+}

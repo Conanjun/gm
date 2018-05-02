@@ -1,0 +1,157 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav">
+			<if condition="cando('ProjectNew/index1')"><li <if condition="$state==1">class="active"</if> > <a href="{:U('ProjectNew/index1?state=1')}">进行中</a>
+			</li>
+			<li <if condition="$state==4">class="active"</if> > <a href="{:U('ProjectNew/index1?state=4')}">已延期</a>
+			</li>
+			<li <if condition="$state==='0'">class="active"</if> > <a href="{:U('ProjectNew/index1?state=0')}">未开始</a>
+			</li>
+			<li <if condition="$state==5">class="active"</if> > <a href="{:U('ProjectNew/index1?state=5')}">所有</a>
+			</li></if>
+			<if condition="cando('ProjectNew/index1')"><li id="statusTab"  <if condition=" $state==3 || $state==2 || $state==-1">class="dropdown active"<else/>class="dropdown" </if> >
+			<a href="javascript:;" data-toggle="dropdown"><if condition="$statename">{$statename}<else/>更多</if><span
+					class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<li <if condition="$state==3">class="active"</if>><a href="{:U('ProjectNew/index1?state=3')}" >已暂停</a>
+				</li>
+				<li <if condition="$state==2">class="active"</if>><a href="{:U('ProjectNew/index1?state=2')}">已完成</a>
+				</li>
+				<li <if condition="$state==-1">class="active"</if>><a href="{:U('ProjectNew/index1?state=-1')}">已关闭</a>
+				</li>
+			</ul>
+			</li></if>
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+			<li style="float: right">
+			</li>
+		</ul>
+		<include file="Public/search" />
+	</div>
+	<!-- 数据列表 -->
+	<div class="data-table table-striped" id="projectTaskForm">
+		<table
+				class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+				style="text-align: center"  id="taskList">
+			<thead>
+			<tr>
+				<th width="30px"></th>
+				<th style="text-align:left"><span class="sort" ectype="order_by" fieldname="name">项目名称</span></th>
+				<th style="text-align:left"><span class="sort" ectype="order_by" fieldname="shortsign">客户合同号</span></th>
+				
+				<th style="width:50px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+				<th style="width:80px"><span class="sort" ectype="order_by" fieldname="code">编号</span></th>
+				<th style="width:80px"><span class="sort" ectype="order_by" fieldname="pm">项目经理</span></th>
+				<th style="width:100px"><span class="sort" ectype="order_by" fieldname="type">项目类型</span></th>
+				<th style="width:60px"><span class="sort" ectype="order_by" fieldname="level">优先级</span></th>
+				<th style="width:100px"><span class="sort" ectype="order_by" fieldname="petime">计划结束时间</span></th>
+				<th style="width:80px"><span class="sort" ectype="order_by" fieldname="tasknum">任务/完成</span></th>
+				<th style="width:150px"><span class="sort" ectype="order_by" fieldname="cost">成本/发生</span></th>
+				<th style="width: 150px;"><span class="sort" ectype="order_by" fieldname="progress">进度</span></th>
+				<th style="width:80px">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo">
+					<tr class="<eq name='vo.state' value='2'>finishedtask</eq>">
+						<td class="cell-id"><input class="ids" type="checkbox"
+												   name="id[]" value="{$vo.pid}" /></td>
+						
+						<td style="text-align:left"><a href="{:U('ProjectNew/view?id='.$vo['pid'])}">{$vo.name}</a></td>
+						<td style="text-align:left">{$vo.cname}-{$vo.contract}</td>
+						<td 
+						class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'></eq><eq name='vo.state' value='2'>textg</eq><eq name='vo.state' value='3'></eq><eq name='vo.state' value='4'>textr</eq><eq name='vo.state' value='-1'>textc</eq>"
+						>{$vo.sname}</td>
+						<td>{$vo.code}</td>
+						<td>{$vo.pm}</td>
+						<td>{$vo.type}</td>
+						<td <if condition="$vo['level']==2">style="color:red"</if>>{$vo.levelc}</td>
+						<td><if condition="$vo['petime']">{$vo.petime|time_format}<else/>-</if></td>
+						<td>{$vo.tasknum}/<span class="textg">{$vo.ftasknum}</span></td>
+						<td>{$vo.cost|fomatprice}/<span <if condition="$vo['costh'] gt $vo['cost']"> class="textr"<else/>class="textg"</if>>{$vo.costh|fomatprice}</span></td>
+						<td class="text-left" style="padding-left: 5px">
+							<if condition="$vo['progress']">
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$vo.progress}">
+								<else/>
+								<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+							</if>
+							<small>{$vo.progress}%</small>
+						</td>
+						<td>
+						<if condition="cando('ProjectNew/edit')"><a href="{:U('ProjectNew/edit?id='.$vo['pid'])}">编辑</a> </if>
+						<if condition="cando('ProjectNew/delete')"><a href="{:U('ProjectNew/delete?id='.$vo['pid'])}" class="confirm ajax-get">删除</a></if>
+						</td>
+					</tr>
+				</volist>
+				<else />
+				<td colspan="13" class="text-center table_nodata">aOh! 暂时还没有内容!</td>
+			</notempty>
+			</tbody>
+			<tfoot>
+			<tr>
+				<td colspan='13'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+										  class="rows-selector"> 选择</label>
+						</div>
+						<button class="btn btn-default ajax-post confirm"
+								url="{:U('Project/delete')}" target-form="ids">删 除</button>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+			</tfoot>
+		</table>
+	</div>
+</block>
+
+<block name="script"> <script
+		src="__STATIC__/thinkbox/jquery.thinkbox.js"></script> <script
+		type="text/javascript">
+	
+		$(function(){
+	    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+	    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+	    });
+		
+    //搜索功能
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    //导航高亮
+    highlight_subnav("{:U('ProjectNew/index1')}");
+    var ajaxGetDropMenu="{:U('Project/ajaxGetDropMenu/',array('module'=>'Project','index'=>'project'))}";
+
+    var ajaxurl="{:U('Project/ajax_col')}";
+
+    function tijiao(id,es_eid){
+        if(confirm("确认提交吗？"))
+            $.post(
+                "{:U('Project/present')}",
+                {'id':id,'eid':es_eid},
+                function(data){
+                    window.location.href = window.location.href;
+                }
+            );
+    }
+</script> </block>

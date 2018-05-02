@@ -1,0 +1,735 @@
+<?php
+
+namespace Admin\Controller;
+
+use Admin\Model\DocModel;
+
+/*
+ * 文档控制器
+ */
+
+class KnowledgeController extends AdminController
+{
+    // 定义数据表
+    private $document_model;
+
+    // 构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->document_model = new DocModel();
+    }
+
+    public function index()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Knowledge/study",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '知识库', 'url' => U('Knowledge/study'));
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study');
+        $this->display('study');
+    }
+
+    /*学习文档*/
+    public function study()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Knowledge/study",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+        $root_mbx[] = array('title' => '流程指导', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study');
+        $this->display();
+    }
+
+    /*学习文档*/
+    public function study1()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Knowledge/study1",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+
+        $where['_string'] .= " and (doctype='流程' or doctype='标准' or doctype='规范' or doctype='须知')";
+
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $type = 'procedure';
+        $this->assign('type', $type);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+        $root_mbx[] = array('title' => '流程指导', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study1');
+        $this->display('study');
+    }
+
+
+    /*总结指导*/
+    public function study2()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Knowledge/study2",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $where['_string'] .= " and (doctype='总结' or doctype='报告' or doctype='培训' or doctype='分享')";
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $type = 'summary';
+        $this->assign('type', $type);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+        $root_mbx[] = array('title' => '总结指导', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study2');
+        $this->display('study');
+    }
+
+    /*模版工具*/
+    public function study3()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Knowledge/study3",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $where['_string'] .= " and (doctype='业务模版')";
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $type = 'tpl';
+        $this->assign('type', $type);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+        $root_mbx[] = array('title' => '模版工具', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study2');
+        $this->display('study');
+    }
+
+    /*学习文档上传*/
+    public function studyupload()
+    {
+        if (IS_POST) {
+            $url = I('post.url');
+            $data['name'] = I('post.name');
+            $data['sort_order'] = I('post.sort_order');
+            $data['doctype'] = I('post.doctype');
+            $data['content'] = I('post.content');
+            $data['uid'] = UID;
+            $data['uname'] = get_nickname(UID) ?: get_username(UID);
+            $data['edituid'] = UID;
+            $data['edituname'] = get_nickname(UID) ?: get_username(UID);
+            $data['addtime'] = time();
+            $data['edittime'] = time();
+            $res_id = M('doc_study')->add($data);
+            //将附件存入数据库
+            $upload = new \Think\Upload();
+            $info = $upload->upload();
+            $file_ids = array();
+            $c = C('DOWNLOAD_UPLOAD');
+            foreach ($info as $file) {
+                $file_arr = explode('.', $file['name']);
+                $fileList['name'] = $file_arr[0];
+                $fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+                $fileList['ext'] = $file['ext'];
+                $fileList['size'] = $file['size'];
+                $fileList['uid'] = $data['uid'];
+                $fileList['uname'] = $data['uname'];
+                $fileList['addtime'] = time();
+                $fileId = $this->document_model->file_insert($fileList);
+                array_push($file_ids, $fileId);
+            }
+            //更新文件标题
+            $labels = I('post.labels');
+            if (array_filter($labels)) {
+                $fls = array_combine($file_ids, array_filter($labels));
+                foreach ($fls as $k => $fl) {
+                    M('file')->where(array('fileid' => $k))->save(array('name' => $fl));
+                }
+            }
+            //			更新doc_study_file
+            foreach ($file_ids as $file_id) {
+                $study_list['docid'] = $res_id;
+                $study_list['fileid'] = $file_id;
+                $study_list['uid'] = UID;
+                $study_list['uname'] = get_nickname(UID) ?: get_username(UID);
+                $study_list['addtime'] = time();
+                $sort = M('doc_study_file')->max('sort_order');
+                $study_list['sort_order'] = $sort + 1;
+                M('doc_study_file')->add($study_list);
+            }
+            if ($res_id) {
+                $this->redirect($url);
+            } else {
+                $this->error('操作失败', U('study'));
+
+            }
+        } else {
+            $type = I('get.id');
+            if ($type == 'tpl') {
+                $url = "Knowledge/study3";
+            } elseif ($type == 'summary') {
+                $url = "Knowledge/study2";
+            } else {
+                $url = "Knowledge/study1";
+            }
+            $docIds = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type', 'd_assist' => $type])->select();
+            $this->assign('doctype', $docIds);
+            $this->assign('url', $url);
+            $res = M('doc_study')->max('sort_order');
+            $sort = intval($res) + 1;
+            $this->assign('sort', $sort);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+            if ($type == 'procedure') {
+                $root_mbx[] = array('title' => '流程指导', 'url' => U($url));
+            } elseif ($type == 'summary') {
+                $root_mbx[] = array('title' => '总结指导', 'url' => U($url));
+            } else {
+                $root_mbx[] = array('title' => '模板工具', 'url' => U($url));
+            }
+            $root_mbx[] = array('title' => '创建文档', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+
+
+    }
+
+    /*学习文档详请*/
+    public function studyview()
+    {
+        $docid = I('get.docid');
+        $docinfo = M('doc_study')->where(['docid' => $docid])->find();
+        $files = M('doc_study_file')
+            ->field('f.fileid,f.name,f.ext,f.uname,f.size,f.addtime,f.savepath')
+            ->alias('sf')
+            ->join('ot_file f on f.fileid=sf.fileid')
+            ->where(['sf.docid' => $docid])
+            ->select();
+        foreach ($files as &$file) {
+            $file['size'] = ceil($file['size'] / 1024);
+        }
+        //详请页打开 查询高亮url
+        $d_assist = M('doc_study')->alias('ds')->field('d.d_assist')->join('ot_dictionary d on d.d_code=\'doc_study_type\' and  d.d_key=ds.doctype')->where(['docid' => $docid])->find();
+        if ($d_assist['d_assist'] == 'tpl') {
+            $url = "Knowledge/study3";
+        } elseif ($d_assist['d_assist'] == 'summary') {
+            $url = "Knowledge/study2";
+        } else {
+            $url = "Knowledge/study1";
+        }
+        $this->assign('url', $url);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+        if ($d_assist['d_assist'] == 'procedure') {
+            $root_mbx[] = array('title' => '流程指导', 'url' => U($url));
+        } elseif ($d_assist['d_assist'] == 'summary') {
+            $root_mbx[] = array('title' => '总结指导', 'url' => U($url));
+        } else {
+            $root_mbx[] = array('title' => '模板工具', 'url' => U($url));
+        }
+        $root_mbx[] = array('title' => $docinfo['name'], 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('docinfo', $docinfo);
+        $this->assign('studyFiles', $files);
+        $this->display();
+    }
+
+    public function ajax_type()
+    {
+        $type = I('post.type');
+        $docIds = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type', 'd_assist' => $type])->select();
+        if ($docIds) {
+            echo json_encode($docIds);
+        }
+    }
+
+    /*学习文档编辑*/
+    public function studyedit()
+    {
+        if (IS_POST) {
+            $url = I('post.url');
+            $data = array();
+            $new_data = array('fileid' => I('post.fileid'), 'name' => I('post.updateTitle'));
+            foreach ($new_data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $data[$k][$key] = $v;
+                }
+            }
+            foreach ($data as $ke => $va) {
+                if ($va['name']) {
+                    M('file')->where(['fileid' => $va['fileid']])->save(['name' => $va['name']]);
+                }
+            }
+            $docid = I('post.docid');
+            $data['name'] = I('post.name');
+            $data['doctype'] = I('post.type');
+            $data['edittime'] = time();
+            $data['edituid'] = UID;
+            $data['edituname'] = get_nickname(UID) ?: get_username(UID);
+            $data['content'] = I('post.content');
+            //更新学习文档
+            M('doc_study')->where(['docid' => $docid])->save($data);
+            //将附件存入数据库
+            $upload = new \Think\Upload();
+            $info = $upload->upload();
+            $file_ids = array();
+            $c = C('DOWNLOAD_UPLOAD');
+            foreach ($info as $file) {
+                $file_arr = explode('.', $file['name']);
+                $fileList['name'] = $file_arr[0];
+                $fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+                $fileList['ext'] = $file['ext'];
+                $fileList['size'] = $file['size'];
+                $fileList['uid'] = UID;
+                $fileList['uname'] = get_nickname(UID) ?: get_username(UID);
+                $fileList['addtime'] = time();
+                $fileId = $this->document_model->file_insert($fileList);
+                array_push($file_ids, $fileId);
+            }
+            //更新文件标题
+            $labels = I('post.labels');
+            if (array_filter($labels)) {
+                $fls = array_combine($file_ids, array_filter($labels));
+                foreach ($fls as $k => $fl) {
+                    M('file')->where(array('fileid' => $k))->save(array('name' => $fl));
+                }
+            }
+            //			更新doc_study_file
+            foreach ($file_ids as $file_id) {
+                $study_list['docid'] = $docid;
+                $study_list['fileid'] = $file_id;
+                $study_list['uid'] = UID;
+                $study_list['uname'] = get_nickname(UID) ?: get_username(UID);
+                $study_list['addtime'] = time();
+                $sort = M('doc_study_file')->max('sort_order');
+                $study_list['sort_order'] = $sort + 1;
+                M('doc_study_file')->add($study_list);
+            }
+            $this->redirect($url);
+
+        } else {
+            $docid = I('get.docid');
+            $res = M('doc_study')->field('ds.docid,ds.doctype,ds.content,ds.name,d.d_assist')->alias('ds')
+                ->join('ot_dictionary d on d.d_key=ds.doctype')
+                ->where(['docid' => $docid])->find();
+            $files = M('doc_study_file')
+                ->field('f.fileid,f.name,f.ext')
+                ->alias('sf')
+                ->join('ot_file f on f.fileid=sf.fileid')
+                ->where(['sf.docid' => $docid])
+                ->select();
+            if ($res['d_assist'] == 'procedure') {
+                $doctype = M('dictionary')->field('d_key')->where(['d_assist' => 'procedure', 'd_code' => 'doc_study_type'])->select();
+                $url = "Knowledge/study1";
+                $this->assign('doctype', $doctype);
+                $this->assign('url', $url);
+            } elseif ($res['d_assist'] == 'summary') {
+                $doctype = M('dictionary')->field('d_key')->where(['d_assist' => 'summary', 'd_code' => 'doc_study_type'])->select();
+                $url = "Knowledge/study2";
+                $this->assign('doctype', $doctype);
+                $this->assign('url', $url);
+            } else {
+                $url = "Knowledge/study3";
+                $doctype = M('dictionary')->field('d_key')->where(['d_assist' => 'tpl', 'd_code' => 'doc_study_type'])->select();
+                $this->assign('doctype', $doctype);
+                $this->assign('url', $url);
+
+
+            }
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '工具', 'url' => U('Knowledge/study'));
+            if ($res['d_assist'] == 'procedure') {
+                $root_mbx[] = array('title' => '流程指导', 'url' => U($url));
+            } elseif ($res['d_assist'] == 'summary') {
+                $root_mbx[] = array('title' => '总结指导', 'url' => U($url));
+            } else {
+                $root_mbx[] = array('title' => '模板工具', 'url' => U($url));
+            }
+            $root_mbx[] = array('title' => $res['name'], 'url' => U('Knowledge/studyview?docid=' . $res['docid']));
+            $root_mbx[] = array('title' => '编辑文档', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('files', $files);
+            $this->assign('study', $res);
+            $this->display();
+        }
+    }
+
+    public function studyDel()
+    {
+        if (IS_POST) {
+            $docids = I('post.docid');
+            foreach ($docids as $id) {
+                $res = M('doc_study')->where(['docid' => $id])->delete();
+            }
+            if ($res) {
+                $this->success('删除成功', U('study'));
+            } else {
+                $this->error('删除失败', U('study'));
+            }
+        } else {
+            $docid = I('get.docid');
+            $files = M('doc_study_file')
+                ->field('f.fileid')
+                ->alias('sf')
+                ->join('ot_file f on f.fileid=sf.fileid')
+                ->where(['sf.docid' => $docid])
+                ->select();
+            //删除文档
+            $res = M('doc_study')->where(['docid' => $docid])->delete();
+            //假删除文件
+            $list['delete'] = 1;
+            foreach ($files as $vo) {
+                M('file')->where(['fileid' => $vo['fileid']])->save($list);
+            }
+            if ($res) {
+                $this->success('删除成功', U('study'));
+            } else {
+                $this->error('删除失败', U('study'));
+            }
+        }
+
+    }
+
+    public function studyOrder()
+    {
+        $idList = trim(I('post.docid'), ',');
+        $orderBy = I('post.orderBy');
+        $study = M('doc_study')->where("docid in ({$idList})")->order("{$orderBy}")->getField('sort_order,docid');
+        $idList = explode(",", $idList);
+        foreach ($study as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            M('doc_study')->where("docid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+
+    public function studyFileDel()
+    {
+        $fileid = I('get.fileid');
+        $res = M('doc_study_file')->where(['fileid' => $fileid])->delete();
+        //假删除file表
+        M('file')->where(['fileid' => $fileid])->save(['delete' => 1]);
+        if ($res) {
+            $this->ajaxReturn(['done' => 1]);
+        } else {
+            $this->ajaxReturn(['done' => false]);
+        }
+    }
+
+    public function taskview()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')->field("t.*,d2.d_key,d3.d_key as typename,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+        join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join("ot_dictionary d3 on d3.d_value = t.tasktype and d3.d_code='task_type'", 'left')
+            ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+            ->join("ot_service s on s.sid=t.sid", 'LEFT')
+            ->join('ot_module m ON m.mid = t.mid', 'LEFT')
+            ->join('ot_group g ON m.role = t.groupid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+
+        $doc = M("doc")->where("tid=$id and f.delete=0")->join('ot_file f on d.fileid=f.fileid', 'left')->join('ot_doc_type t on d.dtid=t.dtid', 'left')->
+        field(array(
+            't.name as tname',
+            'f.name as dname',
+            'savepath',
+            'size', 'views', 'd.uname', 'd.addtime', 'note', 'f.fileid'
+        ))->order('addtime desc')->select(array('alias' => 'd'));
+
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+        }
+        $this->assign('doc', $doc);
+
+        $task['finishcontent'] = strip_tags($task['finishcontent']);
+        $task['finishcontent'] = trim($task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\t", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace(" ", "", $task['finishcontent']);
+
+        $task['closereason'] = strip_tags($task['closereason']);
+        $task['closereason'] = trim($task['closereason']);
+        $task['closereason'] = ereg_replace("\t", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace(" ", "", $task['closereason']);
+
+        $this->assign('info', $task);
+        $wlist = M("TaskWarn")->where("tid='{$id}'")->order("addtime desc")->select();
+        $rlist = M("TaskComment")->where("tid='{$id}'")->order("addtime desc")->select();
+
+        $this->assign('wlist', $wlist);
+        $this->assign('rlist', $rlist);
+        //任务转阅列表
+        $readlist = M("Toread")->where("tid='{$id}'")->select();
+        $this->assign('readlist', $readlist);
+
+
+        //审核进程
+        $process = M("exprocess")->alias('e')->where("exid='" . $id . "' and type='任务审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+        $logs = M("Log")->where(array("outtype" => "ot_task", "outkey" => $id))->order("addtime asc")->select();
+
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_task", $vv['field']);
+                        switch ($vv['field']) {
+                            case "state":
+                                $mod = M("Dictionary");
+                                $orow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+
+        $project = M('Project')
+            ->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_offer o on p.oid = o.oid', 'LEFT')
+            ->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where('p.pid=' . $task['pid'])
+            ->find();
+
+        $project['description'] = htmlspecialchars_decode($project['description']);
+        $project['risk'] = htmlspecialchars_decode($project['risk']);
+        $project['feedback'] = htmlspecialchars_decode($project['feedback']);
+
+        $this->assign('p', $project);
+
+        $from_route_t = Cookie('__from_route_t__') ? Cookie('__from_route_t__') : '我的任务';
+        $from_url_t = Cookie('__from_url_t__') ? Cookie('__from_url_t__') : U('Task/index');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route_t, 'url' => $from_url_t);
+        $root_mbx[] = array('title' => $task['title'], 'url' => U('Task/view?id=' . $task['tid']));
+        $root_mbx[] = array('title' => '查看任务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url_t);
+
+        $this->display();
+    }
+}

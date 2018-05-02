@@ -1,0 +1,606 @@
+<extend name="Public/base" />
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+						class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+				
+						</block>
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+	<script>
+		$(function(){
+		    $("#searchform").prepend("<input type='hidden' name='id' value='{$p.pid}'>");
+		})
+	</script>
+	<style>
+		.icon_show span {
+			display: block;
+			position: absolute;
+			background: #21841d;
+			color: #fff;
+			right: -15px;
+			top: -5px;
+			font-weight: normal;
+			line-height: 15px;
+			border-radius: 100%;
+			min-width: 15px;
+			height: 15px;
+			text-align: center;
+			font-size: 12px;
+		}
+		.note-data{
+			cursor: pointer;
+		}
+		.add-data
+		{
+			color: #ffffff;
+			font-size: 12px;
+			position: relative;
+			padding: 1px 4px;
+			line-height: 16px;
+			text-decoration: none;
+			background-color: #21841d;
+			border-radius: 3px;
+			display: inline-block;
+		}
+		.note-data{
+			cursor: pointer;
+		}
+
+		.delete-data
+		{
+			color: #ffffff;
+			font-size: 12px;
+			position: relative;
+			padding: 1px 4px;
+			line-height: 16px;
+			text-decoration: none;
+			background-color: red;
+			border-radius: 3px;
+			display: inline-block;
+		}
+
+		#bysearchTab.active
+		{
+			background: #5e4ba4 !important;
+			color:#fff;
+    padding: 2px 10px 3px;
+    padding-bottom: 2px;
+    border: none !important;
+		}
+	</style>
+    <style>
+		tbody.sortable > tr.drag-shadow {display: none}
+		tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+		tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+		tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+		tbody.sortable-sorting {cursor: move;}
+		tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+		tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+		tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+		tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+        .navul{margin: 0;padding: 0}
+		.navul li {list-style: none;}
+		.navul li a{
+			display:block;
+			float:left;
+			font-size: 14px;
+			color: #999999 ;
+			padding: 0 15px 10px 15px;margin-bottom: 5px;margin-right: 5px;text-align: center;}
+		.outer.with-side #featurebar, .outer.with-side #titlebar {
+			margin-bottom: 10px;
+		}
+
+		.navul li.active a{
+			display:block;
+			float:left;
+			color: #000;
+			padding: 0 15px 10px 15px;
+            margin-bottom: 5px;
+            margin-right: 5px;
+            text-align: center;
+            border-bottom: 3px solid #FF7F24}
+
+		.outer.with-side #featurebar, .outer.with-side #titlebar {
+			margin-bottom: 10px;
+		}
+	</style>
+    <script>orderBy="{$orderBy}"</script>
+    	<script>
+        $(document).ready(function()
+        {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function()
+            {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function(e)
+                        {
+                            var orders = {};
+                            e.list.each(function(){
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function(){e.element.removeClass('drop-success');}, 800)
+                        }
+                    });
+            });
+
+            $('#projectTableList').on('sort.sortable', function(e, data)
+            {
+                var list = '';
+                for(i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('ProjectNew/updateOrder')}",{'psid' : list, 'orderBy' : orderBy},
+                	function(data){
+                        window.location.href = window.location.href;
+					}
+                );
+            });
+        });
+
+	</script>
+
+	<div id="featurebar">
+		<include file="Public:newtitle" />
+		<if condition="($p['state'] neq 2) && ($p['state'] neq -1) ">
+			<div class="actions">
+				<div class="btn-group">
+					<notempty name="_list">
+					<if condition="cando('ProjectNew/transactor',array($p['uid'],$p['pmuid']))">
+						<a id="tran" href="{:U('ProjectNew/transactor',array('pid'=>$p['pid']))}"  data-width="980" data-height="660" class="btn iframe">
+							<i class="icon-hand-right"></i>负责人</a>
+					</if>
+					<if condition="cando('ProjectNew/edit',array($p['uid'],$p['pmuid']))">
+						<a href="javascript:;" class="btn" onclick="bulk_edit()" ><i class="icon-edit"></i>编辑</a>
+					</if>
+					<if condition="cando('ProjectNew/servicearr',array($p['uid'],$p['pmuid']))">
+						<a href="{:U('ProjectNew/servicearr',array('pid'=>$p['pid']))}"  data-width="450" data-height="250" class="btn iframe"><i
+						class="icon-time"></i>排期</a>
+					</if>
+					<if condition="cando('ProjectNew/workbreak',array($p['uid'],$p['pmuid']))">
+							<a href="{:U('ProjectNew/workbreak?id='.$p['pid'])}"  data-width="800"
+							   data-height="400" title="{$p['name']}-批量启动" class="btn iframe"><i class="icon-random"></i>启动</a>
+					</if>
+
+					<!-- <if condition="cando('ProjectNew/serviceadd',array($p['uid'],$p['pmuid']))">
+						<a href="{:U('ProjectNew/serviceadd',array('pid'=>$p['pid']))}" class="btn"><i class="icon-plus"></i>新增任务</a>
+					</if> -->
+					<!-- <if condition="cando('ProjectNew/add_item',array($p['uid'],$p['pmuid']))">
+						<a href="{:U('ProjectNew/add_item',array('item_id'=>$p['pid'],'id'=>$p['pid']))}" class="btn "><i class="icon-download"></i>引入服务</a>
+					</if> -->
+					<a href="javascript:;"  id="export" class="btn"><i class="icon-file-excel"></i>导出Excel</a>
+					<a href="#" id="bysearchTab" class="btn"><i class="icon-search icon"></i>搜索</a>
+					</notempty>
+				</div>
+				</li>
+			</div>
+		</if>
+	<include file="Public/search" />
+</div>
+
+    <!-- 数据列表 -->
+  <div class="fnavbox">
+        <div>
+             <include file="Public:newfourtitle" />
+        </div>
+			<div class="actions">
+                <if condition="$p['tasknum']">
+                    <div class="btn-group">
+		任务已经安排完成，被指派的人员已经自动添加到「成员」列表。你可以进一步维护信息，也可以召开 <a href="{:U('Plan/innermeet?id='.$p['pid'])}" class="btn" style="float:none">内部启动会</a>
+				</div>
+                    <else/>
+                    <div class="btn-group">
+				接下来请根据项目范围确定的任务进行人员指派，已经明确执行人的可以直接在「编辑」状态下指派给执行人，未明确执行人的可以指派给负责人，由负责人进行具体指派。<br>
+在这个阶段，你将完成对项目整体资源的规划，确定项目团队人员，为召开内部启动会做准备。
+				</div>
+                </if>
+			</div>
+		<div class="clearfix"></div>
+</div>
+
+        <!--fourheading-->
+		<div id="" style="float: none">
+			<ul class="navul">
+				<li class="active"><a style=" width: 60px;padding: 2px" href="{:U('ProjectNew/resourcePlan?id='.$p['pid'])}">任务</a>  </li>
+				<li><a style="width: 60px;padding: 2px" href="{:U('ProjectNew/takepartindex?id='.$p['pid'])}">成员</a>  </li>
+			</ul>
+		</div>
+		<form action="{:U('bulk_edit',array('pid'=>$p['pid']))}" method="post" class="form-condensed">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr>
+		<th width="30px"></th>
+            <th class="text-left"><span class="sort" ectype="order_by" fieldname="title">任务</span></th>
+            <th width="60px"><span class="sort" ectype="order_by" fieldname="state">状态</span></th>
+		<th width="60px"><span class="sort" ectype="order_by" fieldname="pstime">开始</span></th>
+		<th width="60px"><span class="sort" ectype="order_by" fieldname="petime">结束</span></th>
+		<th width="50px"><span class="sort" ectype="order_by" fieldname="quans">数量</span></th>
+		<th width="60px"><span class="sort" ectype="order_by" fieldname="days">预周期</span></th>
+		<th width="60px"><span class="sort" ectype="order_by" fieldname="hours">预工时</span></th>
+            <th width="60px"><span class="sort" ectype="order_by" fieldname="assignedname">执行人</span></th>
+            <th width="80px"><span class="sort" ectype="order_by" fieldname="executee_name">负责人</span></th>
+
+            <th width="60px"><span class="sort" ectype="order_by" fieldname="milestone">里程碑</span></th>
+            <th width="50px"><span class="sort" ectype="order_by" fieldname="delivery">交付</span></th>
+		<th width="40px">文档</th>
+		<th width="80px">操作</th>
+            <if condition="$orderBy">
+                            <th width="50px"><span class="sort" ectype="order_by" fieldname="sort_order">排序</span></th>
+
+            </if>
+		</tr>
+    </thead>
+		<if condition="$orderBy">
+			<tbody class="sortable" id='projectTableList'>
+			<else/>
+			<tbody >
+		</if>
+		<notempty name="_list">
+		  <volist name="_list" id="l">
+                	<tr title="{$l.mname}-点击全选或取消" data-id="xxxx.{$l.mid}" onclick="checkall('{$l.mid}')" chell="0" style="cursor:pointer">
+                	<td style="background-color: #f1f1f1;color:#5e4ba4"></td>
+                	<th colspan="<if condition="$orderBy">13<else/>13</if>" style="background-color: #f1f1f1;color:#5e4ba4"> <if condition="$l['mname']">{$l.mname}<else/>非标准服务</if></th>
+                	<if condition="$orderBy">
+                    <td class="sort-handler" style="background-color: #f1f1f1;color:#5e4ba4"><i class="icon icon-move"></i></td>
+                	</if>
+                	</tr>
+                	<volist name="l.list" id="vo">
+		<tr  data-id="{$vo.psid}" data-order="{$vo['sort_order']}">
+            <td class="cell-id"><input class="ids" type="checkbox" pmid ="{$l.mid}"  name="id[]" value="{$vo.psid}" /></td>
+		
+			<td class="text-left"><i style="position: relative;font-style: normal;" class="icon_show">
+				<if condition="$vo['o_name']">{$vo['o_name']}-</if>{$vo.title}
+			</i>
+				<if condition="$vo['bulb']">
+					<a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.sname}-指导备注"  data-width="1000"
+					   data-height="600" class="iframe">
+						<i class="icon-lightbulb"></i></a>
+				</if>
+				<if condition="$vo['op_text'] eq '新增'">
+					<span class="add-data">新增</span>
+					<elseif condition="$vo['op_text'] eq '删除'"/>
+					<span class="delete-data">删除</span>
+					</if>
+
+
+			</td>
+			<td>{$vo.state}</td>
+			<td>{$vo.pstime|time_format=###,'y/m/d'} </td>
+			<td>{$vo.petime|time_format=###,'y/m/d'}</td>
+			<td>{$vo.quans}</td>
+			<td>{$vo.days}d</td>
+			<td>{$vo.hours}h</td>
+			<td>{$vo.assignedname}</td>
+			<td>{$vo.executee_name}</td>
+			<td><eq name="vo.milestone" value="1">
+					<img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png" ectype="inline_edit" fieldname="milestone" fieldid="{$vo.psid}" fieldvalue="1" />
+					<else/>
+					<img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="milestone" fieldid="{$vo.psid}" fieldvalue="0"/>
+
+				</eq>
+			</td>
+			<td>
+				<eq name="vo.delivery" value="1">
+					<img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png" ectype="inline_edit" fieldname="delivery" fieldid="{$vo.psid}" fieldvalue="1" />
+					<else/>
+					<img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="delivery" fieldid="{$vo.psid}" fieldvalue="0"/>
+
+				</eq>
+			</td>
+			<td>
+				<if condition="$vo['sdc']">
+					<a href="{:U('ProjectNew/servicedoc',array('sid'=>$vo['sid']))}"  title="需提交文档" data-width="600" data-height="400" class="iframe"><i
+							class="icon-file-word"></i></a>
+				</if>
+			</td>
+			<td>
+				<if condition="$vo['state']==0">
+<if condition="cando('ProjectNew/servicedit',array($p['uid'],$p['pmuid']))">
+				<a href="{:U('servicedit',array('id'=>$vo['psid']))}"
+						>编辑</a></if>
+						<if condition="cando('ProjectNew/servicedelete',array($p['uid'],$p['pmuid']))">
+				<a href="{:U('ProjectNew/servicedelete?id='.$vo['psid'])}"
+					class="confirm ajax-get">删除</a></if>
+				</if>
+			</td>
+            <if condition="$orderBy">
+                    <td class="sort-handler"><i class="icon icon-move"></i></td>
+                </if>
+		</tr>
+		</volist></volist>
+		<else />
+            <if condition="$orderBy">
+                <td colspan="15" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+                <else/>
+                 <td colspan="14" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+            </if>
+
+		</notempty>
+	</tbody>
+        		<notempty name="_list">
+	<tfoot>
+			<tr>
+                <if condition="$orderBy">
+                    <td colspan='15'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+						<!--<if condition="cando('ProjectNew/edit',array($p['uid'],$p['pmuid']))">
+						<button class="btn btn-default" onclick="bulk_edit()" >批量编辑</button></if>-->
+						<if condition="cando('ProjectNew/servicedelete',array($p['uid'],$p['pmuid']))"><button class="btn btn-default ajax-post confirm"
+									url="{:U('ProjectNew/servicedelete')}"
+									target-form="ids">删 除</button></if>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+                <else/>
+                <td colspan='14'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+						<button class="btn btn-default ajax-post confirm" url="{:U('ProjectNew/servicedelete')}" target-form="ids">删 除</button>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+                </if>
+
+			</tr>
+		</tfoot>
+                </notempty>
+    </table>
+		</form>
+		<if condition="$logs">
+		<fieldset id="actionbox" class="actionbox" style="margin-top: 20px">
+			<legend>
+				<i class="icon-time"></i> 操作记录 <a class="btn-icon"
+												  href="javascript:;" onclick="toggleOrder(this)"> <span
+					title="切换顺序" class="log-asc icon-"></span> </a> <a class="btn-icon"
+																	   href="javascript:;" onclick="toggleShow(this);"><span
+					title="切换显示" class="change-show icon-"></span> </a>
+			</legend>
+			<ol id="historyItem">
+				<foreach name="logs" item="l" key="k" >
+					<li value="{$k+1}">
+            <span class="item">
+		        {$l.addtime|time_format}, 由 <strong>{$l.uname}</strong> {$l.action|ac_name}。
+		    <if condition="$l.hs &&count($l.hs) gt 0 ">
+		    	<a id="switchButton{$l.logid}" class="switch-btn btn-icon" onclick="switchChange({$l.logid})" href="javascript:;"><i class="change-show icon-"></i></a>
+		    </if>
+        	</span>
+						<if condition="!empty($l['comment'])">
+							<div class="history">
+								<div class="changes hide alert" id="changeBox{$l.logid}">
+									<volist name="l.hs" id="h">
+										修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为 "{$h.newdata}"。<br>
+									</volist>
+
+								</div>
+								<div class="article-content comment4" style="padding: 0px" >{$l.comment}</div>
+							</div>
+							<else/>
+							<div class="changes hide alert" id="changeBox{$l.logid}">
+								<volist name="l.hs" id="h">
+									修改了 <strong><i>{$h.fname}</i></strong>，旧值为 "{$h.olddata}"，新值为 "{$h.newdata}"。<br>
+								</volist>
+
+							</div>
+						</if>
+					</li>
+				</foreach>
+			</ol>
+		</fieldset>
+		</if>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+
+	<script type="text/javascript">
+		/*$('.ids').click(function(){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            var url = '/index.php?s=/Admin/ProjectNew/transactor/psids/'+items;
+            $('#tran').attr("href",url);
+
+        });
+		$('.rows-selector').click(function(){
+            var items = '';
+            $('.ids').attr('checked', this.checked);
+
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            var url = '/index.php?s=/Admin/ProjectNew/transactor/psids/'+items;
+            $('#tran').attr("href",url);
+		});*/
+		$(function(){
+            /*$('.note-data').each(function () {
+                    $(this).qtip({
+                        content: {
+                            title: $(this).data('title'),
+                            text:$(this).data('html'),
+                        },
+                        show: 'mouseover',
+                        hide:  'mouseover'
+                    });
+                }
+            );*/
+		});
+        $('#projectTip').mouseover(function () {
+            $('#projectTip').popover({"html": true, trigger: "focus"});
+            $('#projectTip').popover('show');
+        });
+        $('#projectTip').mouseleave(function () {
+            $('#projectTip').popover({"html": true, trigger: "focus"});
+            $('#projectTip').popover('hide');
+        });
+		function getitems(){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            return items;
+		}
+		function pnames(){
+		    var pname = "{$p.name}";
+		    return pname;
+		}
+
+        function choose(){
+            $.closeModal();
+            window.location.href= "{:U('ProjectNew/view',array('id'=>$p['pid']))}";
+        }
+        function choose1(){
+            $.closeModal();
+            window.location.href= "{:U('ProjectNew/service',array('id'=>$p['pid']))}";
+        }
+        function choose2(){
+            $.closeModal();
+        }
+        function bulk_edit(){
+            $('form').submit();
+        }
+        function workbreak(content,pid) {
+            var psids = $('#psids').val();
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            $.ajax({
+                type: "POST",
+                url: "{:U('ProjectNew/workbreak')}",
+                data: {content: content, pid: pid, psids: items},
+                dataType: "json",
+                success: function (data) {
+                    if (data.done) {
+                        choose();
+                    } else {
+                        alert(data.msg);
+                    }
+                }
+            });
+        }
+        function servicearr(pstime,pid){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            $.ajax({
+                type: "POST",
+                url: "{:U('ProjectNew/servicearr')}",
+                data: {pid:pid,pstime:pstime, psids: items},
+                dataType: "json",
+                success: function(data){
+                    if(data.done){
+						choose1();
+                    }else {
+                        alert(data.msg);
+                    }
+                }
+            });
+		}
+        function transactor(pstime,pid){
+            var items = '';
+            $('.ids:checked').each(function () {
+                items += $(this).val() + ',';
+            });
+            items = items.substr(0, (items.length - 1));
+            $.ajax({
+                type: "POST",
+                url: "{:U('ProjectNew/transactor')}",
+                data: {pid:pid,pstime:pstime, psids: items},
+                dataType: "json",
+                success: function(data){
+                    if(data.done){
+                        choose1();
+                    }else {
+                        alert(data.msg);
+                    }
+                }
+            });
+        }
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+	 $("#export").click(function(){
+        	 var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+        	 $("#searchform").append(my_input);
+        	 $("#searchform").submit();
+        	 $("[name='exportexcel']").val("");
+ 	    	 $("#searchform").attr("target","");
+        });
+	 function checkall(mid){
+	     var has = true;
+         $("[pmid="+mid+"]").each(function () {
+            var check = $(this).attr('checked');
+			if(check != 'checked'){
+				has = false;
+				return false;
+			}
+         });
+         if(has){
+             $("[pmid="+mid+"]").each(function () {
+                 $(this).attr('checked',false);
+                 $(this).parent().parent().removeClass("active");
+             });
+		 }else{
+             $("[pmid="+mid+"]").each(function () {
+                 $(this).attr('checked',true);
+                 $(this).parent().parent().addClass("active");
+             });
+		 }
+	 }
+
+    //导航高亮
+    highlight_subnav("{$from_url}");
+    
+    var ajaxurl="{:U('ProjectNew/service_ajax_col')}";
+	</script>
+</block>

@@ -1,0 +1,79 @@
+<extend name="Public/base_choose" />
+<block name="body">
+<style>
+#titlebar1 {
+	background: #f8fafe;
+	border-bottom: 1px solid #e5e5e5;
+	min-height: 46px;
+	min-height: 20px\0;
+	padding: 0 10px;
+	vertical-align: bottom;
+	position: relative;
+	margin-top: -20px;
+}
+</style>
+<div class="outer">
+	
+	<div class="row-table">
+		<div class="col-main">
+			<div class="main" style="margin-left: 0; padding: 0 10px">
+				<if condition="$list['description']">
+					<div class="content" style="margin:0 0 20px 0">{$list['description']}</div>
+				</if>
+				<notempty name="doc">
+				<div class="data-table table-striped">
+					<table
+						class="table table-condensed table-hover table-striped tablesorter table-fixed"
+						style="text-align: center; font-size: 13px">
+						<thead>
+							<tr>
+								<th width="10px"></th>
+								<th style="text-align: left">文档名称</th>
+								<th style="text-align: left">附件</th>
+								<th style="width: 140px">添加时间</th>
+								<th style="width: 100px">添加人</th>
+							</tr>
+						</thead>
+						<tbody>
+							<notempty name="doc"> <volist name="doc" id="vo">
+							<tr>
+								<td class="cell-id"></td>
+								<td style="text-align: left"><a
+									href="{:U('Offer/modulehelp',array('mhid'=>$vo['mhid']))}">{$vo.title}</a>
+								</td>
+								<td style="text-align: left">
+									<div class="content">
+										<notempty name="vo['fujian']">
+											<volist name="vo['fujian']" id="v">
+												<span style="display:inline-block;padding:5px 5px">{$v.name}</span>
+												<a href="{:U('doc/download?fid='.$v['fileid'])}" target="_blank" title="点击下载文件">下载</a>
+												<a href="{:U('doc/view?fid='.$v['fileid'])}" target="_blank"  title="{$v.name} 预览">
+													<span class="download">预览</span></a></br>
+											</volist>
+											<else/>
+										</notempty>
+									</div>
+								</td>
+								<td>{$vo.addtime|time_format=###,'Y-m-d H:i:s'}</td>
+								<td>{$vo.nickname}</td>
+							</tr>
+							</volist> <else /> </notempty>
+						</tbody>
+						<tfoot>
+							<tr>
+							</tr>
+						</tfoot>
+					</table>
+				</div></notempty>
+			</div>
+			</if>
+		</div>
+	</div>
+</div>
+
+</block>
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Notice/index')}");
+    </script> </block>

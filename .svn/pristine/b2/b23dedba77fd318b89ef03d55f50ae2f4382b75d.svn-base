@@ -1,0 +1,149 @@
+<?php
+
+namespace Studio\Controller;
+use Think\Page;
+use Common\Common\Super\Order;
+/**
+ * 任务管理-硅胶翻模：zlx
+ *
+ */
+class OrderTaskGjController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('OrderTask');    // 订单任务
+	}
+
+    //首页
+    public function index(){
+        $stuid = $this->get_stuid(UID);    // 工作室id
+        $where = "1=1 and o.stuid = {$stuid} and t.tasktype = 'STUDIO_TASK_GJ'";
+
+        $filter= '';
+
+        $order_sn = empty($_GET['order_sn'])?'':trim($_GET['order_sn']);//订单编号
+        if($order_sn){
+            $filter .= " and o.order_sn like '%{$order_sn}%'";
+        }
+
+        $tname = empty($_GET['tname'])?'':trim($_GET['tname']);//任务名称
+        if($tname){
+            $filter .= " and t.tname like '%{$tname}%'";
+        }
+
+        $finishname = empty($_GET['finishname'])?'':trim($_GET['finishname']);//完成人
+        if($finishname){
+            $filter .= " and m.nickname like '%{$finishname}%'";
+        }
+
+
+        $state = empty($_GET['state'])?'':trim($_GET['state']);//任务状态
+        if($state){
+            $filter .= " and t.state = '{$state}'";
+        }
+
+        $isurgent = empty($_GET['isurgent'])?'':trim($_GET['isurgent']);//是否加急
+        $isurgent == 1 and  $filter .= " and t.isurgent = 1";
+        $isurgent == 2 and  $filter .= " and t.isurgent = 0";
+
+        $where .= $filter;
+        $count = $this->model->alias('t')->join("ot_order o on t.oid = o.order_id")->join("ot_member m on m.uid = t.finishuid","left")
+            ->join("ot_order_ext1 ot on ot.oid = o.order_id")
+            ->where($where)
+            ->count();
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('t')
+            ->join("ot_order o on t.oid = o.order_id")
+            ->join("ot_order_ext1 ot on ot.oid = o.order_id")
+            ->join("ot_member m on m.uid = t.finishuid","left")
+            ->where($where)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        // echo  $this->model->_sql();
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+
+        $this->display();
+    }
+
+    //接受任务
+    public function confirm(){
+        $order_id = empty($_POST['id']) ? '' : trim($_POST['id']);
+        $task_id = empty($_POST['task_id']) ? '' : trim($_POST['task_id']);
+        $time = time();
+        if (IS_POST) {
+            $finishnote = empty($_POST['finishnote']) ? '' : trim($_POST['finishnote']);
+            if(Order::checkorder($order_id)==0){
+                $this->error(L('S_TASK_ERROR_1'));
+            }
+            $order = M("order")->where("order_id=".$order_id)->find();
+            if($order['state']!=Order::ALREADY){
+                $this->error(L('S_TASK_GJ_ERROR_1'));
+            }
+
+            //订单状态是否是已接收
+            if ($order['state'] != 20) {
+                $this->error(L('S_TASK_GJ_ERROR_2'));
+            }
+            //是否是种植业务
+            if ($order['servicetype'] != 10) {
+                $this->error(L('S_TASK_ERROR_4'));
+            }
+            //口内模型是否是实物
+            $order_ext = M('Order_ext1')->where("oid=".$order_id)->find();
+            if (empty($order_ext)) {
+                $this->error(L('S_TASK_ERROR_6'));
+            }
+            if ($order_ext['mmodel'] != 'silica_gel') {
+                $this->error(L('S_TASK_ERROR_5'));
+            }
+
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+
+            //修改完成人和说明
+            $res_data = array(
+                'tastkid'=>$task_id,
+                'finishnote'=>$finishnote,
+                'finishtime'=>$time,
+                'finishuid'=>UID,
+                'state'=>1,
+            );
+            $res = M('Order_task')->save($res_data);
+
+            //生成石膏数字化任务
+            $tname =  L('S_TASK_ORDER').$order['order_sn'].L('S_TASK_GJ_MSG_1');
+            $tid = Order::add_task(array('oid' => $order_id, 'tname' =>$tname, 'tasktype' => 'STUDIO_TASK_SG', 'uid' => '' ,'note'=>$tname));
+
+            //给客户发消息
+            $title = "您的订单".$order['order_sn'].'状态已变更';
+            $content = "工作室".$order['stuname']."将订单为".$order['order_sn'].'的订单状态改为'.L('COST_CONFIRMED');
+            $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$order['uid'], 'addtime' => $time,'title' => $title,'content' => $content, 'outtype' => 'client_order' ,'outkey'=>$order_id));
+            //写入订单操作记录
+            $log_id= Order::action_order_log(array('oid' => $order_id, 'uid' =>$order['uid'], 'addtime' => $time, 'state' => Order::DIGITIZED ,'note'=>''));
+
+            //写入订单操作记录，修改订单状态 设计资料已接收
+            if($msg_id&&$tid&&$log_id&&$res){
+                $Model->commit(); // 成功则提交事务
+                $this->json_result ( array (), L('S_TASK_GJ_SUC'), false );
+            }else{
+                $Model->rollback(); // 否则将事务回滚
+                $this->error(L('S_TASK_GJ_ERROR'));
+            }
+        }
+    }
+
+    //工作室ID
+    public function get_stuid($uid){
+        $user = M('Member')->where("uid=".$uid)->find();
+        return $user['stuid'];
+    }
+}

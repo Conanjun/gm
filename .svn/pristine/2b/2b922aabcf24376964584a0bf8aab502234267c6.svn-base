@@ -1,0 +1,119 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('Region/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('REGION_MAINTAIN')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Region/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/Region/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('REGION_NAME')}</label>
+                                                <input class="form-control" type="text" name="region_name" value="{$Think.get.region_name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER')}</label>
+                                                <input class="form-control" type="text" name="sort_order" value="{$Think.get.sort_order}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('Region/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th><label><input type="checkbox" class="check-all i-checks"></label></th>
+                                    <th><span ectype="order_by" fieldname="region_name">{:L('REGION_NAME')} <i class="fa fa-sort"></i></span></span></th>
+									<th><span ectype="order_by" fieldname="parent_id">{:L('REGION_PNAME')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="sort_order">{:L('ORDER')}<i class="fa fa-sort"></i></span></th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                                <label>
+                                                    <input type="checkbox" name="check" value="{$vo['region_id']}" class="check i-checks">
+                                                </label>
+                                            </td>
+                                            <td>{$vo['region_name']}</td>
+											<td>{$vo['parent_name']}</td>
+                                            <td>{$vo['sort_order']}</td>
+                                            <td>
+                                                <a href="{:U('Region/edit?id='.$vo['region_id'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                <a href="{:U('Region/deletedata?id='.$vo['region_id'])}" class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-default">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

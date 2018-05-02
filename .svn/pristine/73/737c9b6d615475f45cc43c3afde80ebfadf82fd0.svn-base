@@ -1,0 +1,4221 @@
+<?php
+
+namespace Admin\Controller;
+
+/*
+ * 报价单控制器
+ */
+use Admin\Common\Super\Api;
+
+
+class OfferController extends AdminController
+{
+    // 定义数据表
+    private $db;
+    private $pro_module;
+
+    // 构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->db = D('Offer');
+        $this->pro_module = D('ProjectConfig');
+    }
+
+    public function sview()
+    {
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("您要操作的报价单不存在");
+        }
+
+        $offer = $this->db->field('o.*,m1.shortsign as cname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')->where("oid = " . $id)->find();
+
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+        $this->assign('o', $offer);
+
+        if ($offer['static'] == 2) {
+            $this->assign("hide", "1");
+        }
+        $model = M("OfferSub");
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))) {
+                $sort = 'osid';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'osid';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+        $where['_string'] .= " and os.oid='{$id}'";
+
+        $offersub = $model->field(array('os.*', 's.required as s_required', 's.description as s_description', 'm.name as o_name', 'p.name as p_name', 'p.pid as pid', 'os.quantity',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            'm1.name as remid_name', 'os.required as r1'))->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->order($sort . " " . $order)->select();
+        foreach ($offersub as $key => $val) {
+            if ($val['s_description']) {
+                $offersub[$key]['title_show'] = strip_tags(htmlspecialchars_decode($val['s_description']));
+            } else {
+                if ($val['ganme']) {
+                    $offersub[$key]['title_show'] = $val['ganme'] . '-' . $val['p_name'] . '-' . $val['o_name'];
+                } else {
+                    $offersub[$key]['title_show'] = $val['p_name'] . '-' . $val['o_name'];
+                }
+            }
+            $offersub[$key]['is_del'] = 0;
+            if ($val['s_required'] == 0) {
+                $offersub[$key]['is_del'] = 1;
+            } elseif ($val['s_required'] == 3) {
+                $num = M("OfferSub")->where("oid='" . $id . "' and mid='" . $val['is_required'] . "'")->count();
+                if ($num < 1) {
+                    $offersub[$key]['is_del'] = 1;
+                }
+            }
+        }
+
+        $nlist = array();
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                $nlist[$v['pid']]['mid'] = $v['pid'];
+                $nlist[$v['pid']]['mname'] = $v['p_name'];
+                $nlist[$v['pid']]['list'][] = $v;
+            }
+        }
+
+        $all_amount = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.amount');
+
+        $all_days = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.days');
+
+        $all_hours = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.hour');
+        //$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        //$this->assign('_page', $page->show());
+        $this->assign('offer', $nlist);
+        $this->assign('all_amount', $all_amount);
+        $this->assign('all_days', $all_days);
+        $this->assign('all_hours', $all_hours);
+        $this->assign('oid', $id);
+
+        $this->assign('offer', $nlist);
+        $this->assign('oid', $id);
+        $this->display();
+    }
+
+    public function printedit()
+    {
+        $id = I("request.id");
+
+        if (empty ($id)) {
+            $this->error('报价单不存在！');
+        }
+
+        if (!IS_POST) {
+
+            $offer = $this->db->field('o.*,d.name as disoff_name,m1.shortsign as cname,m1.name as cuname')->alias('o')
+                ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+                ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')->where("oid = " . $id)->find();
+
+            $this->assign('offer', $offer);
+
+            if ($offer['apid']) {
+                $row = M("UcenterMember")->where("id='{$offer['apid']}'")->find();
+                if ($row) {
+                    $this->assign('email', $row['email']);
+                }
+            }
+            $where['_string'] = "  os.oid='{$id}'";
+            $offersub = M("OfferSub")->field(array('os.*', 'm.name as o_name',
+                'g.name as ganme',
+                "pc.type as pctype", "pc.pid as pcid", "pc.parentid as ppid", "os.quantity"))->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+                ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+                ->join('ot_project_config pc ON pc.pid = m.pid', 'LEFT')
+                ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+                ->where($where)->order("os.osid desc")->select();
+
+            $jcbj = 0;
+
+            if ($offersub) {
+                foreach ($offersub as $k => $v) {
+                    $jcbj += floatval($v['amount']);
+                }
+            }
+
+            $this->assign('jcbj', $jcbj);
+            $this->assign('offers', $offersub);
+
+            $this->assign('s', floatval($offer['amount_tax'] - $offer['amount_notax']));
+            $disoff = intval($offer['disoff']);
+            $this->assign('zk', empty($disoff) ? 0 : 100 - $offer['disoff']);
+            $this->assign('zkm', empty($disoff) ? 0 : floatval($offer['amount_tax'] * (100 - $offer['disoff']) / 100));
+            $process = M("exprocess")->alias('e')->where("exid='" . $id . "' and type='报价单审核'")->order('e.order asc')->select();
+            $this->assign('process', $process);
+
+            $this->display();
+        } else {
+            $name = I('post.toname', '');
+            $subid = I("post.subid", "");
+            $note = I("post.note", "");
+
+
+            $data = array('oid' => $id, 'toname' => $name);
+
+            D("Offer")->save($data);
+
+            if ($subid) {
+                foreach ($subid as $k => $v) {
+                    $data = array('osid' => $v, 'note' => $note[$k]);
+                    D("OfferSub")->save($data);
+                }
+            }
+
+            $this->success('修改成功！', U('Offer/printedit?id=' . $id));
+        }
+    }
+
+    public function printpage()
+    {
+        $id = I("get.id");
+        if (empty ($id)) {
+            $this->error('您要操作的报价单不存在！');
+        }
+
+        topdf1(C('OFFER_PRINT_URL') . $id . '.html', 1);
+    }
+
+    /*报价单- 所有*/
+    public function index()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    /*报价单- 已审批*/
+    public function examine()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/examine",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+
+        $re = strpos($where['_string'], 'o.static');
+        if (!$re) {
+            $where['_string'] .= " and (o.static=3 or o.static=-1)";
+        }
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价-已审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display('index');
+    }
+
+    /*报价单- 已提交*/
+    public function submit()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/submit",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+
+        $re = strpos($where['_string'], 'o.static');
+        if (!$re) {
+            $where['_string'] .= " and o.static=2";
+        }
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价-已提交', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display('index');
+    }
+
+    /*报价单- 新建*/
+    public function create()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/create",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+
+        $re = strpos($where['_string'], 'o.static');
+        if (!$re) {
+            $where['_string'] .= " and o.static=1";
+        }
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价-新建', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display('index');
+    }
+
+    /*报价单- 已生效*/
+    public function effect()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/effect",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+
+        $re = strpos($where['_string'], 'o.static');
+        if (!$re) {
+            $where['_string'] .= " and o.static=3";
+        }
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价-已生效', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display('index');
+    }
+
+    /*报价单- 已拒绝*/
+    public function refuse()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Offer/refuse",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'o.projectname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'o.static', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "1" => "新建", "2" => "已提交", "3" => "已生效", "-1" => "已拒绝"))
+            , 2 => array('str' => '编码', 'fieldname' => 'o.code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '销售机会', 'fieldname' => 'o.chance_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 4 => array('str' => '销售编号', 'fieldname' => 'o.chance_code', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '所有人', 'fieldname' => 'o.ownner', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '客户', 'fieldname' => 'o.cid', 'operator' => '=', 'control' => 'select', 'values' => '')
+            , 7 => array('str' => '联系人', 'fieldname' => 'o.contacts', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '联系电话', 'fieldname' => 'o.telno', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '合同', 'fieldname' => 'o.contract_number', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '项目经理', 'fieldname' => 'o.pmid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '核心服务', 'fieldname' => 'o.coreservice', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 12 => array('str' => '预计签约时间', 'fieldname' => 'o.signtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => "date")
+            , 13 => array('str' => '预计开始时间', 'fieldname' => 'o.starttime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 14 => array('str' => '创建人', 'fieldname' => 'o.uname', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 15 => array('str' => '创建时间', 'fieldname' => 'o.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            , 16 => array('str' => '基础报价金额', 'fieldname' => 'o.oamount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 17 => array('str' => '项目管理费金额', 'fieldname' => 'o.oper_cost', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 18 => array('str' => '管理费比例', 'fieldname' => 'o.oper_rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 19 => array('str' => '不含税金额', 'fieldname' => 'o.amount_notax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 20 => array('str' => '税率', 'fieldname' => 'o.rate', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '含税金额', 'fieldname' => 'o.amount_tax', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 22 => array('str' => '折扣', 'fieldname' => 'o.disoff', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '报价金额', 'fieldname' => 'o.amount', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 24 => array('str' => '周期', 'fieldname' => 'o.days', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 25 => array('str' => '工时', 'fieldname' => 'o.man_haur', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 26 => array('str' => '销售阶段', 'fieldname' => 'o.step', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 27 => array('str' => '可行性', 'fieldname' => 'o.possible', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 28 => array('str' => '药品名', 'fieldname' => 'o.drug_name', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 29 => array('str' => '治疗领域', 'fieldname' => 'o.therapy_area', 'operator' => '=', 'control' => 'select', 'values' => array())
+
+            ));
+        if ($config && $config['params']) {
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $mtypes = array("" => "");
+            $mdepts = array("" => "");
+            $mpm = array("" => "");
+            $mcm = array("" => "");
+            $mor = array("" => "");
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                    $mcm[$v['uid']] = $v['nickname'];
+
+                }
+            }
+            //管理费比例
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select();
+            if ($oper_rates) {
+                foreach ($oper_rates as $vo) {
+                    $mor[$vo['d_value']] = $vo['d_key'];
+                }
+            }
+            $config['params'][18]['values'] = $mor;
+            //销售阶段
+            $mstep = array("" => "");
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select();
+            if ($steps) {
+                foreach ($steps as $vo) {
+                    $mstep[$vo['d_key']] = $vo['d_value'];
+                }
+            }
+            $config['params'][26]['values'] = $mstep;
+            //药品领域
+            $mta = array("" => "");
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select();
+            if ($therapy_areas) {
+                foreach ($therapy_areas as $ta) {
+                    $mta[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][29]['values'] = $mta;
+            if ($disdefines) {
+                foreach ($disdefines as $v) {
+                    $mtypes[$v['dis']] = $v['name'];
+                }
+            }
+            if ($cs) {
+                foreach ($cs as $v) {
+                    $mdepts[$v['cid']] = $v['name'];
+                }
+            }
+            $mrate = array("" => "");
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            if ($rates) {
+                foreach ($rates as $ta) {
+                    $mrate[$ta['d_value']] = $ta['d_key'];
+                }
+            }
+            $config['params'][20]['values'] = $mrate;
+            $config['params'][6]['values'] = $mdepts;
+            $config['params'][10]['values'] = $mpm;
+            $config['params'][22]['values'] = $mtypes;
+        }
+
+        $this->setSearchConfig($config);
+
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'addtime';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+
+        $re = strpos($where['_string'], 'o.static');
+        if (!$re) {
+            $where['_string'] .= " and o.static=-1";
+        }
+        $where['_string'] .= " and o.uid = " . UID;
+
+        $page = new \Think\Page ($this->db->alias('o')->where($where)->count(), 20);
+        $offer = $this->db
+            ->field('o.*,c.shortsign as cname,d1.d_key staticname')
+            ->alias('o')
+            ->join('ot_customer c on c.cid = o.cid', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where($where)->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)->select();
+
+        /* echo $this->db->getLastSql();*/
+
+        if ($offer) {
+            foreach ($offer as $k => $v) {
+                $offer[$k]['coreservice'] = str_replace("└", "", str_replace(" ", "", $v['coreservice']));
+                if ($v['disoff'] != '0.00') {
+                    $disoff_name = floatval(trim($v['disoff'], '0'));
+                    $offer[$k]['disoff'] = $disoff_name . '%';
+                } else {
+                    $offer[$k]['disoff'] = '';
+                }
+            }
+        }
+
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('offer', $offer);
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价-已拒绝', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display('index');
+    }
+
+    function suc($message, $url1, $url2, $url3, $url4)
+    {
+        $this->assign('message', $message);// 提示信息
+        // 成功操作后默认停留1秒
+        $this->assign('waitSecond', '1');
+
+        if (!empty($url1)) $this->assign('jumpUrl1', $url1);
+        if (!empty($url2)) $this->assign('jumpUrl2', $url2);
+        if (!empty($url1)) $this->assign('jumpUrl3', $url3);
+        if (!empty($url2)) $this->assign('jumpUrl4', $url4);
+
+        $this->display("suc");
+    }
+
+    /**
+     * 添加报价单
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            // 获取表单数据
+            $data = $this->db->create();
+            // 获取报检编码并判断是不是唯一
+            $code = get_rand_number('O', D('Offer'));
+            //治疗领域
+            $therapy_area = $data['therapy_area'];
+            if (is_array($therapy_area) && !empty($therapy_area)) {
+                $therapy_area = implode(',', $therapy_area);
+            } else {
+                $therapy_area = '';
+            }
+            $disoff = $data ['disoff'];
+            $data1 = array(
+                'code' => $code,
+                'projectname' => $data ['projectname'],
+                'type' => $data ['type'],
+                'chance' => $data ['chance'],
+                'chance_code' => $data ['chance_code'],
+                'contract_number' => $data ['contract_number'],
+                'disoff' => $disoff,
+                'signtime' => strtotime($data ['signtime']),
+                'starttime' => strtotime($data ['starttime']),
+                'ownner' => get_nickname($data ['ownner']) ? get_nickname($data ['ownner']) : get_username($data ['ownner']),
+                'ownner_id' => $data ['ownner_id'],
+                'possible' => $data ['possible'],
+                'addtime' => time(),
+                'uid' => UID,
+                'uname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'step' => $data ['step'],
+                'rate' => $data ['rate'],
+                'oper_rate' => $data ['oper_rate'],
+                'description' => $data ['description'],
+                /*'pm' => $data ['pm'],
+			 'pmid' => $data ['pmid'],*/
+                'ap' => get_nickname($data ['apid']) ? get_nickname($data ['apid']) : get_username($data ['apid']),
+                'apid' => $data ['apid'],
+                'cid' => $data ['cid'],
+                'contacts' => $data ['contacts'],
+                'telno' => $data ['telno'],
+                'static' => I('get.act'),
+                "drug_name" => $data['drug_name'],
+                "therapy_area" => $therapy_area,
+            );
+            $tmp = $this->db->add($data1);
+            if (!$tmp) {
+                $this->error('创建报价单失败，请重试！');
+            } else {
+                action_log_new(array('outtype' => 'ot_offer', 'outkey' => $tmp, 'action' => 'create', 'comment' => ''));
+                $files = array_filter($_FILES['files']['tmp_name']);
+                if (!empty($files)) {
+                    $Picture = D('Admin/Picture');
+                    $pic_driver = C('PICTURE_UPLOAD_DRIVER');
+                    C('PICTURE_UPLOAD.exts', 'jpg,gif,png,jpeg,bmp,icon,zip,rar,tar,gz,7z,doc,docx,txt,xml,ppt,pdf,xls,xlsx,pptx,log,pdm,avi,rmvb,mp4,mp3,ogg,wps');
+                    $info = $Picture->upload($_FILES, C('PICTURE_UPLOAD'), C('PICTURE_UPLOAD_DRIVER'), C("UPLOAD_{$pic_driver}_CONFIG")); // TODO:上传到远程服务器
+                    if ($info) {
+                        foreach ($info as $values) {
+                            $fdata = array("uid" => UID, "uname" => get_nickname(UID), "name" => $values['name'], 'savepath' => '.' . $values['path']
+                            , 'ext' => $values['ext'], 'size' => $values['size'], 'addtime' => time());
+                            $fileid = M("File")->add($fdata);
+                            if ($fileid) {
+//                                        $this->db->save(array("oid" => $tmp, 'file_id' => $fileid));
+                                M('offer_file')->add(array('oid' => $tmp, 'fileid' => $fileid));
+                            }
+                        }
+                    }
+                }
+
+                //$this->redirect('Offer/index');
+                $this->suc("报价基本信息创建成功，您现在可以进行以下操作：", U('Offer/adddetail?oid=' . $tmp), U("Offer/veiw?id=" . $tmp), U("Offer/edit?id=" . $tmp), U("Offer/index"));
+
+            }
+        } else {
+            $cost['email'] = get_email(UID);  //  LGW
+            // $cost['email'] = 'zhangm@dxy.cn'; //存在的用户
+            // 销售机会
+            $opportunty = apiRead(Api::OPPORTUNITY, Api::DXY_CRM, $cost);
+            $opportuntys = [];
+            $opportunty['success'] and $opportuntys = $opportunty['data'];
+            $this->assign('opportuntys', $opportuntys);
+            // 合同
+            $cost['from']='offer';
+            $contract = apiRead(Api::CONTRACT, Api::DXY_CRM, $cost);
+            $contracts = [];
+            if ($contract['success']) {
+                foreach ($contract['data'] as $k => $v) {
+                    $v['contract_no'] and $contracts[$k] = $v;
+                }
+
+            }
+            $this->assign('contracts', $contracts);
+
+            // 核心服务
+            $modules = M('Module')->field(true)->where("pid=''")->select();
+            $this->assign('modules', $modules);
+            // 业务类型
+            $types = M('dictionary')->where("d_code = 'offer_type'")->field(true)->select(array('order' => 'd_order asc'));
+            $this->assign('types', $types);
+            // 审核流程
+            $examines = M('dictionary')->where("d_code = 'offer_examine'")->field(true)->select(array('order' => 'd_order asc'));
+            $examines = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $examines);
+            $this->assign('examines', $examines);
+            // 折扣
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $this->assign('disdefines', $disdefines);
+            $this->assign('now', date('Y/m/d'), time());
+
+            $ses = M("Member")->where("status=1")->select();
+            $this->assign('ses', $ses);
+
+            $cs = M('Customer')->where("enabled=1")->select();
+            $this->assign('cs', $cs);
+
+
+            $pro = D('ProjectConfig')->field(true)->where('grade<5 and enabled =1')->select();
+            $pro = D('Common/Tree')->toFormatTree($pro, 'name', 'pid', 'parentid');
+            $this->assign('pro', $pro);
+
+            $rates = array();
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            $this->assign('rates', $rates);
+
+            $oper_rates = array();
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select(array('order' => 'd_order asc'));
+            $this->assign('oper_rates', $oper_rates);
+
+            $therapy_areas = array();
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+            $this->assign('therapy_areas', $therapy_areas);
+
+            $steps = array();
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select(array('order' => 'd_order asc'));
+            $this->assign('steps', $steps);
+
+            $this->meta_title = '添加报价单';
+
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('pm', $pm);
+            //可能性
+            //$probably = M('dictionary')->field('d_key')->where("d_code='offer_probably'")->order('d_order asc')->select();
+            //$this->assign('probably', $probably);
+            $this->assign('loginid', UID);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => '我的报价', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => '创建报价单', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+
+            $this->display();
+        }
+    }
+
+    /** ajax获取客户的信息
+     *
+     */
+    public function ajaxGetCustomer()
+    {
+        $cname = I('get.cname');
+        $map = [];
+        $map['name'] = $cname;
+        $cid = M('Customer')->where($map)->getfield('cid');
+
+        if ($cid == null) $this->json_error('', false);
+
+        $this->json_result($cid, '', false);
+    }
+
+    private function _getChance()
+    {
+        $data = array("0" => array("iden" => "chance_1", "name" => "销售机会1", "customer" => "4", "contacts" => "张哈", "telno" => "15588888888", "type" => "软件管理", "ow" => "张哈", "yjamount" => "5000", "service" => "设计")
+        , 1 => array("iden" => "chance_2", "name" => "销售机会2", "customer" => "5", "contacts" => "李四", "telno" => "15533333333", "type" => "设计咨询", "ow" => "李四", "yjamount" => "1000", "service" => "测试"));
+
+
+        return $data;
+    }
+
+
+    public function delete()
+    {
+        $ids = array_unique((array)I('id', 0));
+        if (!$ids) {
+            $this->error('请选择要删除的数据！');
+        }
+        $error_note = '';
+        $success_note = '';
+        foreach ($ids as $vo) {
+            $main_off = M("offer")->where("oid='" . $vo . "'")->find();
+            $off = M("OfferVersion")->where("oid='" . $vo . "'")->find();
+            if (!cando1(array($main_off['uid']))) {//没有权限
+                $error_note .= '『' . $main_off['projectname'] . '』' . '删除失败' . ':' . ' 没有操作权限;' . "\n";
+                continue;
+            }
+            if (!empty ($off)) {//已审批
+                $error_note .= '『' . $main_off['projectname'] . '』' . '删除失败' . ':' . ' 报价单已审批;' . "\n";
+                continue;
+            }
+            if (empty ($main_off)) {//报价单不存在
+                $error_note .= '『' . $main_off['projectname'] . '』' . '删除失败' . ':' . ' 报价单不存在;' . "\n";
+                continue;
+            }
+            if ($main_off['static'] != 1 && $main_off['static'] != -1) {//已提交和生效
+                $error_note .= '『' . $main_off['projectname'] . '』' . '删除失败' . ':' . ' 已提交或已生效;' . "\n";
+                continue;
+            }
+            M('Exprocess')->where("exid = $vo")->delete();
+            $success_note .= '『' . $main_off['projectname'] . '』' . ' 删除成功。' . "\n";
+            $this->db->where("oid = $vo")->delete();
+            action_log_new(array('outtype' => 'ot_offer', 'outkey' => $vo, 'action' => 'delete', 'comment' => ''));
+        }
+        $count_note = $success_note . $error_note;
+        $this->ajaxReturn(array('done' => true, 'msg' => $count_note));
+    }
+
+    /**
+     * 编辑
+     */
+    public function edit()
+    {
+        $id = I('get.id');
+        $offer = $this->db->field('o.*,d.name as disoff_name,m1.shortsign as cname,d1.d_key staticname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where("oid = " . $id . " and o.uid=" . UID)->find();
+        if (!$offer) {
+            $this->error('您要操作的报价单不存在！');
+        }
+        $this->assign('offer', $offer);
+        if (IS_POST) {
+            $data = $this->db->create();
+            // 判断是否有报价明细 没有不可提交
+            $static = I('get.act');
+            if ($static == 2) {
+                $off = M("offer_sub")->where("oid='" . $id . "'")->select();
+                if (empty ($off)) {
+                    $this->error('请先选择维护报价清单');
+                }
+            }
+
+            $o = M("Offer")->where(array("oid" => $id))->find();
+            $res = M("OfferSub")->where(array("oid" => $id))->find();
+            if ($o && $res && $data['datafrom'] != $o['datafrom']) {
+                //$this->error ( '已存在报价单明细数据，不能修改报价单数据来源' );
+            }
+            $disoff = empty($data ['disoff']) ? 0 : $data ['disoff'];
+            $offer_sub = M("offer_sub")->alias('os')->join('ot_service s on os.sid = s.sid', 'left')
+                ->field("ifnull(sum(os.amount),0) amount,ifnull(sum(os.discount),0) as discount,ifnull(sum(os.days),0) as days,ifnull(sum(s.hour),0) as hours")
+                ->where("oid = " . $id)->find();
+            if ($offer_sub) {
+                $oamount = $offer_sub['amount'];
+                $amount = 0;
+                $amount_notax = 0;
+                $amount_tax = 0;
+                $discount = $offer_sub['discount'];
+                $oper_cost = 0;
+                $days = 0;
+
+                $days = $offer_sub['days'];
+                $hours = $offer_sub['hours'];
+
+                if ($data['oper_rate'] && ($data['oper_rate'] > 0)) {
+                    $oper_cost = round(floatval($oamount * ($data['oper_rate'] / 100)), 2);
+                }
+
+                $amount_notax = round(floatval($oamount + $oper_cost), 2);
+
+                if ($data['rate'] && ($data['rate'] > 0)) {
+                    $amount_tax = round(floatval($amount_notax * (1 + $data['rate'] / 100)), 2);
+                } else {
+                    $amount_tax = $amount_notax;
+                }
+
+                if ($data['disoff'] && intval($data['disoff']) > 0 && $data['disoff'] <= 100) {
+                    $amount = round(floatval($amount_tax * ($data['disoff'] / 100)), 2);
+                    $discount += round(floatval($amount_tax * ((100 - $data['disoff']) / 100)), 2);
+                } else {
+                    $amount = $amount_tax;
+                }
+            } else {
+                $oamount = 0;
+                $amount = 0;
+                $amount_tax = 0;
+                $amount_notax = 0;
+                $discount = 0;
+                $oper_cost = 0;
+                //  $days = 0;
+                // $hours = 0;
+            }
+            if ($data['amount'] < $amount) {
+                $data['amount'] = $amount;
+            }
+
+            //治疗领域
+            $therapy_area = $data['therapy_area'];
+            if (is_array($therapy_area) && !empty($therapy_area)) {
+                $therapy_area = implode(',', $therapy_area);
+            } else {
+                $therapy_area = '';
+            }
+            $data1 = array(
+                'projectname' => $data ['projectname'],
+                'contract_number' => $data ['contract_number'],
+                'cid' => $data ['cid'],
+                'contacts' => $data ['contacts'],
+                'telno' => $data ['telno'],
+                'ownner' => $data ['ownner'],
+                'ownner_id' => $data ['ownner_id'] ?: 0,
+                'type' => $data ['type'],
+
+                /*'pm' => $data ['pm'],
+			 'pmid' => $data ['pmid'],*/
+                'ap' => $data ['ap'],
+                'apid' => $data ['apid'],
+                'signtime' => strtotime($data ['signtime']),
+                'starttime' => strtotime($data ['starttime']),
+
+                //"days"=>$data['days'],
+                'oper_rate' => $data ['oper_rate'] ?: 0,
+                'rate' => $data ['rate'] ?: 0,
+                'disoff' => $disoff,
+
+                //"man_haur"=>$hours,
+                'step' => $data ['step'],
+                'possible' => $data ['possible'],
+
+                "drug_name" => $data['drug_name'],
+                "therapy_area" => trim($therapy_area, ','),
+                'description' => $data ['description'],
+                //'static'=>$static,
+                'discount' => $discount,
+                'amount' => $data['amount'],
+                'amount_notax' => $amount_notax,
+                'amount_tax' => $amount_tax,
+                "oper_cost" => $oper_cost,
+                "oamount" => $oamount,
+                "new_amount" => $amount,
+            );
+
+
+            $history = array();
+            foreach ($data1 as $key => $vo) {
+                if ($vo != $o[$key]) {
+                    $history[] = array(
+                        'field' => $key,
+                        'olddata' => $o[$key],
+                        'newdata' => $vo,
+                    );
+                }
+            }
+
+
+            if (count($history) && $o['static'] == 3) {
+                $data1['static'] = 1;
+                $history[] = array(
+                    'field' => 'static',
+                    'olddata' => $o['static'],
+                    'newdata' => 1,
+                );
+            }
+
+            $tmp = $this->db->where('oid = ' . $id)->save($data1);
+            if ($tmp === false) {
+                $this->error('编辑报价单失败！', U('Offer/edit?id=' . $id));
+            } else {
+
+                if (I('get.act') == 2) {
+                    $con = I("get.con", "");
+                    action_log_new(array('outtype' => 'ot_offer', 'outkey' => $id, 'action' => 'submit', 'comment' => $con));
+                }
+
+                action_log_new(array('history' => $history, 'outtype' => 'ot_offer', 'outkey' => $id, 'action' => 'edit', 'comment' => ''));
+                $files = array_filter($_FILES['files']['tmp_name']);
+                if (!empty($files)) {
+                    $Picture = D('Admin/Picture');
+                    $pic_driver = C('PICTURE_UPLOAD_DRIVER');
+                    C('PICTURE_UPLOAD.exts', 'jpg,gif,png,jpeg,bmp,icon,zip,rar,tar,gz,7z,doc,docx,txt,xml,ppt,pdf,xls,xlsx,pptx,log,pdm,avi,rmvb,mp4,mp3,ogg,wps');
+                    $info = $Picture->upload($_FILES, C('PICTURE_UPLOAD'), C('PICTURE_UPLOAD_DRIVER'), C("UPLOAD_{$pic_driver}_CONFIG")); // TODO:上传到远程服务器
+                    if ($info && is_array($info)) {
+                        foreach ($info as $values) {
+                            $fdata = array("uid" => UID, "uname" => get_nickname(UID), "name" => $values['name'], 'savepath' => '.' . $values['path']
+                            , 'ext' => $values['ext'], 'size' => $values['size'], 'addtime' => time());
+                            $fileid = M("File")->add($fdata);
+                            if ($fileid) {
+//                                        $this->db->save(array("oid" => $tmp, 'file_id' => $fileid));
+                                M('offer_file')->add(array('oid' => $id, 'fileid' => $fileid));
+                            }
+                        }
+                    }
+                }
+                if (I('get.act') == 2) {
+                    // 删除审核表中的数据
+                    M('Exprocess')->where("exid ='" . $id . "' and type='报价单审核'")->delete();
+                    // 查询业务审批并添加到审核表中
+                    $res = M("ExamineSub")->alias('es')->field('es.*')->join('ot_business_examine be on be.eid = es.es_eid', 'LEFT')->where("be.code = 'offer'")->select();
+                    foreach ($res as $vo) {
+
+                        //审核人去重
+                        $row = M('Exprocess')->where(array("exid" => $id, "type" => "报价单审核", "checkid" => $vo ['uid']))->find();
+                        if ($row) {
+                            continue;
+                        }
+
+                        $data2 = array(
+                            'exid' => $id,
+                            'type' => '报价单审核',
+                            'checkid' => $vo ['uid'],
+                            'esid' => $vo ['esid'],
+                            'order' => $vo ['sort_order'],
+                            'checkname' => $vo ['uname'],
+                            "addtime" => time(),
+                            "adduid" => UID,
+                            "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+                        );
+                        M('Exprocess')->add($data2);
+                    }
+                    // 报价单中有折扣的话把折扣表中的审核人添加到审核表中
+                    if (!empty ($disoff)) {
+                        $disdefines = M('Disdefine')->field(true)->where('dis = ' . $disoff)->find();
+
+                        //审核人去重
+                        $row = M('Exprocess')->where(array("exid" => $id, "type" => "报价单审核", "checkid" => $disdefines ['checkid']))->find();
+                        if (empty($row)) {
+                            $data3 = array(
+                                'exid' => $id,
+                                'type' => '报价单审核',
+                                'checkid' => $disdefines ['checkid'],
+                                'order' => count($res) + 1,
+                                'checkname' => $disdefines ['checkname'],
+                                "addtime" => time(),
+                                "adduid" => UID,
+                                "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+                            );
+                            M('Exprocess')->add($data3);
+                        }
+                    }
+                    $this->success('报价单提交成功，请耐心等待相关人员审核！', U('index'));
+                } else {
+                    $this->redirect('Offer/veiw?id=' . $id);
+                }
+            }
+        } else {
+            // 报价单
+            // $offer = M('Offer')->field(true)->where("oid=" . $id)->find();
+            if (!cando1(array($offer['uid']))) {
+                $this->error("您没有权限！");
+            }
+            $offer ['signtime'] = (date('Y/m/d', $offer ['signtime']));
+            $offer ['starttime'] = (date('Y/m/d', $offer ['starttime']));
+
+            if ($offer['static'] == 2) {
+                $this->error("当前状态下报价单不能编辑");
+            }
+
+            if ($offer['chance']) {
+                $this->assign('hc', 1);
+            } else {
+                $this->assign('hc', 0);
+            }
+
+            $this->assign('offer', $offer);
+            //获取附件
+            $res_files = M('offer_file')->alias('of')->field('f.name,f.savepath,f.uid,f.fileid')
+                ->join('ot_file f on f.fileid=of.fileid')->where(array('of.oid' => $id))->order('of.fileid desc')->select();
+            if ($res_files) {
+                $this->assign('file', $res_files);
+            }
+            //治疗领域
+            $therapy = $offer['therapy_area'];
+            if ($therapy) {
+                $this->assign('therapy', $therapy);
+            }
+            // 核心服务
+            $modules = M('Module')->field(true)->where("pid=''")->select();
+            $modules = array_merge(array(
+                0 => array(
+                    'name' => '',
+                    'name' => '请选择...'
+                )
+            ), $modules);
+            $this->assign('modules', $modules);
+            // 业务类型
+            $types = M('dictionary')->where("d_code = 'offer_type '")->field(true)->select(array('order' => 'd_order asc'));
+            $this->assign('types', $types);
+            // 审核流程
+            $examines = M('dictionary')->where("d_code = 'offer_examine '")->field(true)->select(array('order' => 'd_order asc'));
+            $examines = array_merge(array(
+                0 => array(
+                    'd_value' => '',
+                    'd_key' => '请选择...'
+                )
+            ), $examines);
+            $this->assign('examines', $examines);
+            // 折扣
+            $disdefines = M('disdefine', 'ot_')->field(true)->select();
+            $this->assign('disdefines', $disdefines);
+            $cost['email'] = get_email(UID);  //  LGW
+            // 销售机会
+            $opportunty = apiRead(Api::OPPORTUNITY, Api::DXY_CRM, $cost);
+            $opportuntys = [];
+            $opportunty['success'] and $opportuntys = $opportunty['data'];
+            $this->assign('opportuntys', $opportuntys);
+            // 合同
+            $contract = apiRead(Api::CONTRACT, Api::DXY_CRM, $cost);
+
+            $contracts = [];
+            if ($contract['success']) {
+                foreach ($contract['data'] as $k => $v) {
+                    $v['contract_no'] and $contracts[$k] = $v;
+                }
+
+            }
+            $this->assign('contracts', $contracts);
+            $this->assign('oid', $id);
+            $this->meta_title = '编辑报价单';
+            // 任务配置
+            $this->assign('id', $id);
+            $db = M("offer_sub");
+            $page = new \Think\Page ($db->where('oid = ' . $id)->count(), 20);
+            $offer_subs = $db->field(true)->where('oid = ' . $id)->limit($page->firstRow . ',' . $page->listRows)->select();
+            /* echo $this->db->getLastSql(); */
+            $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+            $this->assign('_page', $page->show());
+            $this->assign('offer_subs', $offer_subs);
+
+            $ses = array();
+            $ses = M("Member")->where("status=1")->select();
+            $this->assign('ses', $ses);
+
+            $cs = array();
+            $cs = M('Customer')->where("enabled=1")->select();
+            $this->assign('cs', $cs);
+
+            $pro = D('ProjectConfig')->field(true)->where('grade<5 and enabled =1')->select();
+            $pro = D('Common/Tree')->toFormatTree($pro, 'name', 'pid', 'parentid');
+            $this->assign('pro', $pro);
+
+            $rates = array();
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            $this->assign('rates', $rates);
+
+            $oper_rates = array();
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select(array('order' => 'd_order asc'));
+            $this->assign('oper_rates', $oper_rates);
+
+
+            $steps = array();
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select(array('order' => 'd_order asc'));
+            $this->assign('steps', $steps);
+
+            $therapy_areas = array();
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+            $this->assign('therapy_areas', $therapy_areas);
+
+            $res = M("OfferSub")->where(array("oid" => $id))->find();
+            if ($res) {
+                $this->assign('cantfrom', 1);
+            }
+
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('pm', $pm);
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => '我的报价单', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => $offer['projectname'], 'url' => U('Offer/veiw?id=' . $id));
+            $root_mbx[] = array('title' => '编辑报价单', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+    }
+
+    // 异步修改数据
+    public function ajax_col()
+    {
+        $id = empty ($_GET ['id']) ? 0 : intval($_GET ['id']);
+        $column = empty ($_GET ['column']) ? '' : trim($_GET ['column']);
+        $value = isset ($_GET ['value']) ? trim($_GET ['value']) : '';
+        $data = array();
+
+        if (in_array($column, array('note', 'quantity'))) {
+            $data [$column] = $value;
+            if ($column == 'quantity') {
+                $quantity = $value;
+                if (empty($quantity) || $quantity <= 0 || ((floor($quantity) - $quantity) != 0)) {
+                    $this->json_error("请正确填写数量");
+                }
+                $offer_sub = M("OfferSub")->where(array("osid" => $id))->find();
+                if (empty($offer_sub)) {
+                    $this->json_error("您要修改的报价单明细不存在");
+                }
+                $oid = $offer_sub['oid'];
+                $offer = M('Offer')->where(array("oid" => $oid))->find();
+                if (empty($offer)) {
+                    $this->json_error("您要操作的报价单明细不存在");
+                }
+                if ($offer['static'] == 2) {
+                    $this->json_error("当前状态下报价单不能修改");
+                }
+                $amount = round(floatval($offer_sub['price'] * $quantity), 2);
+                $s = array();
+                if ($offer_sub['sid']) {
+                    $s = M("Service")->where(array("sid" => $offer_sub['sid']))->find();
+                }
+
+                $data = array();
+                if ($s) {
+
+                    $dis = 0;
+                    if ($s['disoff'] && intval($s['disoff']) > 0 && $quantity >= $s['enough'] && $s['disoff'] <= 100) {
+                        $amount = round(floatval($amount * ($s['disoff'] / 100)), 2);
+                        $dis = floatval($offer_sub['price'] * $quantity) - $amount;
+                    }
+
+                    $data = array("osid" => $id, "quantity" => $quantity, "amount" => $amount,
+                        "discount" => $dis, "days" => $s['days'] * $quantity, "hour" => $s['hour'] * $quantity);
+
+                } else {
+                    $data = array("osid" => $id, "quantity" => $quantity, "amount" => $amount);
+                }
+                if (D("OfferSub")->save($data) === false) {
+                    $this->json_error("编辑失败，请重新操作");
+                }
+                //回更报价单数据
+                $this->backoffer($oid, $offer);
+                return $this->json_result('编辑成功');
+            } else {
+                M("offer_sub")->where(array("osid" => $id))->save($data);
+                return;
+            }
+        } else {
+            return;
+        }
+        return;
+
+
+    }
+
+    public function choose()
+    {
+        $key = I('key', '');
+        $state = I('state', '');
+        $channels = I('channels', '');
+        $order = "";
+        $map = array();
+        if ($key) {
+            $map ['_string'] = "(code like '%" . $key . "%' or name like '%" . $key . "%' or contact like '%" . $key . "%')";
+        }
+        if ($state) {
+            $map ['state'] = $state;
+        }
+        if ($channels) {
+            $map ['channels'] = $channels;
+        }
+
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+
+        $list = $this->lists('Customer', $map, $order);
+        $this->assign('_list', $list);
+        $this->meta_title = '客户管理';
+        $this->display();
+    }
+
+    public function get_rand_number()
+    {
+        $number = 'O';
+        for ($i = 1; $i < 9; $i++) {
+            $number .= rand(1, 9);
+        }
+
+        $res = $this->db->where('code=' . $number)->find();
+        if ($res) {
+            $this->get_rand_number();
+        }
+        return $number;
+    }
+
+
+    // 查看
+    public function veiw()
+    {
+        $id = I("get.id");
+        if (empty ($id)) {
+            $this->error('您要查看的报价单不存在！');
+        }
+        $offer = $this->db->field('o.*,d.name as disoff_name,m1.shortsign as cname,d1.d_key staticname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where("oid = " . $id . " and o.uid=" . UID)->find();
+        if ($offer['cname']) {
+            $offer['pcname'] = $offer['cname'] . '-' . $offer['projectname'];
+        } else {
+            $offer['pcname'] = $offer['projectname'];
+        }
+        /* echo $this->db->getLastSql(); */
+        //获取附件
+        $res_files = M('offer_file')->alias('of')->field('f.name,f.savepath,f.uid,f.fileid')
+            ->join('ot_file f on f.fileid=of.fileid')->where(array('of.oid' => $id))->order('of.fileid desc')->select();
+        if ($res_files) {
+            $this->assign('file', $res_files);
+        }
+        $off = M("offer_sub")->where("oid='" . $id . "'")->select();
+        if ($off) {
+            $this->assign('has', 1);
+        }
+        $this->assign('offer', $offer);
+        $old = offerOld($offer['oid']);
+        // 判断原数据和新数据的差异
+        $old and $html = offerDiff($old, $offer);
+        $html and $this->assign('html', $html);
+        $logs = array();
+        $logs = M("Log")->where(array("outtype" => "ot_offer", "outkey" => $id))->order("addtime asc")->select();
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name('ot_offer', $vv['field']);
+                        switch ($vv['field']) {
+                            case "cid":
+                                $oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['name'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['name'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "signtime":
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "starttime":
+                                $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "rate":
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "possible":
+                                $hs[$kk]['olddata'] = $hs[$kk]['olddata'] . "%";
+                                $hs[$kk]['newdata'] = $hs[$kk]['newdata'] . "%";
+                                break;
+                            case "datafrom":
+                                if ($vv['olddata'] == 0) {
+                                    $hs[$kk]['olddata'] = "标准库引入";
+                                } else if ($vv['olddata'] == 1) {
+                                    $hs[$kk]['olddata'] = "手动填写";
+                                }
+                                break;
+                            case "static":
+                                $mod = M("Dictionary");
+                                $orow = $mod->field("d_key")->where("d_code='offer_static' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='offer_static' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+        $where['_string'] = "  os.oid='{$id}'";
+        $offersub = M("OfferSub")->field(array('os.*', 'os.name as sname', 'm.name as o_name',
+            's.description',
+            's.name as s_name',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            'm1.name as remid_name', 'os.required as r1', 'p.name as pname', 'p.pid as pid'))
+            ->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where($where)->order("os.osid desc")->select();
+        $nlist = array();
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                if ($v['sid']) {
+                    $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                    $sdescription = $stemp['description'];
+                    $smid = $stemp['mid'];
+                    $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                    if ($sdescription || $smh) {
+                        $offersub[$k]['bulb'] = 1;
+                    }
+                }
+            }
+            foreach ($offersub as $k => $v) {
+                $nlist[$v['pid']]['pid'] = $v['pid'];
+                $nlist[$v['pid']]['mname'] = $v['pname'];
+                $nlist[$v['pid']]['list'][] = $v;
+            }
+        }
+        // 根据oid查询出原来的数据 :LGW
+        $old = oldOffer($id);
+
+        // 判断原数据和新数据的差异
+        $offersub and $array = offerDiversity($old, $offersub);
+        if ($array) {
+            $nlist = [];    // 新数据
+            $delList = [];  // 显示出删除的
+            if ($offersub) {
+                // 新的数据
+                foreach ($array['offersub'] as $k => $v) {
+                    $nlist[$v['pid']]['mid'] = $v['pid'];
+                    $nlist[$v['pid']]['mname'] = $v['pname'];
+                    $nlist[$v['pid']]['list'][] = $v;
+                }
+
+                // 删除的数据
+                foreach ($array['del'] as $k => $v) {
+                    $delList[$v['pid']]['mid'] = $v['pid'];
+                    $delList[$v['pid']]['mname'] = $v['pname'];
+                    $delList[$v['pid']]['list'][] = $v;
+                }
+
+            }
+        }
+        $this->assign('offers', $nlist); // 新数据
+        $this->assign('olds', $old); // 老数据
+        $this->assign('dels', $delList); //删除的数据
+        $this->assign("logs", $logs);
+
+        $versions = M("Offer_version")->alias('v')
+            ->join("ot_file f on v.file_id=f.fileid", "left")
+            ->field(array("v.*", "f.name", "f.savepath"))->where('oid=' . $id)
+            ->order('v.version asc')->select();
+        $this->assign('versions', $versions);
+
+        if ($versions) {
+            $e = end($versions);
+            $this->assign('version', $e['version']);
+        }
+        $jcbj = 0;
+
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                $jcbj += floatval($v['amount']);
+            }
+        }
+
+        $this->assign('jcbj', $jcbj);  // 	基础报价合计
+        $this->assign('s', floatval($offer['amount_tax'] - $offer['amount_notax']));
+        $disoff = intval($offer['disoff']);
+        $this->assign('zk', empty($disoff) ? 0 : 100 - $offer['disoff']);
+        $this->assign('zkm', empty($disoff) ? 0 : floatval($offer['amount_tax'] * (100 - $offer['disoff']) / 100));
+
+        $process = M("exprocess")->alias('e')->join('ot_auth_group_access aga on aga.uid=e.checkid')->join('ot_auth_group ag on ag.id=aga.group_id')->where("exid='" . $id . "' and e.type='报价单审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+        $pmid = M("Exprocess")->where("exid='" . $id . "' and type='申请项目经理审核'")->getField('id');
+        $this->assign('pmid', $pmid ? $pmid : 0);
+        $check_result = M('offer_sub')->where(array('oid' => $id))->find();
+        if ($check_result) {
+            //判断标准和非标准
+            $check_res = M('offer_sub')->where(array('sid' => 0, 'oid' => $id))->find();
+            if (empty($check_res)) {
+                $title = "标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html1 = $this->promat(1, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                } else {
+                    $grade = $this->roleGrade($offer['disoff'], $offer['amount'], $prompt = 1);
+                    $html1 = $this->promat($grade, 1);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html1);
+                }
+            } else {
+                $title = "非标准报价审批";
+                if ($offer['static'] == 1) {
+                    $html = $this->promat(1, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                } else {
+                    $grade = $this->nonStandard($offer['oid'], $offer['amount'], $prompt = 1);
+                    $html = $this->promat($grade, 0);
+                    $this->assign('title', $title);
+                    $this->assign('ehtml', $html);
+                }
+
+            }
+        } else {
+            //没有报价明细
+            $title = "";
+            $this->assign('title', $title);
+        }
+        //当前登陆者
+        $this->assign('loginid', UID);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价单', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => $offer['projectname'], 'url' => U('Offer/veiw?id=' . $id));
+        $root_mbx[] = array('title' => '查看报价单', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    // 报价明细
+    public function item()
+    {
+        $oid = isset ($_GET ['oid']) ? intval($_GET ['oid']) : 0;
+        if (empty ($oid)) {
+            $this->error('您要操作的报价单不存在!');
+        }
+        $list = M("module")->where("pid=0")->field(array(
+            'mid',
+            'name'
+        ))->order('sort_order asc')->select();
+        $item = M("module")->where("pid!=0")->field(array(
+            'mid',
+            'name',
+            'pid'
+        ))->order('sort_order asc')->select();
+        $sub = M("Service")->query("select s3.sid,s3.name as s_name,s3.required,t.sign,s3.mid,s3.quantity from ot_service s3  left join
+(select s1.* from ot_service_sub s1  inner join (select sign  from ot_service_sub s2 group by s2.sign)temp  on s1.sign=temp.sign) t on t.sid = s3.sid");
+        $off = M("offer_sub")->where("oid='" . $oid . "'")->select();
+        foreach ($list as $key => $v) {
+            $new_item = array();
+            foreach ($item as $k => $va) {
+                if ($v ['mid'] == $va ['pid']) {
+                    $new_sub = array();
+                    $sg = array();
+                    $is_check_mid = 0;
+                    foreach ($sub as $s) {
+                        if ($s ['mid'] == $va ['mid']) {
+                            if (!empty ($s ['sign']) && !in_array($s ['sign'], $sg)) {
+                                $sg [] = $s ['sign'];
+                            }
+                            $s ['check'] = 0;
+                            $s ['days'] = 0;
+                            if (!empty ($off)) {
+                                foreach ($off as $c) {
+                                    if ($c ['sid'] == $s ['sid']) {
+                                        $is_check_mid = 1;
+                                        $s ['check'] = 1;
+                                        $s ['quantity'] = $c ['quantity'];
+                                    }
+                                }
+                            }
+                            $new_sub [] = $s;
+                        }
+                    }
+                    $va ['check'] = 0;
+                    if ($is_check_mid == 1) {
+                        $va ['check'] = 1;
+                    }
+                    $va ['sg'] = implode(',', $sg);
+                    $va ['sub'] = $new_sub;
+                    $new_item [] = $va;
+                }
+            }
+            $list [$key] ['item'] = $new_item;
+        }
+        $this->assign('list', $list);
+        $this->assign('oid', $oid);
+        $this->display();
+    }
+
+    // 报价明细提交处理
+    public function offer_sub()
+    {
+        if (IS_POST) {
+            $item = empty ($_REQUEST ['item']) ? '' : $_REQUEST ['item'];
+            $oid = empty ($_REQUEST ['oid']) ? '' : $_REQUEST ['oid'];
+            $num = empty ($_REQUEST ['num']) ? '' : $_REQUEST ['num'];
+            $item = str_replace('\\', '', $item);
+            $item = str_replace('\"', '"', $item);
+            $item = str_replace("\r", '', $item);
+            $item = str_replace("\n", '\n', $item);
+            $item = json_decode($item, true);
+            if (empty ($item)) {
+                $this->json_error('未选择任务!', false);
+            }
+
+            $offer = M("offer")->where("oid='" . $oid . "'")->find();
+            if (empty ($offer)) {
+                $this->json_error('报价单不存在!', false);
+            }
+
+            $is_mid_true = 1;
+            foreach ($item as $key => $val) {
+                $mid = $val ['id'];
+                $is_true = 1;
+                $sub = M("Service")->query("select s3.sid,s3.name as s_name,s3.required,s3.description,t.sign from ot_service s3  left join
+(select s1.* from ot_service_sub s1  inner join (select sign  from ot_service_sub s2 where s2.mid='" . $mid . "' group by s2.sign)temp  on s1.sign=temp.sign) t on t.sid = s3.sid where s3.mid='" . $mid . "'");
+                foreach ($sub as $k => $V) {
+                    if ($V ['required'] == 1) {
+                        if (!in_array($V ['sid'], $val ['sub'])) {
+                            $is_true = 0;
+                            break;
+                        }
+                    }
+                    if (!empty ($V ['sign'])) {
+                        $is_sign = 0;
+                        $signs = M("Service_sub")->query("select * from ot_service_sub where mid ='" . $mid . "' and sign='" . $V ['sign'] . "'");
+                        foreach ($signs as $a) {
+                            if (in_array($a ['sid'], $val ['sub'])) {
+                                $is_sign = 1;
+                                break;
+                            }
+                        }
+                    } else {
+                        $is_sign = 1;
+                    }
+
+                    if ($is_sign == 0) {
+                        $is_true = 0;
+                        break;
+                    }
+                }
+                if ($is_true == 0) {
+                    $is_mid_true = 0;
+                    break;
+                }
+            }
+            if ($is_mid_true == 0) {
+                $this->json_error('选择任务不符合模块设置规则!', false);
+            }
+
+            $config = M("offer_sub")->where("oid='" . $oid . "'")->select();
+            if (!empty ($config)) {
+                M("offer_sub")->where("oid='" . $oid . "'")->delete();
+            }
+            $all_discount = 0;
+            $all_amount = 0;
+            foreach ($item as $key_p => $val_p) {
+                $mid = $val_p ['id'];
+                if (!empty ($val_p ['sub'])) {
+                    foreach ($val_p ['sub'] as $p => $s) {
+                        $service = M("Service")->where("sid='" . $s . "'")->find();
+                        $enough = $service ['enough'];
+                        $disoff = $service ['disoff'];
+                        $discount = 0;
+                        if ($enough > 0 && $disoff > 0 && $num [$mid] [$s] >= $enough) {
+                            $discount = ($service ['price'] * $num [$mid] [$s]) * (100 - $disoff) / 100;
+                        }
+                        $all_discount += $discount;
+                        $all_amount += $service ['price'] * $num [$mid] [$s];
+                        $amount = ($service ['price'] * $num [$mid] [$s]) - $discount;
+                        $data = array(
+                            'oid' => $oid,
+                            'mid' => $mid,
+                            'sid' => $s,
+                            'name' => $service ['name'],
+                            'unit' => $service ['unit'],
+                            'price' => $service ['price'],
+                            'quantity' => $num [$mid] [$s],
+                            'amount' => $amount,
+                            'discount' => $discount
+                        );
+                        M("offer_sub")->add($data);
+                    }
+                }
+            }
+
+            $all_surplus = $all_amount - $all_discount;
+
+            if ($offer ['disoff'] > 0) {
+                $all_discount += $all_surplus * (100 - $offer ['disoff']) / 100;
+                $all_surplus = $all_surplus * $offer ['disoff'] / 100;
+            }
+
+            $new_data ['oamount'] = $all_amount;
+            $new_data ['amount'] = $all_surplus;
+            $new_data ['discount'] = $all_discount;
+            $history = array();
+            foreach ($new_data as $key => $vo) {
+                if ($vo != $offer[$key]) {
+                    $history[] = array(
+                        'field' => $key,
+                        'olddata' => $new_data[$key],
+                        'newdata' => $vo,
+                    );
+                }
+
+            }
+            $new_data ['oid'] = $oid;
+            M("offer")->save($new_data);
+            action_log_new(array('history' => $history, 'outtype' => 'ot_offer', 'outkey' => $oid, 'action' => 'offersub', 'comment' => ''));
+            $this->json_result(array(), '报表明细添加成功', false);
+        }
+    }
+
+    // 对树搜索 : LGW
+    public function ajaxSearch()
+    {
+        $keywords = I('get.val');
+        $ppid = I('get.ppid');
+        $oid = I('get.oid');
+        $url = 'Offer/adddetail?ppid=' . $ppid . '&oid=' . $oid . '&pid=';
+        $module = M('ProjectConfig');
+        if (!$keywords || $keywords == '') {
+            $ProTree = $this->getpro($url, $module, $ppid, 0);
+        } else {
+            $ProTree = $this->ajaxGetpro($keywords, $url, $module, $ppid, 1);
+        }
+
+        $ProTree = "<ul class='tree tree-lines' >" . substr($ProTree, 4);
+
+        $this->json_result($ProTree, '', false);
+    }
+
+    public function ajaxGetpro($keywords, $url, $module, $ppid = 0, $pid = 0)
+    {
+        $c1 = "1=1";
+        $c2 = " and parentid =$ppid";
+        $c3 = " and (c.name like '%{$keywords}%' or EXISTS(SELECT 1 from ot_project_config sc where sc.path like CONCAT('%,',c.pid,',%')  and sc.name like '%{$keywords}%'))";
+        $condition['_string'] = "(($c1 $c2 $c3))";
+
+        $data = $module->alias('c')->where($condition)->order('sort_order desc')->select();
+
+        global $lastMenu;
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($pid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            foreach ($data as $key => $value) {
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >" . $value ['name'] .
+                        " </a>";
+                    $this->ajaxGetpro($keywords, $url, $module, $value ['pid'], $value['parentid']);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">" . $value ['name'] . " </a> 
+					</li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+
+        return $lastMenu;
+    }
+
+    //报价明细
+    public function adddetail()
+    {
+        $oid = I("oid", '');//报价单id
+
+        $offer = $this->db->field('o.*,m1.shortsign as cname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')->where("oid = " . $oid)->find();
+
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+        $this->assign('o', $offer);
+
+        // 获取所有的项目
+        $ProjectConfig = M('ProjectConfig')->where('parentid=0')->order('pid asc')->select();
+        $pid = I('get.ppid');
+        if (!$pid) {
+            $pid = $ProjectConfig [0] ['pid'];
+            $this->assign('pname', $ProjectConfig [0] ['name']);
+        } else {
+            $p = M('ProjectConfig')->where(array(
+                'pid' => $pid))->find();
+            $this->assign('pname', $p ['name']);
+        }
+        $this->assign('ppid', $pid);
+        $pid1 = I('get.pid');
+        if (empty ($pid1)) {
+            $pid1 = $pid;
+        }
+        if (!IS_POST) {
+            //更新排序
+            if (isset($_GET['sort']) && isset($_GET['order'])) {
+                $sort = strtolower(trim($_GET['sort']));
+                $order = strtolower(trim($_GET['order']));
+                if (!in_array($order, array('asc', 'desc'))) {
+                    $sort = 'ot_service.sort_order';
+                    $order = 'asc';
+                }
+            } else {
+                $sort = 'ot_service.sort_order';
+                $order = 'asc';
+            }
+            if ($pid1) {
+                $pr01 = $this->pro_module->where('pid=' . $pid1)->find();
+                $where = 'ot_service.pid = ' . $pid1;
+                $this->assign('module_name', $pr01['name']);
+            } else {
+                $pr01 = $this->pro_module->find();
+                $pid = $pr01['pid'];
+                $where = 'ot_service.pid = ' . $pid;
+                $this->assign('module_name', $pr01['name']);
+            }
+            //项目
+            $url = 'Offer/adddetail?ppid=' . $pid . '&oid=' . $oid . '&pid=';
+            $pro = $this->getpro($url, M('ProjectConfig'), $pid, 0);
+            $pro = "<ul class='tree tree-lines' id='tree'>" . substr($pro, 4);
+            $this->assign('ProjectConfig', $pro);
+            //$where.= " AND not exists(select 1 from ot_offer_sub os where os.oid=".$oid." and os.sid=ot_service.sid)";
+
+            $Model = M('Service');
+            /*$count = $Model->join('ot_module m ON m.mid = ot_service.mid',"left")
+			 ->join('ot_offer_sub ON ot_offer_sub.sid = ot_service.sid and ot_offer_sub.oid='.$oid,"left")
+			 ->join('ot_group ON m.role = ot_group.groupid',"left")
+			 ->join('ot_module m1 ON m1.mid = ot_service.remid','left')
+			 ->join("ot_dictionary d ON d_code='reqgroup' and d.d_value = ot_service.regroup",'left')
+			 ->where($where)->count();
+			 $Page       = new \Think\Page($count,20);*/
+
+            // 更新导入报价单的价格 : LGW
+
+            $list = $Model->join('ot_module m ON m.mid = ot_service.mid', "left")
+                ->join('ot_offer_sub ON ot_offer_sub.sid = ot_service.sid and ot_offer_sub.oid=' . $oid, "left")
+                ->join('ot_group ON ot_service.groupid = ot_group.groupid', "left")
+                ->join('ot_module m1 ON m1.mid = ot_service.remid', 'left')
+                ->join("ot_dictionary d ON d_code='reqgroup' and d.d_value = ot_service.regroup", 'left')
+                ->field(array('ot_service.*', 'd.d_key as regroup_name', 'm1.name as remid_name', 'ot_group.name as g_name', 'm.name as o_name', 'ot_offer_sub.quantity as sq', 'ot_offer_sub.osid as osid', 'ot_offer_sub.price as sprice', 'ot_offer_sub.note '))
+                ->where($where)
+                ->order($sort . " " . $order, 'ot_service.mid asc')->select();
+
+            $nlist = array();
+            if ($list) {
+                foreach ($list as $k => $v) {
+                    if ($v['sid']) {
+                        $stemp = M('Service')->field('description,mid')->where('sid = ' . $v['sid'])->find();
+                        $sdescription = $stemp['description'];
+                        $smid = $stemp['mid'];
+                        $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                        if ($sdescription || $smh) {
+                            $list[$k]['bulb'] = 1;
+                        }
+                    }
+
+                    if ($v['sq']) {
+                        $list[$k]['quantity'] = $v['sq'];
+                    }
+
+                    if (empty($v['minprice']) || $v['minprice'] == "0.00") {
+                        $list[$k]['price'] = $v['maxprice'];
+                        $list[$k]['canupdate'] = 0;
+                        ($v['maxprice'] != $v['sprice']) and $v['sprice'] = $v['maxprice'];
+                    } else {
+                        $list[$k]['price'] = $v['minprice'];
+                        $list[$k]['canupdate'] = 1;
+                    }
+
+                    if ($v['osid']) {
+                        $list[$k]['h'] = 1;
+                        if ($v['sprice']) {
+                            $list[$k]['price'] = $v['sprice'];
+                        }
+                    }
+                    if ($v['description']) {
+                        $str = strip_tags(htmlspecialchars_decode($v['description']));
+                        $list[$k]['title_show'] = $str;
+                    } else {
+                        if ($v['g_name']) {
+                            $list[$k]['title_show'] = $v['g_name'] . '-' . $v['o_name'] . '-' . $v['name'];
+                        } else {
+                            $list[$k]['title_show'] = $v['o_name'] . '-' . $v['name'];
+                        }
+                    }
+                }
+
+
+                foreach ($list as $k => $v) {
+                    $nlist[$v['mid']]['mid'] = $v['mid'];
+                    $nlist[$v['mid']]['mname'] = $v['g_name'] . '-' . $v['o_name'];
+                    $nlist[$v['mid']]['list'][] = $v;
+                }
+            }
+
+            $offer = M('offer')->alias('o')->field(array('o.oid', 'o.projectname', 'o.static', 'o.pid', 'o.code', 'c.shortsign'))->join('ot_customer c on c.cid = o.cid', 'LEFT')->where("o.oid = '" . $oid . "'")->find();
+            $this->assign('offer', $offer);
+            $this->assign('_list', $nlist);
+            //$Page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+            //$show = $Page->show();
+            //$this->assign('_page',$show);
+            $this->assign('oid', $oid);
+            $this->assign('pid', $pid1);
+            /*	$this->assign('pid1',$pid1);
+			 echo $pid1;die;*/
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => '我的报价单', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => $offer['projectname'], 'url' => U('Offer/veiw?id=' . $oid));
+            $root_mbx[] = array('title' => '清单', 'url' => U('Offer/subview?id=' . $oid));
+            $root_mbx[] = array('title' => '调整清单', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        } else {
+            $pid = I('post.id');
+            if (empty($oid)) {
+                $this->error("您要操作的报价单不存在");
+            }
+            $offer = M("Offer")->where(array("oid" => $oid))->find();
+            if (empty($offer)) {
+                $this->error("您要操作的报价单不存在");
+            }
+
+            if ($offer['datafrom'] == 1) {
+                //$this->error("报价单数据来源为手动填写");
+            }
+
+            if ($offer['static'] == 2) {
+                $this->error("当前状态下报价单不能修改");
+            }
+
+            if ($offer['pid'] && $offer['pid'] != $pid) {
+                //$this->error("报价单已经生成项目");
+            }
+
+            $ps = I("post.ps");
+            $qs = I("post.qs");
+            $ids = I("post.ids");
+            $note = I("post.note");
+            //验证数据正确性
+            if ($ids && is_array($ids)) {
+                foreach ($ids as $v) {
+                    if (!$qs || $qs[$v] <= 0 || ((floor($qs[$v]) - $qs[$v]) != 0)) {
+                        $this->error("请填写正确的数量");
+                    }
+                    if (!$ps || $ps[$v] <= 0 || !is_numeric($ps[$v])) {
+                        $this->error("请填写正确的价格,不能为空");
+                    }
+
+                    $r = M("Service")->where(array("sid" => $v))->find();
+                    if (empty($r)) {
+                        $this->error("选择的服务内容无效");
+                    }
+
+                    if (empty($r['minprice']) || $r['minprice'] == "0.00") {
+                        if ($r['maxprice'] <= 0 || !is_numeric($r['maxprice'])) {
+                            $this->error("请填写正确的价格");
+                        }
+                        if ($ps[$v] != $r['maxprice']) {
+                            $this->error("请填写正确的价格");
+                        }
+                    } else {
+                        if ($ps[$v] < $r['minprice'] || $ps[$v] > $r['maxprice']) {
+                            $this->error("请填写正确的价格");
+                        }
+                    }
+                }
+            } else {
+                $this->error("请选择要引入的服务内容");
+            }
+
+            $service = M("Service")->where("pid='{$pid}'")->select();
+            if (empty($service)) {
+                $this->error("选择的服务内容无效");
+            }
+
+            //验证必选项是否已选中
+            foreach ($service as $v) {
+                if ($v['required'] == 1 && !in_array($v['sid'], $ids)) {
+                    $this->error("请务必勾选必选的服务内容");
+                }
+            }
+            //多选一判断 以及 关联模块判断
+            foreach ($ids as $v) {
+                foreach ($service as $vv) {
+                    if ($v == $vv['sid'] && $vv['required'] == 2) {
+                        $groupid = $vv['regroup'];
+                    }
+                    $mid = $vv["mid"];
+                }
+                //多选一判断
+                if ($groupid) {
+                    foreach ($ids as $v1) {
+                        $res = M("Service")->where(array("_string" => "and sid<>'{$v}'", "pid" => $pid, "required" => 2, "regroup" => $groupid, "sid" => $v1))->find();
+                        if ($res) {
+                            $this->error("同一组多选一服务内容只能选一个");
+                        }
+                    }
+                }
+                //关联模块判断
+                if ($mid) {
+                    $ls = M("Service")->where(array("remid" => $mid, "required" => 3, "pid" => $pid))->select();
+                    if ($ls) {
+                        foreach ($ls as $v) {
+                            if (!in_array($v['sid'], $ids)) {
+                                $this->error("请务必勾选必选的服务内容（关联其他模块）");
+                            }
+                        }
+                    }
+                }
+            }
+
+            //开始写入数据
+
+            //首先删除同一pid的旧数据
+            M("OfferSub")->where(array("oid" => $oid, "pid" => $pid))->delete();
+
+            foreach ($ids as $v) {
+                $row = M("Service")->field(array('ot_service.*'))->where(array("sid" => $v))->find();
+                if (empty($row)) {
+                    $this->error("选择的服务内容无效");
+                }
+
+                $amount = round(floatval($qs[$v] * $ps[$v]), 2);
+                $dis = 0;
+                if ($row['disoff'] && intval($row['disoff']) > 0 && $qs[$v] >= $r['enough'] && $row['disoff'] <= 100) {
+                    $amount = round(floatval($amount * ($row['disoff'] / 100)), 2);
+                    $dis = round(floatval($qs[$v] * $ps[$v]), 2) - $amount;
+                }
+                $required = "";
+                $req = 0;
+                if ($row['required'] == 1) {
+                    $req = 1;
+                    $required = "标配必选内容";
+                } elseif ($row['required'] == 2) {
+                    $required = "多选一组内容";
+                } elseif ($row['required'] == 3) {
+                    $req = $row['remid'];
+                    $required = "关联模块内容";
+                } else {
+                    $required = "非标配内容";
+                }
+                $data = array("oid" => $oid, "pid" => $pid, "groupid" => $row['groupid'], "mid" => $row['mid'], "sid" => $v, "name" => $row['name'],
+                    "unit" => $row['unit'], "price" => $ps[$v], "quantity" => $qs[$v], "amount" => $amount, "discount" => $dis,
+                    "required" => $required, "days" => $row['days'] * $qs[$v], 'note' => $note[$v], "is_required" => $req, "hour" => $row['hour'] * $qs[$v]);
+                $inid = M("OfferSub")->add($data);
+                if (!$inid) {
+                    M("OfferSub")->where(array("oid" => $oid))->delete();
+                    $this->error("报价单引入服务内容操作失败，请刷新重试");
+                }
+
+                //写入log记录
+                $log = array();
+                $log['outtype'] = "ot_offer_sub";
+                $log['outkey'] = $inid;
+                $log['action'] = "offersub";
+                $log['comment'] = "";
+                action_log_new($log);
+            }
+
+            //回更报价单数据
+            $this->backoffer($oid, $offer);
+//            $this->success('引入成功', U('Offer/subview?id=' . $oid));
+            /*跳转adddetail*/
+            $this->assign('pid', $pid);
+            $this->redirect('Offer/adddetail?oid=' . $oid . '&pid=' . $pid);
+        }
+
+    }
+
+    function getcoreservice($oid)
+    {
+        $offer_sub = M("offer_sub")->field("pid")->where("oid = " . $oid)->group('pid')->select();
+        $coreservice = '';
+        foreach ($offer_sub as $val) {
+            $pid = $val['pid'];
+            $config = M("project_config")->where("pid='{$pid}'")->find();
+            $path = trim($config['path'], ",");
+            $map['pid'] = array('in', $path);
+            $map['type'] = '核心服务';
+            $all_config = M("project_config")->where($map)->find();
+            if (!empty($all_config)) {
+                $coreservice .= $all_config['name'] . ',';
+            }
+        }
+        if (!empty($coreservice)) {
+            $coreservice = rtrim($coreservice, ',');
+            $coreservice = explode(',', $coreservice);
+            $coreservice = array_unique($coreservice);
+            $coreservice = implode(',', $coreservice);
+        }
+        return $coreservice;
+    }
+
+
+    public function ajaxGetDropMenu()
+    {
+        $url = I('get.module') . '/' . I('get.index') . '?oid=' . I('get.oid') . '&ppid=';
+        $m = M("ProjectConfig");
+
+        $pro = $m->where("parentid=0")->field('pid,name')->select();
+
+        $list1 = "<input type='text' class='form-control' id='search' value='' placeholder='搜索'/>
+		<div id='searchResult'><div id='defaultMenu' class='search-list'>
+    	<ul>";
+        $list2 = '';
+        foreach ($pro as $vo) {
+            $list2 .= " <li data-id=" . $vo ['pid'] . " data-key='" . str_replace(' ', '', pinyin($vo ['name'], 'all', '--')) . "' ><a href='" . U($url . $vo ['pid']) . "' ><i class='icon-folder-close-alt'></i> " . $vo ['name'] . "</a></li>";
+
+        }
+
+        $list3 = "</ul>";
+
+        echo $list1 . $list2 . $list3;
+    }
+
+
+    private function getpro($url, $module, $id = 0, $ppid = 0)
+    {
+        global $lastMenu;
+        if ($ppid) {
+            $where = 'pid = ' . $ppid . " ";
+        } else {
+            $where = 'parentid = ' . $id . " ";
+        }
+        $data = $module->where($where)->order('sort_order asc')->select();
+        if (is_array($data) && !empty ($data)) {
+            $lastMenu .= "<ul>";
+            if ($ppid) {
+                $class = "open in";
+            } else {
+                $class = "";
+            }
+            $smod = M("Service");
+            foreach ($data as $key => $value) {
+
+                $r = $smod->where("pid='{$value ['pid']}'")->find();
+                if ($r) {
+                    $i = "<img src='/images/d.png' style='width:8px;float: left;margin-top: 5px;margin-right:2px'>";
+                } else {
+                    $i = "";
+                }
+                if ($module->where('parentid=' . $value ['pid'])->find()) {
+                    $lastMenu .= "<li class='" . $class . "'> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . " >{$i}" . $value ['name'] . " </a> ";
+                    $this->getpro($url, $module, $value ['pid'], 0);
+                    $lastMenu .= "</li>";
+                } else {
+
+                    if ($smod->where("pid='{$value ['pid']}'")->find()) {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    } else {
+                        $lastMenu .= "<li class='" . $class . "'>" . "<a class='textc' id='list" . $value ['pid'] . "' href=" . U($url . $value ['pid']) . ">$i" . $value ['name'] . " </a></li>";
+                    }
+
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+
+
+    //	function getpro( $id=0,$oid,$pid=0,$ppid) {
+    //        global $lastMenu;
+    //        if ($ppid) {
+    //			$where = 'pid = ' . $ppid . " ";
+    //		} else {
+    //			$where = 'parentid = ' . $id . " ";
+    //		}
+    //        $ProjectConfig = $this->pro_module->where($where)->select();
+    //        if ($ProjectConfig) {
+    //            $lastMenu .= "<ul>";
+    //            foreach ($ProjectConfig as $key => $value) {
+    //                $class = "";
+    //                if ($value['pid'] == $pid) {
+    //                    $class = "open in";
+    //                }
+    //                $smod = M("Service");
+    //                $r = $smod->where("pid='{$value ['pid']}'")->find();
+    //                if ($r) {
+    //                    $i = "<i class='icon-circle' style='color:red;font-size: 10px;'></i>";
+    //                } else {
+    //                    $i = "";
+    //                }
+    //                $href = "";
+    //                $href = U('Offer/adddetail?ppid=' . $ppid . '&oid=' . $oid . '&id=' . $value['pid']);
+    //                if ($this->pro_module->where('parentid=' . $value['pid'])->find()) {
+    //                    $lastMenu .= "<li> <i class='list-toggle icon'></i>" . "<a class='{$class}' id='list" . $value ['pid'] . "' href=" . $href . " >" . $value['name'] . " </a> ";
+    //                    $this->getpro($value['pid'], $oid, $pid, $ppid);
+    //                    $lastMenu .= "</li>";
+    //                } else {
+    //                    $smod = M("Service");
+    //                    if ($smod->where("pid='{$value['pid']}'")->find()) {
+    //                        $lastMenu .= "<li class='" . $class . "'>" . "<a  id='list" . $value ['pid'] . "' href=" . $href . ">$i" . $value['name'] . " </a> </li>";
+    //                    } else {
+    //                        $lastMenu .= "<li class='" . $class . "'>" . "<a  class='textc' id='list" . $value ['pid'] . "' href=" . $href . ">" . $value['name'] . " </a> </li>";
+    //                    }
+    //
+    //                }
+    //            }
+    //                $lastMenu .= "</ul>";
+    //            }
+    //            return $lastMenu;
+    //        }
+
+
+    public function subview()
+    {
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("您要操作的报价单不存在");
+        }
+
+        $offer = $this->db->field('o.*,m1.shortsign as cname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')->where("oid = " . $id)->find();
+
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+        $this->assign('o', $offer);
+
+        if ($offer['static'] == 2) {
+            $this->assign("hide", "1");
+        }
+        $model = M("OfferSub");
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))) {
+                $sort = 'osid';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'osid';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+        $where['_string'] .= " and os.oid='{$id}'";
+        //$page = new \Think\Page ($model->alias ( 'os' )->where ( $where )->count (), 20 );
+        $offersub = $model->field(array('os.*', 's.required as s_required', 's.description as s_description', 'm.name as o_name', 'p.name as p_name', 'p.pid as pid', 'os.quantity',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            's.name as s_name',
+            'm1.name as remid_name', 'os.required as r1'))->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->order($sort . " " . $order)->select();
+        foreach ($offersub as $key => $val) {
+            if ($val['sid']) {
+                $stemp = M('Service')->field('description,mid')->where('sid = ' . $val['sid'])->find();
+                $sdescription = $stemp['description'];
+                $smid = $stemp['mid'];
+                $smh = M('ModuleHelp')->where('mid = ' . $smid)->count();
+                if ($sdescription || $smh) {
+                    $offersub[$key]['bulb'] = 1;
+                }
+            }
+            if ($val['s_description']) {
+                $offersub[$key]['title_show'] = strip_tags(htmlspecialchars_decode($val['s_description']));
+            } else {
+                if ($val['ganme']) {
+                    $offersub[$key]['title_show'] = $val['ganme'] . '-' . $val['p_name'] . '-' . $val['o_name'];
+                } else {
+                    $offersub[$key]['title_show'] = $val['p_name'] . '-' . $val['o_name'];
+                }
+            }
+            $offersub[$key]['is_del'] = 0;
+            if ($val['s_required'] == 0) {
+                $offersub[$key]['is_del'] = 1;
+            } elseif ($val['s_required'] == 3) {
+                $num = M("OfferSub")->where("oid='" . $id . "' and mid='" . $val['is_required'] . "'")->count();
+                if ($num < 1) {
+                    $offersub[$key]['is_del'] = 1;
+                }
+            }
+        }
+
+        $nlist = array();
+        if ($offersub) {
+            foreach ($offersub as $k => $v) {
+                $nlist[$v['pid']]['mid'] = $v['pid'];
+                $nlist[$v['pid']]['mname'] = $v['p_name'];
+                $nlist[$v['pid']]['list'][] = $v;
+            }
+        }
+
+        $all_amount = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.amount');
+
+        $all_days = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.days');
+
+        $all_hours = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.hour');
+        //$page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        //$this->assign('_page', $page->show());
+        $this->assign('offer', $nlist);
+        $this->assign('all_amount', $all_amount);
+        $this->assign('all_days', $all_days);
+        $this->assign('all_hours', $all_hours);
+        $this->assign('oid', $id);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '我的报价单', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => $offer['projectname'], 'url' => U('Offer/veiw?id=' . $id));
+        $root_mbx[] = array('title' => '清单', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function export()
+    {
+        $id = I("id", "");
+        if (empty($id)) {
+            $this->error("您要操作的报价单不存在");
+        }
+
+        $offer = M("Offer")->where(array("oid" => $id))->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+
+        if ($offer['static'] != 1 && $offer['static'] != -1) {
+            $this->assign("hide", "1");
+        }
+        $model = M("OfferSub");
+        // 更新排序
+        if (isset ($_GET ['sort']) && isset ($_GET ['order'])) {
+            $sort = strtolower(trim($_GET ['sort']));
+            $order = strtolower(trim($_GET ['order']));
+            if (!in_array($order, array(
+                'asc',
+                'desc'
+            ))
+            ) {
+                $sort = 'osid';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'osid';
+            $order = 'desc';
+        }
+        $where = $this->getCondition();
+        $where['_string'] .= " and os.oid='{$id}'";
+        $offersub = $model->field(array('s.hour', 'os.*', 's.description as s_description', 'm.name as o_name', 'p.name as p_name',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            'm1.name as remid_name', 'os.required as r1'))->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->order($sort . " " . $order)->select();
+
+
+        foreach ($offersub as $key => $val) {
+            if ($val['ganme']) {
+                $project_name = $val['ganme'] . '-' . $val['p_name'] . '-' . $val['o_name'];
+            } else {
+                $project_name = $val['p_name'] . '-' . $val['o_name'];
+            }
+            $arr['0'] = $project_name;
+            $arr['1'] = $val['name'];
+
+            if ($val['required'] == 0) {
+                $arr['2'] = '否';
+            } else if ($val['required'] == 1) {
+                $arr['2'] = '是';
+            } else if ($val['required'] == 3) {
+                $arr['2'] = '多选一' . $val['regroup_name'];
+            } else {
+                $arr['2'] = '关联' . $val['remid_name'];
+            }
+            $arr['3'] = $val['note'];
+            if ($val['standard'] == 0) {
+                $arr['4'] = '否';
+            } else {
+                $arr['4'] = '是';
+            }
+            $arr['5'] = $val['unit'];
+            $arr['6'] = $val['price'];
+            $arr['7'] = $val['quantity'];
+            $arr['8'] = $val['amount'];
+            $arr['9'] = $val['discount'];
+            $arr['10'] = $val['days'];
+            $arr['11'] = $val['hour'];
+            $datas[] = $arr;
+        }
+
+        $data = $datas;
+
+        $all_amount = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.amount');
+
+        $all_days = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('os.days');
+
+        $all_hours = $model->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")->where($where)->sum('s.hour');
+
+        import("IOFactory", "../excel/toexcel/PHPExcel", ".php");
+        import("Excel5", "../excel/toexcel/PHPExcel/Reader", ".php");
+        import("PHPExcel", "../excel/toexcel", ".php");
+
+        $today = strtotime(date('Y-m-d'));   //本地时间
+        $filename = date('Ymd', $today);
+        $filename .= ".xls";
+        header("Content-type: application/vnd.ms-excel; charset=utf-8");
+        header("Content-Disposition: attachment; filename=$filename.xls");
+
+        $excel = new \PHPExcel();
+
+        //Excel表格式,这里简略写了8列
+        $letter = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L');
+        //表头数组
+        $tableheader = array('项目模块', '服务内容', '必选', '备注', '标配', '单位', '价格', '数量', '总金额', '优惠金额', '任务周期', '工时');
+        //填充表头信息
+        for ($i = 0; $i < count($tableheader); $i++) {
+            $excel->getActiveSheet()->setCellValue("$letter[$i]1", "$tableheader[$i]");
+        }
+        //表格数组
+        //填充表格信息
+        for ($i = 2; $i <= count($data) + 2; $i++) {
+            $j = 0;
+            if ($i <= count($data) + 1) {
+                foreach ($data[$i - 2] as $key => $value) {
+                    $excel->getActiveSheet()->setTitle('Simple');
+                    $excel->getActiveSheet()->setCellValue("$letter[$j]$i", " " . "$value");
+                    $j++;
+                }
+            } else if ($i == count($data) + 2) {
+                $sumstr = "总金额:￥" . $all_amount . "  总周期:" . $all_days . "   总工时:" . $all_hours;
+                $excel->getActiveSheet()->setCellValue("A{$i}", $sumstr);
+            }
+
+        }
+        //创建Excel输入对象
+        $write = new \PHPExcel_Writer_Excel5($excel);
+        header("Pragma: public");
+        header("Expires: 0");
+        header("Cache-Control:must-revalidate, post-check=0, pre-check=0");
+        header("Content-Type:application/force-download");
+        header("Content-Type:application/vnd.ms-execl");
+        header("Content-Type:application/octet-stream");
+        header("Content-Type:application/download");;
+        header('Content-Disposition:attachment;filename=' . $filename . '');
+        header("Content-Transfer-Encoding:binary");
+        $write->save('php://output');
+
+    }
+
+
+    public function subadd()
+    {
+        $oid = I("get.oid");
+        $offer = $this->db->field('o.*,d.name as disoff_name,m1.shortsign as cname,d1.d_key staticname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where("oid = " . $oid . " and o.uid=" . UID)->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+        if ($offer['datafrom'] == 0) {
+            //$this->error("报价单数据来源为标准库引入");
+        }
+        if ($offer['static'] == 2) {
+            $this->error("当前状态下报价单不能修改");
+        }
+        $this->assign('offer', $offer);
+
+        if (!IS_POST) {
+
+            $list = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+            $this->assign('unit', $list);
+            //项目组
+            $group = M('Group')->field('groupid,name')->order('sort_order asc')->select();
+            $this->assign('group', $group);
+
+            $this->assign('oid', $oid);
+            $this->display();
+        } else {
+            $name = I('post.name', '');
+            $price = I("post.price", "");
+            $quantity = I("post.quantity", "");
+            $unit = I("post.unit", "");
+            $days = I("post.days", "");
+            $hour = I("post.hour", "");
+            $note = I("post.note", "");
+            $attention = I("post.attention", "");
+            $groupid = I("post.groupid", "");
+
+            if (empty($name)) {
+                $this->error("服务内容名称不能为空");
+            }
+            if (empty($price) || $price < 0 || !is_numeric($price)) {
+                $this->error("请正确填写价格");
+            }
+            if (empty($quantity) || $quantity <= 0 || ((floor($quantity) - $quantity) != 0)) {
+                $this->error("请正确填写数量");
+            }
+            if (empty($unit)) {
+                $this->error("请选择单位");
+            }
+            if (empty($days)) {
+                $this->error("请填写制作周期");
+            }
+            if (empty($hour)) {
+                $this->error("请填写工时");
+            }
+            if (empty($groupid)) {
+                $this->error("请选择服务角色");
+            }
+            $amount = floatval($price * $quantity);
+            $data = array("name" => $name, "price" => $price, "quantity" => $quantity, "amount" => $amount,
+                "unit" => $unit, "days" => $days, "hour" => $hour, "note" => $note, "attention" => $attention, "oid" => $oid, "groupid" => $groupid);
+            $inid = M("OfferSub")->add($data);
+            if (!$inid) {
+                $this->error("新增报价单明细失败，请重新操作");
+            }
+
+            //回更报价单数据
+            $this->backoffer($oid, $offer);
+            $this->success('添加成功', U('Offer/subview?id=' . $oid));
+        }
+    }
+
+
+    public function subedit()
+    {
+        $oid = I("get.oid");
+        $osid = I("id");
+
+        $offer = $this->db->field('o.*,d.name as disoff_name,m1.shortsign as cname,d1.d_key staticname')->alias('o')
+            ->join('ot_customer m1 on m1.cid = o.cid', 'LEFT')
+            ->join('ot_disdefine d on o.disoff = d.dis', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = o.static and d1.d_code = 'offer_static'", 'LEFT')
+            ->where("oid = " . $oid . " and o.uid=" . UID)->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+        if ($offer['static'] == 2) {
+            $this->error("当前状态下报价单不能修改");
+        }
+
+        $offer_sub = M("OfferSub")->where(array("osid" => $osid, "oid" => $oid))->find();
+        if (empty($offer_sub)) {
+            $this->error("您要修改的报价单明细不存在");
+        }
+        $this->assign('offer', $offer);
+
+        if (!IS_POST) {
+
+            $list = M("Dictionary")->where("d_code='unit' and d_del=1")->field(array('d_key', 'd_value'))->order('d_order asc,d_tid asc')->select();
+            $this->assign('unit', $list);
+            //项目组
+            $group = M('Group')->field('groupid,name')->order('sort_order asc')->select();
+            $this->assign('group', $group);
+
+            $this->assign('oid', $oid);
+            $this->assign('id', $osid);
+
+            if ($offer_sub['sid']) {
+                $this->assign('froms', 1);
+
+                $s = M("Service")->where(array("sid" => $offer_sub['sid']))->find();
+                if (empty($s['minprice']) || $s['minprice'] == "0.00") {
+                    $offer_sub['price'] = $s['maxprice'];
+                    $this->assign('can', 0);
+                } else {
+                    $this->assign('can', 1);
+                    $this->assign('maxp', $s['maxprice']);
+                    $this->assign('minp', $s['minprice']);
+                }
+            }
+
+            $this->assign('offer_sub', $offer_sub);
+            $this->assign('static', $offer['static']);
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => '我的报价单', 'url' => U('Offer/index'));
+            $root_mbx[] = array('title' => $offer['projectname'], 'url' => U('Offer/veiw?id=' . $oid));
+            $root_mbx[] = array('title' => '清单', 'url' => U('Offer/subview?id=' . $oid));
+            $root_mbx[] = array('title' => '编辑清单', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        } else {
+            $name = I('post.name', '');
+            $price = I("post.price", "");
+            $quantity = I("post.quantity", "");
+            $unit = I("post.unit", "");
+            $days = I("post.days", "");
+            $hour = I("post.hour", "");
+            $note = I("post.note", "");
+            $attention = I("post.attention", "");
+
+            if (empty($price) || $price < 0 || !is_numeric($price)) {
+                $this->error("请正确填写价格");
+            }
+            if (empty($quantity) || $quantity <= 0 || ((floor($quantity) - $quantity) != 0)) {
+                $this->error("请正确填写数量");
+            }
+
+            $s = array();
+            if ($offer_sub['sid']) {
+                $s = M("Service")->where(array("sid" => $offer_sub['sid']))->find();
+            }
+
+            $data = array();
+            if ($s) {
+                if (empty($s['minprice']) || $s['minprice'] == "0.00") {
+                    if ($price != $s['maxprice']) {
+                        $this->error("请填写正确的价格");
+                    }
+                } else {
+                    if ($price < $s['minprice'] || $price > $s['maxprice']) {
+                        $this->error("请填写正确的价格");
+                    }
+                }
+
+                $amount = round(floatval($price * $quantity), 2);
+                $dis = 0;
+                if ($s['disoff'] && intval($s['disoff']) > 0 && $quantity >= $s['enough'] && $s['disoff'] <= 100) {
+                    $amount = round(floatval($amount * ($s['disoff'] / 100)), 2);
+                    $dis = floatval($price * $quantity) - $amount;
+                }
+
+                $data = array("osid" => $osid, "price" => $price, "quantity" => $quantity, "amount" => $amount,
+                    "note" => $note, "attention" => $attention, "oid" => $oid, "discount" => $dis, "days" => $s['days'] * $quantity, "hour" => $s['hour'] * $quantity);
+
+            } else {
+                if (empty($name)) {
+                    $this->error("服务内容名称不能为空");
+                }
+                if (empty($unit)) {
+                    $this->error("请选择单位");
+                }
+                if (empty($days)) {
+                    $this->error("请填写制作周期");
+                }
+                if (empty($hour)) {
+                    $this->error("请填写工时");
+                }
+                $amount = round(floatval($price * $quantity), 2);
+                $data = array("osid" => $osid, "name" => $name, "price" => $price, "quantity" => $quantity, "amount" => $amount,
+                    "unit" => $unit, "days" => $days, "hour" => $hour, "note" => $note, "attention" => $attention, "oid" => $oid);
+            }
+
+
+            if (D("OfferSub")->save($data) === false) {
+                $this->error("编辑报价单明细失败，请重新操作");
+            }
+
+            //回更报价单数据
+            $this->backoffer($oid, $offer);
+
+            $this->redirect('Offer/subview?id=' . $oid);
+//            $this->success('编辑成功', U('Offer/subview?id=' . $oid));
+        }
+    }
+
+
+    public function deletesub()
+    {
+        $ids = array_unique((array)I('id', 0));
+        $oid = I('get.oid');
+        if (!$ids) {
+            $this->error('请选择要删除的数据！');
+        }
+        if (!$oid) {
+            $this->error('您要操作的报价单不存在');
+        }
+        $offer = M("Offer")->where(array("oid" => $oid))->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在");
+        }
+
+        if ($offer['static'] == 2) {
+            $this->error("当前状态下报价单已提交不能修改");
+        }
+        if (!is_array($ids)) {
+            $ids = array($ids);
+        }
+        //新增删除判断
+        $error_note = '';
+        $success_note = '';
+        foreach ($ids as $value) {
+            //判断是否存在
+            $res = M("OfferSub")->where(array('osid' => $value))->find();
+            if (!$res) {
+                $error_note .= '『' . $res['name'] . '』' . ' 删除失败' . ":" . "报价明细不存在" . "\n";
+                continue;
+            }
+            if (($res['is_required'] == 1)) {
+                $error_note .= '『' . $res['name'] . '』' . ' 删除失败' . ":" . "必选内容不可删除" . "\n";
+                continue;
+            }
+            if (($res['is_required'] > 1)) {
+                $error_note .= '『' . $res['name'] . '』' . ' 删除失败' . ":" . "存在关联模块不可删除" . "\n";
+                continue;
+            }
+            $res_del = M("OfferSub")->where(array('osid' => $value))->delete();
+            $success_note .= '『' . $res['name'] . '』' . " 删除成功。" . "\n";
+            if ($res_del) {
+
+                //回更报价单数据
+                $this->backoffer($oid, $offer);
+            }
+        }
+        $this->ajaxReturn(array('done' => true, 'msg' => $success_note . $error_note));
+    }
+
+    //模块文件
+    public function module_file()
+    {
+        $pid = I("id", 0);//模块id
+        $files = M('Module_help')->alias("h")
+            ->join('ot_member m on m.uid = h.uid', 'LEFT')
+            ->field(array("h.*", "m.nickname as u_name"))->where("h.mid = " . $pid)->order('sort_order asc')->select();
+        $this->assign('files', $files);
+        $this->display();
+    }
+
+    public function file_info()
+    {
+        $pid = I("id", 0);//指导文档id
+        $file = M('Module_help')->alias("h")
+            ->join('ot_member m on m.uid = h.uid', 'left')
+            ->field(array('h.*', 'm.nickname as u_name'))->where("h.mhid = '" . $pid . "'")->find();
+        $file['item'] = M('HelpFile')->alias('hf')->field(array("f.name", "f.savepath"))->join("ot_file f on hf.file_id=f.fileid", "left")->where("hf.mhid = '" . $pid . "'")->select();
+
+        $this->assign('file', $file);
+        $this->display();
+    }
+
+
+    public function pre()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("您要操作的报价单不存在", 'javascript:window.parent.choose();');
+        }
+
+        $offer = M('Offer')->alias('o')
+            ->field('o.*,c.shortsign')
+            ->join("ot_customer c on c.cid=o.cid", "left")
+            ->where("o.oid=" . $id)
+            ->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在", 'javascript:window.parent.choose();');
+        }
+        $off = M("offer_sub")
+            ->where("oid='" . $id . "'")
+            ->select();
+        if (empty ($off)) {
+            $this->error('请先选择维护报价清单', 'javascript:window.parent.choose();');
+        }
+
+        if (IS_POST) {
+            $content = I("post.content", "");
+            // 删除审核表中的数据
+            M('Exprocess')->where("exid ='" . $id . "' and type='报价单审核'")->delete();
+            //修改报价单提交
+            $disoff = $offer['disoff'];
+            $amount = $offer['amount'];
+            //判断标准和非标准
+            $check_res = M('offer_sub')->where(array('sid' => 0, 'oid' => $id))->find();
+            if (empty($check_res)) {
+                $res_grade = $this->roleGrade($disoff, $amount);
+                if ($res_grade) {
+                    $i = count($res_grade);
+                    foreach ($res_grade as $value) {
+                        $data3 = array(
+                            'exid' => $id,
+                            'type' => '报价单审核',
+                            'checkid' => $value,
+                            'order' => $i,
+                            'checkname' => get_nickname($value) ? get_nickname($value) : get_username($value),
+                            "addtime" => time(),
+                            "adduid" => UID,
+                            "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+                        );
+                        $ExprocessId = M('Exprocess')->add($data3);
+                        if ($i == 1) {
+                            // 发给审批人 时间点：报价单审核  LGW
+                            $dynamic = [
+                                'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                'b' => '报价单审核',
+                                'c'=>$offer['shortsign'].'-'.$offer['projectname'].'-'.$offer['code'],
+                                'email' => get_email($value),
+                            ];
+                            $url = "Dexa/view/id/".$ExprocessId;
+                            $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                            $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+                        }
+                        $i--;
+                    }
+                }
+            } else {
+                $res_nonStandard = $this->nonStandard($id, $amount);
+                if (!empty($res_nonStandard)) {
+                    $i = count($res_nonStandard);
+                    foreach ($res_nonStandard as $value) {
+                        $data3 = array(
+                            'exid' => $id,
+                            'type' => '报价单审核',
+                            'checkid' => $value,
+                            'order' => $i,
+                            'checkname' => get_nickname($value) ? get_nickname($value) : get_username($value),
+                            "addtime" => time(),
+                            "adduid" => UID,
+                            "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+                        );
+                        $ExprocessId = M('Exprocess')->add($data3);
+                        if ($i == 1) {
+                            // 发给审批人 时间点：报价单审核发给第一个审核人  LGW
+                            $dynamic = [
+                                'a' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                                'b' => '报价单审核',
+                                'c'=>$offer['shortsign'].'-'.$offer['projectname'].'-'.$offer['code'],
+                                'email' => get_email($value),
+                            ];
+                            $url = "Dexa/view/id/".$ExprocessId;
+                            $cost = sendTemplate($dynamic, 'dexa_check',$url);
+                            $costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给审批人 : LGW
+                        }
+                        $i--;
+                    }
+                } else {
+                    $this->error('非标准报价单审批角色没有项目经理', 'javascript:window.parent.choose();');
+                }
+            }
+
+
+            if (empty($data3)) {
+                $sss = 3;
+            } else {
+                $sss = 2;
+            }
+
+            if (M("Offer")->save(array("static" => $sss, "oid" => $id)) === false) {
+                $this->error('操作失败', 'javascript:window.parent.choose();');
+            };
+            // 没有审核人
+            if ($sss == 3) {
+                $fileid = 0;
+
+                $versionmod = M("OfferVersion");
+                $row = $versionmod->where("oid='{$id}'")->order("version desc")->find();
+
+                if ($row) {
+                    $version = intval($row['version'] + 1);
+                } else {
+                    $version = 1;
+                }
+
+
+                $url = C('OFFER_PRINT_URL') . $id . '.html';
+                $path = topdf($url);
+                if ($path) {
+                    $fileid = M("File")->add(array("name" => "报价单预览_D" . $version, "savepath" => $path, "ext" => "pdf", "addtime" => time(), "uid" => UID, "uname" => get_nickname(UID)));
+                }
+
+                $data = array("file_id" => $fileid, "uid" => UID, "uname" => get_nickname(UID), "addtime" => time(), "oid" => $id, "version" => $version);
+                $versionmod->add($data);
+
+                enterLog($id);
+                enterOfferLog($id);
+                $off = $offer;
+                if ($off['pid'] > 0) {
+                    $pro = M('Project')->where("pid='" . $off['pid'] . "'")->find();
+                    if ($pro['state'] != -1 && $pro['state'] != 2) {
+                        $os = M('Offer_sub')
+                            ->field(array('os.*', 'f.disoff', 'm.mid', 'm.role', 'm.pid as m_pid'))
+                            ->alias('os')->join('ot_offer f on os.oid = f.oid')
+                            ->join('ot_service s on os.sid = s.sid')
+                            ->join("ot_module m on m.mid=s.mid", "left")
+                            ->where("os.oid='" . $id . "'")->select();
+                        $ps = M('Project_service')->field(array('osid', 'sid'))->where("pid='" . $off['pid'] . "' and amount>0 and osid !=0")->select();
+                        $newarr = array();//新增
+                        $deletearr = array();//删除
+                        foreach ($os as $key => $vo) {
+                            if ($vo['sid']) {
+                                $has = false;
+                                foreach ($ps as $k => $v) {
+                                    if ($vo['sid'] == $vo['sid']) {
+                                        $has = true;
+                                        break;
+                                    }
+                                }
+                                if (!$has) {
+                                    $newarr[$k] = $vo;
+                                }
+                            } else {
+                                $has = false;
+                                foreach ($ps as $k => $v) {
+                                    if ($vo['osid'] == $v['osid']) {
+                                        $has = true;
+                                        break;
+                                    }
+                                }
+                                if (!$has) {
+                                    $newarr[$k] = $vo;
+                                }
+                            }
+                        }
+                        foreach ($ps as $key => $vo) {
+                            if ($vo['sid']) {
+                                $has = false;
+                                foreach ($os as $k => $v) {
+                                    if ($vo['sid'] == $v['sid']) {
+                                        $has = true;
+                                        break;
+                                    }
+                                }
+                                if (!$has) {
+                                    $deletearr[$key] = $vo;
+                                }
+                            } else {
+                                $has = false;
+                                foreach ($os as $k => $v) {
+                                    if ($vo['osid'] == $v['osid']) {
+                                        $has = true;
+                                        break;
+                                    }
+                                }
+                                if (!$has) {
+                                    $deletearr[$key] = $vo;
+                                }
+                            }
+                        }
+
+                        //删除
+                        if ($deletearr) {
+                            foreach ($deletearr as $v) {
+                                $data = array();
+                                $data['op_text'] = '删除';
+                                M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $v['osid'] . "'")->save();
+                            }
+                        }
+                        //新增
+                        foreach ($newarr as $val) {
+                            $data = array();
+                            $data['pid'] = $off['pid'];
+                            $data['pcid'] = $val['m_pid'] ?: 0;
+                            $data['groupid'] = $val['role'] ?: 0;
+                            $data['mid'] = $val['mid'] ?: 0;
+                            $data['sid'] = $val['sid'] ?: 0;
+                            $data['osid'] = $val['osid'] ?: 0;
+                            $data['title'] = $val['name'] ?: '';
+                            $data['days'] = $val['days'] ?: 0;
+                            $data['hours'] = ($val['hour'] ?: 0);
+                            $data['quans'] = $val['quantity'] ?: 0;
+                            if ($val['disoff'] > 0) {
+                                $data['amount'] = $val['amount'] * $val['disoff'] / 100;
+                            } else {
+                                $data['amount'] = $val['amount'];
+                            }
+                            $data['description'] = $val['note'];
+                            $data['sort_order'] = $val['osid'];
+                            $data['delivery'] = 1;
+                            $data['op_text'] = '新增';
+                            M('project_service')->add($data);
+                        }
+
+                        foreach ($os as $key => $val) {
+                            if ($val['sid']) {
+                                foreach ($ps as $k => $v) {
+                                    if ($val['sid'] == $v['sid']) {
+                                        $data = array();
+                                        $data['days'] = (int)$val['days'];
+                                        $data['hours'] = (int)$val['hour'];
+                                        if ($val['disoff'] > 0) {
+                                            $data['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                        } else {
+                                            $data['amount'] = $val['amount'];
+                                        }
+                                        $data['quans'] = $val['quantity'];
+                                        $data['op_text'] = '编辑';
+                                        M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->save();
+
+                                        $service = M('project_service')->field(array('state', 'psid'))->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->find();
+                                        if ($service['state'] == 1) {
+                                            $data1 = array();
+                                            $data1['days'] = (int)$val['days'];
+                                            $data1['hours'] = (int)$val['hour'];
+                                            if ($val['disoff'] > 0) {
+                                                $data1['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                            } else {
+                                                $data1['amount'] = $val['amount'];
+                                            }
+                                            M('Task')->data($data1)->where("pid='" . $off['pid'] . "' and psid='" . $service['psid'] . "'")->save();
+                                        }
+                                    }
+                                }
+                            } else {
+                                foreach ($ps as $k => $v) {
+                                    if ($val['osid'] == $v['osid']) {
+                                        $data = array();
+                                        $data['days'] = (int)$val['days'];
+                                        $data['hours'] = (int)$val['hour'];
+                                        if ($val['disoff'] > 0) {
+                                            $data['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                        } else {
+                                            $data['amount'] = $val['amount'];
+                                        }
+                                        $data['quans'] = $val['quantity'];
+                                        $data['op_text'] = '编辑';
+                                        M('project_service')->data($data)->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->save();
+
+                                        $service = M('project_service')->field(array('state', 'psid'))->where("pid='" . $off['pid'] . "' and osid='" . $val['osid'] . "'")->find();
+                                        if ($service['state'] == 1) {
+                                            $data1 = array();
+                                            $data1['days'] = (int)$val['days'];
+                                            $data1['hours'] = (int)$val['hour'];
+                                            if ($val['disoff'] > 0) {
+                                                $data1['amount'] = round((float)$val['amount'] * (float)$val['disoff'] / 100, 2);
+                                            } else {
+                                                $data1['amount'] = $val['amount'];
+                                            }
+                                            M('Task')->data($data1)->where("pid='" . $off['pid'] . "' and psid='" . $service['psid'] . "'")->save();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //回更项目金额
+                    M('Project')->where("pid='{$off['pid']}'")->save(array('money' => $off['amount']));
+                    update_project($off['pid']);
+                }
+                // 回写报价单信息 : LGW
+                $cost = D('Offer')->getQuotation($off['oid']);
+                apiRead(Api::OFFER_BACK, Api::DXY_CRM, $cost);
+            }
+            action_log_new(array("history" => array(array('field' => "static", 'olddata' => $offer['static'], 'newdata' => $sss)), 'outtype' => 'ot_offer', 'outkey' => $id, 'action' => 'submit', 'comment' => $content));
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->assign('offer', $offer);
+            $this->display();
+        }
+    }
+
+    public function addpm()
+    {
+        $id = I('get.id');
+        if (IS_POST) {
+            $pmid = I('post.pmid');
+            if (empty($pmid)) {
+                $this->error('请选择项目经理');
+            }
+            $row = M('Exprocess')->where(array("exid" => $id, "type" => "申请项目经理审核", "checkid" => $pmid))->find();
+            if (empty($row)) {
+                $data3 = array(
+                    'exid' => $id,
+                    'type' => '申请项目经理审核',
+                    'checkid' => $pmid,
+                    /*	'order' => count ( $res ) + 1,*/
+                    'checkname' => get_nickname($pmid),
+                    "addtime" => time(),
+                    "adduid" => UID,
+                    "addname" => get_nickname(UID) ? get_nickname(UID) : get_username(UID)
+                );
+                M('Exprocess')->add($data3);
+                action_log_new(array('outtype' => 'ot_offer', 'outkey' => $id, 'action' => 'apm', 'comment' => ''));
+            }
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $ses = M("Member")->where("status=1")->select();
+            $this->assign('ses', $ses);
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    //标准报价审批角色
+    public function roleGrade($disoff, $amount, $prompt = false)
+    {
+        //通过金额和折扣查找审批等级
+        $examine_role = M('offerconfig')->field('roleid,disoff,money')->where(array('status' => 1))->order('roleid desc')->select();
+        $num = "";
+        foreach ($examine_role as $key => $value) {
+            $newdata[$value['roleid']] = array('disoff' => $value['disoff'], 'money' => $value['money']);
+        }
+        foreach ($newdata as $k => $val) {
+            if ($k == 4) {
+                if ($disoff >= $val['disoff'] || $amount <= $val['money']) {
+                    $num = 4;
+                }
+            }
+            if ($k == 3) {
+                if (($disoff >= $val['disoff'] && $disoff < $newdata[4]['disoff']) || ($amount <= $val['money'] && $amount > $newdata[4]['money'])) {
+                    $num = 3;
+                }
+            }
+            if ($k == 2) {
+                if (($disoff >= $val['disoff'] && $disoff < $newdata[3]['disoff']) || ($amount <= $val['money'] && $amount > $newdata[3]['money'])) {
+                    $num = 2;
+                }
+            }
+            if ($k == 1) {
+                if (($disoff < $val['disoff'] && $disoff > 0) || ($amount > $val['money'])) {
+                    $num = 1;
+                }
+            }
+        }
+        if ($prompt) {
+            return $num;
+        }
+        //查询当前提交人所在的角色等级
+        $res_group = M('auth_group_access')->alias('agc')->field('ag.grade,ag.path')
+            ->join('ot_auth_group ag on ag.id=agc.group_id')
+            ->where(array('uid' => UID))->find();
+
+
+        /* 查找最近父级等级及上级成员*/
+        $maps = "'" . $res_group['path'] . "' like CONCAT('%,',ag.id,',%')" . ' and ag.grade>=' . $num;
+        $res_parents = M('auth_group')->alias('ag')->field('ag.id,m.uid,ag.grade,ag.title')->join('ot_auth_group_access aga on aga.group_id=ag.id', 'left')
+            ->join('ot_member m on m.uid=aga.uid and m.status=1', 'left')
+            ->where($maps)->order("ag.grade asc")->select();
+        $user_list = array();
+        $user_uid = '';
+        foreach ($res_parents as $val) {
+            if (empty($val['uid'])) {
+
+                $msg = '提交失败:' . $val['title'] . '没有审批成员';
+                $this->error($msg, 'javascript:window.parent.choose();');
+            }
+            //判断提交人是否在审批角色中
+            if ($val['uid'] == UID) {
+                $user_uid = $val['grade'];
+            }
+            //所需要审批的角色
+            $user_list[$val['grade']] = $val['uid'];
+        }
+
+        //去除审批角色中有自己角色的等级
+        if ($user_uid) {
+            unset($user_list[$user_uid]);
+        }
+        if ($res_group['grade'] <= $num) {
+            //当前等级小于等于审批角色则不需要审批
+            return false;
+        }
+        if ($res_group['grade'] > $num) {
+            /* 查找最近父级等级及上级成员*/
+            return $user_list;
+        }
+    }
+
+    //非标准报价审批
+    public function nonStandard($id, $amount, $promat = false)
+    {
+        //查看审批角色是否有申请项目经理
+        $offer = M('offer')->field('pmid,uid')->where(array('oid' => $id))->find();
+        if ($offer['pmid'] > 0 || $promat) {
+            //查询审批角色
+            $examine_role = M('offerconfig')->field('roleid,money')->where(array('status' => 0))->order('roleid desc')->select();
+            $grade = "";
+            foreach ($examine_role as $key => $value) {
+                $newdata[$value['roleid']] = array('money' => $value['money']);
+            }
+
+            foreach ($newdata as $k => $val) {
+                if ($k == 4) {
+                    if ($amount <= $val['money']) {
+                        $grade = $k;
+                    }
+                }
+                if ($k == 3) {
+                    if ($amount <= $val['money'] && $amount > $newdata[4]['money']) {
+                        $grade = $k;
+                    }
+                }
+                if ($k == 2) {
+                    if ($amount <= $val['money'] && $amount > $newdata[3]['money']) {
+                        $grade = $k;
+                    }
+                }
+                if ($k == 1) {
+                    if ($amount > $val['money']) {
+                        $grade = $k;
+                    }
+                }
+            }
+            if ($promat) {
+                return $grade;
+            }
+            //查找项目经理这个角色层级等级和path
+            $res_group = M('auth_group_access')->alias('aga')->field('ag.grade,ag.path,ag.title')->join('ot_auth_group ag on ag.id=aga.group_id')->where(array('aga.uid' => $offer['pmid']))->find();
+
+
+            //查询当前提交人所在的角色等级
+            $res_groupself = M('auth_group_access')->alias('agc')->field('ag.grade,ag.path')
+                ->join('ot_auth_group ag on ag.id=agc.group_id')
+                ->where(array('uid' => $offer['uid']))->find();
+
+            /* 查找最近父级等级及上级是否有成员*/
+            $user_list = array();
+
+            if ($res_group['grade'] <= $grade) {
+                $user_list[$res_group['grade']] = $offer['pmid'];
+            } else {
+                $maps = "'" . $res_group['path'] . "' like CONCAT('%,',ag.id,',%')" . ' and ag.grade >=' . $grade;
+                $res_parents = M('auth_group')->alias('ag')->field('ag.id,m.uid,ag.grade,ag.title')->join('ot_auth_group_access aga on aga.group_id=ag.id', 'left')
+                    ->join('ot_member m on m.uid=aga.uid and m.status=1')
+                    ->where($maps)->order("ag.grade asc")->select();
+
+
+                $maps = "'" . $res_groupself['path'] . "' like CONCAT('%,',ag.id,',%')" . ' and ag.grade>=' . $grade;
+                $res_parents1 = M('auth_group')->alias('ag')->field('ag.id,m.uid,ag.grade,ag.title')->join('ot_auth_group_access aga on aga.group_id=ag.id', 'left')
+                    ->join('ot_member m on m.uid=aga.uid and m.status=1', 'left')
+                    ->where($maps)->order("ag.grade asc")->select();
+
+
+                foreach ($res_parents as $val) {
+
+                    if (empty($val['uid'])) {
+                        $msg = '提交失败:' . $val['title'] . '没有审批成员';
+                        $this->error($msg, 'javascript:window.parent.choose();');
+                    }
+                    foreach ($res_parents1 as $val1) {
+                        if ($val1['grade'] == $res_groupself['grade']) {
+                            $val1['uid'] = $offer['uid'];
+                        }
+                        if ($val['grade'] == $val1['grade'] && $val1['uid'] != $offer['uid']) {
+                            if (empty($val1['uid'])) {
+                                $msg = '提交失败:' . $val1['title'] . '没有审批成员';
+                                $this->error($msg, 'javascript:window.parent.choose();');
+                            }
+                            $user_list[$val1['grade']] = $val1['uid'];
+                        }
+                    }
+
+                    //所需要审批的角色
+                    $user_list[$val['grade'] . 'n'] = $val['uid'];
+                }
+                //项目经理为该等级审批人
+                $user_list[$res_group['grade'] . 'n'] = $offer['pmid'];
+
+            }
+            return $user_list;
+        } else {
+            //没有审批角色没有项目经理
+            return false;
+        }
+    }
+
+    //撤销提交
+    public function backout()
+    {
+
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("您要操作的报价单不存在", 'javascript:window.parent.choose();');
+        }
+
+        $offer = M('Offer')->field(true)->where("oid=" . $id . ' and static = 2')->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在", 'javascript:window.parent.choose();');
+        }
+        if (IS_POST) {
+            $content = I("post.content", "");
+            M('Offer')->save(array('oid' => $id, 'static' => 1));
+            // 删除审核表中的数据
+            M('Exprocess')->where("exid ='" . $id . "' and type='报价单审核'")->delete();
+            action_log_new(array("history" => array(array('field' => "static", 'olddata' => $offer['static'], 'newdata' => 1)), 'outtype' => 'ot_offer', 'outkey' => $id, 'action' => 'backout', 'comment' => $content));
+            echo "<script>window.parent.choose(true);</script>";
+        } else {
+            $this->assign('id', $id);
+            $this->assign('offer', $offer);
+            $this->display();
+        }
+    }
+
+    //调整报价单
+    public function adjust()
+    {
+        $id = I('get.id');
+        $offer = M('Offer')->field(true)->where('oid = ' . $id)->find();
+        if (empty($offer)) {
+            $this->error("您要操作的报价单不存在", 'javascript:window.parent.choose();');
+        }
+        if (IS_POST) {
+            $data = $this->db->create();
+            $data['oid'] = $id;
+            $tmp = $this->db->where('oid = ' . $id)->save($data);
+            if ($tmp === false) {
+                $this->error('编辑报价单失败！', U('Offer/edit?id=' . $id));
+            } else {
+                //回更报价单
+                $this->backoffer($id, $offer);
+
+                echo "<script>window.parent.choose(true);</script>";
+            }
+        } else {
+            $rates = array();
+            $rates = M("Dictionary")->where("d_code='rates'")->select(array('order' => 'd_order asc'));
+            $this->assign('rates', $rates);
+
+            $oper_rates = array();
+            $oper_rates = M("Dictionary")->where("d_code='oper_rate'")->select(array('order' => 'd_order asc'));
+            $this->assign('oper_rates', $oper_rates);
+
+
+            $steps = array();
+            $steps = M("Dictionary")->where("d_code='stepcode'")->select(array('order' => 'd_order asc'));
+            $this->assign('steps', $steps);
+
+            $therapy_areas = array();
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+            $this->assign('therapy_areas', $therapy_areas);
+            $this->assign('offer', $offer);
+            $this->assign('id', $id);
+            $this->display();
+        }
+    }
+
+    /*
+     * 报价单回更
+     * 调整清单
+     * 删除报价单明细
+     * 编辑报价单明细
+     * 已选报价单明细编辑
+     * 添加报价单明细
+     *
+	 * @param $oid  报价单id
+	 * @param $old_offer  旧的报价单数据
+	 */
+    public function backoffer($oid, $old_offer)
+    {
+        $offer = M('Offer')->field(true)->where('oid=' . $oid)->find();
+        $offer_sub = M("offer_sub")->alias('os')->join('ot_service s on os.sid = s.sid', 'left')
+            ->field("ifnull(sum(os.amount),0) amount,ifnull(sum(os.discount),0) as discount,ifnull(sum(os.days),0) as days,ifnull(sum(os.hour),0) as hours")
+            ->where("oid = " . $oid)->find();
+        if ($offer_sub) {
+            $oamount = $offer_sub['amount']; //基础报价
+            $discount = $offer_sub['discount'];//报价详情-折扣合计
+            $oper_cost = 0;
+            $days = $offer_sub['days'];//周期合计
+            $hours = $offer_sub['hours'];//工时合计
+
+            if ($offer['oper_rate'] && ($offer['oper_rate'] > 0)) { //管理税比例
+                $oper_cost = round(floatval($oamount * ($offer['oper_rate'] / 100)), 2);
+            }
+
+            $amount_notax = round(floatval($oamount + $oper_cost), 2);//不含税金额
+
+            if ($offer['rate'] && ($offer['rate'] > 0)) { //含税金额
+                $amount_tax = round(floatval($amount_notax * (1 + $offer['rate'] / 100)), 2);
+            } else {
+                $amount_tax = $amount_notax;
+            }
+
+            if ($offer['disoff'] && intval($offer['disoff']) > 0 && $offer['disoff'] <= 100) {
+                $amount = round(floatval($amount_tax * ($offer['disoff'] / 100)), 2); //折扣后金额
+                $discount += round(floatval($amount_tax * ((100 - $offer['disoff']) / 100)), 2);//折扣金额
+            } else {
+                $amount = $amount_tax;
+            }
+
+        } else {
+            $oamount = 0;//基础报价
+            $amount = 0;//计算报价
+            $amount_tax = 0;
+            $amount_notax = 0;
+            $discount = 0;
+            $oper_cost = 0;
+            $days = 0;
+            $hours = 0;
+        }
+
+        $coreservice = $this->getcoreservice($oid);
+
+        if ($offer['amount'] < $amount) {
+            $new_amount = $amount;
+        } else {
+            $new_amount = $offer['amount'];
+        }
+
+        $mdata = array(
+            "oamount" => $oamount,
+            "new_amount" => $amount,
+            "amount_tax" => $amount_tax,
+            "amount_notax" => $amount_notax,
+            "discount" => $discount,
+            "oper_cost" => $oper_cost,
+            'man_haur' => $hours,
+            'amount' => $new_amount,
+            'coreservice' => $coreservice
+        );
+        if ($days) {
+            $mdata['days'] = $days;
+        }
+
+        $tmp = $this->db->where('oid = ' . $oid)->save($mdata);
+        if ($tmp === false) {
+            $this->error("操作失败，请重新操作");
+        }
+        $offer = $this->db->where('oid = ' . $oid)->find();
+
+        $history = array();
+        foreach ($offer as $key => $vo) {
+            if ($vo != $old_offer[$key]) {
+                $history[] = array(
+                    'field' => $key,
+                    'olddata' => $old_offer[$key],
+                    'newdata' => $vo,
+                );
+            }
+        }
+
+        if (count($history) && $offer['static'] == 3) {
+            $data1['static'] = 1;
+            $history[] = array(
+                'field' => 'static',
+                'olddata' => $offer['static'],
+                'newdata' => 1,
+            );
+            $this->db->where('oid = ' . $oid)->save($data1);
+        }
+        action_log_new(array('history' => $history, 'outtype' => 'ot_offer', 'outkey' => $oid, 'action' => 'offersub', 'comment' => ''));
+    }
+
+    //服务内容指导
+    public function direction()
+    {
+        $sid = I('get.sid', 0);
+        if (empty($sid)) {
+            $this->error("数据不存在，请重新操作");
+        }
+        $list = M('Service')->alias('s')
+            ->field('s.description,s.name,m.nickname,addtime,s.mid')
+            ->join('ot_member m on m.uid = s.uid')->where('s.sid=' . $sid)->find();
+        $this->assign('list', $list);
+        $mid = $list['mid'];
+        $doc = array();
+        /* ->join('ot_help_file hf on hf.mhid = mh.mhid','left')
+             ->join('ot_file f on f.fileid = hf.file_id and f.delete=0','left')*/
+        if ($mid) {
+            $doc = M('ModuleHelp')->alias('mh')
+                ->field("mh.*,m.nickname")
+                ->join('ot_member m on m.uid = mh.uid')
+                ->where('mh.mid = ' . $mid)->select();
+            foreach ($doc as $k => $v) {
+                $doc1 = M('HelpFile')->alias('hf')
+                    ->field("f.name,f.fileid")
+                    ->join('ot_file f on f.fileid = hf.file_id and f.delete=0', 'left')
+                    ->where('hf.mhid =' . $v['mhid'])->select();
+                $doc[$k]['fujian'] = $doc1;
+            }
+        }
+        $this->assign('doc', $doc);
+
+        $this->display();
+    }
+
+    //指导文档
+    public function modulehelp()
+    {
+        $mhid = I('get.mhid', 0);
+        if (empty($mhid)) {
+            $this->error("数据不存在，请重新操作");
+        }
+        $list = M('ModuleHelp')->alias('mh')
+            ->field("mh.*,m.nickname")
+            ->join('ot_member m on m.uid = mh.uid')
+            ->where('mh.mhid = ' . $mhid)->find();
+        $this->assign('list', $list);
+        if ($mhid) {
+            $doc = M('HelpFile')->alias('hf')
+                ->field("f.name,f.fileid")
+                ->join('ot_file f on f.fileid = hf.file_id and f.delete=0', 'left')
+                ->where('hf.mhid = ' . $mhid)->select();
+        }
+        $this->assign('doc', $doc);
+        $this->display();
+    }
+
+    /*
+     * 费用文件删除
+     * */
+    public function delFile()
+    {
+        $id = I('get.fid');
+        if (empty($id)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $res = M('file')->where(array('fileid' => $id))->save(array('delete' => 1));
+        if ($res) {
+            M('offer_file')->where(array('fileid' => $id))->delete();
+            return $this->ajaxReturn(array('done' => true, 'msg' => "删除成功"));
+        }
+    }
+
+    /*
+    *审批人员提示
+    */
+    public function promat($grade, $status)
+    {
+        //审批人员列表
+        $map['roleid'] = array('egt', $grade);
+        $map['status'] = array('eq', $status);
+        $examine_role = M('offerconfig')->field('rname,money,disoff,status,roleid')->where($map)->order('status desc')->select();
+        foreach ($examine_role as &$val) {
+            $res_money = explode('.', $val['money']);
+            if ($res_money[1] == '00') {
+                $val['money'] = $res_money[0] / 10000;
+            } else {
+                $val['money'] = $val['money'] / 10000;
+            }
+            if (!empty($val['disoff'])) {
+                $res_disoff = explode('.', $val['disoff']);
+                if ($res_disoff[1] == '00') {
+                    $val['disoff'] = $res_disoff[0];
+                }
+            }
+        }
+
+        $html = "<table>";
+        $nhtml = '';
+        $html .= "<tr><td style='color:#a7a7a7'>审批角色</td><td style='color:#a7a7a7'>金额</td><td style='color:#a7a7a7'>折扣</td></tr>";
+        $nhtml .= "<tr><td style='color:#a7a7a7'>审批角色</td><td colspan='2' style='color:#a7a7a7'>金额</td></tr>";
+        foreach ($examine_role as $value) {
+            if ($value['status'] == 1) {
+                if ($value['roleid'] == 1) {
+                    $html .= "<tr><td>{$value['rname']}</td><td>&nbsp;&nbsp;>{$value['money']}w</td><td>&nbsp;&nbsp;<{$value['disoff']}%</td></tr>";
+                } else {
+                    $html .= "<tr><td>{$value['rname']}</td><td><={$value['money']}w</td><td>>={$value['disoff']}%</td></tr>";
+                }
+                $html2 = $html . '</table>';
+            } else {
+                if ($value['roleid'] == 1) {
+                    $nhtml .= "<tr><td>{$value['rname']}</td><td colspan='2'>&nbsp;&nbsp;>{$value['money']}w</td></tr>";
+                } else {
+                    $nhtml .= "<tr><td>{$value['rname']}</td><td colspan='2'><={$value['money']}w</td></tr>";
+                }
+                $html2 = "<table>" . $nhtml . "</table>";
+            }
+        }
+        return $html2;
+    }
+
+    public function tip()
+    {
+        $disoff = I('get.id');
+//      $amount=I('get.amount');
+        if ((is_numeric($disoff) && $disoff >= 0 && $disoff <= 100) || empty($disoff)) {
+            $grade = $this->roleGrade($disoff, 0, 1);
+            $html = $this->promat($grade, 1);
+            echo $html;
+        } else {
+            echo "输入有误:折扣范围在0-100之间";
+        }
+    }
+}

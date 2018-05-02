@@ -1,0 +1,375 @@
+<div id="querybox" class="">
+
+		<script language="javascript">
+
+$(function()
+{
+    $("#searchform").keydown(function (e) {
+        var curKey = e.which;
+        if (curKey == 13) {
+            $("#searchform").submit();
+        }
+    });
+	$("#btnsubmit").click(function(){
+		$("#searchform").submit();
+	});
+
+});
+</script>
+
+<style>
+#bysearchTab {transition: all .3s cubic-bezier(.175, .885, .32, 1);}
+#bysearchTab.active {background: #fff; padding: 2px 10px 3px; padding-bottom: 2px\0; border: 1px solid #ddd; border-bottom: none}
+#bysearchTab.active:hover {background: #ddd}
+
+#featurebar .nav {position: relative;}
+#featurebar .nav .dropdown .dropdown-menu{z-index:1010;}
+#querybox form{padding-right: 40px;}
+#querybox .form-control {padding: 2px}
+@-moz-document url-prefix() {#querybox .form-control {padding: 6px 2px;}}
+#querybox .table {border: none}
+#querybox .table-form td {border: none}
+#querybox .btn {padding: 5px 8px;}
+#querybox .table-form td td {padding: 2px;}
+#querybox .table .table {margin: 0;}
+.outer #querybox .table tr > th:first-child, .outer #querybox .table tr > td:first-child,
+.outer #querybox .table tr > th:last-child, .outer #querybox .table tr > td:last-child,
+.outer #querybox .table tbody > tr:last-child td {padding: 2px}
+#querybox a:hover {text-decoration: none;}
+
+#selectPeriod {padding: 4px; height: 197px; min-width: 120px}
+#selectPeriod > .dropdown-header {background: #f1f1f1; display: block; text-align: center; padding: 4px 0; line-height: 20px; margin-bottom: 5px; font-size: 14px; border-radius: 2px; color: #333; font-size: 12px}
+#selectPeriod li > a {padding: 4px 15px; border-radius: 2px}
+
+#moreOrLite {position: absolute; right: 0px; top: 0; bottom: 0}
+#searchlite, #searchmore {color: #5e4ba4; width: 50px; padding: 0 5px; line-height: 60px; text-align: center;}
+#searchlite {line-height: 127px}
+#searchform.showmore #searchmore, #searchform #searchlite {display: none;}
+#searchform.showmore #searchlite, #searchform #searchmore {display: inline-block;}
+#searchform .chosen-container .chosen-drop{min-width: 400px;}
+#searchform .chosen-container .chosen-drop ul.chosen-results li{white-space:normal}
+#searchmore > i, #searchlite > i {font-size: 28px;}
+#searchmore > i {position: relative; top: 4px;}
+#searchmore:hover, #searchlite:hover {color: #7865c7; background: #e5e5e5}
+
+#groupAndOr {display: inline-block;}
+
+.outer > #querybox {margin: -20px -20px 20px; border-top: none; border-bottom: 1px solid #ddd}
+
+#searchform input.date::-webkit-input-placeholder{color: #000000; opacity: 1;}
+#searchform input.date::-moz-placeholder{color: #000000; opacity: 1;}
+#searchform input.date:-ms-input-placeholder{color: #000000; opacity: 1;  }
+#three .chosen-container { width: 40% !important; }
+#etime_chosen { width: 40% !important; }
+#searchform .table-fixed td{}
+#searchform .table-fixed td{}
+.mtx{margin-top: 5px}
+.timeleft{float: left;width: 69px;margin-left: 6px !important;}
+.timeright{float: left;width: 69px;margin-left: 6px !important}
+.w-90px strong{color: #333;font-size: 12px;float: right;
+}
+#pstime_chosen{
+	width: 90px !important;
+	float: left;
+	margin-top: 5px;
+}
+#petime_chosen{
+	width: 90px !important;
+	float: left;
+	margin-top: 5px;
+}
+#stime_chosen{
+	width: 90px !important;
+	float: left;
+	margin-top: 5px;
+}
+#etime_chosen{
+	float: left;
+	margin-top: 5px;
+}
+#searchbox1 th {
+	text-decoration:none;
+	border: 0 !important;
+}
+.nborer th{border: 0}
+</style>
+	<script language="Javascript">
+
+/**
+ * Reset forms.
+ *
+ * @access public
+ * @return void
+ */
+function resetForm(obj)
+{
+    $("#reset").val(1);
+    $("#searchform").submit();
+}
+
+/**
+ * Show more fields.
+ *
+ * @access public
+ * @return void
+ */
+function showmore(obj)
+{
+	$("#second").css('display','');
+	$("#three").css('display','');
+    $(obj).closest('form').find('#formType').val('more');
+    $(obj).closest('form').addClass('showmore');
+}
+
+/**
+ * Show lite search form.
+ *
+ * @access public
+ * @return void
+ */
+function showlite(obj)
+{
+
+    $("#second").css('display','none');
+    $("#three").css('display','none');
+    $(obj).closest('form').removeClass('showmore');
+    $(obj).closest('form').find('#formType').val('lite');
+}
+
+
+
+
+
+$(function()
+{
+    $('#pstime_start').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#pstime_end').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#petime_start').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#petime_end').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#stime_start').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#stime_end').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#etime_start').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    $('#etime_end').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+    var shows ="{$show}";
+	var second = "{$second}";
+    $(document).ready(function () {
+		if(shows != 0)
+        {
+            $("#bysearchTab").addClass('active');
+            $("#querybox").addClass('show');
+        }
+		if(second != 0)
+		{
+		    $("#second").css('display','');
+		    $("#three").css('display','');
+		    $("#four").css('display','');
+		}
+    });
+	$("#pstime").change(function () {
+	 	var option = $(this).find("option:selected");
+	    var start = option.data('start');
+
+	    var end = option.data('end');
+
+	    $("#pstime_start").val(start);
+	    $("#pstime_end").val(end);
+    });
+
+    $("#petime").change(function () {
+        var option = $(this).find("option:selected");
+        var start = option.data('start');
+
+        var end = option.data('end');
+
+        $("#petime_start").val(start);
+        $("#petime_end").val(end);
+    });
+    $("#stime").change(function () {
+        var option = $(this).find("option:selected");
+        var start = option.data('start');
+
+        var end = option.data('end');
+
+        $("#stime_start").val(start);
+        $("#stime_end").val(end);
+    });
+    $("#etime").change(function () {
+        var option = $(this).find("option:selected");
+        var start = option.data('start');
+
+        var end = option.data('end');
+
+        $("#etime_start").val(start);
+        $("#etime_end").val(end);
+    });
+    var str="{$value13}";
+    if(str)
+	{
+        var arr=str.split(',');
+        var options = $("#therapy_area").find("option");
+        for(var i=0;i<arr.length;i++){
+            for(var j=0;j<options.length;j++){
+                if( options.eq(j).val()==arr[i]){
+                    options.eq(j).attr("selected",'true');
+                }
+            }
+        }
+	}
+
+    var noResultsMatch = '没有匹配结果';
+    var defaultChosenOptions = {
+        no_results_text: noResultsMatch,
+        width: '100%',
+        allow_single_deselect: true,
+        disable_search_threshold: 1,
+        placeholder_text_single: ' ',
+        placeholder_text_multiple: ' ',
+        search_contains: true
+    };
+
+    $("#therapy_area,.chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+        var $this = $(this);
+        var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+        var $drop = $chosen.find('.chosen-drop');
+        $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+    });
+
+})
+</script>
+
+		<form method="get"  id="searchform" class="form-condensed">
+			<input type="hidden" value="{$actionURL}" name="s">
+            <input type="hidden" id="reset" name="reset" value="">
+			<table class="table table-condensed table-form" id="user-search"
+				style="max-width: 1200px; margin: 0 auto">
+				<tbody>
+					<tr>
+						<td>
+							<table class="table active-disabled table-fixed nborer">
+								<tbody>
+										<tr id="searchbox1" class="" >
+											<th class="w-90px"><strong>项目名称</strong> </th>
+											 <td><input class="form-control  searchInput" type="text" name="pname" value="{$value1}"></td>
+											<th  class="w-90px"><strong>任务名称</strong></th>
+											<td><input class="form-control  searchInput" type="text" name="title" value="{$value2}"></td>
+											<th  class="w-90px"><strong>分派人</strong></th>
+											<td><input class="form-control  searchInput" type="text" name="manageruname" value="{$value3}"></td>
+										</tr>
+										<tr>
+											<th  class="w-90px"><strong>执行人</strong></th>
+											<td><input class="form-control  searchInput" type="text" name="assignedname" value="{$value4}"></td>
+											<th class="w-90px"><strong>任务状态 </strong></th>
+											<td style="overflow: visible"><select class="form-control searchSelect chosen" name="state" >
+												<option value=""></option>
+												<volist name="states" id="vo">
+													<option  value="{$vo.d_value}"
+													<if condition="$vo.d_value eq $value5">selected</if>
+													>{$vo.d_key}</option>
+												</volist>
+											</select>
+											</td>
+											<th class="w-90px"><strong>优先级 </strong></th>
+											<td style="overflow: visible"><select class="form-control searchSelect chosen" name="level" >
+												<option value=""></option>
+												<volist name="units" id="vo">
+													<option  value="{$vo.d_value}"
+													<if condition="$vo.d_value eq $value6">selected</if>
+													>{$vo.d_key}</option>
+												</volist>
+											</select>
+											</td>
+										</tr>
+										<tr id="second" style="display: none" >
+											<th class="w-90px"><strong>任务类型</strong> </th>
+											<td style="overflow: visible"><select class="form-control searchSelect chosen" name="tasktype" >
+												<option value=""></option>
+												<volist name="taskType" id="vo">
+													<option  value="{$vo.d_value}"
+													<if condition="$vo.d_value eq $value7">selected</if>
+													>{$vo.d_key}</option>
+												</volist>
+											</select>
+											</td>
+											<th class="w-90px"><strong>服务角色 </strong></th>
+											<td style="overflow: visible"><select class="form-control searchSelect chosen" name="groupid" >
+												<option value=""></option>
+												<volist name="groups" id="vo">
+													<option  value="{$vo.groupid}"
+													<if condition="$vo.groupid eq $value8">selected</if>
+													>{$vo.name}</option>
+												</volist>
+											</select>
+											</td>
+											<th class="w-90px"><strong>实际完成日期</strong> </th>
+											<td  style="overflow: visible;">
+												<select class="form-control  searchSelect chosen" name="etime" id="etime"  >
+													<option value="" data-start="" data-end="">范围</option>
+													<volist name="calculate" id="vo">
+														<option value="{$key}" data-start="{$vo.start}" data-end="{$vo.end}"
+														<if condition="$key eq $etime">selected</if>
+														>{$key}</option>
+													</volist>
+												</select><div class="mtx">
+												<input type="text" name="etime_start" id="etime_start" value="{$etimeStart}" class="form-control  searchInput timeleft" autocomplete="off" >
+												<input type="text"  name="etime_end" id="etime_end" value="{$etimeEnd}" class="form-control  searchInput timeright"autocomplete="off" >
+											</div>
+											</td>
+										</tr>
+										<tr id="three" style="display: none" >
+											<th class="w-90px"><strong>计划开始时间</strong> </th>
+											<td  style="overflow: visible;">
+												<select class="form-control  searchSelect chosen" name="pstime" id="pstime"  >
+													<option value="" data-start="" data-end="">范围</option>
+													<volist name="calculate" id="vo">
+														<option value="{$key}" data-start="{$vo.start}" data-end="{$vo.end}"
+														<if condition="$key eq $pstime">selected</if>
+														>{$key}</option>
+													</volist>
+
+												</select>
+												<div class="mtx">
+													<input type="text" name="pstime_start" id="pstime_start" value="{$pstimeStart}" class="form-control  searchInput timeleft" autocomplete="off" >
+													<input type="text"  name="pstime_end" id="pstime_end" value="{$pstimeEnd}" class="form-control  searchInput timeright"autocomplete="off" >
+												</div></td>
+												<th class="w-90px"><strong>计划结束时间</strong> </th>
+											<td  style="overflow: visible;">
+												<select class="form-control  searchSelect chosen" name="petime" id="petime" >
+													<option value="" data-start="" data-end="">范围</option>
+													<volist name="calculate" id="vo">
+														<option value="{$key}" data-start="{$vo.start}" data-end="{$vo.end}"
+														<if condition="$key eq $petime">selected</if>
+														>{$key}</option>
+													</volist>
+												</select><div class="mtx">
+												<input type="text" name="petime_start" id="petime_start" value="{$petimeStart}" class="form-control  searchInput timeleft" autocomplete="off" >
+												<input type="text"  name="petime_end" id="petime_end" value="{$petimeEnd}" class="form-control  searchInput timeright"autocomplete="off" >
+											</div>
+
+											</td>
+
+										</tr>
+								</tbody>
+							</table></td>
+
+
+						<td class="w-160px"><input type="hidden" name="sid"
+							id="module" value="{$sid}">
+							<div class="btn-group">
+								<button type="button" id="btnsubmit" class="btn btn-primary">搜索</button>
+								<button type="button" class="btn btn-default"
+									onclick="resetForm(this)">重置</button>
+
+							</div></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div id="moreOrLite">
+				<a id="searchmore" href="javascript:;" onclick="showmore(this)"><i
+					class="icon-double-angle-down icon-2x"></i>
+				</a> <a id="searchlite" href="javascript:;" onclick="showlite(this)"><i
+					class="icon-double-angle-up icon-2x"></i>
+				</a> <input type="hidden" name="formType" id="formType" value="lite">
+			</div>
+		</form>
+	</div>

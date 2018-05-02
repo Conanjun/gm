@@ -1,0 +1,377 @@
+<extend name="Public/base"/>
+
+<block name="body">
+    <script src='__JSNEW__/jquery.validate.js'
+            type='text/javascript'></script>
+            <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+    </style>
+    <style>
+        tbody.sortable > tr.drag-shadow {
+            display: none
+        }
+
+        tbody.sortable > tr > td.sort-handler {
+            cursor: move;
+            color: #999;
+        }
+
+        tbody.sortable > tr > td.sort-handler > i {
+            position: relative;
+            top: 2px
+        }
+
+        tbody.sortable-sorting > tr {
+            transition: all .2s;
+            position: relative;
+            z-index: 5;
+            opacity: .3;
+        }
+
+        tbody.sortable-sorting {
+            cursor: move;
+        }
+
+        tbody.sortable-sorting > tr.drag-row {
+            opacity: 1;
+            z-index: 10;
+            box-shadow: 0 0px 2px red
+        }
+
+        tbody.sortable-sorting > tr.drag-row + tr > td {
+            box-shadow: inset 0 4px 2px rgba(0, 0, 0, .2)
+        }
+
+        tbody.sortable-sorting > tr.drag-row > td {
+            background-color: #edf3fe !important
+        }
+
+        tbody.sortable > tr.drop-success > td {
+            background-color: #cfe0ff;
+            transition: background-color 2s;
+        }
+    </style>
+    <script language="Javascript">orderBy = "{$orderBy}";</script>
+    <script>
+        $(document).ready(function () {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function () {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function (e) {
+                            var orders = {};
+                            e.list.each(function () {
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function () {
+                                e.element.removeClass('drop-success');
+                            }, 800)
+                        }
+                    });
+            });
+            $('#doctypeTableList').on('sort.sortable', function (e, data) {
+                var list = '';
+                for (i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('ClientPosition/updateOrder')}", {'cpid': list, 'orderBy': orderBy},function (data) {
+                    window.location.reload(false);
+                });
+            });
+        });
+
+    </script>
+    <div id="featurebar">
+        <ul class="nav" style="float: left">
+            <li>客户职务</li>
+        </ul>
+
+        <div style="clear: both;"></div>
+    </div>
+    <form id="childrenForm" class="form-condensed" method="post"
+          action="{:U('add')}">
+        <div style="margin: 0 auto;width:650px">
+            <table class="table table-form">
+                <thead>
+                <tr class="text-center">
+                    <th>职务名称</th>
+                    <th style="width: 250px">备注</th>
+                    <th style="width: 38px;text-align: left">操作</th>
+                    <th style="width: 85px;text-align: left">排序</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td id="moduleBox" colspan="4">
+                        <div id="sonModule" style="margin: 0 auto;width:600px" class="pr">
+                            <a href="javascript:;" style="right: -60px;margin-bottom: 5px" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+                            <table>
+                                <tbody class="sortable" id='doctypeTableList'>
+                                <notempty name="list">
+                                    <volist name="list" id="vo">
+                                        <tr data-id="{$vo.cpid}" data-order="{$vo['sort_order']}">
+                                            <td style="border: 0;margin: 0;padding: 0">
+                                                <div class="row-table addedItem" style="margin-bottom: 5px">
+                                                    <div class="col-table">
+                                                        <input type="hidden" name="cpid[]" 
+                                                               value="{$vo.cpid}">
+                                                        <input type="text" name="title[]"  value="{$vo.title}"
+                                                               class="form-control"
+                                                               autocomplete="off">
+                                                    </div>
+                                                    <div class="col-table" style="width: 350px">
+                                                        <div class="input-group">
+                                                            <input type="text" name="note[]" title="{$vo.note}" value="{$vo.note}" class="form-control"
+                                                                   autocomplete="off">
+                                                            <span class="input-group-btn"><a href="javascript:;" onclick='deletedata(this,"{:U('delete?id='.$vo['cpid'])}")' class="btn-op btn-block"><i class="icon icon-remove"></i>
+                                                                </a> </span>
+                                                            <span class="input-group-btn sort-handler">
+															<a href="javascript:;" class="btn-op btn-block"
+                                                               style="cursor: move; color: #999;" title="排序"><i
+                                                                    class="icon icon-move"></a></i></i>
+                                                                </a> </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                </notempty>
+                                </tbody>
+                            </table>
+                            <empty name="list">
+                                <for start="0" end="1">
+                                    <div class="row-table1 addedItem" style="padding-bottom: 5px">
+                                        <div class="col-table">
+                                            <input type="text" style="width: 150px" name="title[]" id="title[]" value=""
+                                                   class="form-control"  autocomplete="off">
+                                        </div>
+                                        <div class="col-table" style="width: 300px">
+                                            <div class="input-group">
+                                                <input style="width: 270px"type="text" name="note[]" id="note[]"
+                                                       class="form-control"  autocomplete="off">
+                                                <span class="input-group-btn"><a
+                                                  style="border-left:0;"  href="javascript:;" onclick="deleteItem(this)"
+                                                    class="btn-op btn-block"><i class="icon icon-remove"></i>
+                                                        </a> </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </for>
+                            </empty>
+                            <for start="0" end="1">
+                                <div class="row-table1 addedItem" style="margin-bottom: 5px;display: none">
+                                    <div class="col-table">
+                                        <input type="text" style="width: 150px" name="title[]"  value=""
+                                               class="form-control"  autocomplete="off">
+                                    </div>
+                                    <div class="col-table" style="width: 300px">
+                                        <div class="input-group">
+                                            <input style="width: 270px"type="text" name="note[]"
+                                                   class="form-control"  autocomplete="off">
+                                            <span class="input-group-btn"><a
+                                                    style="border-left:0;"  href="javascript:;" onclick="deleteItem(this)"
+                                                    class="btn-op btn-block"><i class="icon icon-remove"></i>
+                                                        </a> </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </for>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                    <div class="rightdiv">
+                        <button type="button" class="btn btn-default"
+                                onclick="history.go(-1);"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回
+                        </button>
+                        
+                        <button type="submit" id="submit" class="btn btn-primary"
+                                data-loading="."><i class="icon-save"></i> 保存
+                        </button></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <script>config.onlybody = 'no';
+
+
+    //搜索功能
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".search-input").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+
+
+    </script>
+    <script language="Javascript">
+        $(function(){
+            $("#btn-addrow").click(function(){
+                var obj=$("#sonModule").children().last();
+                addItem(obj);
+            });
+        })
+        function deletedata(obj, url) {
+            if (confirm("确定要删除数据吗？")) {
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            $(obj).closest('.row-table').remove();
+                           deleteItem(obj);
+                        } else {
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+        function addItem(obj) {
+            var obj=$("#sonModule").children().last();
+            var $inputgroup = $(obj).closest('.row-table1:last');
+            $inputgroup.after($inputgroup.clone()).next('.row-table1').find('input').val('');
+            $inputgroup.next('.row-table1').attr('style','padding-bottom: 5px;');
+        }
+
+        function insertItem(obj) {
+            var $inputgroup = $(obj).closest('.row-table');
+            var insertHtml = $('#insertItemBox').children('.row-table').clone();
+            $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+            updateItemOrder();
+        }
+
+        function updateItemOrder() {
+            var order = 10;
+            $('#sonModule').children('.row-table').each(function () {
+                if ($(this).find("input[name*='order']").length > 0) {
+                    console.log(order);
+                    $(this).find("input[name*='order']").val(order);
+                    order += 10;
+                }
+            });
+
+            $('#maxOrder').val(order - 10);
+        }
+
+        function deleteItem(obj) {
+            if($("#sonModule").find('i.icon-remove').size() <= 2){
+                addItem(obj);
+            }
+            $(obj).closest('.addedItem').remove();
+        }
+        function syncModule(rootID, type) {
+            moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+            type = type == 'task' ? 'task' : 'story';
+
+            link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+            $.getJSON(link, function (modules) {
+                if (modules.length == 0) return false;
+                $('.helplink').addClass('hidden');
+                var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+                $.each(modules, function (key, module) {
+                    $('.row-table').each(function () {
+                        moduleName = $(this).find('input[id^=modules]').val();
+                        if (moduleName == module.name) modules[key] = null;
+                        if (!moduleName) $(this).closest('.row-table').remove();
+                    })
+                });
+
+                $.each(modules, function (key, module) {
+                    if (module) {
+                        $('#sonModule').append($inputgroup);
+                        $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+                        $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                    }
+                })
+                $('#sonModule').append($inputgroup);
+            })
+        }
+
+        function syncProductOrProject(obj, type) {
+            if (type == 'product') viewType = 'story';
+            if (type == 'project') viewType = 'task';
+            link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+            $.getJSON(link, function (modules) {
+                $('.helplink').addClass('hidden');
+                $('#' + type + 'Module').empty();
+                $.each(modules, function (key, value) {
+                    $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+                });
+                $('#' + type + 'Module').trigger("chosen:updated");
+            })
+            $('#copyModule').attr('onclick', null);
+            $('#copyModule').bind('click', function () {
+                syncModule(obj.value, viewType)
+            });
+        }
+
+        function toggleCopy() {
+            var $copy = $('table.copy');
+            if ($copy.size() == 0) return false;
+            $copy.toggle();
+        }
+
+        $(document).ready(function () {
+            toggleCopy();
+            $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+            $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+        });
+
+
+    </script>
+
+
+    </div>
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('ClientPosition/index')}");
+    </script>
+</block>

@@ -1,0 +1,789 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+use Admin\Common\Super\Api;
+use Admin\Common\Super\Project;
+
+/**
+ *立项控制器
+ */
+class ProjectAddController extends AdminController
+{
+    //定义数据表
+    private $db;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->db = D('Project');
+    }
+
+    /**
+     *创建项目基本信息
+     *
+     */
+    public function index()
+    {
+        if (IS_POST) {
+            $pid = I('post.pid', 0);
+            if (I('get.edit')) {
+                $this->project_out($pid);
+            }
+            if (empty ($_POST ['name'])) {
+                $this->error('请填写项目名称，不能为空');
+            }
+            if (empty ($_POST ['type'])) {
+                $this->error('请选择项目类型');
+            }
+            if (empty ($_POST ['pmuid'])) {
+                $this->error('请选择项目经理');
+            }
+            $pstime = strtotime($_POST['pstime']);
+            $petime = strtotime($_POST['petime']);
+            if ($pstime > $petime) {
+                $this->error('预计结束时间必须大于预计启动时间');
+            }
+            $contract = $_POST['contract'];
+            if (is_array($contract) && !empty($contract)) {
+                $contract = implode(',', $contract);
+            } else {
+                $contract = '';
+            }
+            $pmuid = $_POST['pmuid'];
+            $pm = get_nickname($_POST['pmuid']) ?: get_username($_POST['pmuid']);
+            $sale = $_POST['sale'];
+            $salename = get_nickname($sale) ?: get_username($sale);
+            $adviserid = $_POST['adviser'];
+            $adviser = get_nickname($adviserid) ?: get_username($adviserid);
+            $data = array(
+                'name' => $_POST['name'],
+                'type' => $_POST['type'],
+                'pmuid' => $pmuid,
+                'pm' => $pm,
+                'sale' => $sale,//客户经理
+                //'ap' => get_nickname($_POST['apid']) ?: get_username($_POST['apid']),
+                'cid' => $_POST['cid'],
+                'adviser' => get_nickname($_POST['adviser']) ?: get_username($_POST['adviser']),//顾问
+                'contract' => $contract,
+                'money' => $_POST['money'],
+                'contract_time' => strtotime($_POST['contract_time']),
+                'uid' => UID,
+                'uname' => get_nickname(UID) ?: get_username(UID),
+            );
+            $dept = M('Member')->where('uid=' . $_POST['pmuid'])->getfield('dept');
+            if ($dept) {
+                $data['orgid'] = $dept;
+            }
+            if ($pid) {
+                M('project')->where(array('pid' => $pid))->save($data);
+                action_log_new(array('history' => $history, 'outtype' => 'ot_project', 'outkey' => $pid, 'pid' => $pid, 'action' => 'edit', 'comment' => ''));
+                if (I('get.edit')) {
+                    echo "<script>window.parent.choose()</script>";
+                } else {
+                    $this->redirect('stakeholder', array('pid' => $pid));
+                }
+            } else {
+                $data['addtime'] = time();
+                $type = M('dictionary')->where("d_code='project_type' and d_value ='{$_POST['type']}'")->find();
+                $code = get_rand_code($this->db, $type['d_assist']);
+                $data['code'] = $code;
+                $result = M('project')->add($data);
+                action_log_new(array(
+                    'outtype' => 'ot_project',
+                    'outkey' => $result,
+                    'pid' => $result,
+                    'action' => 'create',
+                    'comment' => ''
+                ));
+                if ($result) {
+                    $uanme = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                    $roleid1 = M('ProjectRole')->where("name='项目经理'")->getfield('prid');
+                    $roleid2 = M('ProjectRole')->where("name='销售'")->getfield('prid');
+                    $roleid3 = M('ProjectRole')->where("name='项目创建人'")->getfield('prid');
+                    $takep = array(
+                        0 => array(
+                            'pid' => $result,
+                            'uid' => $pmuid,
+                            'uname' => $pm,
+                            'addtime' => time(),
+                            'adduid' => UID,
+                            'adduname' => $uanme,
+                            'roleid' => $roleid1,
+                        ),
+                        1 => array(
+                            'pid' => $result,
+                            'uid' => $sale,
+                            'uname' => $salename,
+                            'addtime' => time(),
+                            'adduid' => UID,
+                            'adduname' => $uanme,
+                            'roleid' => $roleid2,
+                        ),
+                        2 => array(
+                            'pid' => $result,
+                            'uid' => UID,
+                            'uname' => $uanme,
+                            'addtime' => time(),
+                            'adduid' => UID,
+                            'adduname' => $uanme,
+                            'roleid' => $roleid3,
+                        )
+                    );
+                    if ($adviser) {
+                        $roleid4 = M('ProjectRole')->where("name='咨询顾问'")->getfield('prid');
+                        $takep[] = array(
+                            'pid' => $result, 'uid' => $adviserid, 'uname' => $adviser, 'addtime' => time(),
+                            'adduid' => UID, 'adduname' => $uanme, 'roleid' => $roleid4,
+                        );
+                    }
+                    foreach ($takep as $vo) {
+                        if (!empty($vo['uid']) && $vo != '') {
+                            M('Takepart')->add($vo);
+                        }
+                    }
+
+                    $this->redirect('stakeholder', array('pid' => $result));
+                } else {
+                    $this->error('项目基本信息创建失败');
+                }
+            }
+
+
+        } else {
+            $pid = I('get.pid', '');
+            if ($pid) {
+                $project = M('project')->where(array('pid' => $pid))->find();
+                $con = $project['contract'];
+                if ($con) {
+                    $this->assign('con', $con);
+                }
+                if ($project['contract_time']) {
+                    $project['contract_time'] = date('Y/m/d', $project['contract_time']);
+                } else {
+                    $project['contract_time'] = time_format(time(), 'Y/m/d');
+                }
+                $this->assign('project', $project);
+//               var_dump($project);
+            }
+            $info = "<p>创建项目属于项目「立项」阶段。</p>
+
+<p>这个阶段需要填写项目的基本信息、干系人、背景、目标、风险等信息，这些信息将会帮助项目团队更好的了解项目，也是对进行下一步的「项目规划」做准备。</p>
+
+<p>请根据下一步提示来填写信息，如果现有信息完整就尽量填写，如果没有的话可以先填写已有信息，根据提示跳过进入下一阶段，待获取信息时再填</p>";
+            $this->assign('info', $info);
+            $title = "项目基本信息";
+            $this->assign('title', $title);
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('pm', $pm);
+            //项目类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            $this->assign('types', $types);
+            //客户
+            $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+            $this->assign('customer', $customer);
+            //顾问
+            $adviser = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('advisers', $adviser);
+            // 合同 : LGW
+            $cost['email'] = get_email(UID);
+            $cost['from']='contract';
+            $contract = apiRead(Api::CONTRACT, Api::DXY_CRM, $cost);
+            $contracts = [];
+            if ($contract['success']) {
+                foreach ($contract['data'] as $k => $v) {
+                    $v['contract_no'] and $contracts[$k] = $v;
+                    $customer = $v['customer'];
+                    if (!empty($customer)) {
+                        $contracts[$k]['name'] = $customer['name'];
+                    }
+                }
+
+            }
+            $this->assign('contracts', $contracts);
+            $time = time_format(time(), 'Y/m/d');
+            $this->assign('time', $time);
+            $this->assign('uid', UID);
+            $uanme = get_nickname(UID) ?: get_username(UID);
+            $this->assign('uanme', $uanme);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '我管理的项目', 'url' => U('ProjectNewFromMe/index'));
+            $root_mbx[] = array('title' => '创建项目', 'url' => U('ProjectAdd/index'));
+            $root_mbx[] = array('title' => '基本信息', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            if (I('get.edit')) {
+                $this->display('edit_add');
+            } else {
+                $this->display();
+            }
+        }
+    }
+
+    /*
+     * 干系人
+     * */
+    public function stakeholder()
+    {
+        $pid = I('get.pid');
+        if (IS_POST) {
+	        $this->project_out($pid);
+            if (I('get.back') != 1) {
+                if (empty ($_POST ['name'])) {
+                    $this->error('姓名不能为空');
+                }
+                if (empty ($_POST ['dept'])) {
+                    $this->error('请选择部门');
+                }
+                if (empty ($_POST ['email'])) {
+                    $this->error('邮箱不能为空');
+                }
+            }
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $k => $v) {
+                if (empty($v['rid'])) {
+                    $adddata[] = $v;
+                } else {
+                    $editdata[] = $v;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $k => $v) {
+                    M('related')->where(array('rid' => $v['rid']))->save($v);
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $k => $v) {
+                    $v['addtime'] = time();
+                    $v['uid'] = UID;
+                    $v['uname'] = get_nickname(UID) ?: get_username(UID);
+                    $v['pid'] = $pid;
+                    M('related')->add($v);
+                }
+            }
+            if (I('get.edit')) {
+                echo "<script>window.parent.choose();</script>";
+            } elseif (I('get.back')) {
+                $this->redirect('index', array('pid' => $pid));
+            } else {
+                $this->redirect('summary', array('pid' => $pid));
+            }
+
+        } else {
+            //项目部门
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $this->assign('dept', $depts);
+            $info = "这里干系人主要指客户的干系人，记录这些干系人信息，为后续「沟通计划」做准备，也便于项目沟通";
+            $this->assign('info', $info);
+            $title = "干系人信息";
+            $this->assign('title', $title);
+            $res = M('project')->where(array('pid' => $pid))->find();
+            $holder = M('related')->where(array('pid' => $pid))->select();
+            $this->assign('holder', $holder);
+            $this->assign('project', $res);
+            $cdlist = M('ClientDivision')->order("sort_order asc")->select();//客户部门
+            $this->assign('cdlist', $cdlist);
+            $cplist = M('ClientPosition')->order("sort_order asc")->select();//客户职务
+            $this->assign('cplist', $cplist);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '我管理的项目', 'url' => U('ProjectNewFromMe/index'));
+            $root_mbx[] = array('title' => $res['name'], 'url' => U('ProjectAdd/index?pid=' . $pid));
+            $root_mbx[] = array('title' => '干系人信息', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            if (I('get.edit')) {
+                $this->display('edit_stakeholder');
+            } else {
+                $this->display();
+            }
+        }
+    }
+
+    /*
+    *项目概述及其它
+     * */
+    public function summary()
+    {
+        $pid = I('get.pid');
+        if (IS_POST) {
+            if (I('get.edit')) {
+                $this->project_out($pid);//判断项目是否可以操作
+            }
+            $therapy_area = $_POST['therapy_area'];
+            if (I('get.back') != 1) {
+                if (empty ($_POST ['description'])) {
+                    $this->error('项目背景不能为空');
+                }
+                if (empty ($_POST ['target'])) {
+                    $this->error('项目目标不能为空');
+                }
+
+                if (is_array($therapy_area) && !empty($therapy_area)) {
+                    $therapy_area = implode(',', $therapy_area);
+                } else {
+                    $therapy_area = '';
+                }
+            } else {
+                $this->project_out($pid);
+            }
+	        if (is_array($therapy_area) && !empty($therapy_area)) {
+		        $therapy_area = implode(',', $therapy_area);
+	        } else {
+		        $therapy_area = $therapy_area;
+	        }
+            $pstime = strtotime($_POST['pstime']);
+            $petime = strtotime($_POST['petime']);
+            $livetime = strtotime($_POST['livetime']);
+            $uanme = get_nickname(UID);
+            $data = array(
+                'department' => $_POST['department'],
+                'description' => $_POST['description'],
+                'dcode' => $_POST['dcode'],
+                'dtype' => $_POST['dtype'],
+                'target' => $_POST['target'],
+                'drug_name' => $_POST['drug_name'],
+                'drug_type' => $_POST['drug_type'],
+                'therapy_area' => $therapy_area,
+                'pstime' => strtotime($_POST['pstime']),
+                'petime' => strtotime($_POST['petime']),
+                'livetime' => strtotime($_POST['livetime']),
+                'promotion' => $_POST['promotion'],
+            );
+            M('project')->where(array('pid' => $pid))->save($data);
+            if ($pstime) {
+                $milestione[] = array(
+                    'name' => '项目开始',
+                    'mtime' => $pstime,
+                    'addtime' => time(),
+                    'uid' => UID,
+                    'uname' => $uanme,
+                    'pid' => $pid,
+                );
+            }
+            if ($petime) {
+                $milestione[] = array(
+                    'name' => '项目完成',
+                    'mtime' => $petime,
+                    'addtime' => time(),
+                    'uid' => UID,
+                    'uname' => $uanme,
+                    'pid' => $pid,
+                );
+            }
+            if ($livetime) {
+                $milestione[] = array(
+                    'name' => '项目上线',
+                    'mtime' => $livetime,
+                    'addtime' => time(),
+                    'uid' => UID,
+                    'uname' => $uanme,
+                    'pid' => $pid,
+                );
+            }
+            foreach ($milestione as $vo) {
+                $temp = M('Milestone')->field('name,mid')->where(array('pid' => $pid, 'name' => $vo['name']))->find();
+                if ($temp) {
+                    M()->execute("update ot_milestone set mtime = {$vo['mtime']}  where mid = {$temp['mid']}");
+                } else {
+                    $nid = M('Milestone')->add($vo);
+                    M()->execute("update ot_milestone set sort_order = mid  where mid = {$nid}");
+                }
+
+
+            }
+            if (I('get.edit')) {
+                echo "<script>window.parent.choose();</script>";
+            } elseif (I('get.back')) {
+                $this->redirect('stakeholder', array('pid' => $pid));
+            } else {
+                $this->redirect('kpi', array('pid' => $pid));
+            }
+            /*if($res){
+                $this->redirect('kpi',array('pid'=>$pid));
+            }else{
+                $this->error('添加项目概述失败');
+            }*/
+        } else {
+            $content = "<p>这部分主要介绍项目背景、目标及相关信息。</p><p>其中项目背景和目标尤其关键，便于团队对项目有更深的了解，对项目目标达成统一。</p>
+<p>这部分还涉及了治疗领域、目标科室等信息，这些将作为我们重要的数据统计来源，数据统计整合后也会用于指导项目。</p>";
+            $title = "项目概述及相关";
+            $this->assign('content', $content);
+            $this->assign('title', $title);
+            //治疗领域
+            $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+            $this->assign('therapy_areas', $therapy_areas);
+            //  产品类型
+            $drup_types = M("Dictionary")->field('d_key,d_value')->where("d_code='product_type'")->select(array('order' => 'd_order asc'));
+            $this->assign('druptypes', $drup_types);
+
+            $project = M('project')->where(array('pid' => $pid))->find();
+            if ($project['pstime']) {
+                $project['pstime'] = date('Y/m/d', $project['pstime']);
+            } else {
+                $project['pstime'] = date('Y/m/d', time());
+            }
+            if ($project['petime']) {
+                $project['petime'] = date('Y/m/d', $project['petime']);
+            } else {
+                $project['petime'] = '';
+            }
+            if ($project['livetime']) {
+                $project['livetime'] = date('Y/m/d', $project['livetime']);
+            } else {
+                $project['livetime'] = '';
+            }
+            //治疗领域
+            $therapy = $project['therapy_area'];
+            if ($therapy) {
+                $this->assign('therapy', $therapy);
+            }
+
+            $this->assign('project', $project);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '我管理的项目', 'url' => U('ProjectNewFromMe/index'));
+            $root_mbx[] = array('title' => $project['name'], 'url' => U('ProjectAdd/index?pid=' . $pid));
+            $root_mbx[] = array('title' => '项目概述及相关', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            if (I('get.edit')) {
+                $this->display('edit_summary');
+            } else {
+                $this->display();
+            }
+        }
+    }
+
+    /*
+     *  删除干系人
+     * */
+    public function deletaHolder()
+    {
+        $id = I('get.id');
+        if (empty($id)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $res = M('related')->where(array('rid' => $id))->delete();
+        if ($res) {
+            return $this->ajaxReturn(array('done' => 'true', 'msg' => "删除成功"));
+        } else {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败"));
+        }
+
+    }
+
+    /*KPI*/
+    public function kpi()
+    {
+        $pid = I('get.pid');
+        if (empty($pid)) {
+            $this->error("项目不存在");
+        }
+        $project = M('Project')->where("pid = " . $pid)->find();
+        if (empty($project)) {
+            $this->error("项目不存在");
+        }
+        if (IS_POST) {
+            if (I('get.edit') || I('get.back')) {
+                $this->project_out($pid);//判断项目是否可以操作
+            }
+            $kpi_type = I('post.kpi_type', 0);
+            if ($kpi_type) {
+                M('project')->where(array('pid' => $pid))->save(array('kpi_type' => $kpi_type));
+            }
+            $newData = [];
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newData[$k][$key] = $v;
+                }
+            }
+            $editData = [];
+            $addData = [];
+            foreach ($newData as $key => $value) {
+                if (empty($value['kid'])) {
+                    if (!empty($value['name'])) {
+                        $addData[] = $value;
+                    }
+                } else {
+                    $editData[] = $value;
+                }
+            }
+            //  编辑
+            if (is_array($editData)) {
+                foreach ($editData as $key => $vo) {
+                    $kid = $vo['kid'];
+                    array_shift($vo);
+                    $vo['edittime'] = time();
+                    M('Project_kpi')->where('kid=' . $kid)->save($vo);
+                }
+            }
+            // 新增
+            if (is_array($addData)) {
+                $sql = '';
+                foreach ($addData as $key => $vo) {
+                    extract($vo);
+                    $addtime = time();
+                    $uid = UID;
+                    $sql .= ",($pid,'" . $vo['name'] . "','" . $vo['value2'] . "','" . $vo['note'] . "',$uid,$addtime)";
+                }
+                $sql = "insert into ot_project_kpi(pid,name,value2,note,uid,addtime) values " . substr($sql, 1);
+                M()->execute($sql);
+            }
+            $project_kpi = M('projectKpi')->where(array('pid' => $pid))->find();
+            if ($project_kpi) {
+                M('project')->where(array('pid' => $pid))->save(array('kpi_type' => 0));
+            }
+//		  $this->error("项目不存在");
+            if (I('get.edit')) {
+                echo "<script>window.parent.choose();</script>";
+            } elseif (I('get.back')) {
+                $this->redirect('summary', array('pid' => $pid));
+            } else {
+                $this->redirect('risk', array('pid' => $pid));
+            }
+        } else {
+            $info = "<p>KPI主要指项目中和客户正式确认过的，需要达到的关键目标值，常用的目标值如专区PV，UV，目标用户触达数等</p>";
+            $this->assign('info', $info);
+            $title = "Kpi";
+            $this->assign('title', $title);
+            $this->assign('pname', $project['name']);
+            $kpis = M('Project_kpi')->where('pid=' . $pid)->select();
+            $sort = count($kpis) ? count($kpis) : 0;
+            $this->assign('sort', $sort);
+            $this->assign('kpis', $kpis);
+            $this->assign('pid', $pid);
+            $this->assign('kpi_type', $project['kpi_type']);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '我管理的项目', 'url' => U('ProjectNewFromMe/index'));
+            $root_mbx[] = array('title' => $project['name'], 'url' => U('ProjectAdd/index?pid=' . $pid));
+            $root_mbx[] = array('title' => 'KPI', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            if (I('get.edit')) {
+                $this->display('edit_kpi');
+            } else {
+                $this->display();
+            }
+        }
+    }
+
+    /*
+    kpi数据删除*
+    */
+
+    public function deletaKpi()
+    {
+        $id = I('get.kid');
+        if (empty($id)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $res = M('Project_kpi')->where(array('kid' => $id))->delete();
+        if ($res) {
+            return $this->ajaxReturn(array('done' => 'true', 'msg' => "删除成功"));
+        } else {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败"));
+        }
+
+    }
+
+
+    /*风险*/
+    public function risk()
+    {
+        $pid = I('get.pid');
+        if (empty($pid)) {
+            $this->error("项目不存在");
+        }
+        $project = M('Project')->where("pid = " . $pid)->find();
+        if (empty($project)) {
+            $this->error("项目不存在");
+        }
+        if (IS_POST) {
+            $this->project_out($pid);//判断项目是否可以操作
+            $data = $_POST;
+            $newdata = array();
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $k => $v) {
+                if (empty($v['rid'])) {
+                    $adddata[] = $v;
+                } else {
+                    $editdata[] = $v;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $k => $v) {
+                    M('risk')->where(array('rid' => $v['rid']))->save($v);
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $k => $v) {
+                    $v['uid'] = UID;
+                    $v['uname'] = get_nickname(UID) ?: get_username(UID);
+                    $v['addtime'] = time();
+                    $v['pid'] = $pid;
+                    M('risk')->add($v);
+                }
+            }
+            if (I('get.edit')) {
+                echo "<script>window.parent.choose();</script>";
+            } elseif (I('get.back')) {
+                $this->redirect('kpi', array('pid' => $pid));
+            } else {
+                $msg = "恭喜，项目「立项」阶段所需信息已基本展示完成，可以进入下一步「规划」阶段。
+                        这部分信息不完善可能会影响规划阶段的进展，如需修改可进入具体项目页面进入「项目概览」或者「立项」进行编辑";
+                $this->suc($msg, U('ProjectAdd/view?id=' . $pid), U("ProjectNew/service?id=" . $pid));
+            }
+
+        } else {
+            $rid = I('get.rid');
+            $edit = I('get.edit');
+            if ($edit == 2 && empty($rid)) {
+                $this->error('风险不存在');
+            }
+            if ($rid) {
+                $res_risk = M('risk')->where(array('pid' => $pid, 'rid' => $rid))->find();
+            } else {
+                $res_risk = M('risk')->where(array('pid' => $pid))->select();
+            }
+            $this->assign('risk', $res_risk);
+            $types = M('dictionary')->where(array('d_code' => 'projectadd_risk_type', 'd_del' => 0))->order('d_order asc')->select();
+            $levels = M('dictionary')->where(array('d_code' => 'projectadd_risk_level', 'd_del' => 0))->order('d_order asc')->select();
+            $grades = M('dictionary')->where(array('d_code' => 'projectadd_risk_grade', 'd_del' => 0))->order('d_order asc')->select();
+            $states = M('dictionary')->where(array('d_code' => 'projectadd_risk_state', 'd_del' => 0))->order('d_order asc')->select();
+            $changes = M('dictionary')->where(array('d_code' => 'projectadd_risk_change', 'd_del' => 0))->order('d_order asc')->select();
+            $this->assign('project', $project);
+            $this->assign('types', $types);
+            $this->assign('levels', $levels);
+            $this->assign('grades', $grades);
+            $this->assign('states', $states);
+            $this->assign('changes', $changes);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '我管理的项目', 'url' => U('ProjectNewFromMe/index'));
+            $root_mbx[] = array('title' => $project['name'], 'url' => U('ProjectAdd/index?pid=' . $pid));
+            $root_mbx[] = array('title' => '风险', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+
+            if ($edit == 1) {
+                $this->display('edit_risk');    // 批量编辑
+            } else if ($edit == 2) {
+
+                $this->display('edit_single');  // 单条编辑
+            } else if ($edit == 3) {
+
+                $this->display('add_single');  // 单条增加
+            } else {
+                $this->display();
+            }
+        }
+    }
+
+    /*
+     *  删除风险数据
+     * */
+    public function deletaRisk()
+    {
+        $rid = I('get.rid');
+        $pid = I('get.pid');
+        $this->project_out($pid, 1);
+        if (empty($rid)) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $res = M('risk')->where(array('rid' => $rid))->delete();
+        if ($res) {
+            return $this->ajaxReturn(array('done' => 'true', 'msg' => "删除成功"));
+        } else {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "删除失败"));
+        }
+
+    }
+
+
+    function suc($message, $url1, $url2)
+    {
+        $this->assign('message', $message);// 提示信息
+        // 成功操作后默认停留1秒
+        $this->assign('waitSecond', '1');
+
+        if (!empty($url1)) $this->assign('jumpUrl1', $url1);
+        if (!empty($url2)) $this->assign('jumpUrl2', $url2);
+        $this->display("suc");
+    }
+
+    //立项详情页
+    public function view()
+    {
+        $pid = I('get.id');
+        if (empty($pid)) {
+            $this->error('非法操作');
+        }
+        $project = M('project')->alias('p')->field('p.*,d1.d_key as sname')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->where(array('p.pid' => $pid))->find();
+        if (empty($project)) {
+            $this->error('项目不存在或已删除！');
+        }
+        $this->assign('pid', $pid);
+        $this->assign('p', $project);
+        $this->assign('actionName', 'view1');
+        //干系人信息
+        $relateds = M('related')->field(true)->where('pid =' . $pid)->select();
+        $this->assign('relateds', $relateds);
+        //KPI
+        $kpis = M('ProjectKpi')->field(true)->where('pid =' . $pid)->select();
+        $this->assign('kpis', $kpis);
+        //风险
+        $risk = M('risk')->field(true)->where('pid =' . $pid)->select();
+        foreach ($risk as $k => $v) {
+            $note = '';
+            if ($v['reason']) {
+                $note .= "风险原因：" . $v['reason'] . "<br>";
+            }
+            if ($v['descripttion']) {
+                $note .= "风险描述：" . $v['descripttion'] . "<br>";
+            }
+            if ($v['plan']) {
+                $note .= "下一步计划：" . $v['plan'] . "<br>";
+            }
+            $risk[$k]['note'] = $note;
+        }
+        $this->assign('risk', $risk);
+
+        $from_route = Cookie('__from_route__') ? Cookie('__from_route__') : '我的项目';
+        $from_url = Cookie('__from_url__') ? Cookie('__from_url__') : U('ProjectNew/index');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route, 'url' => $from_url);
+        $root_mbx[] = array('title' => $project['name'], 'url' => U('ProjectView/view?id=' . $pid));
+        $root_mbx[] = array('title' => '立项', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url);
+        $this->display();
+    }
+}

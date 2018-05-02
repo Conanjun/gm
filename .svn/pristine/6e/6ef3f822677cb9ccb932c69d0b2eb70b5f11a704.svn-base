@@ -1,0 +1,447 @@
+<extend name="Public/base" />
+
+<block name="body"> <script src='__JSNEW__/jquery.validate.js'
+							type='text/javascript'></script>
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<style>
+		#sonModule,#moduleBox>span>input,#moduleBox>table {
+			max-width: 93%;
+		}
+
+		#childrenForm .col-table+.col-table .form-control {
+			border-left: transparent;
+		}
+
+		#sonModule .row-table .input-group input {
+			border-right: none;
+		}
+		#dropMenu {
+			min-width: 250px;
+		}
+		#searchResult>.search-list, #defaultMenu, #moreMenu {
+			display: table-cell;
+			vertical-align: top;
+			min-width: 205px;
+		}
+		.outer .side {
+			width: 260px;
+		}
+		.outer .side-body .panel {
+			min-width: 250px;
+		}
+		.outer.with-side .main, .outer.with-side .side+form, .outer.with-side .main, .outer.with-side .side+table {
+			margin-left: 270px;
+			margin-right: 0;
+		}
+		.tSerach
+		{
+			position: absolute;
+			top: 1px;
+			right: 10px;
+			width: 150px;
+			height: 32px;
+			border: 0;
+			border-left: 1px solid #ddd;
+		}
+	</style>
+	<div id="featurebar">
+		<ul class="nav">
+			<li><a href="{:U('ProjectConfig/index')}">服务分类</a></li>
+			<li class="active"><a href="{:U('Module/index')}">服务模块</a></li>
+			<li><a href="{:U('Service/index')}">服务内容</a></li>
+		</ul>
+	</div>
+
+	<div class="side">
+		<a class="side-handle" data-id="companyTree">
+			<i class="icon-caret-left"></i>
+		</a>
+		<div class="side-body">
+			<div class="panel panel-sm">
+				<li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;" data-id="list" class="">
+					<a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem" href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+					<input type="text" placeholder="点击回车搜索" class="form-control tSerach" id="treeSerach" name="treekey" value="">
+
+					<div id="dropMenu" style="width: 250px;">
+						<input type="hidden" name="ppid" class="ppid" value="{$ppid}">
+					</div>
+				</li>
+				<div class='panel-body'>
+					{$ProjectConfig}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="main">
+		<script>setTreeBox();</script>
+		<div class="panel">
+			<div class="panel-heading" style="height: 34px">
+				<strong>{$module_name}</strong>
+			</div>
+			<form id="childrenForm" class="form-condensed" method="post"
+				  action="{:U('add?ppid='.$ppid)}">
+				<div class="" style="padding: 20px">
+					<div class="">
+						<table class="table table-form ntable" style="border: 0;width: 100%">
+							<tbody>
+							<tr>
+								<div>
+									<div style="width: 20%;float: left;text-align: center">服务模块</div>
+									<div style="width: 44%;float: left;text-align: center">服务角色</div>
+									<div style="min-width: 6%; max-width: 10%;float: left;text-align: center">排序值</div>
+									<div style="min-width:10% ;max-width: 15%;float: left;text-align: center">备注</div>
+									<div></div>
+								</div>
+								<td id="moduleBox">
+									<div id="sonModule" class="pr">
+										<a href="javascript:;" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+										<notempty name="module">
+											<volist name="module" id="vo" key="k">
+												<div class="row-table addedItem" data-keys="{$k-1}" style="margin-bottom: 5px">
+													<div class="col-table" style="width: 20%">
+														<input type="hidden" name="mid[]" id="mid[]" value="{$vo.mid}">
+														<input  style="width: 100%" type="text" name="name[]" id="name[]" value="{$vo.name}"
+															   class="form-control" placeholder="模块名称" autocomplete="off">
+													</div>
+													<div class="col-table" style="width: 50%">
+														<select name="roles[{$k-1}][]" id="roles_{$k-1}" multiple="" class="form-control"
+																data-placeholder="请选择..." style="display:none">
+															<volist name="group" id="v">
+																<option value="{$v['groupid']}" >{$v['name']}</option>
+																</option>
+															</volist>
+														</select>
+													</div>
+													<div class="col-table" style="width: 300px">
+														<div class="input-group">
+															<input style="width: 30%;border-right: 1px solid #ccc;" type="text" name="sort_order[]" id="sort_order[]" value="{$vo.sort_order}"
+																   class="form-control" placeholder="排序" autocomplete="off">
+															<input style="width: 70%;" type="text" name="description[]" id="des[]" value="{$vo.description}"
+																   class="form-control" placeholder="备注" autocomplete="off">
+															<span class="input-group-btn">
+																	<a href="{:U('Module/chooseadd',array('mid'=>$vo['mid']))}"
+																	   id="chooseadd" class="iframe btn btn-block"
+																	   style="border-right:0px;margin: 0;padding: 5px 10px"  title="添加模块指导"
+																	   data-width="800"
+																	   data-height="600"><i class="icon-help-add"></i></a></span>
+															<span class="input-group-btn" >
+																	<a href="{:U('Module/chooseindex',array('mid'=>$vo['mid']))}"
+																	   id="chooseindex" class="iframe btn btn-block"
+																	   data-width="800" style="border-collapse: collapse;margin: 0;padding: 5px 10px" title="编辑模块指导"
+																	   data-height="600"><i class=<eq name='vo.h' value='1'>'icon-comments-alt'<else/>'icon-comment-alt'</eq> ></i>
+																	</a>
+																</span>
+															<span class="input-group-btn">
+																	<a href="javascript:;" id="del_{$k-1}" style="margin: 0;padding: 5px 10px" onclick='deletedata(this,"{:U('delete?mid='.$vo['mid'])}")'class="btn btn-block">
+																		<i class="icon icon-remove"></i>
+																</a>
+																</span>
+														</div>
+													</div>
+												</div>
+											</volist>
+											<else/>
+											<for start="0" end="1">
+												<div class="row-table addedItem "  data-keys="{$count}" style="margin-bottom: 5px">
+													<div class="col-table" style="width: 30%">
+														<input style="width: 100%" type="text" name="name[]" id="name[]" value=""
+															   class="form-control" placeholder="模块名称" autocomplete="off">
+													</div>
+													<div class="col-table" style="width: 50%">
+														<select  name="roles[{$count}][]" id="roles_{$count}" multiple="" class="form-control chosen"
+																 data-placeholder="请选择..." style="display:none">
+															<foreach name="group" item="v" >
+																<option value="{$v['groupid']}">{$v['name']}</option>
+															</foreach>
+														</select>
+													</div>
+
+													<div class="col-table" style="width: 300px">
+														<div class="input-group">
+															<input style="width: 22%;border-right: 1px solid #ccc;" type="text" name="sort_order[]" id="sort_order[]" value="{$sort+$i}"
+																   class="form-control" placeholder="排序" autocomplete="off">
+
+															<input style="width: 78%;" type="text" name="description[]" id="des[]" value=""
+																   class="form-control" placeholder="备注" autocomplete="off">
+
+															<span class="input-group-btn"><a
+																	href="javascript:;" onclick="deleteItem(this)" style="border-left:0;padding: 5px 10px;margin:0"
+																	class="btn btn-block"><i class="icon icon-remove"></i>
+															</a> </span>
+														</div>
+													</div>
+												</div>
+											</for>
+										</notempty>
+
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="hidden" name="pid" value="{$pid}">
+									<div class="rightdiv">
+										<button type="button" class="btn btn-default"
+												onclick="history.go(-1);"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</button>
+										<button type="submit" id="submit"  class="btn btn-primary" ><i class="icon-save"></i> 保存</button>
+									</div>
+
+
+									<!--	<input type="hidden" name="parentModuleID" id="parentModuleID"
+										value="0"> <input type="hidden" name="maxOrder"
+										id="maxOrder" value="30"> <input type="hidden"
+										value="0" name="parentModuleID">-->
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+        $(function () {
+            $("#btn-addrow").click(function(){
+                addItem();
+            });
+        })
+
+        function choose() {
+            $.closeModal();
+        }
+
+        $(".side-body li a").click(function(){
+            $(this).attr('class').val('active');
+        });
+        $("#treeSerach").keydown(function (e) {
+            if (e.keyCode == 13) {
+                var val = $(this).val();
+                var ppid = $(".ppid").val();
+                var method = 'Module';
+                var url = "{:U('ProjectConfig/ajaxSearch')}";
+                $.get(url, {'val': val, 'ppid': ppid,'method': method}, function (data) {
+                    if (data.done) {
+                        $('.panel-body').html("");
+                        $('.panel-body').html(data.retval);
+
+                        $(".tree").tree({
+                            name: config.currentModule + "-" + config.currentMethod,
+                            initialState: "preserve"
+                        });
+
+                    }
+                });
+            }
+        });
+        function deletedata(obj,url){
+            if(confirm("确定要删除数据吗？")){
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            deleteItem(obj);
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+
+        function addItem()
+        {
+            var $inputgroup = $('.row-table:last');
+            var size = $inputgroup.data('keys');
+            var add = $inputgroup.data('keys') + 1;
+            var id = "roles_" + size + "";
+            var addId = "roles_" + add + "";
+            var name = "roles[" + size + "][]";
+            var addName = "roles[" + add + "][]";
+            $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+
+            $inputgroup.next().find("div.chosen-container").remove();
+            var defaultChosenOptions = {
+                no_results_text: noResultsMatch,
+                width: '100%',
+                allow_single_deselect: true,
+                disable_search_threshold: 1,
+                placeholder_text_single: ' ',
+                placeholder_text_multiple: ' ',
+                search_contains: true
+            };
+            var str = $inputgroup.next().html();
+            str = str.replace(id, addId);
+            str = str.replace(name, addName);
+            $inputgroup.next().html(str);
+            $inputgroup.next().attr('data-keys',add);
+            var $selects = $inputgroup.next().find("[name^='roles']");
+            $selects.attr('class','form-control chosen');
+            $selects.children('option').attr('selected',false)
+            $inputgroup.next().find(".chosen").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+            $inputgroup.next().find("[name^='mid']").val('');
+            $inputgroup.next().find("[name^='name']").val('');
+            $inputgroup.next().find("[name^='description']").val('');
+            $inputgroup.next().find("[name^='sort_order']").val('');
+            $inputgroup.next().find("[id^='del_']").attr('onclick','deleteItem(this)');
+        }
+
+        function insertItem(obj)
+        {
+            var $inputgroup = $(obj).closest('.row-table');
+            var insertHtml  = $('#insertItemBox').children('.row-table').clone();
+            $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+            updateItemOrder();
+        }
+
+        function updateItemOrder()
+        {
+            var order = 10;
+            $('#sonModule').children('.row-table').each(function(){
+                if($(this).find("input[name*='order']").length > 0)
+                {
+                    console.log(order);
+                    $(this).find("input[name*='order']").val(order);
+                    order += 10;
+                }
+            });
+
+            $('#maxOrder').val(order - 10);
+        }
+
+        function deleteItem(obj)
+        {
+            if($(obj).closest('.addedItem').siblings('.addedItem').find('i.icon-remove').size() <= 0){
+                addItem(1);
+			}
+            $(obj).closest('.addedItem').remove();
+        }
+        function syncModule(rootID, type)
+        {
+            moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+            type     = type == 'task' ? 'task' : 'story';
+
+            link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+            $.getJSON(link, function(modules)
+            {
+                if(modules.length == 0) return false;
+                $('.helplink').addClass('hidden');
+                var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+                $.each(modules, function(key, module)
+                {
+                    $('.row-table').each(function()
+                    {
+                        moduleName = $(this).find('input[id^=modules]').val();
+                        if(moduleName == module.name) modules[key] = null;
+                        if(!moduleName) $(this).closest('.row-table').remove();
+                    })
+                });
+
+                $.each(modules, function(key, module)
+                {
+                    if(module)
+                    {
+                        $('#sonModule').append($inputgroup);
+                        $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+                        $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                    }
+                })
+                $('#sonModule').append($inputgroup);
+            })
+        }
+
+        function syncProductOrProject(obj, type)
+        {
+            if(type == 'product') viewType = 'story';
+            if(type == 'project') viewType = 'task';
+            link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+            $.getJSON(link, function(modules)
+            {
+                $('.helplink').addClass('hidden');
+                $('#' + type + 'Module').empty();
+                $.each(modules, function(key, value)
+                {
+                    $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+                });
+                $('#' + type + 'Module').trigger("chosen:updated");
+            })
+            $('#copyModule').attr('onclick', null);
+            $('#copyModule').bind('click', function(){syncModule(obj.value, viewType)});
+        }
+
+        function toggleCopy()
+        {
+            var $copy = $('table.copy');
+            if($copy.size() == 0) return false;
+            $copy.toggle();
+        }
+
+        $(document).ready(function()
+        {
+            toggleCopy();
+            $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+            $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+        });
+
+	</script>
+
+
+	</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+    $(function(){
+        $("#list{$pid}").attr('class','active')
+
+        var str = {$roles};
+        if (str) {
+            $(".row-table").each(function () {
+				var mid = $(this).find("[name^='mid']").val();
+                if(mid >0)
+				{	var arr = str[mid].split(',');
+                    var options = $(this).find("[id^='roles_']").find("option");
+                    for (var i = 0; i < arr.length; i++) {
+                        for (var j = 0; j < options.length; j++) {
+                            if (options.eq(j).val() == arr[i]) {
+                                options.eq(j).attr("selected", 'true');
+                            }
+                        }
+                    }
+				}
+
+            });
+        }
+
+		var noResultsMatch = '没有匹配结果';
+        var defaultChosenOptions = {
+            no_results_text: noResultsMatch,
+            width: '100%',
+            allow_single_deselect: true,
+            disable_search_threshold: 1,
+            placeholder_text_single: ' ',
+            placeholder_text_multiple: ' ',
+            search_contains: true
+        };
+        $("[id^='roles_'], .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+            var $this = $(this);
+            var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+            var $drop = $chosen.find('.chosen-drop');
+            $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+        });
+    });
+    var ajaxGetDropMenu="{:U('Module/ajaxGetDropMenu/',array('module'=>'Module','index'=>'index'))}";
+    //导航高亮
+    highlight_subnav("{:U('ProjectConfig/index')}");
+</script> </block>

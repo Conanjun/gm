@@ -1,0 +1,35 @@
+<extend name="Public/base_choose" />
+
+<block name="body">
+    <!-- 数据列表 -->
+    <div style="margin: 0 auto;width: 550px">
+		<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" >
+    <thead>
+        <tr>
+			<th class="text-left" style="padding-left: 30px;width: 250px">文档类型</th>
+			<th class="text-left">备注</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+			<td class="text-left"  style="padding-left: 30px;width: 250px">{$vo.name} </td>
+			<td  class="text-left">{$vo.note}</td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="2" class="text-center table_nodata "> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+	<tfoot>
+			<tr>
+				<td colspan='2'>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+    </table>
+	</div>
+</block>
+</block>

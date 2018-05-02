@@ -1,0 +1,169 @@
+<extend name="Public/base" />
+<block name="btnarea">
+
+<li class="right"><a href="{:U('User/add')}"><i
+		class="icon-plus"></i>&nbsp;添加人员</a></li>
+     <li class="right">
+        <a href="{:U('User/userimport')}"><i class="icon-file-excel"></i>&nbsp;Excel导入</a>
+    </li>
+</block>
+
+<block name="body">
+	<include file="Public/search" />
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+    <thead>
+        <tr>
+		<th r="1" width="30px">
+				</th>
+
+		<th r="1" style="text-align: left">姓名</th>
+		<th r="1" style="text-align: left"><span class="sort" ectype="order_by" fieldname="dname">部门</span></th>
+            <th r="1" style="text-align: left"><span class="sort" ectype="order_by" fieldname="mobile">角色</span></th>
+            <th r="1" style="text-align: left"><span class="sort" ectype="order_by" fieldname="email">邮箱</span></th>
+		<th r="1" style="text-align: left"><span class="sort" ectype="order_by" fieldname="uid">用户名</span></th>
+		<th r="1"  style="width: 90px"><span class="sort" ectype="order_by" fieldname="job_num">工号</span></th>
+		<th r="1" style="width: 90px"><span class="sort" ectype="order_by" fieldname="mobile">手机</span></th>
+
+		<th style="width: 50px"><span class="sort" ectype="order_by" fieldname="login">次数</span></th>
+		<!--<th  style="width: 80px;"><span class="sort" ectype="order_by" fieldname="last_login_time">最后登录</span></th>-->
+		<!--<th  style="width: 100px;">最后登录IP</th>-->
+		<th r="1"  style="width: 60px"><span class="sort" ectype="order_by" fieldname="status">状态</span></th>
+		<th r="1"  style="width: 120px">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+            <td r="1" class="cell-id"><input class="ids" type="checkbox" name="id[]"
+					value="{$vo.uid}" />
+				</td>
+
+			<td r="1" style="text-align: left" title="{$vo.nickname}">{$vo.nickname}</td>
+			<td r="1" style="text-align: left" title="{$vo.dname}">{$vo.dname}</td>
+            <td r="1" style="text-align: left" title="{$vo.title}"><a href="{:U('AuthManager/access?group_name='.$vo['title'].'&&group_id='.$vo['group_id'])}">{$vo.title}</a></td>
+            <td r="1" style="text-align: left" title="{$vo.email}">{$vo.email}</td>
+			<td r="1"style="text-align: left" title="{$vo.username}">{$vo.username} </td>
+			<td r="1" title="{$vo.job_num}">{$vo.job_num} </td>
+			<td r="1" title="{$vo.mobile}">{$vo.mobile}</td>
+
+			<td title="{$vo.login}">{$vo.login}</td>
+			<!--<td><span>{$vo.last_login_time|time_formatnew}</span>-->
+				<!--</td>-->
+			<!--<td><span>{:long2ip($vo['last_login_ip'])}</span>-->
+				<!--</td>-->
+
+			<td r="1">
+				<eq name="vo['status']" value="1">
+					<img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png" ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}" fieldvalue="1" />
+					<else/>
+					<img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="status" fieldid="{$vo.uid}" fieldvalue="0"/>
+
+				</eq>
+			</td>
+			<td r="1">
+				<!--<eq name="vo.status" value="1">
+				<a href="{:U('User/changeStatus?method=forbidUser&id='.$vo['uid'])}"
+						class="ajax-get">禁用</a>
+				<else />
+				<a href="{:U('User/changeStatus?method=resumeUser&id='.$vo['uid'])}"
+						class="ajax-get">启用</a>
+				</eq>-->
+				<a href="{:U('User/edit?id='.$vo['uid'])}">编辑</a>
+                 <if condition="cando('User/changeuser')">
+				<a href="{:U('User/changeuser?uid='.$vo['uid'])}">登陆此用户</a>
+                 </if>
+				<!--<a href="{:U('User/changeStatus?method=deleteUser&id='.$vo['uid'])}"
+					class="confirm ajax-get">删除</a>-->
+                </td>
+		</tr>
+		</volist>
+		<else />
+		<tr><td r="1" colspan="9" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容! </td></tr>
+		</notempty>
+	</tbody>
+        <notempty name="_list">
+	<tfoot>
+			<tr>
+				<td r="1" colspan='10' id="colspan_1">
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector"> 选择</label>
+						</div>
+						 <button class="btn btn-default ajax-post"
+							url="{:U('User/changeStatus',array('method'=>'resumeUser'))}"
+							target-form="ids">启 用</button>
+	            <button class="btn btn-default ajax-post"
+							url="{:U('User/changeStatus',array('method'=>'forbidUser'))}"
+							target-form="ids">禁 用</button>
+	          <!--  <button class="btn btn-default ajax-post confirm"
+							url="{:U('User/changeStatus',array('method'=>'deleteUser'))}"
+							target-form="ids">删 除</button>-->
+						
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+        </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+	 function resizetable(){
+			var w=$(window).width();
+			if(w<1400){
+				$("#taskList").find("th[r!=1]").hide();
+				$("#taskList").find("td[r!=1]").hide();
+				$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+			}else{
+				$("#taskList").find("th[r!=1]").show();
+				$("#taskList").find("td[r!=1]").show();
+				$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+			}
+		}
+
+	    $(function(){
+	    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+	    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+	    	
+	    	resizetable();
+	    	
+	    	$(window).resize(function(){
+	    		resizetable();
+	    	});
+	    });
+	
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+    //导航高亮
+    highlight_subnav("{:U('User/index')}");
+    var ajaxurl="{:U('User/ajax_col')}";
+	</script>
+</block>

@@ -1,0 +1,91 @@
+<extend name="Public/basewin"/>
+<block name="body">
+<style>
+.fixedTfootAction {
+    bottom: 0px;
+}
+</style>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+            <th width="30px"></th>
+            <th class="" style="text-align: left"></th>
+			<th class="text-left">备注</th>
+			<th class="" width="70px">单位</th>
+			<th class="" width="80px"><span class="sort" ectype="order_by" fieldname="os.price">价格</span></th>
+			<th class="" width="80px"><span class="sort" ectype="order_by" fieldname="os.quantity">数量</span></th>
+			<th width="80px"><span class="sort" ectype="order_by" fieldname="amount">总金额</span></th>
+			<th width="50px"><span class="sort" ectype="order_by" fieldname="os.days">周期</span></th>
+			<th width="50px"><span class="sort" ectype="order_by" fieldname="hour">工时</span></th>
+           
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="offer">
+                <volist name="offer" id="v">
+                	<tr title="{$v.mname}">
+                	<td style="background-color: #f1f1f1;color:#5e4ba4"></td>
+                	<th colspan="8" style="background-color: #f1f1f1;color:#5e4ba4"><if condition="$v['mname']">{$v.mname}<else/>非标准服务</if></th>
+                	</tr>
+                	<volist name="v.list" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                                <input class="ids" type="checkbox" name="id[]" value="{$vo.osid}"/>
+                        </td>
+                        <td class="text-left" title="{$vo.title_show}">{$vo.name}</td>
+                        <td class="text-left">
+							<span style="display: block;max-width: 50px;min-height: 20px" ectype="inline_edit" fieldname='note' fieldid="{$vo.osid}" class="editable" title="编辑">{$vo.note}</span>
+						</td>
+                        <td>{$vo.unit}</td>
+                       <td style="text-align: right;">{$vo.price|fomatprice}</td>
+                        <td><span ectype="inline_edit" fieldname='quantity' fieldid="{$vo.osid}" sub="1" required="1" class="editable" title="编辑">{$vo.quantity}</span></td>
+                        <td style="text-align: right;">{$vo.amount|fomatprice}</td>
+                        <td>{$vo.days}d</td>
+                        <td>{$vo.hour}h</td>
+                    </tr>
+                </volist></volist>
+              <tr>
+                    <td colspan="9" style="text-align: right;font-weight: bold;">
+                         金额合计:<span class="textr">{$all_amount|fomatprice}</span>&nbsp;&nbsp;&nbsp;周期合计:<span class="textr">{$all_days}d</span>&nbsp;&nbsp;&nbsp;工时合计:<span class="textr">{$all_hours}h</span>
+                    </td>
+                </tr>
+                <else/>
+                <td colspan="9" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+           <tfoot>
+            <tr>
+                <td colspan='9'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <button <eq name="hide" value="1"> style="display: none;"</eq> class="btn btn-default ajax-post confirm" url="{:U('Offer/deletesub?oid='.$oid)}" target-form="ids">删 除
+                        </button>
+                      
+                    </div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+    $(function(){
+    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+    });
+
+        var ajaxurl="{:U('Offer/ajax_col')}";
+
+       
+    </script>
+</block>

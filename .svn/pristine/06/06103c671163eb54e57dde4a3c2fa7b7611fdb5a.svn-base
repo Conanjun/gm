@@ -1,0 +1,299 @@
+<extend name="Public/base"/>
+<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <style>
+       .tablesorter thead tr th{font-weight: normal;color: #888}
+       #buildList .mytable td,#buildList .mytable th{
+           border:0;
+           color: #666;
+       }
+       #buildList .mytable th{
+           padding-right: 15px;
+           text-align: right;
+           color: #000;
+           
+       }
+       .main legend{margin-top: 30px;margin-bottom: 20px}
+       .ebtn {
+           color: #5e4ba4;
+           text-shadow: none;
+           background: none;
+           border: 0;
+           padding: 4px 8px !important;
+       }
+       .ebtn:hover{background: #cbb2ff;color: #fff}
+       legend{color: #21841d;margin-left: 0}
+       
+    </style>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="actions">  </div>
+        <div style="clear: both;"></div>
+    </div>
+        <div class="row-table" id="buildList">
+            <div class="col-main actions">
+                <div class="main " style="margin-left: 0;">
+                    <legend style="margin-top: 0">
+				   项目基本信息
+                        <if condition="cando('ProjectAdd/index',array($p['uid'],$p['pmuid']),$p['pid'])">
+                            <a href="{:U('ProjectAdd/index',array('pid'=>$p['pid'],'edit'=>1))}" data-width="1200" data-height="400" data-title="{$p['name']}-编辑项目基本信息"  class="btn iframe" >
+                                <i class="icon-common-edit icon-pencil"></i>编辑
+                            </a>
+                        </if>
+                    </legend>
+                    <div class="content" >
+                        <div class="data-table table-striped">
+                            <table class="table mytable" style="border: 0">
+                                <tbody>
+                                <tr>
+                                    <th width="9%" style="text-align: right">项目名称<span class="required"></span></th>
+                                    <td width="24.333%">{$p.name}</td>
+                                    <th width="9%">项目类型<span class="required"></span></th>
+                                    <td width="24.333%">{$p.type}</td>
+                                    <th width="9%">项目经理<span class="required"></span></th>
+                                    <td width="24.333%">{$p.pm}</td>
+                                </tr>
+                                <tr>
+                                    <th width="9%" style="text-align: right">合同号</th>
+                                    <td width="24.333%">{$p.contract}</td>
+                                    <th width="9%">合同金额</th>
+                                    <td width="24.333%">{$p.money}</td>
+                                    <th width="9%">合同签订日期</th>
+                                    <td width="24.333%"><if condition="$p.contract_time">{$p.contract_time|time_format=###,'Y/m/d'}</if></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>干系人信息
+                        <if condition="cando('ProjectAdd/stakeholder',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <a href="{:U('ProjectAdd/stakeholder',array('pid'=>$p['pid'],'edit'=>1))}" data-width="1200" data-height="400" data-title="{$p['name']}-编辑干系人信息"  class="btn iframe" ><i class="icon-common-edit icon-pencil"></i>编辑</a>
+                        </if>
+                    </legend>
+                    <div class="content" >
+                    	<table class="table table-condensed table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 10px"></th>
+                                    <th style="width: 80px;text-align: left">姓名</th>
+                                    <th style="width: 150px;text-align: left">部门</th>
+                                    <th style="width: 150px;text-align: left">职务</th>
+                                    <th style="width: 120px;text-align: left">邮箱</th>
+                                    <th style="width: 100px;text-align: left">电话</th>
+                                    <th style="width: 150px;text-align: left">利益诉求</th>
+                                    <th style="width: 150px;text-align: left">沟通策略</th>
+                                    <th style="text-align: left">备注</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="relateds">
+                                    <volist name="relateds" id="vo" key="k">
+                                        <tr>
+                                            <td></td>
+                                            <td style="text-align: left">{$vo.name}</td>
+                                            <td style="text-align: left">{$vo.dept}</td>
+                                            <td style="text-align: left">{$vo.duty}</td>
+                                            <td style="text-align: left">{$vo.email}</td>
+                                            <td style="text-align: left">{$vo.phone}</td>
+                                            <td style="text-align: left">{$vo.self_interest}</td>
+                                            <td style="text-align: left">{$vo.communt}</td>
+                                            <td style="text-align: left">{$vo.note}</td>
+                                        </tr>
+                                    </volist>
+                                     <else/>
+                                     <tfoot> <td colspan="9"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+                                </tbody>
+                            </table>
+                    </div>
+                    <legend>项目概述及相关
+                        <if condition="cando('ProjectAdd/summary',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <a href="{:U('ProjectAdd/summary',array('pid'=>$p['pid'],'edit'=>1))}" data-width="1200" data-height="650" data-title="{$p['name']}-编辑项目概述及相关"  class="btn iframe" >
+                            <i class="icon-common-edit icon-pencil"></i>编辑</a>
+                        </if>
+                    </legend>
+                    <div class="content">
+                        <div class="data-table table-striped" >
+                            <table class="table mytable"  style="border: 0">
+                                <tbody>
+                                <tr>
+                                    <th colspan="8" style="text-align: left;">项目背景<span class="required"></span></th>
+                                </tr>
+                                <tr>
+                                    <td colspan="8" style="padding: 0">
+                                        <if condition="$p['description']">
+                                            <div class="prediv">
+                                                {$p.description}</div>
+                                            <else/>
+                                            <div class="table_nodata1"></div>
+                                        </if>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th colspan="8" style="text-align: left;">项目目标<span class="required"></span></th>
+                                </tr>
+                                <tr>
+                                    <td colspan="8" style="padding: 0">
+                                        <if condition="$p['target']">
+                                            <div class="prediv">
+                                                {$p.target}</div>
+                                            <else/>
+                                            <div class="table_nodata1"></div>
+                                        </if>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th width="100px" style="text-align: left">目标科室</th>
+                                    <td>{$p.department}</td>
+                                    <th width="120px">产品类型</th>
+                                    <td>{$p.drug_type}</td>
+                                    <th width="120px">产品名称</th>
+                                    <td>{$p.drug_name}</td>
+                                    <th width="120px">治疗领域</th>
+                                    <td colspan="2">{$p.therapy_area}</td>
+                                </tr>
+                                <tr>
+                                    <th width="100px" style="text-align: left">预计启动时间</th>
+                                    <td>{$p.pstime|time_format=###,'Y/m/d'}</td>
+                                    <th width="120px">预计结束时间</th>
+                                    <td>{$p.petime|time_format=###,'Y/m/d'}</td>
+                                    <th width="120px">上线时间</th>
+                                    <td>{$p.livetime|time_format=###,'Y/m/d'}</if></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>KPI
+                        <if condition="cando('ProjectAdd/kpi',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <a href="{:U('ProjectAdd/kpi',array('pid'=>$p['pid'],'edit'=>1))}" data-width="1200" data-height="500" data-title="{$p['name']}-编辑 KPI"  class="btn iframe" >
+                            <i class="icon-common-edit icon-pencil"></i>编辑</a>
+                        </if>
+                    </legend>
+                    <p style="color:#979797">KPI主要指项目中和客户正式确认过的，需要达到的关键目标值，常用的目标值如专区PV，UV，目标用户触达数等</p>
+                    <div class="content">
+                       
+                        <div class="data-table table-striped" >
+                            <table class="table table-condensed table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 50px;text-align: center">编号</th>
+                                    <th style="width: 300px;text-align: center">KPI</th>
+                                    <th style="width: 100px;text-align: center">目标值</th>
+                                    <th style="text-align: left">备注</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="kpis">
+                                    <volist name="kpis" id="vv" key="k">
+                                        <tr>
+                                            <td style="text-align: center">{$k}</td>
+                                            <td >{$vv.name}</td>
+                                            <td>{$vv.value2}</td>
+                                            <td style="text-align: left">{$vv.note}</td>
+                                        </tr>
+                                    </volist>
+                                     <else/>
+                                     <tfoot> <td colspan="4"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>风险
+                        <if condition="cando('ProjectAdd/risk',array($p['uid'],$p['pmuid']),$p['pid'])">
+                        <a href="{:U('ProjectAdd/risk',array('pid'=>$p['pid'],'edit'=>3))}"  data-width="1200" data-height="600" data-title="{$p['name']}-新增风险"  class="btn iframe" >
+                            <i class="icon icon-plus"></i>新增风险</a>
+                        </if>
+                    </legend>
+                    <div class="content">
+                       
+                            <div class="data-table table-striped" >
+                                <table class="table table-condensed table-striped tablesorter" style="text-align: center" >
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 50px;text-align: center">编号</th>
+                                        <th style="width: 160px;text-align: left">主题</th>
+                                        <th style="width: 100px;text-align: center">类型</th>
+                                        <th style="width: 60px;text-align: center">状态</th>
+                                        <th style="width: 60px;text-align: center">优先级</th>
+                                        <th style="width: 80px;text-align: center">影响程度</th>
+                                        <th style="width: 80px;text-align: center">发生概率</th>
+                                        <th style="text-align: left">详细</th>
+                                        <th style="width: 80px">操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <notempty name="risk">
+                                        <volist name="risk" id="vr" key="j">
+                                            <tr>
+                                                <td>{$j}</td>
+                                                <td  style="text-align: left">{$vr.title}</td>
+                                                <td>{$vr.type}</td>
+                                                <td>{$vr.state}</td>
+                                                <td>{$vr.level}</td>
+                                                <td>{$vr.grade}</td>
+                                                <td>{$vr.probability}</td>
+                                                <td style="text-align: left">{$vr.note}</td>
+                                                <td>
+                                                    <if condition="cando('ProjectAdd/risk',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                        <a href="{:U('ProjectAdd/risk',array('pid'=>$p['pid'],'rid'=>$vr['rid'],'edit'=>2))}"
+                                                           data-width="1200" data-height="600" data-title="{$p['name']}-编辑风险"  class=" iframe">编辑</a>
+                                                    </if>
+                                                    <if condition="cando('ProjectAdd/deletaRisk',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                        <a href="javascript:;"  class="confirm" onclick='deleteItem("{:U('ProjectAdd/deletaRisk?pid='.$p['pid'].'&rid='.$vr['rid'])}")'>删除</a>
+                                                    </if>
+                                                </td>
+
+                                            </tr>
+                                        </volist> <else/>
+                                     <tfoot> <td colspan="9"><div class="table_nodata1"></div></td></tfoot>
+                                    </notempty>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</block>
+
+<block name="script">
+    <script type="text/javascript">
+        highlight_subnav("{$from_url}");
+        function choose(){
+            $.closeModal();
+            window.location.reload(false);
+        }
+        function deleteItem(url) {
+            if(confirm("确定要删除数据吗？")){
+                $.ajax({
+                    type: 'get',
+                    url:url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (data) {
+                        if(data.done){
+                            window.location.reload(false);
+                        }else{
+                            alert(data.msg);
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</block>

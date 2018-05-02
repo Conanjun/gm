@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<title>
+
+</title>
+ <script src="__JSNEW__/all.js" type="text/javascript"></script>
+    <script src="__JSNEW__/jquery.form.js" type="text/javascript"></script>
+</head>
+<body>
+<form id='autoform' method="post" action="http://192.168.0.2:7003/index.php?s=/Admin/Test/upload.html" enctype="multipart/form-data">
+<input type='file' name='filesToUpload[]' id='filesToUpload' multiple="multiple" webkitdirectory directory/>
+<input type="submit" id="ok1" value="ok"/>
+</form>
+<div id="drop-show"><ul></ul></div>
+<div id="drop-zone" style="width: 300px;height: 300px;margin: 50px auto;background: #000;color: #fff;line-height: 300px;text-align: center;">Drop files here</div>
+<script>
+var config = {
+        "webRoot": "\/\/",
+        "appName": "",
+        "cookieLife": 30,
+        "requestType": "PATH_INFO",
+        "requestFix": "-",
+        "moduleVar": "m",
+        "methodVar": "f",
+        "viewVar": "t",
+        "defaultView": "html",
+        "themeRoot": "\/\/theme\/",
+        "currentModule": "my",
+        "currentMethod": "index",
+        "clientLang": "zh-cn",
+        "requiredFields": "",
+        "router": "\/\/index.php",
+        "save": "\u4fdd\u5b58",
+        "runMode": "",
+        "timeout": 30000,
+        "pingInterval": ""
+    };
+    var lang = {
+        "submitting": "\u7a0d\u5019...",
+        "save": "\u4fdd\u5b58",
+        "timeout": "\u8fde\u63a5\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u73af\u5883\uff0c\u6216\u91cd\u8bd5\uff01"
+    };
+$(function(){
+	$("#ok").click(function(){
+		$("#autoform").ajaxSubmit({    
+			url: "{:U('Test/upload')}" ,    
+			type: 'POST',    
+			dataType: 'json',    
+			success: function (data) {  
+				if(data.done){
+					
+				}
+			},    
+			error: function (data) {
+			}    
+		});
+	});
+});
+
+function handleDragOver(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+}
+var dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', handleDragOver, false);
+
+function handleFileSelect(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    var files = [],folder='',
+        items = evt.dataTransfer.items;
+    function folderRead(entry){
+        showFolder(entry);
+        entry.createReader().readEntries(function (entries) {
+            for(var i = 0; i < entries.length; i++){
+                var entry = entries[i];
+                console.log(entry);
+                if(entry.isFile){
+                    entry.file(function(file){
+                        show(file);
+                        //files.push(file);
+                        
+                      
+                        	xhr = new XMLHttpRequest(); 
+                     	    xhr.open("post", "http://192.168.0.2:7003/index.php?s=/Admin/Test/upload.html", true); 
+                     	    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest"); 
+                     	     
+                     	    var fd = new FormData(); 
+                     	 	fd.append('mypic', file); 
+                     	         
+                     	    xhr.send(fd); 
+                    })
+                }else{
+                	folder=entry.name;
+                    //folderRead(entry);
+                }
+            }
+        });
+    }
+    for(var i = 0; i < items.length; i++){
+        var entry = items[i].webkitGetAsEntry();
+        if(!entry){
+            return;
+        }
+        console.log(entry);
+        if(entry.isFile){
+            /*entry.file(function(file){
+                show(file);
+            })*/
+            alert("请上传文件夹");
+        }else{
+            folderRead(entry);
+        }
+    }
+    
+   
+    function show(f){
+        var tpl = '<li><strong>'+ f.name + '</strong> || '
+            + f.size +' bytes || last modified: ' +
+            f.lastModifiedDate.toLocaleDateString() + '</li><li></li>';
+        $("#drop-show").find("ul").append(tpl);
+    }
+    function showFolder(f){
+        var tpl = '<li><strong>'+ f.name + '</strong></li><li></li>';
+        $("#drop-show").find("ul").append(tpl);
+    }
+}
+dropZone.addEventListener('drop', handleFileSelect, false);
+</script>
+</body>
+</html>

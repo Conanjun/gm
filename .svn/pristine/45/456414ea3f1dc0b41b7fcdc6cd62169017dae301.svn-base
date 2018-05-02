@@ -1,0 +1,39 @@
+<style>
+#fourheading{font-size: 14px;}
+    #fourheading a
+    {
+        color: #5e4ba4;
+        padding: 3px 6px;
+    }
+    #fourheading a:hover
+	{
+	background: #FF7F24;
+		border-color: #FF7F24;
+		color: #fff;
+		padding: 3px 6px;
+		border-radius: 3px;
+}
+    #fourheading .active
+    {
+        background: #FF7F24;
+		border-color: #FF7F24;
+		color: #fff;
+		padding: 3px 6px;
+		border-radius: 3px;
+    }
+    .cl{clear: both}
+    .outer.with-side #featurebar, .outer.with-side #titlebar {
+    margin-bottom: 0px;
+}
+</style>
+<div class="cl"></div>
+<div class="fnavbox">
+<div id="fourheading" style="padding-bottom: 10px;">
+        <a class="<eq name='actname' value='task_index'>active</eq>" href="{:U('Execute/task_index?pid='.$pid)}">任务</a>  
+        <a class="<eq name='actname' value='bug_index'>active</eq>" href="{:U('Execute/bug_index?pid='.$pid)}">质量</a>  
+        <a class="<eq name='actname' value='doc_index'>active</eq>" href="{:U('Execute/doc_index?pid='.$pid)}">文档</a>  
+        <a class="<eq name='actname' value='expense_index'>active</eq>" href="{:U('Execute/expense_index?pid='.$pid)}">报销</a>  
+        <a class="<eq name='actname' value='alter_index'>active</eq>" href="{:U('Execute/alter_index?pid='.$pid)}">变更</a>  
+</div>
+</div>
+<div style="clear: both;"></div>

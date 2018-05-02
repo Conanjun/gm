@@ -1,0 +1,141 @@
+<?php
+
+namespace Admin\Controller;
+/*
+ * 项目组控制器
+ * */
+class GroupController extends AdminController
+{
+    //定义数据表
+    private $db;
+
+    //构造函数 实例化ModuleModel 并获得整张表的数据
+    public function __construct()
+    {
+        parent::__construct();
+        //初始化时实例化category model
+        $this->db = D('Group');
+    }
+
+    public function index()
+    {
+        $groups = $this->db->alias('g')
+            ->field('g.groupid,g.name,g.sort_order')
+            ->order('g.sort_order', 'asc')
+            ->select();
+        foreach ($groups as $k => $v) {
+            $groupId = $v['groupid'];
+            $where['_string'] = " 1=1 and ( CONCAT(',',d.groupids,',') like CONCAT('%,',$groupId,',%') )";
+            $dept = M('dept')->alias('d')
+                ->field('d.did,d.name dname')
+                ->where($where)
+                ->select();
+            $dname = '';
+            if (!empty($dept)) {
+                $dname = implode(',', array_column($dept, 'dname'));
+            }
+            $groups[$k]['dname'] = $dname;
+
+        }
+     /*   $newdata = array();
+        foreach ($groups as $key => $value) {
+            $newdata[$value['groupid']][] = $value['dname'];
+        }
+        foreach ($newdata as &$v) {
+            $v = implode(',', $v);
+        }
+
+        $this->assign('dept', $newdata);*/
+
+        $this->assign('groups', $groups);
+        $orderby = 'sort_order  asc';
+        $this->assign('orderBy', $orderby);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '项目组', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    /**
+     * 编辑模块
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $key => $value) {
+                if (empty($value['groupid'])) {
+                    if (!empty($value['name'])) {
+                        $adddata[] = $value;
+                    }
+                } else {
+                    $editdata[] = $value;
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $key => $vo) {
+                    $this->db->save($vo);
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $key => $vo) {
+                    $data = array(
+                        'name' => $vo['name'],
+                    );
+                    $id = $this->db->add($data);
+                    M()->execute("update ot_group set sort_order = groupid  where groupid = {$id}");
+                }
+            }
+            $this->redirect('Admin/Group/index');
+        }
+
+    }
+
+    public function delete()
+    {
+        $mid = I('get.id');
+        if (!$mid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        //检测任务表或报价明细或项目内容中是否引用
+        $where = "g.groupid={$mid}  and ( exists(select 1 from ot_task t where t.groupid={$mid}) or exists(select 1 from ot_offer_sub os where os.groupid={$mid}) or exists(select 1 from ot_project_service ps where ps.groupid={$mid}))";
+        $result = $this->db->alias('g')->where($where)->find();
+        if ($result) {
+            $this->json_error('删除失败:项目组被引用', false);
+        } else {
+            $where = array('groupid' => $mid);
+            $tmp = $this->db->where($where)->delete();;
+            if ($tmp) {
+                $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+            } else {
+                $this->json_error('删除失败!', false);
+            }
+        }
+
+
+    }
+
+    public function updateOrder()
+    {
+        $idList = trim(I('post.projects'), ',');
+        $orderBy = I('post.orderBy');
+        $module = M("Group");
+        $services = $module->where("groupid in ({$idList})")->order($orderBy)->getField('sort_order,groupid');
+        $idList = explode(",", $idList);
+        foreach ($services as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            $module->where("groupid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+}

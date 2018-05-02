@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="renderer" content="webkit">
+    <style>
+        *{margin:0;padding:0}
+        body{
+            margin:0 auto;
+            padding:0;
+        }
+        table{
+            border: 1px solid #000;
+            border-collapse: collapse;
+            width:100%;
+        }
+        table caption{
+            margin-bottom:10px;
+        }
+
+        td{
+            padding:8px 8px;
+            border:1px solid #000;
+            text-align:left;
+            /*width:120px;*/
+        }
+    </style>
+</head>
+<body>
+	<div style="width:1000px;position: relative;">
+		<!--<if condition="$res['state']==3"><img src="images/c.png" style="position: absolute;bottom: -180px;right: -80px"></if>-->
+		<table>
+
+			<thead>
+				<tr>
+					<td colspan='4' style="text-align: center; font-weight:700;">差旅费用报销单</td>
+					<td style="text-align: left;width: 120px">编号</td>
+					<td style="text-align: left; width:120px">{$res.code}</td>
+				</tr>
+               <tr height="48px">
+                   <td style="width:120px">部门</td>
+                   <td>{$res.dtname}</td>
+                   <td>姓名</td>
+                   <td style="width:120px">{$res.uname}</td>
+                   <td colspan="2" >日期：{$res.addtime}</td>
+               </tr>
+            <tr>
+                   <td>类别</td>
+                   <td colspan="2">{$res.d_key}</td>
+                   <td>产品组</td>
+                   <td colspan="2"></td>
+
+               </tr>
+               <tr>
+                   <td >事由</td>
+                   <td colspan="2">{$res.description}</td>
+                   <td>公司</td>
+                   <td colspan="2">观澜网络（杭州）有限公司</td>
+
+               </tr>
+                <tr>
+                   <td>销售合同号</td>
+                   <td colspan="2">{$res.contract}</td>
+                   <td>合同名称</td>
+                   <td colspan="2"></td>
+
+               </tr>
+             <tr>
+                   <td>项目</td>
+                   <td colspan="3">内容</td>
+                   <td>金额</td>
+                   <td>发票数量</td>
+               </tr>
+
+			</thead>
+			<tbody>
+			<volist name="sub" id="vo">
+				<tr>
+					<td style="text-align: left; color: #000;">{$vo.feetype} - {$vo.feecate}</td>
+					<td colspan="3" style="text-align: left; color: #000;">{$vo.note}</td>
+					<td style="text-align: right;">{$vo.money|fomatprice}</td>
+                    <td style="text-align: right;">{$vo.invoicenum}</td>
+				</tr>
+				</volist>
+				 <tr>
+                   <td>合计(大写)</td>
+                   <td colspan="3">{$res.rmb}</td>
+                   <td style="text-align:right;font-weight:600;">{$res.amount|fomatprice}</td>
+                   <td style="text-align:right;font-weight:600;">{$res.innum}</td>
+               </tr>
+             <tr>
+                   <td>领导意见</td>
+                 <td>
+                     <if condition="$res['state'] eq 3">
+                         <if condition="$res['checkname']">{$res['checkname']}:</if>
+                        审核通过</if>
+                     <if condition="$res['state'] eq -1">{$res.checkname}审核不通过</if>
+
+                 </td>
+                   <td>审核</td>
+                   <td></td>
+                   <td>报销人</td>
+                  <td></td>
+               </tr>
+
+            </tbody>
+		</table>
+	</div>
+</body>
+</html>

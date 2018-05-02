@@ -1,0 +1,98 @@
+
+<block name="body">
+    <link href="__ROOT__/Admin/css/in/bootstrap.min.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="__ROOT__/Admin/css/in/animate.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/css/in/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="__ROOT__/Admin/js/in/plugins/scojs/css/scojs.css">
+
+    <link href="__CSS__/in/iviews-order.css" rel="stylesheet">
+    <link href="__CSS__/in/stylesheet.css" rel="stylesheet">
+    <link href="__CSS__/in/piezas_dentales.css" rel="stylesheet">
+    <script src="__JS__/in/vue.js"></script>
+    <script src="__ROOT__/Admin/js/in/jquery-2.1.1.js"></script>
+    <script src="__ROOT__/Admin/js/in/bootstrap.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/scojs/js/sco.message.js"></script>
+    <script src="__ROOT__/Admin/js/in/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/iviews.base.js"></script>
+    <script src="__ROOT__/Admin/js/in/iviews.extend.js"></script>
+    <style>
+        body {
+            background: #fff;
+            overflow: auto;
+        }
+        [v-cloak] {
+            display: none !important;
+        }
+    </style>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content" id="app">
+        <div class="iviews-folder" id="drop-zone">
+            <div class="iviews-folder-header clearfix">
+                <div class="pull-left iviews-folder-header-nav">
+                    <if condition="$pid">
+                        <a href="{:U('PlatOrder/file_info',array('oid'=>$oid,'pid'=>$pid['parent']))}">返回上一级</a>
+                        <nav>
+                            <a href="{:U('PlatOrder/file_info',array('oid'=>$oid,'pid'=>0))}">全部文件</a>
+                            <volist name="parents" id="p">
+                                <span><a href="{:U('PlatOrder/file_info',array('oid'=>$oid,'pid'=>$p['fid']))}">{$p.path}</a></span>
+                            </volist>
+                            <span>{$pid['path']}</span>
+                        </nav>
+                        <else/>
+                        全部文件
+                    </if>
+                </div>
+                <span class="pull-right">已全部加载,共{$count}个</span>
+            </div>
+
+            <div class="iviews-folder-bodyer">
+                <div>
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th class="text-left" width="40%">文件名</th>
+                            <th>文件类型</th>
+                            <th>大小</th>
+                            <th>上传日期</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <volist name="files" id="vo">
+                            <tr>
+                                <td>
+                                    <if condition="$vo['ext'] eq ''">
+                                        <span class="iviews-type-folder"><a href="{:U('PlatOrder/file_info',array('oid'=>$vo['oid'],'pid'=>$vo['fid']))}">{$vo['path']}</a></span>
+                                    <elseif condition="$vo['ext'] eq 'zip'"/>
+                                        <span class="iviews-type-zip">{$vo['name']}</span>
+                                    <elseif condition="$vo['ftype'] eq 'jpg'"/>
+                                        <span class="iviews-type-jpg">{$vo['name']}</span>
+                                    <else/>
+                                        <span class="iviews-type-zip">{$vo['name']}</span>
+                                    </if>
+                                </td>
+                                <td>
+                                   {$vo['ext']}
+                                </td>
+                                <td> <if condition="$vo['ext'] neq ''">{$vo['size']|format_bytes}</if></td>
+                                <td><if condition="$vo['ext'] neq ''">{$vo['addtime']|date='Y-m-d H:i',###}</if></td>
+                            </tr>
+                        </volist>
+                        </tbody>
+                    </table>
+                    <div class="iviews-pager clearfix">
+                        <div class="btn-group pull-right">
+                            {$_page}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- content end -->
+</block>
+

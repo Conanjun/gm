@@ -1,0 +1,337 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('CUSTOMERCOUNT')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">{$customercount}</h1>
+                        <small>{:L('CUSTOMERCOUNT')}</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('ORDERNUMTODAY')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">{$ordernum}</h1>
+                        <small>{:L('ORDERNUMTODAY')}</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+
+            <div class="col-lg-4">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('INCOMENUMTODAY')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <h1 class="no-margins">{$income}</h1>
+                        <small>{:L('INCOMENUMTODAY')}</small>
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>{:L('CUSTOMERCOUNTCHANGE')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-bar-chart"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>{:L('ORDERNUMCHANGE')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-line-chart"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="ibox">
+
+                    <div class="ibox-title">
+                        <h5>{:L('STUDIOTURNOVER')}</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-line-chart-moving"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+<script type="text/javascript" src="__JS__/in/echarts.min.js"></script>
+<script type="text/javascript">
+var myChart = echarts.init(document.getElementById('flot-bar-chart'));
+// 指定图表的配置项和数据
+
+var option = {
+		grid:{
+			left:'50px',
+			right:'70px'
+		},
+		xAxis: {
+			type: 'category',
+			boundaryGap: false,
+			data: {$xdata},
+		},
+		yAxis: {
+			type: 'value',
+			minInterval:10,
+			name:"{:L('PERSONSHOW')}"
+		},
+		toolbox: {
+			feature: {
+				saveAsImage: {name:"chart1"},
+			}
+		},
+		tooltip : {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross',
+				label: {
+					backgroundColor: '#18a689'
+				}
+			}
+		},
+		series: [{
+			name:"{:L('ADDPERSONSHOW')}",
+			data: {$ydata1},
+			type: 'line',
+			smooth:true,
+			symbol: 'none',
+			sampling: 'average',
+			areaStyle: {normal: {
+				 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        offset: 0,
+                        color: '#18a689'
+                    }, {
+                        offset: 1,
+                        color: '#18a689'
+                    }])
+			}},
+			itemStyle: {
+				normal: {
+					color: '#18a689'
+				}
+			}
+		}]
+};
+
+// 使用刚指定的配置项和数据显示图表。
+myChart.setOption(option);
+
+
+var myChart1 = echarts.init(document.getElementById('flot-line-chart'));
+//指定图表的配置项和数据
+var option = {
+		grid:{
+			left:'50px',
+			right:'70px'
+		},
+		xAxis: {
+			type: 'category',
+			boundaryGap: false,
+			data: {$xdata},
+		},
+		yAxis: {
+			type: 'value',
+			minInterval:10,
+			name:"{:L('ALIST')}"
+		},
+		toolbox: {
+			feature: {
+				saveAsImage: {name:"chart2"},
+			}
+		},
+		tooltip : {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross',
+				label: {
+					backgroundColor: '#18a689'
+				}
+			}
+		},
+		series: [{
+			name:"{:L('ADDORDERC')}",
+			data: {$ydata2},
+			type: 'line',
+			smooth:true,
+			symbol: 'none',
+			sampling: 'average',
+			areaStyle: {normal: {
+				 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        offset: 0,
+                        color: '#18a689'
+                    }, {
+                        offset: 1,
+                        color: '#18a689'
+                    }])
+			}},
+			itemStyle: {
+				normal: {
+					color: '#18a689'
+				}
+			}
+		}]
+};
+//使用刚指定的配置项和数据显示图表。
+myChart1.setOption(option);
+
+
+var myChart2 = echarts.init(document.getElementById('flot-line-chart-moving'));
+//指定图表的配置项和数据
+var option = {
+		grid:{
+			left:'50px',
+			right:'70px'
+		},
+		xAxis: {
+			type: 'category',
+			boundaryGap: false,
+			data: {$xdata},
+		},
+		yAxis: {
+			type: 'value',
+			minInterval:10,
+		},
+		toolbox: {
+			feature: {
+				saveAsImage: {name:"chart3"},
+			}
+		},
+		tooltip : {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross',
+				label: {
+					backgroundColor: '#18a689'
+				}
+			}
+		},
+		series: [{
+			name:"{:L('ADDMSHOW')}",
+			data: {$ydata3},
+			type: 'line',
+			smooth:true,
+			symbol: 'none',
+			sampling: 'average',
+			areaStyle: {normal: {
+				 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        offset: 0,
+                        color: '#18a689'
+                    }, {
+                        offset: 1,
+                        color: '#18a689'
+                    }])
+			}},
+			itemStyle: {
+				normal: {
+					color: '#18a689'
+				}
+			}
+		}]
+};
+//使用刚指定的配置项和数据显示图表。
+myChart2.setOption(option);
+</script>
+    </div>
+    <!-- content end -->
+</block>

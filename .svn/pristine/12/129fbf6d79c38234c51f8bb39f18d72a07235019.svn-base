@@ -1,0 +1,76 @@
+<?php
+
+namespace Admin\Controller;
+/*客户部门控制器*/
+class ClientDivisionController extends AdminController
+{
+    public function index()
+    {
+        $list = M('ClientDivision')->order("sort_order asc")->select();
+        $this->assign('list', $list);
+	    $orderby = 'sort_order  asc';
+	    $this->assign('orderBy', $orderby);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '文档分类', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    public function add()
+    {
+        if (IS_POST) {
+			$model =  M('ClientDivision');
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            foreach ($newdata as $key => $value) {
+                if (empty($value['cdid'])) {
+                    if (!empty($value['title'])) {//新增的数据
+	                    $value['addtime'] = time();
+	                    $insertid = $model->add($value);
+	                    $model->where(array('cdid' => $insertid))->save(array('sort_order' => $insertid));
+                    }
+                } else {//编辑的数据
+	                $model->save($value);
+                }
+            }
+            $this->redirect('index');
+//			$this->success ( '编辑成功！',U( 'index') );
+        }
+
+    }
+
+    public function delete()
+    {
+        $cdid = I('get.id');
+        if (!$cdid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+	    $where = array('cdid' => $cdid);
+	    $tmp = M("ClientDivision")->where($where)->delete();;
+	    if ($tmp) {
+		    $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+	    } else {
+		    $this->json_error('删除失败!', false);
+	    }
+    }
+
+    public function updateOrder()
+    {
+        $idList = trim(I('post.cdid'), ',');
+        $orderBy = I('post.orderBy');
+        $module = M("ClientDivision");
+        $res = $module->where("cdid in ({$idList})")->order($orderBy)->getField('sort_order,cdid');
+        $idList = explode(",", $idList);
+        foreach ($res as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            $module->where("cdid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+}

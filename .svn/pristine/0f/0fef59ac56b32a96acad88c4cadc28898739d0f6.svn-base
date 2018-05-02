@@ -1,0 +1,93 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Dentist\Controller;
+
+/**
+ * 工作室 投诉意见管理控制器 : LGW
+ */
+class FeedbackController extends AdminController
+{
+    private $model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model = D('Feedback');    // 投诉意见Model
+    }
+
+    /**
+     *投诉意见管理首页
+     */
+    public function index()
+    {
+        $where = "1=1";
+        $page = getCount($this->model, $where);
+        $dentists = $this->model->getList($where, $page);
+        $page->setConfig('theme', PAGE_CONFIG);
+        $this->assign('list', $dentists);
+        $this->assign('_page', $page->show());
+        $this->display();
+    }
+
+    /**
+     * 新增投诉意见
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $custype = empty($_POST['custype']) ? '' : trim($_POST['custype']);             // 客户类型
+            $servicetype = empty($_POST['servicetype']) ? '' : trim($_POST['servicetype']); // 服务类别
+            $feemode = empty($_POST['feemode']) ? 0 : $_POST['feemode'];              // 计费模式
+
+            $data = array(
+                'custype' => $custype,
+                'servicetype' => $servicetype,
+
+            );
+            if (!M('Dictionary')->add($data)) {
+                $this->error('字典添加失败！');
+            } else {
+                $this->success('字典添加成功！', U('index'));
+            }
+        } else {
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑投诉意见
+     */
+    public function edit()
+    {
+        if (empty($id)) {
+            $this->error('字典数据不存在！');
+        }
+        if (IS_POST) {
+
+            $data = array(
+                'd_tid' => $id,
+            );
+            if (D('Dictionary')->save($data) === false) {
+                $this->error('字典编辑失败！', U('Dictionary/edit?id=' . $id));
+            } else {
+                $this->success('字典编辑成功！', U('index'));
+            }
+        } else {
+            $data = M('Dictionary')->where("d_tid=" . $id)->find();
+            if (empty($data)) {
+                $this->error('字典数据不存在！');
+            }
+            $this->assign('d', $data);
+            $this->display();
+        }
+    }
+
+}

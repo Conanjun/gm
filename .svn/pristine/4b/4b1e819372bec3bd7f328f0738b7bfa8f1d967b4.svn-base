@@ -1,0 +1,183 @@
+<?php
+
+namespace Admin\Controller;
+/**
+ * 标签库控制器 ：ZL
+ *
+ */
+class TagController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('Tag');
+	}
+	/*
+     * 首页
+     * */
+	public function index(){
+		$where = " 1=1 ";
+		$tag_name = empty($_GET['tag_name'])?'':trim($_GET['tag_name']);//名称
+		if($tag_name){
+			$where .= " and t.tag_name like '%{$tag_name}%'";
+		}
+		$tag_type = I('tag_type','');
+		if($tag_type){
+			$where .= " and t.tag_type = '{$tag_type}'";
+		}
+		
+		$count = $this->model->countNum($where);
+		$page = new \Think\Page($count, 20);
+		$lists = $this->model
+				->alias('t')
+                ->join("ot_dictionary d on d.d_key = t.tag_type","left")
+				->where($where)
+				->order('tag_id desc')
+				->limit($page->firstRow . ',' . $page->listRows)
+				->select();
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+		$this->assign('_page', $page->show());
+
+        $sts = M('Dictionary')->where("d_code='tagtype' and d_del = 0")->field('d_key,d_value')->select();
+        $this->assign('sts', $sts);
+
+		$this->display();
+	}
+	/*
+     * 新增标签
+     * */
+	public function add(){
+		if(IS_POST){
+			
+			$tag_name = empty($_POST['tag_name'])?'':trim($_POST['tag_name']);
+			if(empty($tag_name)){//名称不能为空
+				$this->error(L('NAME_NOT_EMPTY'));
+			}
+			
+// 			if($this->model->uniqueName($tag_name)){//名称已存在
+// 				$this->error(L('NAME_EXISTED'));
+// 			}
+			$tag_type = empty($_POST['tag_type'])?'':trim($_POST['tag_type']);
+			
+			if(empty($tag_type)){
+				$this->error(L('TYPE_NOT_EMPTY'));
+			}
+
+			$data = array(
+				'tag_name' => $tag_name,
+				'tag_type' => $tag_type,
+			);
+			if (!M('Tag')->add($data)) {
+                $this->error(L('ADD_FAILED'));
+            } else {
+            	$this->redirect('Tag/index');
+                //$this->success(L('ADD_SUCCESS'), U('index'));
+            }
+			
+		}else{
+            $sts = M('Dictionary')->where("d_code='tagtype'")->field('d_key,d_value')->select();
+            $this->assign('sts', $sts);
+			
+			$this->display();
+		}
+	}
+	
+	/*
+     * 编辑标签
+     * */
+	public function edit(){
+		if(IS_POST){
+			
+			$id = empty($_POST['id'])?0:trim($_POST['id']);
+			$where = "tag_id = {$id}";
+			$lists =$this->model->getList($where);
+			if(empty($lists)){
+				$this->error(L('Data_not_exist'));
+			}
+			
+			$tag_name = empty($_POST['tag_name'])?'':trim($_POST['tag_name']);
+			if(empty($tag_name)){//名称不能为空
+				$this->error(L('NAME_NOT_EMPTY'));
+			}
+			
+// 			if($this->model->uniqueName($tag_name,$id)){//名称已存在
+// 				$this->error(L('NAME_EXISTED'));
+// 			}
+			$tag_type = empty($_POST['tag_type'])?'':trim($_POST['tag_type']);
+			
+			
+			if(empty($tag_type)){
+				$this->error(L('TYPE_NOT_EMPTY'));
+			}
+			
+			$data = array(
+				'tag_name' => $tag_name,
+				'tag_type' => $tag_type,
+				'tag_id' => $id,
+				
+			);
+			if (D('Tag')->save($data) === false) {
+                $this->error(L('EDIT_FAILED'), U('Tag/edit?id=' . $id));
+            } else {
+            	$this->redirect('Tag/index');
+                //$this->success(L('EDIT_SUCCESS'), U('index'));
+            }
+		}else{
+			$id = empty($_GET['id'])?0:$_GET['id'];
+			if(empty($id)){
+				$this->error(L('PLEASE_SELECT_DATA'));
+			}
+			$where = "tag_id = {$id}";
+			$list =$this->model->getList($where);
+			if(empty($list)){
+				$this->error(L('Data_not_exist'));
+			}
+            $this->assign('list', $list);
+            
+            $sts = M('Dictionary')->where("d_code='tagtype' and d_del = 0")->field('d_key,d_value')->select();
+            $this->assign('sts', $sts);
+			
+			$this->display();
+			
+		}
+	}
+	/*
+     * 删除标签
+     * */
+	public function deletedata()
+	{
+        $id = I('post.id');
+        if (!$id) {
+            $this->json_error(L('Data_not_exist'), false);
+        }
+        if (is_array($id)) {
+            $ids = $id;
+        } else {
+            $ids = (array)$id;
+        }
+        $a= [];$b= [];
+        foreach($ids as $key=>$id){
+            $res = M('Tag')->where( "tag_id = {$id}")->delete();
+            if($res == 0){
+                $a[$key] = $id;
+            }else{
+                echo $id;
+                $b[$key]=$id;
+            }
+        }
+        $data = [];
+        $this->success(L('DELETE_SUCCESS'),'');
+
+//        $map ['tag_id'] = array('in', $id);
+//        if (M('Tag')->where($map)->delete() !== false) {
+//            $this->success(L('DELETE_SUCCESS'), U('index'));
+//        } else {
+//            $this->error(L('DELETE_FAILED'));
+//        };
+	}
+
+}

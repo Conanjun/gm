@@ -1,0 +1,572 @@
+<extend name="Public/base" />
+
+<block name="body"> <script src='__JSNEW__/jquery.validate.js'
+	type='text/javascript'></script>
+<style>
+#sonModule,#moduleBox>span>input,#moduleBox>table {
+	max-width: 500px;
+}
+
+#childrenForm .col-table+.col-table .form-control {
+	border-left: transparent;
+}
+
+#sonModule .row-table .input-group input {
+	border-right: none;
+    }
+            #searchResult > .search-list, #defaultMenu, #moreMenu {
+            display: table-cell;
+            vertical-align: top;
+            min-width: 155px;
+        }
+
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+
+        #dropMenu {
+            min-width: 250px;
+        }
+
+        #searchResult > .search-list, #defaultMenu, #moreMenu {
+            display: table-cell;
+            vertical-align: top;
+            min-width: 205px;
+        }
+
+        .outer .side {
+            width: 260px;
+        }
+
+        .outer .side-body .panel {
+            min-width: 250px;
+        }
+
+        .outer.with-side .main, .outer.with-side .side + form, .outer.with-side .main, .outer.with-side .side + table {
+            margin-left: 270px;
+            margin-right: 0;
+        }
+         .nrtd td,.table-striped>tbody>tr:nth-child(odd)>td, .table-striped>tbody>tr:nth-child(odd)>th{background: #fff;}
+.tSerach
+{
+	position: absolute;
+	top: 1px;
+	right: 10px;
+	width: 150px;
+	height: 32px;
+	border: 0;
+	border-left: 1px solid #ddd;
+}
+</style>
+
+
+	<div class="side">
+		<a class="side-handle" data-id="companyTree">
+			<i class="icon-caret-left"></i>
+		</a>
+		<div class="side-body">
+			<div class="panel panel-sm">
+				<li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;" data-id="list" class="">
+					<a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem" href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+					<input type="text"  placeholder="点击回车搜索" class="form-control tSerach" id="treeSerach" name="treekey" value="">
+					<div id="dropMenu" style="width:190px">
+					</div>
+					<input type="hidden" name="ppid" class="ppid" value="{$ppid}">
+				</li>
+				<div class='panel-body'>
+						{$ProjectConfig}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="main">
+	<script>setTreeBox();
+	<!--<if condition="$pid1 eq 0">$('#tree').tree('expand', $("#tree").children());$('#tree').tree('expand', $("#tree").children().children().children());</if>--></script>
+		<div class="panel" style="float: left;width: 63%" id="panel1">
+			<div class="panel-heading">
+				<strong>{$module_name}</strong>
+				<span style="display: inline-block;float: right;"><strong>周期小计 <span id="all_day" class="textr"></span>&nbsp;&nbsp;金额小计 <span id="all_amount" class="textr"></span></strong></span>
+			</div>
+
+			<!-- 数据列表 -->
+    <div class="data-table table-striped">
+    <form id="childrenForm" class="form-condensed" method="post" action="{:U('OfferTools/index')}">
+	     <input type="hidden" name="id" value="{$pid}">
+		<input type="hidden" name="his_temp" id="his_temp" value="">
+        <table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+    <thead>
+		<tr>
+			<th style="width: 30px"></th>
+			<th class="" style="text-align: left"></th>
+			<th class="" width="50px">周期</th>
+			<!-- <th class="" width="60px">标配</th>
+			<th class="" width="120px">必选</th>
+			<th class="" width="60px">工时</th> -->
+			<th class="" width="150px">单价</th>
+			<th class="" width="90px">数量</th>
+			<th class="" width="80px" style="text-align: right;padding-right: 10px">小计</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="v" key='k'>
+
+		<tr style="height: 50px;cursor: pointer;color: #5e4ba4" id="trp_{$v.mid}" k="{$v.mid}" o="c">
+			<td style="background: #f9f9f9"><i class="icon-double-angle-down icon-2x"></i></td><th colspan="5" style="background: #f9f9f9">{$v.mname}</th>
+		</tr>
+		<volist name="v.list" id="vo">
+		<tr  style="display:none" id="tritem_{$v.mid}_{$vo.sid}" <eq name="vo.required" value="1">class="active"</eq> <eq name="vo.h" value="1">class="active"</eq>>
+            <td class="cell-id">
+            <eq name="vo.required" value="1">
+            	<input  checked='checked' readonly='readonly' id="sitem_{$vo.sid}" sid="{$vo.sid}" mid="{$vo.mid}" srequired="{$vo.required}" regroup="{$vo.regroup}" remid="{$vo.remid}" class="ids" type="checkbox" name="ids[]" value="{$vo.sid}"  />
+            <else/>
+            	<input <eq name="vo.h" value="1">checked='checked'</eq> id="sitem_{$vo.sid}" sid="{$vo.sid}" mid="{$vo.mid}" srequired="{$vo.required}" regroup="{$vo.regroup}" remid="{$vo.remid}" class="ids" type="checkbox" name="ids[]" value="{$vo.sid}"  />
+            </eq>
+            </td>
+			<td style="text-align: left">{$vo.g_name}<notempty name="vo.g_name">-</notempty>{$vo.o_name}-{$vo.name}
+				<if condition="$vo['bulb']">
+					<a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.name}-指导备注"  data-width="1000"
+					   data-height="600" class="iframe">
+						<i class="icon-lightbulb"></i></a>
+				</if>
+			</td>
+			<!--<td>
+				<if condition="$vo['required'] ==0">
+				否
+				<elseif condition="$vo['required'] ==1" />
+				是
+				<elseif condition="$vo['required'] ==2" />
+				{$vo.regroup_name}多选一
+				<elseif condition="$vo['required'] ==3" />
+				绑定{$vo.remid_name}模块
+				</if>
+			</td>
+			 <td>
+				<if condition="$vo['standard'] ==0">
+				否
+				<elseif condition="$vo['standard'] ==1" />
+				是
+				</if>
+			</td>
+
+			<td>{$vo.hours}</td> -->
+			<td id="day_{$vo.sid}" key="{$vo.sid}" v="{$vo.days}">{$vo.days}d</td>
+			<td>
+			<eq name="vo.canupdate" value="0"><input name="ps[{$vo.sid}]" value="{$vo.price}" type="hidden" id="price_{$vo.sid}" key="{$vo.sid}"/> {$vo.price}</eq>
+			<eq name="vo.canupdate" value="1">
+				<span style="font-size: 10px;color: #666">{$vo.minprice|fomatprice1}-{$vo.maxprice|fomatprice1}</span>
+				<input type="number" step="10" style="width: 70px;display: inline-block;" min="{$vo.minprice}" max="{$vo.maxprice}"  name="ps[{$vo.sid}]" id="price_{$vo.sid}" key="{$vo.sid}" value="{$vo.price}" class="form-control" autocomplete="off"  placeholder="{$vo.minprice}~{$vo.maxprice}" /></eq>
+			</td>
+			<td style="text-align: left;"><input style="width: 50px;display: inline-block;" type="number" step="1" min="1"  name="qs[{$vo.sid}]" qu="{$vo.quantity}" id="quantity_{$vo.sid}"
+			key="{$vo.sid}"  <notempty name="vo.quantity">value="{$vo.quantity}"<else/>value="1"</notempty> class="form-control" autocomplete="off"  placeholder="数量"> {$vo.unit}</td>
+			<td id="subtotal_{$vo.sid}" key="{$vo.sid}" class="textr" style="text-align: right;padding-right: 10px">
+				<eq name="vo.required" value="1">{$vo['price']*$vo.quantity}</eq>
+			</td>
+		</tr>
+		</volist></volist>
+		<else />
+		<td colspan="6" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+            <notempty name="_list">
+		<tfoot class="scrolled">
+			<tr>
+				<td colspan='6'>
+					<div class="table-actions clearfix">
+					<button type="button" id="imort" class="btn btn-default">确认选择</button>
+					</div>
+				</td>
+			</tr>
+		</tfoot>
+            </notempty>
+    </table>
+    </form>
+    </div>
+		</div>
+		<div class="panel" style="float: left;width: 35%;  margin-left: 10px;">
+			<!-- 数据列表 -->
+    		<div class="data-table table-striped">
+				<form  class="form-condensed" id="rightForm">
+					<div>
+						<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="rightTable">
+							<thead>
+							<tr>
+								<th style="width: 10px"></th>
+								<th class=""></th>
+								<th class="" width="60px;">数量</th>
+								<th class="" width="60px;">单价</th>
+								<th class="" width="50px">操作</th>
+							</tr>
+							</thead>
+							<tbody id="temp_data">
+
+							</tbody>
+							<tfoot class="scrolled">
+							<tr>
+								<td colspan='5'>
+									<div class="table-actions clearfix">
+										<button type="button" class="btn btn-default" id="tempclear">清空</button>
+									</div>
+									<div style="float: right; clear: none;" class=" form-inline">
+										<strong>金额：<span id="amount" class=""></span></strong><strong>&nbsp;&nbsp;周期：<span id="day" class=""></span></strong> <strong>&nbsp;&nbsp;优惠：<span id="discount" class=""></span></strong></div>
+								</td>
+							</tr>
+							</tfoot>
+						</table>
+					</div>
+				</form>
+    		</div>
+		</div>
+		<div style="clear: both;"></div>
+	</div>
+
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+	$(document).ready(function()
+	{
+       /* $('.note-data').each(function () {
+                $(this).qtip({
+                    content: {
+                        title: $(this).data('title'),
+                        text:$(this).data('html'),
+                    },
+                    show: 'mouseover',
+                    hide: 'mouseover'
+                });
+            }
+        );*/
+        $("#list{$pid1}").attr('class','active');
+
+        $("[id^='trp_']").click(function(){
+			var o=$(this).attr("o");
+			var k=$(this).attr("k");
+			if(o=="o"){
+				$("[id^='tritem_"+k+"']").hide();
+				$(this).attr("o","c");
+				$(this).find("td").html("<i class=\"icon-double-angle-down icon-2x\"></i>");
+			}else{
+				$("[id^='tritem_"+k+"']").show();
+				$(this).attr("o","o");
+				$(this).find("td").html("<i class=\"icon-double-angle-up icon-2x\"></i>");
+			}
+		});
+
+		setTimeout(function(){fixedTfootAction('#childrenForm')}, 100);
+   	 	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+        setTimeout(function(){fixedTfootAction('#rightForm')}, 100);
+        setTimeout(function(){fixedTheadOfList('#rightTable')}, 100);
+
+	    var temp=[];
+        if(window.localStorage.temp!=undefined&&window.localStorage.temp!=""){
+            temp=JSON.parse(window.localStorage.temp);
+            $("#his_temp").val(window.localStorage.temp);
+        }
+
+        var html = '';
+        var obj = temp['list'];
+
+        if(temp!=undefined&&temp!=null && obj!=undefined){
+			if(obj){
+				var data=obj;
+				for(var j=0;j<data.length;j++){
+					 html+='<tr title="'+data[j].pname+'">' +
+						'<td style="background-color: #f1f1f1;color:#5e4ba4"></td>' +
+						'<th colspan="4" style="background-color: #f1f1f1;color:#5e4ba4">'+data[j].pname+'' +'</th>' +
+						'</tr>';
+					obj=data[j].item;
+					for(var i=0;i<obj.length;i++){
+					    html+='<tr title="'+obj[i].title+'">' +
+							'<td></td>' +
+							'<td class="" style="text-align: left">'+obj[i].name+'' +'</td>' +
+							'<td class="" >'+obj[i].u+'×'+obj[i].quantity+'</td><td class="" style="text-align: right">'+obj[i].price+'</td>' +
+							'<td class="" style="text-align: right;padding-right: 10px"><a href="javascript:;" item='+obj[i].sid+' id="del_'+obj[i].sid +'" class="ajax-get">删除</a></td>' +
+							'</tr>';
+					}
+				}
+			}
+
+			$("#temp_data").append(html);
+			$("#count_div").show();
+			$("#amount").html(temp['a']);
+			$("#discount").html(temp['dis']);
+			$("#day").html(temp['day']);
+
+        }else{
+            html = '<td colspan="5" class="text-center">您还没有选择服务内容 </td>';
+            $("#temp_data").append(html);
+		}
+		$("#tempclear").click(function () {
+            window.localStorage.temp = '';
+            $("#his_temp").val(window.localStorage.temp)
+            location.href = location.href;
+        });
+
+		$("[id^='tritem_']").each(function(){
+			var tr=$(this);
+			var td=$(this).find(".cell-id");
+			var input=td.find("input");
+			if(input.is(':checked')){
+				var remid=input.attr("mid");
+				if(remid){
+					$("[id^='tritem_']").each(function(){
+						var mtr=$(this);
+						var minput=mtr.find(".cell-id").find("input");
+						var mremid=minput.attr("remid");
+						var msrequired=minput.attr("srequired");
+						if(mremid==remid&&msrequired==3){
+							minput.attr("checked","checked");
+							mtr.addClass("active");
+						}
+					});
+				}
+			}
+            var srequired=input.attr("srequired");
+            if(srequired==2){
+                var is_true = 1;
+                var groupid=input.attr("regroup");
+                obj = $("[id^='tritem_']").find("input[regroup="+groupid+"]");
+                $.each(obj,function (i,b) {
+                    var td=$(this).find(".cell-id");
+                    var input=td.find("input");
+                    if(input.is(':checked')){
+                        is_true=0;
+                    }
+                });
+                if(is_true==1){
+                    $(obj[0]).attr("checked","checked");
+                    $(obj[0]).parent().parent().addClass("active");
+                    var key = $(obj[0]).attr('sid');
+                    $("#quantity_"+key).val($("#quantity_"+key).attr('qu'));
+                    var p = $("#price_"+key).val();
+                    var q = $("#quantity_"+key).val();
+                    $("#subtotal_"+key).html(parseInt(p*q));
+                }
+            }
+		});
+
+         count();
+		$("[id^='tritem_']").click(function(){
+			var tr=$(this);
+			var td=$(this).find(".cell-id");
+			var input=td.find("input");
+			var srequired=input.attr("srequired");
+
+			//绑定模块
+			if(input.is(':checked')){
+				var remid=input.attr("mid");
+				if(remid){
+					$("[id^='tritem_']").each(function(){
+						var mtr=$(this);
+						var minput=mtr.find(".cell-id").find("input");
+						var mremid=minput.attr("remid");
+						var msrequired=minput.attr("srequired");
+						if(mremid==remid&&msrequired==3){
+							minput.attr("checked","checked");
+							mtr.addClass("active");
+						}
+					});
+				}
+
+				var lasttd=tr.find("td:last-child");
+				var qsin=lasttd.find("input");
+				var qu=qsin.attr("qu");
+				if(qu==undefined||qu==''||qu<1){
+					qu=1;
+				}
+				if(qsin.val()==undefined||qsin.val()==''||qsin.val()<1){
+					qsin.val(qu);
+				}
+			}
+
+			if(srequired==1){
+				//必选
+				input.attr("checked","checked");
+				$(this).addClass("active");
+			}else if(srequired==2){
+				//多选一
+				if(input.is(':checked')){
+					var groupid=input.attr("regroup");
+					var sid=input.attr("sid");
+					$("[id^='tritem_']").each(function(){
+						var mtr=$(this);
+						var minput=mtr.find(".cell-id").find("input");
+						var mg=minput.attr("regroup");
+						var mr=minput.attr("srequired");
+						var msid=minput.attr("sid");
+						if(mg&&mg==groupid&&msid!=sid&&mr==2){
+							minput.attr("checked",false);
+							mtr.removeClass("active");
+
+							$("#quantity_"+msid).val("");
+							$("#subtotal_"+msid).text("");
+						}
+					});
+				}else{
+                    input.attr("checked","checked");
+                    $(this).addClass("active");
+                }
+			}else if(srequired==3){
+				var remid=input.attr("remid");
+				$("[id^='tritem_']").each(function(){
+					var mtr=$(this);
+					var minput=mtr.find(".cell-id").find("input");
+					var mmid=minput.attr("mid");
+					if(minput.is(':checked')&&mmid==remid){
+						//必选
+						input.attr("checked","checked");
+						tr.addClass("active");
+						return false;
+					}
+				});
+			}
+
+
+			var sid=input.attr("sid");
+			if(!input.is(':checked')){
+				$("#subtotal_"+sid).text("");
+			}else{
+				var q=$("#quantity_"+sid).val();
+				if(q<=0){
+					$("#quantity_"+sid).val($("#quantity_"+sid).attr("qu"));
+					q = $("#quantity_"+sid).attr("qu");
+				}
+				var price = $('#price_'+sid).val();
+		        var amount = parseFloat(price*q);
+				$("#subtotal_"+sid).text(amount);
+			}
+
+			count();
+		});
+
+		$("#imort").click(function(){
+			var has=false;
+			$("[id^='tritem_']").each(function(){
+				var td=$(this).find(".cell-id");
+				var input=td.find("input");
+				if(input.attr("checked")){
+					has=true;
+					return false;
+				}
+			});
+			if(!has){
+				alert("请选择需要引入的内容");
+				return;
+			}
+			if(confirm("确认要引入这些内容吗？")){
+                var param = $("#childrenForm").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "{:U('ajax_in')}",
+                    data:param,
+                    dataType: "json",
+                    beforeSend: function(){
+                        $('#l1').show();$('#l2').show();
+                    },
+                    complete: function(){
+                        $('#l1').hide();$('#l2').hide();
+                    },
+                    success: function(data){
+                        if(data.done){
+                            window.localStorage.temp = JSON.stringify(data.retval);
+                            $("#his_temp").val(window.localStorage.temp)
+                            location.href = location.href;
+                        }else{
+                            alert(data.info);
+                        }
+                    }
+                });
+			}
+		});
+
+        $("[id^='del_']").click(function () {
+			var k = $(this).attr('item');
+			var his_temp = $("#his_temp").val();
+            $.ajax({
+                type: "POST",
+                url: "{:U('tempdel')}",
+                data:{k:k,his_temp:his_temp},
+                dataType: "json",
+                success: function(data){
+                    if(data.done){
+                        window.localStorage.temp = JSON.stringify(data.retval);
+                        $("#his_temp").val(window.localStorage.temp)
+					     location.href = location.href;
+                    }else{
+                        alert(data.info);
+                    }
+                }
+            });
+        });
+
+        $("[id^='price_']").change(function () {
+            var price = $(this).val();
+            var key = $(this).attr('key');
+            var q = $('#quantity_'+key).val();
+            var amount = parseFloat(price*q);
+            $('#subtotal_'+key).html(amount);
+            count();
+        });
+        $("[id^='quantity_']").change(function () {
+            var q = $(this).val();
+            var key = $(this).attr('key');
+            var price = $('#price_'+key).val();
+            var amount = parseFloat(price*q);
+            $('#subtotal_'+key).html(amount);
+            count();
+        });
+	});
+    //计算
+    function count() {
+        var all_day =0;
+        var all_amount =0;
+        $('.ids:checked').each(function () {
+            var key = $(this).attr('sid');
+            var sub_total = $('#subtotal_'+key).html();
+            var q = $('#quantity_'+key).val();
+            var day = $('#day_'+key).attr("v");
+            all_day+=parseInt(day*q);
+            all_amount+=parseFloat(sub_total);
+        });
+        $('#all_day').text(all_day);
+        $('#all_amount').text(all_amount);
+    }
+    // 对树进行搜索
+    $("#treeSerach").keydown(function (e) {
+        if (e.keyCode == 13) {
+            var val = $(this).val();
+            var ppid = $(".ppid").val();
+            var method = 'OfferTools';
+            var url = "{:U('ProjectConfig/ajaxSearch')}";
+            $.get(url, {'val': val, 'ppid': ppid,'method':method}, function (data) {
+                if (data.done) {
+                    $('.panel-body').html("");
+                    $('.panel-body').html(data.retval);
+
+                    $(".tree").tree({
+                        name: config.currentModule + "-" + config.currentMethod,
+                        initialState: "preserve"
+                    });
+
+                }
+            });
+        }
+    });
+	</script>
+
+
+</block>
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+		highlight_subnav("{:U('OfferTools/index')}");
+		var ajaxGetDropMenu="{:U('OfferTools/ajaxGetDropMenu/',array('module'=>'OfferTools','index'=>'index','oid'=>$oid))}";
+    </script> </block>

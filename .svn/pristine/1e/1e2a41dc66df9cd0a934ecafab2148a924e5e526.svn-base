@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<title>
+
+</title>
+ <script src="__JSNEW__/all.js" type="text/javascript"></script>
+    <script src="__JSNEW__/jquery.form.js" type="text/javascript"></script>
+</head>
+<body>
+<form id='autoform' method="post" action="http://192.168.0.2:7003/index.php?s=/Admin/Test/upload.html" enctype="multipart/form-data"><input type='file' name='ckauto' id='ckauto' accept='image/*'/>
+<input type="submit" id="ok1" value="ok"/>
+</form>
+<script>
+var config = {
+        "webRoot": "\/\/",
+        "appName": "",
+        "cookieLife": 30,
+        "requestType": "PATH_INFO",
+        "requestFix": "-",
+        "moduleVar": "m",
+        "methodVar": "f",
+        "viewVar": "t",
+        "defaultView": "html",
+        "themeRoot": "\/\/theme\/",
+        "currentModule": "my",
+        "currentMethod": "index",
+        "clientLang": "zh-cn",
+        "requiredFields": "",
+        "router": "\/\/index.php",
+        "save": "\u4fdd\u5b58",
+        "runMode": "",
+        "timeout": 30000,
+        "pingInterval": ""
+    };
+    var lang = {
+        "submitting": "\u7a0d\u5019...",
+        "save": "\u4fdd\u5b58",
+        "timeout": "\u8fde\u63a5\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u73af\u5883\uff0c\u6216\u91cd\u8bd5\uff01"
+    };
+$(function(){
+	$("#ok").click(function(){
+		$("#autoform").ajaxSubmit({    
+			url: "{:U('Test/upload')}" ,    
+			type: 'POST',    
+			dataType: 'json',    
+			success: function (data) {  
+				if(data.done){
+					
+				}
+			},    
+			error: function (data) {
+			}    
+		});
+	});
+})
+</script>
+</body>
+</html>

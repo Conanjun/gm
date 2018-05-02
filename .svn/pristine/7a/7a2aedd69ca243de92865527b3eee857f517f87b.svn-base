@@ -1,0 +1,152 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Studio\Controller;
+use Common\Common\Super\Order;
+/**
+ * 工作室 投诉意见管理控制器 : LGW
+ */
+class FeedbackController extends AdminController
+{
+    private $model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model = D('Feedback');    // 投诉意见Model
+    }
+
+    /**
+     *投诉意见管理首页
+     */
+    public function index()
+    {
+		 $stuid = Order::get_stuid(UID);   // 工作室id
+
+        $where = " 1=1 and f.stuid={$stuid}";
+        $filter= '';
+        $addtime = empty($_GET['addtime'])?'':trim($_GET['addtime']);
+        $backtime = empty($_GET['backtime'])?'':trim($_GET['backtime']);
+        $name = empty($_GET['name'])?'':trim($_GET['name']);
+        if($name){
+            $filter .= " and d.name like '%{$name}%'";
+        }
+        //时间筛选
+        if($addtime){
+            $filter .= " and f.addtime > ".strtotime($addtime);
+        }
+        if($backtime){
+            $filter .= " and f.backtime <= ".strtotime($backtime."+23 hours 59 minute 59 second");
+        }
+        $feedtype = empty($_GET['feedtype'])?'':trim($_GET['feedtype']);//code
+        if($feedtype){
+            $filter .= " and  dic.d_key = {$feedtype}";
+        }
+
+        $feed_status = empty($_GET['feed_status'])?'':trim($_GET['feed_status']);//code
+        if($feed_status){
+            $filter .= " and  dicc.d_key = {$feed_status}";
+        }
+
+
+        $where .= $filter;
+
+        $count = $this->model->countNum($where);
+        $page = new \Think\Page($count, 10);
+        $lists = $this->model
+            ->alias('f')
+            ->join('left join ot_member m on m.uid = f.uid')
+            ->join('left join ot_dentist d on d.denid = f.denid')
+            ->join("left join ot_dictionary dic on dic.d_key = f.type and dic.d_code='feed_type'")
+            ->join("left join ot_dictionary dicc on dicc.d_key = f.state and dicc.d_code='feed_status'")
+            ->field('dicc.d_value as status ,dic.d_value as type,m.nickname,f.content,f.addtime,f.backtime,f.id,d.name as dname')
+            ->where($where)
+            ->group('f.id')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('lists', $lists);
+
+        $feed_type = M('Dictionary')->where("d_code = 'feed_type' and d_del =0")->select();
+        $this->assign('feed_type', $feed_type);
+
+        $feed_status = M('Dictionary')->where("d_code = 'feed_status' and d_del =0")->select();
+        $this->assign('feed_status', $feed_status);
+
+        $this->assign('_page', $page->show());
+        $this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+        $this->display();
+    }
+
+    /**
+     * 查看明细
+     */
+    public function info()
+    {
+        $id = empty($_GET['id'])?0:$_GET['id'];
+        if (empty($id)) {
+            $this->error('字典数据不存在！');
+        }
+
+        $data = $this->model
+            ->alias('f')
+            ->join('left join ot_studio s on f.stuid = s.stuid')
+            ->join('left join ot_member m on m.uid = f.uid')
+            ->join("left join ot_dictionary dic on dic.d_key = f.type and dic.d_code='feed_type'")
+            ->join("left join ot_dictionary dicc on dicc.d_key = f.state and dicc.d_code='feed_status'")
+            ->field('dicc.d_value as status ,dic.d_value as type,s.name as sname,m.nickname,f.content,f.addtime,f.backtime,f.id,dicc.d_key as f_status')
+            ->where('f.id='.$id)
+            ->order("f.id desc")
+            ->group('f.id')
+            ->find();
+
+        $this->assign('data', $data);
+
+        $this->display();
+    }
+
+    /**
+     * 提交反馈
+     */
+    public function handle()
+    {
+        $id = empty($_POST['id']) ? '' : trim($_POST['id']);
+        $content = empty($_POST['content']) ? '' : $_POST['content'];
+        if (empty($id)) {
+            $this->error(L('PLEASE_SELECT_DATA'));
+        }
+        if (empty($content)) {
+            $this->error(L('NOT_FEED_CONTENT'));
+        }
+
+        $data=[
+            'id'=>$id,
+            'backcontent'=>$content,
+            'backtime'=>time(),
+            'backuid'=>UID,
+            'state'=>1
+        ];
+        if (D('Feedback')->save($data) === false) {
+            $this->error(L('EDIT_ERROR'), U('Feedback/info?id=' . $id));
+        } else {
+            $res = M('Feedback')->where('id='.$id)->find();
+            //给客户发消息
+            $title = L('BACKFEED_MSG');
+            $msg_id = Order::action_msg_log(array('fromid' => '', 'toid' =>$res['uid'], 'addtime' => $data['backtime'],'title' => $title,'content' => $content, 'outtype' => 'feedback' ,'outkey'=>$id));
+
+
+            $this->success(L('EDIT_SUCCESS'), U('index'));
+        }
+
+
+    }
+
+
+}

@@ -1,0 +1,248 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 折扣管理控制器
+ */
+class DisdefineController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     *折扣管理管理首页
+     *
+     */
+    public function index()
+    {
+
+        $temp = M("Member")->where("status=1")->select();
+        $uids = array("" => "");
+        if ($temp) {
+            foreach ($temp as $v) {
+                $uids[$v['uid']] = $v["nickname"];
+            }
+        }
+
+        $config = array(
+            "actionURL" => "/Admin/Disdefine/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '折扣率', 'fieldname' => 'dis', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 2 => array('str' => '添加人', 'fieldname' => 'uid', 'operator' => '=', 'control' => 'select', 'values' => $uids)
+            )
+        );
+        $this->setSearchConfig($config);
+
+        $map = array();
+        $map = $this->getCondition();
+        $order = "";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+        $list = $this->lists('Disdefine', $map, $order);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '折扣审批', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('_list', $list);
+        $this->meta_title = '折扣管理';
+        $this->display();
+    }
+
+    /**
+     * 删除数据
+     */
+    public function deletedata()
+    {
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map ['did'] = array('in', $id);
+        if (M('Disdefine')->where($map)->delete() !== false) {
+            $this->success("删除成功", U('index'));
+        } else {
+            $this->error("删除失败");
+        };
+    }
+
+    /**
+     * 添加折扣
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $name = I("post.name", '');
+            $dis = I("post.dis", '');
+            $checkid = I("post.checkid", '');
+            if (empty($dis) || !preg_match("/^[1-9][0-9]*$/", $dis) || $dis <= 0 || $dis > 100) {
+                $this->error('折扣率填写不正确');
+            }
+            if (empty ($checkid)) {
+                $this->error('审批角色不能为空');
+            }
+            $res = M('Disdefine')->getByName($name);
+            if ($res) {
+                //$this->error('折扣数据已存在！');
+            }
+
+            $r = M("auth_group")->where("id='{$checkid}'")->find();
+            if (empty($r)) {
+                $this->error('审批角色不存在');
+            }
+            $cname = $r['title'];
+            $data = array(
+                'name' => $name,
+                'dis' => $dis,
+                'addtime' => time(),
+                'uid' => UID,
+                'uname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'checkid' => I('post.checkid'),
+                'checkname' => $cname,
+            );
+            if (!M('Disdefine')->add($data)) {
+                $this->error('折扣添加失败！');
+            } else {
+                $this->redirect('Disdefine/index');
+            }
+        } else {
+            $temp = M("Member")->where("status=1")->select();
+
+            //添加角色
+            $groupM = M('auth_group');
+            $groupList = $groupM->field(true)->select();
+            $groupList = D('Common/Tree')->toFormatTree1($groupList, 'title', 'id');
+            $this->assign('gps', $groupList);
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '折扣审批', 'url' => U('Disdefine/index'));
+            $root_mbx[] = array('title' => '添加折扣', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('uids', $temp);
+            $this->meta_title = '新增折扣';
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑折扣
+     */
+    public function edit()
+    {
+        $id = I("id");
+        if (empty($id)) {
+            $this->error('折扣数据不存在！');
+        }
+        if (IS_POST) {
+            $dis = (int)I("post.dis", '');
+            $name = I("post.name", '');
+            $checkid = I("post.checkid", '');
+            if (empty($dis) || !preg_match("/^[1-9][0-9]*$/", $dis) || $dis <= 0 || $dis > 100) {
+                $this->error('折扣率填写不正确');
+            }
+            if (empty ($checkid)) {
+                $this->error('审核人不能为空');
+            }
+            $res = M('Disdefine')->where("name ='" . $name . "' and did != " . $id)->getByName($name);
+            if ($res) {
+                //$this->error('折扣数据已存在！');
+            }
+
+            $r = M("auth_group")->where("id='{$checkid}'")->find();
+            if (empty($r)) {
+                $this->error('审批角色不存在');
+            }
+            $cname = $r['title'];
+
+            $data = array(
+                'name' => $name,
+                'dis' => $dis,
+                'checkid' => I('post.checkid'),
+                'checkname' => $cname,
+            );
+            if (D('Disdefine')->where('did = ' . $id)->save($data) === false) {
+                $this->error('折扣编辑失败！', U('Disdefine/edit?id=' . $id));
+            } else {
+                $this->redirect('Disdefine/index');
+            }
+        } else {
+            $this->meta_title = '编辑折扣';
+            $data = array();
+            $data = M('Disdefine')->where("did=" . $id)->find();
+            if (empty($data)) {
+                $this->error('折扣数据不存在！');
+            }
+
+            $groupM = M('auth_group');
+            $groupList = $groupM->field(true)->select();
+            $groupList = D('Common/Tree')->toFormatTree1($groupList, 'title', 'id');
+            $this->assign('gps', $groupList);
+
+            $temp = M("Member")->where("status=1")->select();
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '折扣审批', 'url' => U('Disdefine/index'));
+            $root_mbx[] = array('title' => '编辑折扣审批', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('uids', $temp);
+            $this->assign('id', $id);
+            $this->assign('d', $data);
+            $this->display();
+        }
+    }
+
+    /*
+     * 删除
+     * */
+    public function delete()
+    {
+        $id = I('id');
+        if (!$id) {
+            $this->error('请选择要操作的数据！');
+        }
+        if (is_array($id)) {
+            $ids = implode(',', $id);
+        } else {
+            $ids = $id;
+        }
+        $where = array('did' => array('in', $ids));
+        $tmp = M('Disdefine')->where($where)->delete();;
+        if ($tmp) {
+            $this->success('删除成功！', U('index'));
+        } else {
+            $this->error('删除失败！');
+        }
+    }
+
+    public function choose()
+    {
+        $code = I('code');
+        if ($code) {
+            $where = "status = 1 and nickname like '%" . $code . "%' or uid ='" . $code . "'";
+        } else {
+            $where = "status = 1";
+        }
+        $db = M('Member');
+        $page = new \Think\Page($db->where($where)->count(), 20);
+        $member = $db
+            ->field('uid,nickname')
+            ->where($where)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        /*echo $db->getLastSql();*/
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('member', $member);
+        $this->display();
+    }
+}

@@ -1,0 +1,6 @@
+<?php
+return array(
+     '_WELCOME_'=>'我是中文的',
+     'custype_required' => '客户类型不能为空',
+	 'Forbidden' => '禁止访问',
+);

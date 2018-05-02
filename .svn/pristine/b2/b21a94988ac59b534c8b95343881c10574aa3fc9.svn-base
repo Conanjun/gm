@@ -1,0 +1,14 @@
+<extend name="Public/base" />
+<block name="btnarea">
+
+</block>
+
+<block name="body">
+	<iframe id='calendar' name='calendar' src='{:U('Demo4/index5')}' frameborder='no' allowtransparency='true' scrolling='auto' hidefocus='' style='width: 100%; min-height: 760px; left: 0px;'></iframe>
+</block>
+
+<block name="script">
+<script>
+
+</script>
+</block>

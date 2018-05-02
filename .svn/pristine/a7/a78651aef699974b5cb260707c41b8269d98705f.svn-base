@@ -1,0 +1,11 @@
+<?php
+namespace Admin\Model;
+use Think\Model;
+
+/**
+ * 项目组模型
+ */
+
+class GroupModel extends Model {
+
+}

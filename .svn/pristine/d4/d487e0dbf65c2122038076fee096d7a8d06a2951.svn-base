@@ -1,0 +1,195 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+/**
+ * 日历控制器
+ */
+class MycalController extends AdminController {
+
+    /**
+	 * 我的日历
+	 */
+    public function index(){
+    	
+    	$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'我的日历','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+		
+    	$this->display();
+    }
+    public function addTask(){
+		$pid = I('get.pid');
+		if(IS_POST){
+
+			if (empty ($_POST ['title'])) {
+				$this->error('任务标题不能为空');
+			}
+			$res = M('Task')->where("name = '" . $_POST['name'] . "'")->find();
+			if ($res) {
+				$this->error('任务标题已存在！');
+			}
+			if (empty ($_POST ['pid'])) {
+				$this->error('请选择项目');
+			}
+			if (empty ($_POST ['assigneduid'])) {
+				$this->error('请选择执行人');
+			}
+
+			$pstime = strtotime($_POST['pstime']);
+			$petime = strtotime($_POST['petime']);
+			if (empty ($pstime)) {
+				$this->error('计划开始时间不能为空');
+			}
+			if (empty ($petime)) {
+				$this->error('计划结束时间不能为空');
+			}
+			if ($petime < $pstime) {
+				$this->error('结束时间必须大于开始时间');
+			}
+			$groupid = $_POST['groupid'];
+			$psid = $_POST['sid']?:0;
+			$Model = M(); // 实例化一个空对象
+			$Model->startTrans(); // 开启事务
+			if(empty($psid)){
+				$groupid = $_POST['groupid1']?:0;
+				$data1 = array(
+					'pid' =>$_POST['pid'],
+					'title' =>$_POST['title'],
+					'assignedname' =>$_POST['assignedname'],
+					'assigneduid' =>$_POST['assigneduid'],
+					'checkuname' =>$_POST['checkuname'],
+					'checkuid' =>$_POST['checkuid'],
+					'pstime' =>$pstime,
+					'petime' =>$petime,
+					'days' =>$_POST['days'],
+					'hours' =>$_POST['hours'],
+					'description' =>$_POST['description'],
+					'state' =>1,
+					'lastedituid' =>UID,
+					'lastedituname' =>get_nickname(UID),
+					'lastedittime' =>time(),
+				);
+				$psid = M('ProjectService')->add($data1);
+			}else{
+				$service = M('ProjectService')->alias("ps")->field('s.pid,s.mid,s.sid,ps.groupid')->join('ot_service s on s.sid = ps.sid')->where('ps.psid='.$psid)->find();
+				$groupid = $service['groupid']?:0;
+			}
+
+			$data =array(
+				'pid' =>$_POST['pid'],
+				'psid' => $psid,
+				'sid' => $service['sid']?:0,
+				'pcid' =>$service['pid']?:0,
+				'mid' =>$service['mid']?:0,
+				'groupid' =>$groupid,
+				'title' =>$_POST['title'],
+				'assignedname' =>$_POST['assignedname'],
+				'assigneduid' =>$_POST['assigneduid'],
+				'assignedtime' =>time(),
+				'checkuname' =>$_POST['checkuname'],
+				'checkuid' =>$_POST['checkuid'],
+				'pstime' =>$pstime,
+				'petime' =>$petime,
+				'days' =>$_POST['days'],
+				'hours' =>$_POST['hours'],
+				'level' =>$_POST['level'],
+				'description' =>$_POST['description'],
+				'lastedituid' =>UID,
+				'lastedituname' =>get_nickname(UID),
+				'lastedittime' =>time(),
+				'addtime' =>time(),
+				'uid' =>UID,
+				'uname' =>get_nickname(UID),
+				'state' => 1,
+				'sign' => 1,
+                'tasktype'=>$_POST['tasktype'],
+			);
+			$task_id = M('Task')->add($data);
+			$tmp4 = M('Takepart')->field('tpid')->where('uid=' . $_POST['assigneduid'] .' and pid = '.$pid)->find();
+			if(empty($tmp4['tpid'])){
+				$data4 = array(
+					'pid' => $pid ,
+					'uid' =>$_POST['assigneduid'] ,
+					'uname' =>$_POST['assignedname'] ,
+					'addtime' => time(),
+					'adduname' => get_nickname(UID),
+					'adduid' =>UID,
+				);
+				M('Takepart') -> add($data4);
+			}
+			action_log_new(array(
+				'outtype' => 'ot_task',
+				'outkey' => $task_id,
+				'action' => 'create',
+				'comment' => ''
+				));
+				updateprocess($task_id);
+				update_project($_POST['pid']);
+				if (!empty($psid) && !empty($task_id)) {
+					$Model->commit(); // 成功则提交事务
+					//$this->success('添加成功！', U('index'));
+
+					$this->redirect ( 'TaskFromMe/index');
+				} else {
+					$Model->rollback(); // 否则将事务回滚
+					$this->error('添加失败！');
+				}
+
+		}else{
+			$where = "(state != -1 or state != 2) and del=0";
+			//项目
+			$project = M('Project')->field('pid,name')->where($where)->select();
+			$this->assign('project', $project);
+			//执行人
+			$pm = M('Member')->field('uid,nickname')->select();
+			$this->assign('pm', $pm);
+			//审核人
+			$sales = M('Member')->field('uid,nickname')->select();
+			$this->assign('sales', $sales);
+			//项目组
+			$group = M('Group')->field('groupid,name')->order('sort_order asc')->select();
+			$this->assign('group', $group);
+			//优先级
+			$levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+			$this->assign('levels', $levels);
+            //任务类型
+            $task_type = M('dictionary')->where("d_code = 'task_type'")->field(true)->select(array('order' => 'd_order asc'));
+			$this->assign('taskType', $task_type);
+
+			$this->assign('pid', $pid);
+			$root_mbx=array();
+			$root_mbx[]=array('title'=>'我的地盘','url'=>U('Index/index'));
+			$root_mbx[]=array('title'=>'我的日历','url'=>U('Mycal/index'));
+			$root_mbx[]=array('title'=>'添加任务','url'=>'');
+			$this->assign('root_mbx',$root_mbx);
+
+			$this->display();
+
+		}
+	}
+	public function get_service() {
+		$id = I ( 'post.pid' );
+		if($id){
+			$data = M('ProjectService')->field('psid,title,groupid')->where('pid='.$id)->select();
+			if($data){
+				echo json_encode ( $data );
+			}
+
+		}
+	}
+	/*
+	 * 点击日历空白处弹出框
+	 * */
+	public function popup(){
+        $this->display();
+	}
+}

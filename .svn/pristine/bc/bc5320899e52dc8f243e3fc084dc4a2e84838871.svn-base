@@ -1,0 +1,39 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+namespace Admin\Model;
+
+use Think\Model;
+
+class RegionModel extends Model {
+	protected $pk = 'region_id';
+	
+	/**
+	 * 取得地区列表
+	 *
+	 * @param int $parent_id
+	 *        	大于等于0表示取某个地区的下级地区，小于0表示取所有地区
+	 *        	* @param varchar $sort
+	 *        	* @param varchar $order
+	 * @return array
+	 */
+	public function get_list($sort, $order, $parent_id = -1) {
+		if (empty ( $sort )) {
+			$sort = 'region_id';
+		}
+		if (empty ( $order )) {
+			$order = 'asc';
+		}
+		if ($parent_id >= 0) {
+			return $this->where("parent_id='{$parent_id}'")->order("$sort $order")->select();
+		} else {
+			return $this->order("$sort $order")->select();
+		}
+	}
+}

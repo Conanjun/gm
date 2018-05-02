@@ -1,0 +1,142 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('PLATORDER')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/PlatOrder/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('ORDER_SN')}</label>
+                                                <input class="form-control" type="text" name="order_sn" value="{$Think.get.order_sn}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_KEYS')}</label>
+                                                <input style="width: 230px !important" placeholder="{:L('ORDER_KEYS_PLACEHOLDER')}" class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_STATE')}</label>
+                                                <select name="state" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="statuslist" id="sl">
+                                                    	 <option value="{$sl.d_key}" <if condition="$Think.get.state eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_STYPE')}</label>
+                                                <select name="servicetype" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="stypelist" id="sl">
+                                                    	 <option value="{$sl.d_key}" <if condition="$Think.get.servicetype eq $sl['d_key']">selected</if>>{$sl.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_UG')}</label>
+                                                <select name="isurgent" class="form-control" >
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.isurgent eq 1">selected</if>>{:L('yes')}</option>
+                                                    <option value="0" <if condition="$Think.get.isurgent === '0'">selected</if>>{:L('no')}</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('PlatOrder/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th><span ectype="order_by" fieldname="order_sn">{:L('ORDER_SN')} <i class="fa fa-sort"></i></span></th>
+									<th><span>{:L('ORDER_STATE')}</span></th>
+									<th><span>{:L('ORDER_STYPE')}</span></th>
+                                    <th><span>{:L('ORDER_CNAME')}</span></th>
+                                    <th><span>{:L('ORDER_SNAME')}</span></th>
+                                    <th><span>{:L('ORDER_PNAME')}</span></th>
+									<th><span ectype="order_by" fieldname="amount">{:L('ORDER_YM')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="payamount">{:L('ORDER_SM')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="addtime">{:L('ORDER_ADDTIME')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="paytime">{:L('ORDER_LTIME')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="isurgent">{:L('ORDER_UG')}<i class="fa fa-sort"></i></span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>{$vo['order_sn']}</td>
+                                            <td>{$vo['d_value']}</td>
+                                            <td>{$vo['servicetype']}</td>
+                                            <td>{$vo['dename']}</td>
+                                            <td>{$vo['stuname']}</td>
+                                            <td>{$vo['pname']}</td>
+                                            <td>RMB:{$vo['amount']}<br/>USD:{$vo['amount1']}</td>
+                                            <td>RMB:RMB:{$vo['payamount']}<br/>USD:{$vo['payamount1']}</td>
+                                            <td><if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td><if condition="$vo['paytime']">{$vo['paytime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td>
+                                                <if condition="$vo['isurgent']">
+                                                    <img src="__IMG__/positive_enabled.png"  title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="11">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

@@ -1,0 +1,173 @@
+<extend name="Public/base"/>
+<block name="btnarea">
+
+</block>
+
+
+<block name="body">
+    
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+	<ul class="nav" style="float:left">
+        <li <if condition="$estate"><else/>class="active" </if> ><a href="{:U('expense')}">所有</a>
+		</li>
+        <li  <if condition="$estate eq 2"> class="active"</if>><a href="{:U('expense?state=2')}">已提交</a></li>
+		<li <if condition="$estate eq 1"> class="active" </if> ><a href="{:U('expense?state=1')}">新建</a></li>
+
+         <li id="statusTab"  <if condition=" $estate==3 || $estate==-1">class="dropdown active"<else/>class="dropdown" </if> >
+        <a href="javascript:;" data-toggle="dropdown"><if condition="$estatename">{$estatename}<else/>更多</if><span
+                class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li <if condition="$estate==3">class="active"</if>><a href="{:U('expense?state=3')}" >已生效</a>
+            </li>
+            <li <if condition="$estate==-1">class="active"</if>><a href="{:U('expense?state=-1')}">已拒绝</a>
+            </li>
+        </ul>
+        </li>
+
+		<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+
+	</ul>
+         <div class="" style="float: right;margin-right: 10px">
+
+            <div class="actions">
+                  <if condition="cando('Expense/expenseadd')">
+                      <a href="{:U('Expense/expenseadd')}" class="btn"><i class="icon-plus"></i>添加报销单</a></if>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+	<include file="Public/search" />
+</div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="30px"></th>
+                <th class="text-left">项目名称</th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="e.code">单号</span></th>
+                <th width="50px"><span class="sort" ectype="order_by" fieldname="e.state">状态</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="e.type">成本类型</span></th>
+                <th width="70px"><span class="sort" ectype="order_by" fieldname="e.innum">发票数</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="e.amount">金额</span></th>
+                <th width="100px"><span class="sort" ectype="order_by" fieldname="e.addtime">申请时间</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="e.uname">申请人</span></th>
+                <th width="100px"><span class="sort" ectype="order_by" fieldname="e.checktime">审批时间</span></th>
+                <th class="oop" width="100px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="expenses">
+                <volist name="expenses" id="vo">
+                    <tr>
+                        <td class="cell-id"> <input class="ids" type="checkbox" name="eid[]"value="{$vo.eid}"/> </td>
+                        <td class="text-left"><a href="{:U('expenseproject?eid='.$vo['eid'])}">{$vo.pname}</a></td>
+                        <td>{$vo.code}</td>
+                        <td <if condition="$vo['state'] eq 3"> style="color:#21841d;"</if> >{$vo.d_key}</td>
+                        <td>{$vo.type}</td>
+                        <td>{$vo.innum|default=0}</td>
+                        <td style="text-align: right;">{$vo.amount|fomatprice}</td>
+                        <td>{$vo.addtime}</td>
+                        <td>{$vo.uname}</td>
+                        <td>{$vo.checkedtime}</td>
+                        <td class="oop">
+<em>
+                            <if condition="$vo['state']==1 || $vo['state']==-1">
+                                <if condition="cando('Expense/expenseedit',array($vo['uid']))">
+                                    <a href="{:U('expense/expenseedit?eid='.$vo['eid'].'&pid='.$vo['pid'])}">编辑</a>
+                                </if>
+                                <if condition="$vo['state'] eq 1 || $vo['state'] eq -1 ">
+                                    <if condition="cando('Expense/expenseDelete',array($vo['uid']))">
+                                        <a href="{:U('expense/expenseDelete?eid='.$vo['eid'])}" class="confirm ajax-get">删除</a>
+                                    </if>
+                                </if>
+                                <else/>
+                                <!--<a href="{:U('expense/expenseproject?eid='.$vo['eid'])}">详请</a>-->
+                            </if></em>
+                        </td>
+                    </tr>
+                </volist>
+                <else/>
+                <td colspan="11" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+            <notempty name="expenses">
+            <tfoot>
+            <tr>
+                <td colspan='11'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <!--<button class="btn btn-default ajax-post confirm"  url="{:U('Expense/expenseSubmit')}" target-form="ids">提交</button>-->
+                        <button class="btn btn-default ajax-post confirm" url="{:U('Expense/expenseDelete')}" target-form="ids">删 除
+                        </button>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js">
+
+    </script>
+
+    <script type="text/javascript">
+    	$(function(){
+    		var max=0;
+        	$(".oop").each(function(){
+        		if($(this).find("em").size()>0){
+            		var www=$(this).find("em").width();
+            		if(www<40){
+                		www=40;
+                	}
+            		
+            		if(max<www+10){
+            			max=www+10;
+            		}
+            		$(this).width(www+10);
+        		}
+        	});
+        	if($(".oop").size()==1){
+        		$(".oop").width("40px");
+        	}else{
+    	    	$(".oop").each(function(){
+    	    		if($(this).find("em").size()==0){
+    	    			$(this).width(max);
+    	    		}
+    	    	});
+        	}
+    	})
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+
+
+        //导航高亮
+        highlight_subnav('{:U('Expense/expense')}');
+    </script>
+</block>

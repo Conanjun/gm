@@ -1,0 +1,75 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+
+class TestController extends \Think\Controller
+{
+	public function upload(){
+		$p=C('DOWNLOAD_UPLOAD');
+		$uploader = new \Think\Upload($p);
+		$uploader->maxSize = 500 * 1024 * 1024;
+		$uploader->autoSub=true;
+		$uploader->saveName='';
+		$uploader->subName=array('date','Ymd');
+		$info = $uploader->upload();
+		p($info);die;
+
+		if(!$info){
+			// 上传错误提示错误信息
+			echo $uploader->getError();
+		}else{
+			// 上传成功 获取上传文件信息
+			foreach($info as $file){
+				$path =  $p['rootPath'].$file['savepath'].$file['name'];
+			}
+			$oss_path=str_replace($p['rootPath'], '', $path);
+
+			$res = oss_upload($path,$oss_path);
+			if($res['status']) {
+				$file = get_oss_url($oss_path);
+				echo $file;
+			}else{
+				echo $res['msg'];
+			}
+		}
+	}
+
+	public function delete(){
+		$f=$_REQUEST['f'];
+
+		if($f){
+			$e=oss_exist_object($f);
+			if(!$e){
+				echo '文件不存在';
+				exit();
+			}
+			
+			$res = oss_delet_object($f);
+				
+			if($res['status']) {
+				$e=oss_exist_object($f);
+				if($e){
+					echo '删除失败';
+				}else{
+					echo '删除成功';
+				}
+				
+			}else{
+				echo $res['msg'];
+			}
+		}
+	}
+
+	public function index(){
+		var_dump(date('w',strtotime('20160102')));
+		$this->display();
+	}
+}

@@ -1,0 +1,211 @@
+<extend name="Public/base" />
+<block name="body">
+
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+
+    <script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+    <link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <script>
+        $(function(){
+            $('#birthday').datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y-m-d'});
+            jQuery.validator.addMethod("isMobile", function(value, element) {
+                var length = value.length;
+                var mobile = /^(13[0-9]{9})|(18[0-9]{9})|(14[0-9]{9})|(17[0-9]{9})|(15[0-9]{9})$/;
+                return this.optional(element) || (length == 11 && mobile.test(value));
+            }, "{:L('MOBILE_CORRECT')}");
+
+            $("[id^='sli_']").click(function(){
+                var h=$(this).attr("h");
+                var item=$(this).attr("item");
+                if(h==0){
+                    $(this).attr("h",1);
+                    $(this).addClass("lion");
+                    var item1=$(this).attr("item1");
+                    $("#sss_"+item).val(item1);
+                }else if(h==1){
+                    $(this).attr("h",0);
+                    $(this).removeClass("lion");
+                    $("#sss_"+item).val("");
+                }
+            });
+
+
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                },
+                onkeyup: false,
+                rules: {
+                    username: {
+                        required: true,
+                        remote: {
+                            url: "{:U('User/check_user')}",
+                            type: 'post',
+                            data: {
+                                username: function () {
+                                    return $('#username').val();
+                                },
+                                id:"{$m['id']}"
+                            }
+                        }
+                    },
+                    password: {
+                        required: true,
+                        maxlength: 20,
+                        minlength: 6
+                    },
+                    nickname: {
+                        required: true
+                    },
+                    email: {
+                        required: true,
+                        email:true,
+                        remote: {
+                            url: "{:U('User/check_email')}",
+                            type: 'post',
+                            data: {
+                                email: function () {
+                                    return $('#email').val();
+                                },
+                                id:"{$m['id']}"
+                            }
+                        }
+                    },
+                    mobile: {
+                        required: true,
+                        isMobile:true,
+                        remote: {
+                            url: "{:U('User/check_mobile')}",
+                            type: 'post',
+                            data: {
+                                mobile: function () {
+                                    return $('#mobile').val();
+                                },
+                                 id:"{$m['id']}"
+                            }
+                        }
+                    },
+                },
+                messages: {
+                    username: {
+                        required : "{:L('MOBILE_NOT_EMPTY')}", // 用户名不能为空
+                        remote: "{:L('USERNAME_EXISTED')}" //用户名已被占用
+                    },
+                    password: {
+                        required : "{:L('MOBILE_NOT_EMPTY')}",
+                        maxlength: "{:L('PASSWORD_LENTH')}",
+                        minlength: "{:L('PASSWORD_LENTH')}"
+                    },
+                    nickname: {
+                        required: "{:L('MNAME_NOT_EMPTY')}",
+                    },
+                    email: {
+                        required: "{:L('EMAIL_NOT_EMPTY')}",
+                        email:"{:L('EMAIL_FORMAT')}",
+                        remote: "{:L('EMAIL_EXISTED')}"
+                    },
+                    mobile: {
+                        required: "{:L('MOBILE_NOT_EMPTY')}",
+                        isMobile:"{:L('MOBILE_CORRECT')}",
+                        remote: "{:L('MOBILE_EXISTED')}"
+                    },
+                }
+            });
+        });
+    </script>
+	  <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('STUDIO_USER')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('User/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+						<input type="hidden" name="id" value="{$m['id']}">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('UNAME')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="username" id="username" value="{$m['username']}" class="form-control" autocomplete="off" placeholder="{:L('UNAME_NOT_EMPTY')}">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PASSWORD')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="password" name="password" id="password" value="{$m['password']}" class="form-control" autocomplete="off" placeholder="{:L('PASSWORD_LENTH')}">
+                                </div>
+                            </div>
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MNAME')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="nickname" id="nickname" id="nickname" value="{$m['nickname']}" class="form-control" autocomplete="off" placeholder="{:L('NNAME_NOT_EMPTY')}">
+                                </div>
+                            </div>
+							
+                            <!--<div class="form-group">-->
+                                <!--<label class="col-sm-2 control-label">{:L('DNAME')}</label>-->
+                                <!--<div class="col-sm-3">-->
+                                    <!--<select class="form-control m-b"  name="dept">-->
+                                        <!--<option>{:L('PLEASE_SELECT')}</option>-->
+                                        <!--<volist name="depts" id="r">-->
+											<!--<option value="{$r.did}" <if condition="$m['dept'] == $r['did']"> selected </if>>{$r.title_show}</option>-->
+										<!--</volist>-->
+                                    <!--</select>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('EMAIL')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="email" class="form-control" id="email" value="{$m['email']}" class="form-control" autocomplete="off"placeholder="{:L('EMAIL_NOT_EMPTY')}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MOBILE')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="mobile" id="mobile" value="{$m['mobile']}" class="form-control" autocomplete="off" placeholder="{:L('MOBILE_NOT_EMPTY')}">
+                                </div>
+                            </div>
+							<div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('BIRTHDAY')}</label>
+                                <div class="col-sm-3">
+                                    <input type="text" name="birthday" id="birthday" value="{$m['birthday']}" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SEX')}</label>
+                                <div class="col-sm-3">
+                                    <div class="radio  radio-inline"> <input type="radio" value="1" name="sex"  id="sex" <if condition="$m['sex'] == 1"> checked </if>><label for="sex"> {:L('MAN')}</label></div>
+                                    <div class="radio  radio-inline"> <input type="radio" value="2" name="sex"  id="sex1" <if condition="$m['sex'] == 2"> checked </if>> <label for="sex1"> {:L('WOMAN')} </label></div>
+                                    <div class="radio  radio-inline"><input type="radio" value="0" name="sex"  id="sex2" <if condition="$m['sex'] == 0"> checked </if>> <label for="sex2">{:L('SECRECY')}</label> </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-default" type="button">{:L('BACK')}</a>
+									<a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();" data-loading="稍候..."><i class="icon-save"></i> {:L('SAVE')}</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

@@ -1,0 +1,415 @@
+<extend name="Public/base" />
+<block name="navhead">
+	<if condition="$pid">
+
+
+		<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+				class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+		</li>
+	</if>
+</block>
+
+<block name="body">
+	<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src='__JSNEW__/htmleditor/ueditor.config.js' type='text/javascript'></script>
+	<script src='__JSNEW__/htmleditor/ueditor.all.min.js' type='text/javascript'></script>
+	<script>
+        $(function(){
+
+            $("[name='assigneduid']").change(function(){
+                if($(this).val()!=""&&$(this).val()!=null){
+                    $(this).next('div.chosen-container').children().removeClass("error");
+                }
+            });
+            $('#pstime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+			$("#pstime").blur(function(){
+				$('#pstime').datetimepicker('hide');
+			});
+			
+			$('#petime').datetimepicker({lang:'ch',timepicker:false,format:'Y/m/d'});
+			$("#petime").blur(function(){
+				$('#petime').datetimepicker('hide');
+			});
+            jQuery.validator.methods.service = function(value, element, param) {
+                var str = jQuery(param).val();
+				if(str){
+                    return true;
+				}else if(value){
+                    return true;
+				}else{
+                    return false;
+				}
+            };
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    if($(element).css("display")=='none'){
+                        $(element).next('div.chosen-container').children().addClass("error");
+                    }
+                },
+                onkeyup: false,
+                rules: {
+                    title: {
+                        required : true
+                    },
+                    assigneduid: {
+                        required: true
+                    },
+                    pstime: {
+                        required: true
+                    },
+                    petime: {
+                        required: true,
+                    },
+                    days : {
+                        required : true,
+                        number : true,
+                        min : 0,
+                    },
+                    hours : {
+                        number : true,
+                        min : 0,
+                    }
+                },
+                messages: {
+                    title: {
+                        required : ''
+                    },
+                    assigneduid: {
+                        required: ''
+                    },
+                    pstime: {
+                        required: ''
+                    },
+                    petime: {
+                        required: '',
+                    },
+                    days : {
+                        required : '',
+                        number : '',
+                        min : '',
+                    },
+                    hours : {
+                        number : '',
+                        min : '',
+                    }
+                }
+            }); $("#days").change(function(){
+            	var d=$(this).val();
+            	
+            	if(d>0){
+	            	var da= new Date($("#pstime").val());
+	            	if(da.getFullYear()>0){
+	            		var d1=$("#pstime").val().split(" ");
+	            		$("#petime").val(getNewDay(d1[0],d,d1[1]));
+	            	}
+            	}
+            });
+		});
+		
+		function getNewDay(dateTemp, days,dt) {  
+		    var dateTemp = dateTemp.split("/");  
+		    var nDate = new Date(dateTemp[1] + '/' + dateTemp[2] + '/' + dateTemp[0]);
+		    var millSeconds = Math.abs(nDate) + (days * 24 * 60 * 60 * 1000 -24 * 60 * 60 * 1000);
+		    var rDate = new Date(millSeconds);  
+		    var year = rDate.getFullYear();  
+		    var month = rDate.getMonth() + 1;  
+		    if (month < 10) month = "0" + month;  
+		    var date = rDate.getDate();  
+		    if (date < 10) date = "0" + date;  
+		    return dt!=undefined?(year + "/" + month + "/" + date)+" "+dt:(year + "/" + month + "/" + date);  
+		}
+		 function nowstime(obj){
+		    var stime=$(obj).val();
+		    var etime=$('#petime').val();
+		    if(etime){
+                stime=new Date(stime).getTime();
+                etime=new Date(etime).getTime();
+                if(stime>etime || isNaN(stime)){
+//                    alert("计划开始时间应小于计划结束时间");
+                      $('#days').val('');
+                }else{
+                    var dif=etime-stime;
+                    days=Math.floor(dif/(24*60*60*1000))+1;
+                    $('#days').val(days);
+                }
+            }
+        };
+		function endtime(obj){
+		    var etime=$(obj).val();
+            var stime=$('#pstime').val();
+            if(stime){
+                 stime=new Date(stime).getTime();
+                 etime=new Date(etime).getTime();
+                 if(etime<stime || isNaN(etime)){
+                      //alert("计划结束时间应大于计划开始时间");
+                        $('#days').val('');
+                 }else{
+                        var dif=parseInt(etime)-parseInt(stime);
+                        days=Math.floor(dif/(24*60*60*1000))+1;
+                        $('#days').val(days);
+                 }
+            }
+        }
+	</script>
+	<div id="featurebar">
+		<include file="Public:newtitle" />
+		<div class="" style="float: right;margin-right: 10px">
+		</div>
+		<div class="clearfix"></div>
+	</div>
+	<include file="Public:executetitle" />
+	<div class="container" style="margin: 5px 0 0 0">
+		<div id="titlebar">
+			<div class="heading">
+				<span class="prefix"><i class="icon-user"></i> </span> <strong><small
+					class="text-muted"><i class="icon-plus"></i> </small> 编辑任务</strong>
+				<div style="display:inline-block;float:right">
+					<a href="javascript:history.go(-1);"  title="返回" ><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+				</div>
+			</div>
+		</div>
+		<form action="{:U('task_edit')}" method="post" class="form-condensed mw-1300px" enctype="multipart/form-data">
+                <table align="center" class="table table-form mytable">
+				<tbody>
+				<tr>
+					<th width="80px">项目<span class="required"></span></th>
+					<td width="556px">
+						<div class="input-group">
+							<select name="pid" class="form-control searchSelect chosen" onchange="get_service(this)" disabled>
+								<option value=''>请选择项目</option>
+								<volist name="project" id="vo">
+									<option value="{$vo.pid}">{$vo.name}</option>
+								</volist>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<!--<tr>
+					<th width="80px">服务内容</th>
+					<td width="556px">
+						<div class="input-group">
+							<select name="psid" class="form-control searchSelect chosen" onchange="get_service(this)" disabled>
+								<option value=''></option>
+								<volist name="service" id="vo">
+									<option value="{$vo.psid}">{$vo.title}</option>
+								</volist>
+							</select>
+						</div>
+					</td>
+				</tr>-->
+				<tr id="group">
+					<th width="80px">服务角色<span class="required"></span></th>
+					<td width="556px">
+						<div class="input-group">
+							<select name="groupid" class="form-control searchSelect chosen" disabled>
+								<option value=""></option>
+								<volist name="group" id="vo">
+									<option value="{$vo.groupid}">{$vo.name}</option>
+								</volist>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">任务标题</th>
+					<td width="556px">
+						<div class="input-group">
+							<input type="text" name="title" value="{$task['title']}" class="form-control" autocomplete="off" style="width:556px;" placeholder="任务标题">
+						</div>
+					</td>
+				</tr>
+                <tr>
+					<th width="80px">任务类型</th>
+					<td width="556px">
+						<div class="input-group">
+                            <if condition="$task['delivery'] eq 1">
+                                       <input type="text"  class="form-control" value="交付任务" autocomplete="off"  style="width:250px;float: none" disabled>
+                                        <else/>
+                                       <select name="tasktype" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="taskType" id="vo">
+                                        <option value="{$vo.d_value}" <if condition="$task['tasktype'] eq $vo['d_value']">selected</if> >{$vo.d_key}</option>
+									</volist>
+								</select>
+                                    </if>
+
+							<span class="input-group-addon fix-border">优先级</span>
+							<div style="width: 250px">
+								<select name="level" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="levels" id="vo">
+										<option value="{$vo.d_value}">{$vo.d_key}</option>
+									</volist>
+								</select>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">执行人<span class="required"></span></th>
+					<td width="556px">
+						<div class="input-group">
+							<input type="hidden" name="assignedname" value="{$task['assignedname']}">
+							<div style="width: 250px">
+								<select name="assigneduid" class="form-control searchSelect chosen" t="user" id="sel" disabled>
+									<option value=""></option>
+									<if condition="$task['canyuren']">
+										<option class="canyuren" value="{$task['assigneduid']}" selected>{$task['canyuren']}</option>
+									</if>
+									<volist name="pm" id="vo">
+										<option value="{$vo.uid}">{$vo.nickname}</option>
+									</volist>
+								</select>
+								</div>
+							<span class="input-group-addon fix-border">审核人</span>
+							<input type="hidden" name="checkuname"  value="{$task['checkuname']}">
+							<div style="width: 250px">
+								<select name="checkuid" class="form-control searchSelect chosen">
+									<option value=""></option>
+									<volist name="sales" id="vo">
+										<option value="{$vo.uid}">{$vo.nickname}</option>
+									</volist>
+								</select>
+							</div>
+						</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th width="80px">计划开始时间<span class="required"></span></th>
+					<td width="556px">
+						<div class="input-group">
+							<input type="text" name="pstime" id="pstime" value="{$task.pstime|time_format=###,'Y/m/d'}" onchange="nowstime(this)" class="form-control"  autocomplete="off" style="width: 250px" disabled>
+							<span class="input-group-addon fix-border">计划结束时间<span class="required"></span></span>
+							<input type="text" name="petime" id="petime"  value="{$task.petime|time_format=###,'Y/m/d'}" onchange="endtime(this)" class="form-control" autocomplete="off" style="width: 214px" disabled>
+						</div>
+					</td>
+				</tr>
+			    	<tr>
+					<th width="80px">周期(d)<span class="required"></span></th>
+					<td width="556px">
+						<div class="input-group">
+							<input type="text" name="days" id="days" class="form-control" value="{$task['days']}" autocomplete="off"  style="width:250px;float: none" disabled>
+							<span class="input-group-addon fix-border" style="padding:0 16px">工时(h)<span class="required"></span></span>
+							<div style="width: 235px">
+								<input type="number" name="hours" value="{$task['hours']}" class="form-control" min="0" autocomplete="off"  style="float: none" disabled>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th width="80px">备注</th>
+					<td class="" colspan="2">
+						<textarea id="description" name="description" style="width: 100%;height: 160px">{$task['description']}</textarea>
+						<script type="text/javascript">
+							//实例化编辑器
+							//建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+							var ue = UE.getEditor('description', {autoHeightEnabled: false});
+						</script>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td>
+						<a href="javascript:;"  class="btn btn-primary" onclick=" save();" data-loading="稍候...">保存</a>
+						<a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+					</td>
+					<td></td>
+				</tr>
+				</tbody>
+			</table>
+
+			<input type="hidden" name="id" value="{$tid}">
+			<input type="hidden" name="pid" value="{$pid}">
+
+		</form>
+	</div>
+</block>
+
+<block name="script"> <script type="text/javascript">
+    Think.setValue("pid", "{$task['pid']|default = 0}");
+    Think.setValue("psid", "{$task['psid']|default = 0}");
+    Think.setValue("groupid", "{$task['groupid']|default = 0}");
+    Think.setValue("assigneduid", "{$task['assigneduid']|default = 0}");
+    Think.setValue("checkuid", "{$task['checkuid']|default = 0}");
+    Think.setValue("level", "{$task['level']|default = 0}");
+	//导航高亮
+    highlight_subnav("{$from_url}");
+    var tempop=[];
+    function check() {
+        var pid = $("[name='pid']").val();
+        var pstime = $("[name='pstime']").val();
+        var petime = $("[name='petime']").val();
+        var url = "{:U('TaskFromMe/checkTasktime')}";
+
+        $.get(url, {'pid': pid, 'pstime': pstime, 'petime': petime}, function (data) {
+            if (data.done) {
+                $('form').submit();
+            } else {
+                var msg = '';
+                if (data.msg['petime']) msg = data.msg['petime'];
+                if (data.msg['pstime']) msg = data.msg['pstime'];
+                alert(msg);
+                return false;
+            }
+        });
+    }
+    function save() {
+        check();
+    }
+    function userajax(e,m){
+        var k=$(e.container).find("input").val();
+        $.get("/index.php?s=/Admin/User/jsonUnformation.html&k="+k, function(data){
+            if(data&&data.length>0){
+                var _html = "<option value=''> 请选择... </option>";
+                for(var i=0;i<data.length;i++){
+                    _html += "<option value='" + data[i]['uid'] + "'>" + data[i]['nickname'] + "</option>";
+                }
+
+                var has=false;
+                if(tempop!=undefined){
+                    for(var i=0;i<tempop.length;i++){
+                        if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                            has=true;
+                        }
+                    }
+                }
+                if(!has){
+                    tempop.push({"id": $(e.form_field_jq).attr("id"), "op": $(e.form_field_jq).html()});
+                }
+
+                $(e.form_field_jq).html(_html);
+
+                $(e.form_field_jq).trigger('chosen:updated');
+                $(e.container).find("input").val(k);
+
+                $(e.container).find(".chosen-single").click(function(){
+                    $(e.container).find(".chosen-single").unbind("click");
+                    if(tempop!=undefined){
+                        if(tempop){
+                            for(var i=0;i<tempop.length;i++){
+                                if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                                    $(e.form_field_jq).html(tempop[i].op);
+                                }
+                            }
+
+                        }
+                        $(e.form_field_jq).trigger('chosen:updated');
+                    }
+                });
+
+            }
+        }, "json");
+
+    }
+</script>
+</block>

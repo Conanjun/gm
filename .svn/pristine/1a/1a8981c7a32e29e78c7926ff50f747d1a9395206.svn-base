@@ -1,0 +1,332 @@
+<extend name="Public/base" />
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+						class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;" 
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+				
+						</block>
+<block name="body">
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/n.css" rel="stylesheet" type="text/css"/>
+	<script language="Javascript">browseType = "unclosed";</script>
+    <script>
+        	function getNewDay(dateTemp, days,dt) {
+		    var dateTemp = dateTemp.split("/");
+		    var nDate = new Date(dateTemp[1] + '/' + dateTemp[2] + '/' + dateTemp[0]);
+		    var millSeconds = Math.abs(nDate) + (days * 24 * 60 * 60 * 1000-24 * 60 * 60 * 1000);
+		    var rDate = new Date(millSeconds);
+		    var year = rDate.getFullYear();
+		    var month = rDate.getMonth() + 1;
+		    if (month < 10) month = "0" + month;
+		    var date = rDate.getDate();
+		    if (date < 10) date = "0" + date;
+		    return dt!=undefined?(year + "/" + month + "/" + date)+" "+dt:(year + "/" + month + "/" + date);
+		}
+		 function nowstime(obj){
+		    var stime=$(obj).val();
+		    var etime=$(obj).closest('tr').find("input[name='petime[]']").val();
+                stime=new Date(stime).getTime();
+                etime=new Date(etime).getTime();
+                if(etime>0){
+                    if(stime>etime || isNaN(stime) ){
+//                    alert("计划开始时间应小于计划结束时间");
+                    $('#days').val('');
+                }else{
+                    var dif=etime-stime;
+                    days=Math.floor(dif/(24*60*60*1000))+1;
+                    $(obj).closest('tr').find("input[name='days[]']").val(days);
+                }
+                }
+
+
+        };
+		function endtime(obj){
+		    var etime=$(obj).val();
+            var stime=$(obj).closest('tr').find("input[name='pstime[]']").val();
+
+                 stime=new Date(stime).getTime();
+                 etime=new Date(etime).getTime();
+             if(stime>0){
+                 if(etime<stime || isNaN(etime)){
+                      //alert("计划结束时间应大于计划开始时间");
+                        $('#days').val('');
+                 }else{
+                        var dif=parseInt(etime)-parseInt(stime);
+                        days=Math.floor(dif/(24*60*60*1000))+1;
+                        $(obj).closest('tr').find("input[name='days[]']").val(days);
+                 }
+            }
+        }
+        function daychange(obj) {
+		    var d=$(obj).val();
+            	if(d>0){
+	            	var da= new Date($(obj).closest('tr').find("input[name='pstime[]']").val());
+	            	if(da.getFullYear()>0){
+	            		var d1=$(obj).closest('tr').find("input[name='pstime[]']").val().split(" ");
+	            		var t=getNewDay(d1[0],d,d1[1]);
+	            		$(obj).closest('tr').find("input[name='petime[]']").val(t);
+	            	}
+            	}
+        }
+    </script>
+    <style>
+        #fourheading{
+          margin-top:0 !important;
+        }
+    </style>
+	<div class="modal fade" id="myModal">
+		<div class="modal-dialog" style="width: 700px">
+			<div class="modal-content" >
+				<div class="modal-header">
+					编辑任务产生以下问题，请按提示选择操作 <i class="icon-question-sign"></i>
+				</div>
+				<div class="modal-body">
+					<p>主题内容...</p>
+				</div>
+				<div class="modal-footer" style="text-align: center">
+					<button type="button" class="btn btn-primary"  style="border-radius: 4px" data-dismiss="modal"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</button>
+					<button type="button" onclick=" $('form').submit();" style="border-radius: 4px" class="btn btn-default"><i class="icon-save"></i> 继续保存</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="featurebar">
+		<include file="Public:newtitle"/>
+		<div class="actions">
+			<div class="btn-group">
+
+			</div>
+		</div>
+
+
+		<div class="clearfix"></div>
+
+		<include file="Public/search"/>
+	</div>
+	<include file="Public:executetitle"/>
+	<form class="form-condensed" method="post"  action="{:U('alter_bulk_edit?paid='.$paid)}">
+		<input type="hidden" name="pid" value="{$pid}">
+		<table class="table table-form table-fixed ntable" >
+			<thead>
+			<tr class="text-center">
+				<th>任务内容 <span class="required"></span></th>
+				<th style="width: 85px">开始时间 </th>
+				<th style="width: 85px">结束时间 </th>
+				<th style="width: 50px">周期 <span class="required"></span></th>
+				<th style="width: 50px">工时</th>
+				<th style="width: 120px">执行人 <span class="required"></span></th>
+				<th style="width: 120px">审核人</th>
+				<th style="width: 60px">交付</th>
+				<th style="width: 150px">备注</th>
+			</tr>
+			</thead>
+			<tbody>
+			<notempty name="_list">
+				<volist name="_list" id="vo" key="k">
+					<input type="hidden" name="psid[]" value="{$vo['psid']}">
+					<tr>
+						<td><input type="text" name="title[]"  value="{$vo['title']}" class="form-control" autocomplete="off" ></td>
+                        <td><input type="text" name="pstime[]"  id="pstime{$vo['psid']}"   onchange="nowstime(this)" class="form-control"  <if condition="$vo['pstime']">value="{$vo['pstime']|time_format}" <else/> value=''</if></td>
+                        <td><input type="text" name="petime[]"  id="petime{$vo['psid']}"   onchange="endtime(this)" class="form-control" <if condition="$vo['petime']">value="{$vo['petime']|time_format}" <else/>value=''</if> ></td>
+						<script>
+                            $("#pstime"+"{$vo['psid']}").datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y/m/d'});
+                            $("#petime"+"{$vo['psid']}").datetimepicker({step:10,lang:'ch',timepicker:false,format:'Y/m/d'});
+                            
+                            $("#pstime"+"{$vo['psid']}").blur(function(){
+                				$("#pstime"+"{$vo['psid']}").datetimepicker('hide');
+                			});
+                            
+                            $("#petime"+"{$vo['psid']}").blur(function(){
+                				$("#petime"+"{$vo['psid']}").datetimepicker('hide');
+                			});
+                            
+						</script>
+						<td><input type="text" name="days[]"  value="{$vo['days']}" onchange="daychange(this)" class="form-control" autocomplete="off"></td>
+						<td><input type="text" name="hours[]"  value="{$vo['hours']}" class="form-control" autocomplete="off"></td>
+						<td style="overflow:visible">
+							<input type="hidden" name="assignedname[]" value="{$vo['assignedname']}" id="name2{$k}">
+							<select name="assigneduid[]" class="form-control searchSelect chosen " t="user" onchange="changename2(this,'{$k}')" id="sel_{$vo['psid']}">
+								<option value="">请选择...</option>
+								<if condition="$vo['canyuren']">
+									<option class="canyuren" value="{$vo['assigneduid']}" selected>{$vo['canyuren']}</option>
+								</if>
+								<foreach name="sale" item="v" key="k1">
+                                    <if  condition="$vo['psid'] eq $k1">
+                                        <foreach name="v" item="info">
+                                            <option value="{$info['uid']}" <if condition="$vo['assigneduid'] == $info['uid']"> selected </if>>{$info['nickname']}</option>
+                                        </foreach>
+                                    </if>
+								</foreach>
+							</select>
+						</td>
+						<td style="overflow:visible">
+							<input type="hidden" name="checkuname[]" value="{$vo['checkuname']}" id="name1{$k}">
+							<select name="checkuid[]" class="form-control searchSelect chosen " onchange="changename1(this,'{$k}')">
+								<option value="">请选择...</option>
+								<volist name="sales" id="v">
+									<option value="{$v['uid']}" <if condition="$vo['checkuid'] == $v['uid']"> selected </if> >{$v.nickname}</option>
+								</volist>
+							</select>
+						</td>
+						<td>
+							<select name="delivery[]" class="form-control" >
+								<option value="1" <if condition="$vo['delivery'] == 1"> selected </if>>是</option>
+								<option value="0" <if condition="$vo['delivery'] == 0"> selected </if>>否</option>
+							</select>
+						</td>
+						<td><input type="text" name="description[]"  value="{$vo['description']}" class="form-control" autocomplete="off" ></td>
+						
+					</tr>
+				</volist>
+			</notempty>
+				<tr>
+					<td colspan="9">
+						<div class="rightdiv"><a href="javascript:history.go(-1);" class="btn btn-back"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+						<a href="javascript:;"  class="btn btn-primary" onclick="baocun();" data-loading="稍候..."><i class="icon-save"></i> 保存</a>
+						
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</block>
+
+<block name="script"> <script type="text/javascript">
+    $(function(){
+        $('a.chosen-single').click(function(){
+            $(this).parent().parent().children('select').find("option.canyuren").remove();
+            $(this).parent().parent().children('select').trigger('chosen:updated');
+        });
+    })
+        //导航高亮
+        highlight_subnav("{$from_url}");
+        function choose(){
+            $.closeModal();
+            window.location.href= "{:U('ProjectNew/service',array('id'=>$p['pid']))}";
+        }
+
+        function changename1(type,id) {
+            var s = $(type).find("option:selected").text();
+            $("#name1"+id).val(s);
+        }
+        function changename2(type,id) {
+            var s = $(type).find("option:selected").text();
+            $("#name2"+id).val(s);
+
+        }
+    function baocun() {
+        var titles = '';
+        var t2 = 0;
+        $("[id^='title']").each(function () {
+            var t1 = $(this).val();
+
+            if (t1 == '') {
+                if (t1 == '') {
+                    $(this).addClass("error");
+                }
+                t2 = 1;
+            }
+        });
+        if (t2) {
+            return;
+        }
+        $("[id^='title']").each(function () {
+            var title = '';
+            $(this).val() ? title = $(this).val() : title = 0;
+            titles += title + ',';
+        });
+        // 任务内容
+        titles = titles.replace(/[,]$/, ""); // 去除结尾的逗号
+
+        var pid = "{$pid}";     // 项目id
+        var psids = "{$psids}";     // 项目内容id
+        // 开始时间
+        var pstime = '';
+        $("[id^='pstime']").each(function () {
+            var time = '';
+            $(this).val() ? time = $(this).val() : time = 0;
+            pstime += time + ',';
+        });
+        // 结束时间
+        pstime = pstime.replace(/[,]$/, ""); // 去除结尾的逗号
+        var petime = '';
+        $("[id^='petime']").each(function () {
+            var time = '';
+            $(this).val() ? time = $(this).val() : time = 0;
+            petime += time + ',';
+        });
+        petime = petime.replace(/[,]$/, ""); // 去除结尾的逗号
+
+        var url = "{:U('ProjectNew/checkContenttime')}";
+        $.get(url, {
+            'psids': psids,
+            'pid': pid,
+            'pstime': pstime,
+            'petime': petime,
+            'title': titles
+        }, function (data) {
+            if (data.done) {
+                $('form').submit();
+            } else {
+                $('.modal-body').html(data.msg)
+                $('#myModal').modal({show: true});
+            }
+        });
+    }
+
+
+    var tempop=[];
+    function userajax(e,m){
+        var k=$(e.container).find("input").val();
+        $.get("/index.php?s=/Admin/User/jsonUnformation.html&k="+k, function(data){
+            if(data&&data.length>0){
+                var _html = "<option value=''> 请选择... </option>";
+                for(var i=0;i<data.length;i++){
+                    _html += "<option value='" + data[i]['uid'] + "'>" + data[i]['nickname'] + "</option>";
+                }
+
+                var has=false;
+                if(tempop!=undefined){
+                    for(var i=0;i<tempop.length;i++){
+                        if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                            has=true;
+                        }
+                    }
+                }
+                if(!has){
+                    tempop.push({"id": $(e.form_field_jq).attr("id"), "op": $(e.form_field_jq).html()});
+                }
+
+                $(e.form_field_jq).html(_html);
+
+                $(e.form_field_jq).trigger('chosen:updated');
+                $(e.container).find("input").val(k);
+
+                $(e.container).find(".chosen-single").click(function(){
+                    $(e.container).find(".chosen-single").unbind("click");
+                    if(tempop!=undefined){
+                        if(tempop){
+                            for(var i=0;i<tempop.length;i++){
+                                if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                                    $(e.form_field_jq).html(tempop[i].op);
+                                }
+                            }
+
+                        }
+                        $(e.form_field_jq).trigger('chosen:updated');
+                    }
+                });
+
+            }
+        }, "json");
+
+    }
+    </script> </block>

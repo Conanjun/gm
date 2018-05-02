@@ -1,0 +1,50 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+    <!-- 数据列表 -->
+        <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="20px">
+                </th>
+                <th style="text-align: left;">标题</th>
+                <th>内容</th>
+                <th width="100px"><span class="sort" ectype="order_by" fieldname="addtime">创建时间</span></th>
+                <th width="80px">创建人</th>
+                <th width="80px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="files">
+                <volist name="files" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                        </td>
+                        <td style="text-align: left;">{$vo.title}</td>
+                        <td class="text-left">{$vo.content}</td>
+                        <td>{$vo.addtime|time_format=###,"Y-m-d"}</td>
+                        <td>{$vo.u_name}</td>
+                        <td>
+                        	<a href="{:U('Offer/file_info?id='.$vo['mhid'])}">详情</a>
+                        </td>
+                    </tr>
+                </volist>
+                <else/>
+                <td colspan="6" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+    </script>
+</block>

@@ -1,0 +1,563 @@
+<extend name="Public/base_choose" />
+<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="__JSNEW__/jsgantt/jsgantt.css"/>
+    <script language="javascript" src="__JSNEW__/jsgantt/jsgantt.js"></script>
+    <script language="javascript" src="__JSNEW__/html2canvas.js"></script>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        .tablesorter thead tr th {
+            font-weight: normal;
+            color: #888
+        }
+
+        .content {
+            margin-bottom: 30px
+        }
+
+        .ebtn {
+            color: #fff;
+            background: #AB82FF;
+            font-size: 12px;
+            font-weight: normal;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .ebtn:hover {
+            background: #cbb2ff;
+            color: #fff
+        }
+        .green {
+            color: #229f24;
+        }
+        .main legend{margin-top: 30px;margin-bottom: 20px}
+        .prediv{margin-left: 15px}
+        #basetable th{
+            font-weight:bold;
+            font-size:12px;
+        }
+          #basetable{
+              background-color:#f9f9f9;
+          }
+          #basetable td{
+              font-size:12px;
+
+          }
+        .table-condensed th td{
+                 border:1px solid rgb(204, 204, 204);
+                text-align:center;
+         }
+       #holder td{
+           border:1px solid rgb(204, 204, 204);
+           text-align:center;
+       }
+       h3 {
+           margin: 0px;
+           margin-left: 15px !important;
+
+       }
+        legend{
+            color: #21841d;
+        }
+    </style>
+
+    <div style="min-height: 777px;">
+
+                <div class="main" style="margin: 0;padding: 20px">
+                    <h3>项目概要</h3>
+                    <legend >客户名称</legend>
+                    <if condition="$p['cname']">
+                        <div class="prediv">{$p.cname}</div>
+                        <else/>
+                        <div class="table_nodata1"></div>
+                    </if>
+                    <legend>关联团队</legend>
+                    <div class="content" >
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <th style="width: 10px"></th>
+                                <th style="width: 80px;text-align: left">姓名</th>
+                                <th style="width: 150px;text-align: left">部门</th>
+                                <th style="width: 120px;text-align: left">邮箱</th>
+                                <th style="width: 100px;text-align: left">电话</th>
+                                <th style="text-align: left">备注</th>
+                                </thead>
+                                <notempty name="holder">
+                                    <tbody>
+                                    <volist name="holder" id="vo">
+                                        <tr>
+                                            <td></td>
+                                            <td class="text-left">{$vo['name']}</td>
+                                            <td class="text-left">{$vo.dept}</td>
+                                            <td class="text-left">{$vo.email}</td>
+                                            <td class="text-left">{$vo.phone}</td>
+                                            <td class="text-left">{$vo.note}</td>
+                                        </tr>
+                                    </volist>
+                                    </tbody>
+                                    <else/>
+                                    <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+
+                            </table>
+                        </div>
+
+                    </div>
+                    <legend >客户核心需求</legend>
+                    <if condition="$p['description']">
+                        <div class="prediv">{$p.description}</div>
+                        <else/>
+                        <div class="table_nodata1"></div>
+                    </if>
+                    <legend>客户需求属性分类</legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-striped tablesorter">
+                                <tr>
+                                    <td style="padding-left: 15px">
+                                        <notempty name="scope">
+                                            <foreach  name="scope" item="vo" key="k">
+                                                <if condition="end($scope) eq $scope[$k]">
+                                                    <span style="display:inline-block;padding-right: 10px;margin-right: 10px">{$k}：{$vo|substr=0,-3}</span>
+                                                    <else/>
+                                                    <span style="display:inline-block;padding-right: 10px;border-right:1px solid #ddd ;margin-right: 10px">{$k}：{$vo|substr=0,-3}</span>
+                                                </if>
+                                            </foreach >
+                                            <else/>
+                                            未添加项目范围
+                                        </notempty>
+                                    </td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>核心项目指标汇总</legend>
+                    <div class="content">                    
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 60px;text-align: center">编号</th>
+                                    <th style="width: 300px;text-align: center">KPI</th>
+                                    <th style="width: 100px;text-align: center">目标值</th>
+                                    <th style="text-align: left">备注</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="kpi">
+                                    <volist name="kpi" id="vv" key="k">
+                                        <tr>
+                                            <td style="text-align: center">{$k}</td>
+                                            <td >{$vv.name}</td>
+                                            <td>{$vv.value2}</td>
+                                            <td style="text-align: left">{$vv.note}</td>
+                                        </tr>
+                                    </volist> <else/>
+                                     <tfoot> <td colspan="4"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <legend>项目服务周期</legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">事件</th>
+                                    <th style="text-align: left">关联任务</th>
+                                    <th style="width: 80px">时间点</th>
+                                    <th style="width: 100px">完成度</th>
+                                    <th style="width: 100px">创建时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="mlist">
+                                    <volist name="mlist"
+                                            id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left" title="{$vo.name}">{$vo.name}</td>
+                                            <td style="text-align: left" title="{$vo.title}">{$vo.title}</td>
+                                            <td>{$vo.mtime|time_format=###,'y-m-d'}</td>
+                                            <td style="text-align: left;width: 90px"><strong>
+                                                <if condition="$vo['completion']">
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="{$vo['completion']/2}">
+                                                    <else/>
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="1">
+                                                </if>
+                                                <small>{$vo.completion}%</small>
+                                            </strong></td>
+
+                                            <td>{$vo.addtime|time_format=###,'y-m-d H:i'}</td>
+                                        </tr>
+                                    </volist>
+                                     <else/>
+                                     <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <h3>项目需求</h3>
+                    <legend>项目服务核心构成</legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <tbody>
+                                <notempty name="service1">
+                                    <volist name="service1" id="l">
+                                        <tr>
+                                        <th style="background-color: #f1f1f1;color:#5e4ba4;width: 10px"></th>
+                                        <th style="background-color: #f1f1f1;color:#5e4ba4">
+                                            <if condition="$l['mname']">{$l.mname}<else />非标准服务</if>
+                                        </th>
+
+                                        </tr>
+                                        <volist name="l.list" id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left" title="{$vo.title}">{$vo.title}</td>
+                                        </tr>
+                                        </volist>
+                                    </volist>
+                                    <else/>
+                                    <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <legend>项目执行要点</legend>
+                    <div class="table_nodata1"></div>
+                    <legend>第三方协作部分</legend>
+                    <div class="table_nodata1"></div>
+                    <h3>项目执行计划</h3>
+                    <legend>里程碑</legend>
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table
+                                    class="table table-condensed table-hover table-striped tablesorter"
+                                    style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th width="10px"></th>
+                                    <th style="text-align: left">事件</th>
+                                    <th style="text-align: left">关联任务</th>
+                                    <th style="width: 80px">时间点</th>
+                                    <th style="width: 100px">完成度</th>
+                                    <th style="width: 100px">创建时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="mlist">
+                                    <volist name="mlist"
+                                            id="vo">
+                                        <tr>
+                                            <td class="cell-id"></td>
+                                            <td style="text-align: left" title="{$vo.name}">{$vo.name}</td>
+                                            <td style="text-align: left" title="{$vo.title}">{$vo.title}</td>
+                                            <td>{$vo.mtime|time_format=###,'y-m-d'}</td>
+                                            <td style="text-align: left;width: 90px"><strong>
+                                                <if condition="$vo['completion']">
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="{$vo['completion']/2}">
+                                                    <else/>
+                                                    <img class="progressbar"
+                                                         src="__THEME__/default/images/main/green.png" alt=""
+                                                         height="16" width="1">
+                                                </if>
+                                                <small>{$vo.completion}%</small>
+                                            </strong></td>
+
+                                            <td>{$vo.addtime|time_format=###,'y-m-d H:i'}</td>
+                                        </tr>
+                                    </volist>
+                                    <else/>
+                                <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+
+                                </notempty>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                    </div>
+                    <legend>甘特图</legend>
+                    <notempty name="data">
+                        <div style="position:relative" class="gantt" id="GanttChartDIV"></div>
+                        <else/>
+                        <div class="table_nodata1"></div>
+                    </notempty>
+
+                    <legend class="actions" style="float: left;text-align: left" id="Menu">双方角色和责任<a href="{:U('Plan/sow?e=1&id='.$p['pid'].'#Menu')}" class=" btn" data-title="编辑">
+                        <i class="icon-common-edit icon-pencil"></i>编辑
+                        </a>
+                    </legend>
+                    
+
+                    <div class="content">
+                        <div class="data-table table-striped">
+                            <table class="table table-condensed table-hover table-striped tablesorter" style="text-align: center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 10px"></th>
+                                    <th style="width: 80px;text-align: left">姓名</th>
+                                    <th style="width: 150px;text-align: left">部门</th>
+                                    <th style="width: 120px;text-align: left">邮箱</th>
+                                    <th style="width: 100px;text-align: left">电话</th>
+                                    <th style="text-align: left">备注</th>
+                                </tr>
+                                </thead>
+                                <notempty name="holder">
+                                    <tbody>
+                                    <if condition="$e"> <form id="edit" action="{:U('Plan/sow?id='.$p['pid'])}" method="post" class="form-condensed">
+                                    <volist name="holder" id="vo" key="k">
+                                        <tr>
+                                            <td></td>
+                                            <td class="text-left">{$vo['name']}</td>
+                                            <td class="text-left">{$vo.dept}</td>
+                                            <td class="text-left">{$vo.email}</td>
+                                            <td class="text-left">{$vo.phone}</td>
+                                            <td class="text-left">
+                                                <input type="hidden" name="rid[{$k}]" class="form-control" value="{$vo.rid}">
+                                                <input type="text" name="note[{$k}]" class="form-control" value="{$vo.note}" style="width: 100%">
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    </form>
+                                    <else/>
+                                        <volist name="holder" id="vo" key="k">
+                                            <tr>
+                                                <td></td>
+                                                <td class="text-left">{$vo.name}</td>
+                                                <td class="text-left">{$vo.dept}</td>
+                                                <td class="text-left">{$vo.email}</td>
+                                                <td class="text-left">{$vo.phone}</td>
+                                                <td class="text-left">{$vo.note}</td>
+                                            </tr>
+                                        </volist>
+                                    </if>
+                                    <if condition="$e">
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="rightdiv form-condensed">
+                                                <a href="{:U('Plan/sow?id='.$p['pid'].'#Menu')}" class="btn btn-back "><i
+                                                        class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                                                <a href="javascript:;" class="btn btn-primary" onclick="$('#edit').submit()"
+                                                   data-loading="稍候..."><i class="icon-save"></i> 保存</a>
+                                            </div>
+                                        </td>
+                                    </tr> </if>
+
+                                    </tbody>
+                                    <else/>
+                                    <tfoot> <td colspan="6"><div class="table_nodata1"></div></td></tfoot>
+                                </notempty>
+
+                            </table>
+                        </div>
+
+                    </div>
+                    <style>
+                        #actionbox a {
+                            font-weight: normal
+                        }
+
+                        .col-side fieldset#actionbox {
+                            padding-right: 5px;
+                        }
+
+                        .col-side #actionbox #historyItem li span.item {
+                            white-space: nowrap
+                        }
+
+                        .changes blockquote {
+                            font-family: monospace, serif;
+                        }
+                    </style>
+                    <script language="Javascript">
+                        function toggleStripTags(obj) {
+                            var btn = $(obj);
+                            var diffTag = btn.find('.icon-file-code');
+                            if (diffTag.length) {
+                                diffTag.removeClass('icon-file-code').addClass('diff-short');
+                                btn.attr('title', '文本格式');
+                            }
+                            else {
+                                btn.find('.diff-short').removeClass('diff-short').addClass('icon-file-code');
+                                btn.attr('title', '原始格式');
+                            }
+                            var boxObj = $(obj).next();
+                            var oldDiff = '';
+                            var newDiff = '';
+                            $(boxObj).find('blockquote').each(function () {
+                                oldDiff = $(this).html();
+                                newDiff = $(this).next().html();
+                                $(this).html(newDiff);
+                                $(this).next().html(oldDiff);
+                            })
+                        }
+
+                        $(function () {
+                            var diffButton = "<a href='javascript:;' onclick='toggleStripTags(this)' class='changeDiff btn-icon' style='display:none;' title='原始格式'><i class='icon- icon-file-code'></i></a>";
+                            var newBoxID = ''
+                            var oldBoxID = ''
+                            $('blockquote').each(function () {
+                                newBoxID = $(this).parent().attr('id');
+                                if (newBoxID != oldBoxID) {
+                                    oldBoxID = newBoxID;
+                                    if ($(this).html() != $(this).next().html()) $(this).parent().before(diffButton);
+                                }
+                            })
+                        })
+                    </script>
+                    <script src="__JSNEW__/raw.js" type="text/javascript"></script>
+                </div>
+
+
+
+</block>
+
+<block name="script">
+    <script>
+        var g = new JSGantt.GanttChart('g', document.getElementById('GanttChartDIV'), 'day');
+
+        g.setShowRes(1); // Show/Hide Responsible (0/1)
+        g.setShowDur(1); // Show/Hide Duration (0/1)
+        g.setShowComp(1); // Show/Hide % Complete(0/1)
+        g.setCaptionType('Resource');  // Set to Show Caption (None,Caption,Resource,Duration,Complete)
+
+        var data = {$data};
+
+        //var gr = new Graphics();
+
+        if (g) {
+
+// Parameters             (pID, pName,                  pStart,      pEnd,        pColor,   pLink,          pMile, pRes,  pComp, pGroup, pParent, pOpen, pDepend, pCaption)
+
+// You can also use the XML file parser JSGantt.parseXML('project.xml',g)
+            /*任务项（pID，pName，pStart，pEnd，pColor，pLink，pMile，pRes，pComp，pGroup，pParent，pOpen，pDepend）
+            1 pID（必需）是一个唯一的ID，用于标识父函数和设置dom id用于隐藏/显示
+            2 pName：（必需）是任务Label
+            3 pStart：（必需）任务开始日期，可以为组输入空日期（''）。您还可以输入特定时间（2/10/2017 12:00）进行额外的切割或半天。
+            4 pEnd :(必需）任务结束日期，可以为组
+            5 pColor（（必需））为此任务的HTML颜色输入空日期（''）例如'00ff00'
+            6 pLink:(可选）点击任务栏时导航到的任何http链接。
+            7 pMile：（可选）表示一个里程碑
+            8 pRes:(可选）资源名称
+            9 pComp：（必需）完成百分比
+            10 pGroup :(可选）表示这是否是一个组（parent） - 0 = NOT Parent; 1 = IS父
+            11 pParent：（必需）标识父pID，这导致此任务成为已识别任务的小孩
+            12 pOpen：可以在首次绘制图表时初始设置为关闭文件夹
+            13 pDepend：此任务的可选列表ID依赖于...从依赖此项目绘制的行
+            14 pCaption：如果CaptionType设置为“Caption”，将在任务栏后面添加可选标题*/
+
+//
+//                             1    2                       3            4            5         6                  7  8            9  10 11 12
+            $.each(data, function (i, item) {
+                g.AddTaskItem(new JSGantt.TaskItem(item.pID, item.pName, item.pStart, item.pEnd, item.pColor, item.pLink, item.pMile, item.pRes,
+                    item.pComp, item.pGroup, item.pParent, item.pOpen, item.pDepend));
+
+                /*console.log("pID:"+item.pID+",pName:"+item.pName+",pStart:"+item.pStart+",pEnd:"+item.pEnd+",pColor:"+item.pColor+",pLink:"+item.pLink+"" +
+                    ",pMile:"+item.pMile+",pRes:"+item.pRes+",pComp:"+item.pComp+",pGroup:"+item.pGroup+",pParent:"+item.pParent+",pOpen:"+item.pOpen);*/
+            });
+
+
+            /*g.AddTaskItem(new JSGantt.TaskItem(1,   '标准库模块',     '',          '',          'ff0000', 'http://help.com', 0, '',     0, 1, 0, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(11,  '标准项目开发',         '07/20/2017', '07/20/2017', 'ff00ff', 'http://www.yahoo.com', 1, '',  0, 0, 1, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(12,  '标准模块开发',         '',          '',          '00ff00', '', 0, '易川',   0, 1, 1, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(1210, '标准内容',     '07/21/2017', '08/09/2017',  '00ffff', 'http://www.yahoo.com', 0, ' ', 0, 0, 12, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(1212, '模块指导',       '08/06/2017',  '08/11/2017', 'ff0000', 'http://help.com', 0, '张雷',         0, 0, 12, 1,0));
+            g.AddTaskItem(new JSGantt.TaskItem(123, '内容文档',       '08/06/2017',  '08/11/2017 12:00', 'ffff00', 'http://help.com', 0, '马小宝',         0, 0, 12, 1,0));
+            g.AddTaskItem(new JSGantt.TaskItem(124, '项目组',       '08/09/2017',  '08/29/2017', 'ff0000', 'http://help.com', 0, '',   0, 0, 12, 1, 0, 'This is another caption'));
+            g.AddTaskItem(new JSGantt.TaskItem(2,   '项目内容',    '08/24/2017', '08/25/2017', 'ffff00', 'http://help.com', 0, '张雷',    0, 0, 0, 1,1212));
+            g.AddTaskItem(new JSGantt.TaskItem(3,   '报价模块',      '',          '',          'ff0000', 'http://help.com', 0, '',     0, 1, 0, 1 ));
+            g.AddTaskItem(new JSGantt.TaskItem(31,  '报价单',     '07/25/2017', '08/17/2017', 'ff00ff', 'http://help.com', 0, '张雷',    0, 0, 3, 1, '','Caption 1'));
+            g.AddTaskItem(new JSGantt.TaskItem(32,  '报价工具', '08/15/2017', '08/24/2017', '00ff00', 'http://help.com', 0, '',   0, 0, 3, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(33,  '报价审批',      '',          '',          '00ff00', 'http://help.com', 0, '付红翠',  0, 1, 3, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(332, '审批流定义',     '08/06/2017',  '08/11/2017', '0000ff', 'http://help.com', 0, '张雷',    0, 0, 33, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(333, '审批',  '08/09/2017',  '08/20/2017', '0000ff', 'http://help.com', 0, '张雷',    0, 0, 33, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(34,  '项目管理',       '',          '',          '990000', 'http://help.com', 0, '付红翠',  0, 1, 3, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(341, '项目',       '08/26/2017', '09/11/2017', 'ff0000', 'http://help.com', 0, '张雷',    0, 0, 34, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(342, '内容', '09/12/2017', '10/18/2017', 'ff6666', 'http://help.com', 0, '张雷',    0, 0, 34, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(343, '任务',        '10/13/2017', '10/17/2017', 'ff0000', 'http://help.com', 0, '张雷',    0, 0, 34, 1));
+            g.AddTaskItem(new JSGantt.TaskItem(344, '文档',  '10/17/2017', '11/04/2017', 'ff0000', 'http://help.com', 0, '张雷',    0, 0, 34, 1,"342,343"));
+            g.AddTaskItem(new JSGantt.TaskItem(35,  '报销',         '12/17/2017','02/04/2018','f600f6', 'http://help.com', 0, '张雷',    0, 0, 3,  1));*/
+
+
+            g.Draw();
+            g.DrawDependencies();
+
+        }
+
+        else {
+
+            alert("not defined");
+
+        }
+
+        function resizebox() {
+            $("#rightside").width($(window).width() - 600);
+        }
+
+        $(function () {
+            resizebox();
+            $(window).resize(function () {
+                resizebox();
+            });
+
+            /*html2canvas($('#leftside'), {
+                onrendered: function(canvas) {
+                    var data1=canvas.toDataURL("image/png");
+                    html2canvas($('#rightside'), {
+                        width:$('#rightside').children().width()+1000,
+                        height:$('#rightside').height()+100,
+                        onrendered: function(canvas) {
+                            var data=canvas.toDataURL("image/png");
+                            $("#download").click(function(){
+                                $.ajax({
+                                    url : '{:U('admin/demo1/download')}',
+                                    data : {base_img1 : data1, base_img : data},
+                                    type:'post',
+                                    success: function(data){
+                                        window.open(data);
+                                    }
+                                })
+                            });
+                            $("#download").show();
+                        }
+                    });
+                }
+            });*/
+        });
+        highlight_subnav("{$from_url}");
+
+
+
+    </script>
+</block>

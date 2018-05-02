@@ -1,0 +1,11 @@
+<ul id="breadcrumb">
+    <li class='promain <if condition="$actionName eq view">act</if> '><a href="{:U('ProjectView/view?id='.$p['pid'])}"><span class="icon icon-home"> </span> 项目概览</a></li>
+    <li <if condition="$actionName eq view1"> class="act" </if>><a href="{:U('ProjectAdd/view?id='.$p['pid'])}"><span class="icon icon-flag"> </span> 立项 <span class="icon icon-ok navok"></span></a></li>
+
+    <li <if condition="$actionName eq projection"> class="act" </if> >
+    <a href="{:U('ProjectNew/service?id='.$p['pid'])}"><span class="icon icon-calendar"></span> 规划  <notempty name="planing"><span class="icon icon-ok navok"></span></notempty></a></li>
+    <li <if condition="$actionName eq execute"> class="act" </if> ><a href="{:U('Execute/task_index?id='.$p['pid'])}"><span class="icon icon-cogs"> </span> 执行
+<notempty name="task"><span class="icon icon-ok navok"></span></notempty></a></li>
+    <li class="prolast <if condition="$actionName eq closure">act</if>"  ><a href="{:U('Plan/closure?id='.$p['pid'])}"><span class="icon icon-star-empty"> </span> 结项
+    <notempty name="closure"><span class="icon icon-ok navok"></span></notempty></a></li>
+</ul>

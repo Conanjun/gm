@@ -1,0 +1,285 @@
+<div id="querybox" class="">
+
+		<script language="javascript">
+
+$(function()
+{
+    $("#searchform").keydown(function (e) {
+        var curKey = e.which;
+        if (curKey == 13) {
+            $("#searchform").submit();
+        }
+    });
+	$("#btnsubmit").click(function(){
+		$("#searchform").submit();
+	});
+
+});
+</script>
+<style>
+#bysearchTab {transition: all .3s cubic-bezier(.175, .885, .32, 1);}
+#bysearchTab.active {background: #fff; padding: 2px 10px 3px; padding-bottom: 2px\0; border: 1px solid #ddd; border-bottom: none}
+#bysearchTab.active:hover {background: #ddd}
+
+#featurebar .nav {position: relative;}
+#featurebar .nav .dropdown .dropdown-menu{z-index:1010;}
+#querybox form{padding-right: 40px;}
+#querybox .form-control {padding: 2px}
+@-moz-document url-prefix() {#querybox .form-control {padding: 6px 2px;}}
+#querybox .table {border: none}
+#querybox .table-form td {border: none}
+#querybox .btn {padding: 5px 8px;}
+#querybox .table-form td td {padding: 2px;}
+#querybox .table .table {margin: 0;}
+.outer #querybox .table tr > th:first-child, .outer #querybox .table tr > td:first-child,
+.outer #querybox .table tr > th:last-child, .outer #querybox .table tr > td:last-child,
+.outer #querybox .table tbody > tr:last-child td {padding: 2px}
+#querybox a:hover {text-decoration: none;}
+
+#selectPeriod {padding: 4px; height: 197px; min-width: 120px}
+#selectPeriod > .dropdown-header {background: #f1f1f1; display: block; text-align: center; padding: 4px 0; line-height: 20px; margin-bottom: 5px; font-size: 14px; border-radius: 2px; color: #333; font-size: 12px}
+#selectPeriod li > a {padding: 4px 15px; border-radius: 2px}
+
+#moreOrLite {position: absolute; right: 0px; top: 0; bottom: 0}
+#searchlite, #searchmore {color: #5e4ba4; width: 50px; padding: 0 5px; line-height: 60px; text-align: center;}
+#searchlite {line-height: 127px}
+#searchform.showmore #searchmore, #searchform #searchlite {display: none;}
+#searchform.showmore #searchlite, #searchform #searchmore {display: inline-block;}
+#searchform .chosen-container .chosen-drop{min-width: 400px;}
+#searchform .chosen-container .chosen-drop ul.chosen-results li{white-space:normal}
+#searchmore > i, #searchlite > i {font-size: 28px;}
+#searchmore > i {position: relative; top: 4px;}
+#searchmore:hover, #searchlite:hover {color: #7865c7; background: #e5e5e5}
+
+#groupAndOr {display: inline-block;}
+
+.outer > #querybox {margin: -20px -20px 20px; border-top: none; border-bottom: 1px solid #ddd}
+
+#searchform input.date::-webkit-input-placeholder{color: #000000; opacity: 1;}
+#searchform input.date::-moz-placeholder{color: #000000; opacity: 1;}
+#searchform input.date:-ms-input-placeholder{color: #000000; opacity: 1;  }
+#searchform .table-fixed td{}
+#searchform .table-fixed td{}
+.mtx{margin-top: 5px}
+.timeleft{float: left;width: 79px;}
+.timeright{float: left;width: 79px;margin-left: 6px !important}
+.w-90px strong{color: #333;font-size: 12px;float: right}
+#searchbox1 th {
+	border: 0 !important;
+}
+.nborer th{border: 0}
+</style>
+<script language="Javascript">
+
+/**
+ * Reset forms.
+ *
+ * @access public
+ * @return void
+ */
+function resetForm(obj)
+{
+    $("#reset").val(1);
+    $("#searchform").submit();
+}
+
+/**
+ * Show more fields.
+ *
+ * @access public
+ * @return void
+ */
+function showmore(obj)
+{
+	$("#second").css('display','');
+	$("#three").css('display','');
+	$("#four").css('display','');
+    $(obj).closest('form').find('#formType').val('more');
+    $(obj).closest('form').addClass('showmore');
+}
+
+/**
+ * Show lite search form.
+ *
+ * @access public
+ * @return void
+ */
+function showlite(obj)
+{
+
+    $("#second").css('display','none');
+    $("#three").css('display','none');
+    $("#four").css('display','none');
+
+    $(obj).closest('form').removeClass('showmore');
+    $(obj).closest('form').find('#formType').val('lite');
+}
+
+
+
+
+
+$(function()
+{
+    $('#addtime').datetimepicker({lang: 'ch', timepicker: false, format: 'Y/m/d'});
+
+    var shows ="{$show}";
+	var second = "{$second}";
+    $(document).ready(function () {
+		if(shows != 0)
+        {
+            $("#bysearchTab").addClass('active');
+            $("#querybox").addClass('show');
+        }
+		if(second != 0)
+		{
+		    $("#second").css('display','');
+		    $("#three").css('display','');
+		    $("#four").css('display','');
+		}
+    });
+
+
+
+    var str="{$value11}";
+    if(str)
+	{
+        var arr=str.split(',');
+        var options = $("#therapy_area").find("option");
+        for(var i=0;i<arr.length;i++){
+            for(var j=0;j<options.length;j++){
+                if( options.eq(j).val()==arr[i]){
+                    options.eq(j).attr("selected",'true');
+                }
+            }
+        }
+	}
+
+    var noResultsMatch = '没有匹配结果';
+    var defaultChosenOptions = {
+        no_results_text: noResultsMatch,
+        width: '100%',
+        allow_single_deselect: true,
+        disable_search_threshold: 1,
+        placeholder_text_single: ' ',
+        placeholder_text_multiple: ' ',
+        search_contains: true
+    };
+
+    $("#therapy_area,.chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+        var $this = $(this);
+        var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+        var $drop = $chosen.find('.chosen-drop');
+        $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+    });
+
+})
+</script>
+
+		<form method="get"  id="searchform" class="form-condensed">
+			<input type="hidden" value="{$actionURL}" name="s">
+            <input type="hidden" id="reset" name="reset" value="">
+			<table class="table table-condensed table-form nborer" id="user-search"
+				style="max-width: 1000px; margin: 0 200px">
+				<tbody>
+					<tr>
+						<td>
+							<table class="table active-disabled table-fixed">
+								<tbody>
+
+										<tr id="searchbox1" class="" >
+											<th class="w-90px"><strong>文档名称</strong> </th>
+											 <td><input class="form-control  searchInput" type="text" name="name" value="{$value1}"></td>
+											<th  class="w-90px"><strong>文档类型</strong></th>
+											<td style="overflow: visible">
+													<select class="form-control searchSelect chosen"   name="type" >
+														<option value=""></option>
+													<volist name="docType" id="vo">
+														<option value="{$vo.dtid}"
+														<if condition="$vo.dtid eq $value2">selected</if>
+														>{$vo.name}</option>
+													</volist>
+												</select>
+											</td>
+											<th  class="w-90px"><strong>文档格式</strong></th>
+											<td style="overflow: visible">
+												<select  class="form-control searchSelect chosen" name="ext" >
+													<option value=""></option>
+													<volist name="fileExt" id="vo">
+													<option value="{$vo.d_value}"
+														<if condition="$vo.d_value eq $value3">selected</if>
+													>{$vo.d_key}</option>
+													</volist>
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<th  class="w-90px"><strong>上传人</strong></th>
+											<td ><input class="form-control  searchInput" type="text" name="uname" value="{$value4}"></td>
+											<th class="w-90px"><strong>文档备注 </strong></th>
+											<td ><input class="form-control  searchInput" type="text" name="note" value="{$value5}"></td>
+											<th class="w-90px"><strong>上传时间 </strong></th>
+											<td><input type="text" name="addtime" id="addtime" value="{$value6}" class="form-control  searchInput " autocomplete="off" ></td>
+										</tr>
+										<tr id="second" style="display: none" >
+											<th class="w-90px"><strong>文档大小</strong> </th>
+											<td><input class="form-control  searchInput"  type="number"  name="size" value="{$value7}"></td>
+											<th class="w-90px"><strong>项目名称</strong> </th>
+											<td><input class="form-control  searchInput" type="text" name="pname" value="{$value8}"></td>
+											<th class="w-90px"><strong>项目经理</strong> </th>
+											<td><input class="form-control  searchInput" type="text" name="pm" value="{$value9}"></td>
+										</tr>
+										<tr id="three" style="display: none" >
+											<th class="w-90px"><strong>客户</strong></th>
+											<td style="overflow: visible">
+												<select class="form-control searchSelect chosen" name="cid" >
+													<option value=""></option>
+													<volist name="customer" id="vo">
+														<option  value="{$vo.cid}"
+														<if condition="$vo.cid eq $value10">selected</if>
+														>{$vo.name}</option>
+													</volist>
+												</select>
+											</td>
+											<th class="w-90px"><strong>治疗领域</strong> </th>
+											<td  style="overflow: visible;" colspan="3">
+												<select  multiple="" class="form-control " name="therapy_area[]" id="therapy_area" >
+													<option value=""></option>
+													<volist name="areas" id="vo">
+														<option value="{$vo.d_value}">{$vo.d_key}</option>
+													</volist>
+												</select>
+											</td>
+										</tr>
+										<tr id="four" style="display: none" >
+											<th class="w-90px"><strong>目标科室</strong> </th>
+											<td><input class="form-control  searchInput" type="text" name="" value="{$value12}"></td>
+												<th class="w-90px"><strong>药品</strong> </th>
+												<td><input class="form-control  searchInput" type="text" name="drug_name" value="{$value13}"></td>
+										</tr>
+
+								</tbody>
+							</table></td>
+
+
+						<td class="w-160px"><input type="hidden" name="sid"
+							id="module" value="{$sid}">
+							<div class="btn-group">
+								<button type="button" id="btnsubmit" class="btn btn-primary">搜索</button>
+								<button type="button" class="btn btn-default"
+									onclick="resetForm(this)">重置</button>
+
+							</div></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div id="moreOrLite">
+				<a id="searchmore" href="javascript:;" onclick="showmore(this)"><i
+					class="icon-double-angle-down icon-2x"></i>
+				</a> <a id="searchlite" href="javascript:;" onclick="showlite(this)"><i
+					class="icon-double-angle-up icon-2x"></i>
+				</a> <input type="hidden" name="formType" id="formType" value="lite">
+			</div>
+		</form>
+	</div>

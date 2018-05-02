@@ -1,0 +1,399 @@
+<extend name="Public/base" />
+<block name="btnarea">
+</block>
+<block name="body">
+	<script language="Javascript">browseType = "unclosed";</script>
+	<script language="Javascript">orderBy = "{$orderBy}";</script>
+	<style>
+        #searchResult > .search-list, #defaultMenu, #moreMenu {
+            display: table-cell;
+            vertical-align: top;
+            min-width: 155px;
+        }
+
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+
+        #dropMenu {
+            min-width: 250px;
+        }
+
+        #searchResult > .search-list, #defaultMenu, #moreMenu {
+            display: table-cell;
+            vertical-align: top;
+            min-width: 205px;
+        }
+
+        .outer .side {
+            width: 260px;
+        }
+
+        .outer .side-body .panel {
+            min-width: 250px;
+        }
+
+        .outer.with-side .main, .outer.with-side .side + form, .outer.with-side .main, .outer.with-side .side + table {
+            margin-left: 270px;
+            margin-right: 0;
+        }
+        .nrtd td{background: #fff !important;}
+		.tSerach
+		{
+			position: absolute;
+			top: 1px;
+			right: 10px;
+			width: 150px;
+			height: 32px;
+			border: 0;
+			border-left: 1px solid #ddd;
+		}
+
+		.table-selectable thead tr {
+			height: 30px !important;
+		}
+		.table-condensed th, .table-condensed td{
+			line-height: 12px !important;
+		}
+</style>
+	<style>
+		tbody.sortable > tr.drag-shadow {display: none}
+		tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+		tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+		tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+		tbody.sortable-sorting {cursor: move;}
+		tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+		tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+		tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+		tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+	</style>
+	<script>
+        $(document).ready(function()
+        {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function()
+            {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function(e)
+                        {
+                            var orders = {};
+                            e.list.each(function(){
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function(){e.element.removeClass('drop-success');}, 800)
+                        }
+                    });
+            });
+
+            $('#projectTableList').on('sort.sortable', function(e, data)
+            {
+                var list = '';
+                for(i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('Service/updateOrder')}",{'projects' : list, 'orderBy' : orderBy});
+            });
+        });
+
+	</script>
+	<div id="featurebar">
+		<ul class="nav" style="float:left">
+			<li><a href="{:U('ProjectConfig/index')}">服务分类</a></li>
+			<li><a href="{:U('Module/index')}">服务模块</a></li>
+			<li class="active"><a href="{:U('Service/index')}">服务内容</a></li>
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+		</ul>
+
+        <div class="" style="float: right;margin-right: 10px">
+            <div class="actions">
+                <if condition="cando('Service/imort')">
+                      <a href="{:U('Service/imort?ppid='.$ppid.'&pid='.$pid)}" class="btn"><i class="icon-file-excel"></i>从Excel导入</a>  </if>
+                  <if condition="cando('Service/imort')">
+                      <a href="javascript:;" id="export" class="btn"><i class="icon-file-excel"></i>导出Excel文件</a>  <if condition="cando('Service/export')"></if>
+                        <if condition="cando('Service/add')">
+                            <a href="{:U('Service/add')}" class="btn"><i class="icon-plus"></i>添加内容</a></if>
+
+
+            </div>
+        </div>
+        <div class="clearfix"></div>
+	<include file="Public/search" />
+	</div>
+    <!-- 数据列表 -->
+	<div class="side">
+			<a class="side-handle" data-id="companyTree">
+				<i class="icon-caret-left"></i>
+			</a>
+			<div class="side-body">
+				<div class="panel panel-sm">
+					<li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;" data-id="list" class="">
+					<a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem" href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+						<input type="text"  placeholder="点击回车搜索" class="form-control tSerach" id="treeSerach" name="treekey" value="">
+						<div id="dropMenu" style="width: 170px;">
+							<input type="hidden" name="ppid" class="ppid" value="{$ppid}">
+						</div>
+					</li>
+					<div class='panel-body'>
+						{$ProjectConfig}
+					</div>
+				</div>
+			</div>
+		</div>
+	<div class="main">
+		<script>setTreeBox();</script>
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr >
+		<th style="width: 30px;"></th>
+		<th class="" style="text-align: left">服务模块/服务内容</th>
+		<th class="">必选</th>
+		<th width="60px"><span class="sort" ectype="order_by" fieldname="standard">标配</span></th>
+		<th class="" ><span class="sort" ectype="order_by" fieldname="minprice">价格</span></th>
+		<th class=""  width="60px"><span class="sort" ectype="order_by" fieldname="quantity">数量</span></th>
+		<th class="" width="60px"><span class="sort" ectype="order_by" fieldname="unit">单位</span></th>
+		<th class="" width="80px"><span class="sort" ectype="order_by" fieldname="days">周期</span></th>
+		<th class="" width="80px"><span class="sort" ectype="order_by" fieldname="hour">工时</span></th>
+		<th class="" width="60px"><span class="sort" ectype="order_by" fieldname="enabled">启用</span></th>
+		<th class="" width="130px">操作</th>
+			<if condition="$orderBy">
+				<th class="" width="50px"><span class="sort" ectype="order_by" fieldname="sort_order">排序</span></th>
+			</if>
+
+		</tr>
+    </thead>
+    <tbody class="sortable" id='projectTableList'>
+  
+		<notempty name="_list">
+		<volist name="_list" id="v" key='k'>
+		<!--<tr style="height: 50px;cursor: pointer;color: #5e4ba4" id="trp_{$v.mid}" k="{$v.mid}" <if condition="$k eq 1">o="o"<else/>o="c"</if>>
+			<td style="background: #f9f9f9"><if condition="$k eq 1"><i class="icon-double-angle-down icon-2x"></i><else/><i class="icon-double-angle-up icon-2x"></i></if></td><th colspan="10" style="background: #f9f9f9">{$v.mname}</th>
+		</tr>-->
+		
+		<tr style="height: 50px;cursor: pointer;color: #5e4ba4" id="trp_{$v.mid}" k="{$v.mid}" o="c" data-id="xxxx" data-order="xxxx">
+			<td style="background: #f9f9f9"><i class="icon-double-angle-down icon-2x"></i></td>
+			<th colspan="<if condition="$orderBy">11<else/>10</if>" style="background: #f9f9f9">{$v.mname}</th>
+		</tr>
+		
+		<volist name="v.list" id="vo">
+		<tr  class="nrtd" data-id="{$vo.sid}" data-order="{$vo['sort_order']}" id="trc_{$v.mid}_{$vo.sid}" style="display:none">
+            <td class="cell-id"><input class="ids" type="checkbox" name="id[]" value="{$vo.sid}" /></td>
+			<td style="text-align: left"  title="{$vo.name}">
+                <span ectype="inline_edit" fieldname='name' fieldid="{$vo.sid}" required="1" class="editable">{$vo.name}</span>
+				<if condition="$vo['bulb']">
+					<a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.name}-指导备注"  data-width="1000"
+					   data-height="600" class="iframe">
+						<i class="icon-lightbulb"></i></a>
+				</if>
+
+            </td>
+			<td>
+				<if condition="$vo['required'] ==0">
+					否
+					<elseif condition="$vo['required'] ==1" />
+					是
+					<elseif condition="$vo['required'] ==2" />
+					多选一{$vo.regroup_name}
+					<elseif condition="$vo['required'] ==3" />
+					关联{$vo.remid_name}
+				</if>
+			</td>
+			<td>
+				<eq name="vo['standard']" value="1">
+					<img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png" ectype="inline_edit" fieldname="standard" fieldid="{$vo.sid}" fieldvalue="1" />
+					<else/>
+					<img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="standard" fieldid="{$vo.sid}" fieldvalue="0"/>
+
+				</eq>
+			</td>
+				<td <if condition="($vo['minprice'] !=0.00)  && ($vo['maxprice'] !=0.00)">
+				title="{$vo['minprice']}~{$vo['maxprice']}"
+			<elseif condition="$vo['maxprice'] == 0.00" />
+			title="{$vo['minprice']}"
+			<elseif condition="$vo['minprice'] == 0.00" />
+			title="{$vo['maxprice']}"
+		</if>>
+				<if condition="($vo['minprice'] !=0.00)  && ($vo['maxprice'] !=0.00)">
+                    <span ectype="inline_edit" fieldname="minprice" fieldid="{$vo.sid}" class="editable">{$vo.minprice}</span>~<span ectype="inline_edit" fieldname="maxprice" fieldid="{$vo.sid}" class="editable">{$vo.maxprice}</span>
+					<elseif condition="$vo['maxprice'] == 0.00" />
+                    <span ectype="inline_edit" fieldname="minprice" fieldid="{$vo.sid}" class="editable">{$vo.minprice}</span>
+					<elseif condition="$vo['minprice'] == 0.00" />
+                    <span ectype="inline_edit" fieldname="maxprice" fieldid="{$vo.sid}" class="editable">{$vo.maxprice}</span>
+				</if>
+			</td>
+				<td title="{$vo.quantity}">{$vo.quantity}</td>
+			<td title="{$vo.unit}">{$vo.unit}</td>
+            <td title="{$vo.days}h"><span ectype="inline_edit" fieldname="days" fieldid="{$vo.sid}" class="editable">{$vo.days}</span>d</td>
+            <td title="{$vo.hour}h"><span ectype="inline_edit" fieldname="hour" fieldid="{$vo.sid}" class="editable">{$vo.hour}</span>h</td>
+
+		<!--	<td><span ectype="inline_edit" fieldname="sort_order" fieldid="{$vo.sid}" class="editable">{$vo.sort_order}</span></td>-->
+			<td>
+				<eq name="vo['enabled']" value="1">
+					<img style="width: 15px;" src="__THEME__/default/images/positive_enabled.png" ectype="inline_edit" fieldname="enabled" fieldid="{$vo.sid}" fieldvalue="1" />
+					<else/>
+					<img style="width: 15px;" src="__THEME__/default/images/positive_disabled.png" ectype="inline_edit" fieldname="enabled" fieldid="{$vo.sid}" fieldvalue="0"/>
+
+				</eq>
+			</td>
+			<td>
+				<a href="{:U('Service/edit?id='.$vo['sid'].'&pid='.$pid)}">编辑</a>
+				<a href="{:U('Service/del_service?id='.$vo['sid'])}"
+					class="confirm ajax-get">删除</a>
+				<a href="{:U('Service/Servicedoc',array('sid'=>$vo['sid']))}"
+				   id="Servicedoc"
+				   data-width="600" <if condition="$vo['sdc']">class="iframe" <else/>class="iframe textc"  </if>
+				data-height="400">文档要求</a>
+                </td>
+			<if condition="$orderBy">
+				<td class="sort-handler"><i class="icon icon-move"></i></td>
+			</if>
+		</tr>
+		</volist>
+		</volist>
+		<else />
+		<td colspan="<if condition="$orderBy">12<else/>11</if>" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody><notempty name="_list">
+	<tfoot>
+			<tr>
+				<if condition="$orderBy">
+					<td colspan='12'>
+						<div class="table-actions clearfix">
+							<div class="checkbox btn">
+								<label><input type="checkbox" data-scope=""
+											  class="rows-selector"> 选择</label>
+							</div>
+							<button class="btn btn-default ajax-post confirm"
+									url="{:U('Service/del_service')}"
+									target-form="ids">删 除</button>
+						</div>
+						<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+					</td>
+					<else/>
+					<td colspan='11'>
+						<div class="table-actions clearfix">
+							<div class="checkbox btn">
+								<label><input type="checkbox" data-scope=""
+											  class="rows-selector"> 选择</label>
+							</div>
+							<button class="btn btn-default ajax-post confirm"
+									url="{:U('Service/del_service')}"
+									target-form="ids">删 除</button>
+							<a href="{:U('Service/index')}"><button class="btn btn-default">排 序</button></a>
+
+						</div>
+						<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+					</td>
+				</if>
+
+			</tr>
+		</tfoot>
+    </notempty>
+    </table>
+	</div>
+		</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		$(function(){
+			$("#list{$pid}").attr('class','active');
+			
+			$("[id^='trp_']").click(function(e){
+			    if(e.target.classList[0] =='a'){
+			        return;
+				}
+				var o=$(this).attr("o");
+				var k=$(this).attr("k");
+				if(o=="o"){
+					$("[id^='trc_"+k+"']").hide();
+					$(this).attr("o","c");
+					$(this).find("td").html("<i class=\"icon-double-angle-down icon-2x\"></i>");
+				}else{
+					$("[id^='trc_"+k+"']").show();
+					$(this).attr("o","o");
+					$(this).find("td").html("<i class=\"icon-double-angle-up icon-2x\"></i>");
+				}
+			});
+           /* $('.note-data').each(function () {
+                    $(this).qtip({
+                        content: {
+                            title: $(this).data('title'),
+                            text: $(this).data('html'),
+                        },
+                        show: 'mouseover',
+                        hide: 'mouseover'
+                    });
+                }
+            );*/
+		});
+        // 对树进行搜索
+        $("#treeSerach").keydown(function (e) {
+            if (e.keyCode == 13) {
+                var val = $(this).val();
+                var ppid = $(".ppid").val();
+                var method = 'Service';
+                var url = "{:U('ProjectConfig/ajaxSearch')}";
+                console.log(ppid);
+                $.get(url, {'val': val, 'ppid': ppid,'method': method}, function (data) {
+
+                    if (data.done) {
+                        $('.panel-body').html("");
+                        $('.panel-body').html(data.retval);
+
+                        $(".tree").tree({
+                            name: config.currentModule + "-" + config.currentMethod,
+                            initialState: "preserve"
+                        });
+
+                    }
+                });
+            }
+        });
+		$('#btnsubmit').click(function(){
+              var inputpid = $("<input type='hidden' name='pid' value='{$pid}' />");
+              $("#searchform").append(inputpid);
+              $("#searchform").submit();
+        });
+
+		  $("#export").click(function(){
+              var my_input = $("<input type='hidden' name='exportexcel' value='1' />");
+              $("#searchform").append(my_input);
+              var inputpid = $("<input type='hidden' name='pid' value='{$pid}' />");
+              $("#searchform").append(inputpid);
+//              $("#searchform").attr('action',"{:U('Service/index?pid='.$pid)}");
+              $("#searchform").submit();
+              $("[name='exportexcel']").val("");
+              $("#searchform").attr("target", "");
+        });
+		function choose() {
+			$.closeModal();
+		}
+
+    //导航高亮
+	highlight_subnav("{:U('ProjectConfig/index')}");
+	var ajaxGetDropMenu="{:U('Service/ajaxGetDropMenu/',array('module'=>'Service','index'=>'index'))}";
+	var ajaxurl="{:U('Service/ajax_col')}";
+	</script>
+</block>

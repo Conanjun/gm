@@ -1,0 +1,585 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body"> 
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <script src='__JSNEW__/htmleditor/ueditor.config.js' type='text/javascript'></script>
+	<script src='__JSNEW__/htmleditor/ueditor.all.min.js' type='text/javascript'></script>
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+	<script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+	<link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+	<link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+
+    <style>
+        #fourheading a
+         {
+             color: #333;
+         }
+        #fourheading .active
+        {
+            color: #7865c7;
+        }
+
+        input[type='file'] {
+                                width: 200px;
+                                height: 100%;
+                                height: 26px;
+                                line-height: 26px;
+                                border: none;
+                                position: relative;
+                                display:inline-block;
+                               /*float:right;*/
+                            }
+        .outer .table{
+            border:none;
+        }
+ .popover{
+     max-width:500px;
+        width:400px;
+    }
+    .popover-title{
+        color:#141414;
+    }
+ #saveBtn,#cancelBtn{
+     margin-right: 10px;
+    border-radius: 4px;
+    padding: 4px 26px;
+    margin-bottom: 10px;
+ }
+        .qq-upload-button{
+            padding:2px 0;
+            width:80px;
+            border-radius:4px;
+        }
+        .cont{
+            list-style-type: none;
+            float:left;
+            margin-right: 50px
+
+        }
+        .cont li{
+            padding-right:6px;
+            margin-bottom: 2px;
+
+        }
+        .qq-upload-button {
+    display: inline;
+    width: 50px;
+    padding: 1px 0px;
+    text-align: center;
+    float: left;
+    background: #a38df4;
+    color: #FFF;
+    border-radius: 2px;
+    border: 1px solid #a38df4;
+    cursor: pointer;
+}
+.qq-upload-button-hover {
+ cursor: pointer;
+}
+.btndel{
+    display: inline-block;
+    width: 50px;
+    padding: 1px 0px;
+    text-align: center;
+    background: #f2f2f2;
+    color: #888;
+    border-radius: 2px;
+    border: 1px solid #f2f2f2;
+    margin-left: 10px;
+    text-decoration: none !important;
+}
+.cont li a{
+        text-decoration: underline;
+
+    }
+	</style>
+    <script language="Javascript">orderBy = "{$orderBy}";pid="{$p['pid']}"</script>
+	<script>
+      $(function () {
+          var time = "{$mtime}";
+          $('#mtime').datetimepicker({value: time, lang: 'ch', timepicker: false, format: 'Y-m-d'});
+         $('#meetTip').mouseover(function(){
+              $('#meetTip').popover({"html": true, trigger: "focus"});
+               $('#meetTip').popover('show');
+        })
+         $('#meetTip').mouseleave(function(){
+              $('#meetTip').popover({"html": true, trigger: "focus"});
+               $('#meetTip').popover('hide');
+        })
+
+      })
+	</script>
+
+    <script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <include file="Public:newtitle" />
+        <div class="actions">
+				<div class="btn-group">
+                    <a href="{:U('Plan/meet?id='.$p['pid'])}" class="btn">	<i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+				</div>
+			</div>
+		</if>
+
+    </div>
+    <!-- 数据列表 -->
+    <div id="projectTaskForm">
+<div class="fnavbox">
+         <div>
+             <include file="Public:newfourtitle" />
+        </div>
+			<div class="actions">
+               	<div class="btn-group">在完成前面一系列准备工作后，你可以准备召开铁三角启动会了。铁三角启动会需要销售、顾问、项目经理、PMO参与,必要时可以邀请支持团队关（待补充）保各方交付物、交付标准和交付时间理解一致
+				</div>
+			</div>
+		<div class="clearfix"></div></div>
+
+         <form action="{:U('meetedit',array('id'=>$p['pid']))}" method='post' class="form-condensed" enctype="multipart/form-data">
+            <table class="table-form mytable table" style="">
+                    <input type="hidden" name="mid" value="{$meet['mid']}">
+                        <tbody>
+                        <tr style="display: none">
+                           <th style="vertical-align: top;">SOW文件</th>
+                            <td><div class="input-group" style="width:600px">
+                                <ul class="cont">
+                                    <if condition="$meet['sow']">
+                                            <li><a href="{$meet['sow']}" download="sow文件">{$meet.sowname}</a></li>
+                                    </if>
+
+                                </ul>
+                            </div>
+                            </td>
+                        </tr>
+                        <tr><th style="vertical-align: top;">项目方案</th>
+                          <td>
+                           <div class="input-group">
+                           <div id="load1">
+                                  </div>
+                                   <!--显示上传文件-->
+                                   <div>
+                                        <ul class="cont" id="scheme">
+                                             <if condition="$mf['scheme']">
+                                                 <foreach  name="mf['scheme']" item="vo">
+                                                      <li>
+                                                          <a href="{:U('doc/download?fid='.$vo['fileid'])}">{$vo['name']}.{$vo.ext}</a>
+                                                          <if condition="cando('Plan/meetfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                <a class="btndel" href="javascript:;" onclick='delfile(this,"{:U('Plan/meetfile?id='.$vo['mfid'])}")'> <span>删除</span></a>
+                                                          </if>
+                                                      </li>
+                                                 </foreach>
+
+                                             </if>
+                                        </ul>
+                                    </div>
+                                  
+                                     <script type="text/template" id="load1_t">
+                                                                <div class="qq-uploader-selector">
+                                                                    <ul class="qq-upload-list-selector" aria-live="polite"
+                                                                        aria-relevant="additions removals" style="display:none">
+                                                                        <li class="pli">
+                                                                            <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale>
+                                                                            <div class="pdel">
+                                                                                <button type="button"
+                                                                                        style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" id="license_cancel">
+                                                                                </button>
+                                                                            </div>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <if condition="cando('Plan/loadfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                       <div class="qq-upload-button-selector qq-upload-button" id="load1_button">
+                                                                            <span id="load1_txt">上传</span>
+                                                                        </div>
+                                                                    </if>
+
+                                                                </div>
+                                                            </script>
+                                    <script>
+
+                                                                var restrictedUploader = new qq.FineUploader({
+                                                                    element: document.getElementById("load1"),
+                                                                    template: 'load1_t',
+                                                                    request: {
+                                                                        endpoint: "{:U('Plan/loadfile?pid='.$p['pid'].'&type=scheme')}",
+                                                                        method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                                    },
+                                                                    thumbnails: {
+                                                                        placeholders: {
+                                                                            waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                            notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                                        }
+                                                                    },
+                                                                    validation: {
+                                                                        allowedExtensions: ['jpeg', 'jpg', 'png','gif','txt','psd','doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+                                                                        itemLimit: 100,
+                                                                        sizeLimit: 115242880 // 500M = 500 * 1024 * 1024 bytes
+                                                                    },
+                                                                    debug: true,
+                                                                    callbacks: {
+                                                                        onSubmit: function(id, fileName) {
+                                                                            $("#load1_txt").text("上传中...");
+                                                                        },
+                                                                        onCancel: function(id, fileName) {
+                                                                            $("#load1_txt").text("上传");
+                                                                        },
+                                                                        onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                            $("#load1_txt").text("上传");
+                                                                            if(responseJSON.state==200){
+                                                                                console.log(responseJSON)
+                                                                                var _html='<li><a href='+responseJSON.down+'><span>'+responseJSON.info['name']+'.'+responseJSON.info['ext']+'</span> </a><a class="btndel" href="javascript:;" onclick="delfile(this,'+"'"+responseJSON.del+"'"+')"><span>删除</span></a></li>';
+                                                                                 $('#scheme').append(_html);
+                                                                                 $("#license_cancel").show();
+//                                                                                $("#file_url").val(responseJSON.uuid+"/"+responseJSON.uploadName);
+                                                                            }else{
+                                                                                $("#license_button").click();
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            </script>
+                         </div>
+                        </tr>
+                        <tr><th style="vertical-align: top;">项目合同</th>
+                          <td>
+                           <div class="input-group">
+                                   <!--显示上传文件-->
+                                   <div id="load2">
+                                  </div>
+                                   <div>
+                                        <ul class="cont" id="contract">
+                                            <if condition="$mf['contract']">
+                                                 <foreach  name="mf['contract']" item="vo">
+                                                      <li>
+                                                          <a href="{:U('doc/download?fid='.$vo['fileid'])}">{$vo['name']}.{$vo.ext}</a>
+                                                          <if condition="cando('Plan/meetfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                <a class="btndel" href="javascript:;" onclick='delfile(this,"{:U('Plan/meetfile?id='.$vo['mfid'])}")'> <span>删除</span></a>
+                                                          </if>
+                                                      </li>
+                                                 </foreach>
+
+                                             </if>
+                                        </ul>
+                                    </div>
+                                  
+                                     <script type="text/template" id="load2_t">
+                                                                <div class="qq-uploader-selector">
+                                                                    <ul class="qq-upload-list-selector" aria-live="polite"
+                                                                        aria-relevant="additions removals" style="display:none">
+                                                                        <li class="pli">
+                                                                            <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale>
+                                                                            <div class="pdel">
+                                                                                <button type="button"
+                                                                                        style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" >
+                                                                                </button>
+                                                                            </div>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <if condition="cando('Plan/loadfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                        <div class="qq-upload-button-selector qq-upload-button" id="load1_button">
+                                                                            <span id="load2_txt">上传</span>
+                                                                        </div>
+                                                                    </if>
+
+                                                                </div>
+                                                            </script>
+                                    <script>
+
+                                                                var restrictedUploader = new qq.FineUploader({
+                                                                    element: document.getElementById("load2"),
+                                                                    template: 'load2_t',
+                                                                    request: {
+                                                                        endpoint: "{:U('Plan/loadfile?pid='.$p['pid'].'&type=contract')}",
+                                                                        method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                                    },
+                                                                    thumbnails: {
+                                                                        placeholders: {
+                                                                            waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                            notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                                        }
+                                                                    },
+                                                                    validation: {
+                                                                        allowedExtensions: ['jpeg', 'jpg', 'png','gif','txt','psd','doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+                                                                        itemLimit: 100,
+                                                                        sizeLimit: 115242880 // 500M = 500 * 1024 * 1024 bytes
+                                                                    },
+                                                                    debug: true,
+                                                                    callbacks: {
+                                                                        onSubmit: function(id, fileName) {
+                                                                            $("#load2_txt").text("上传中...");
+                                                                        },
+                                                                        onCancel: function(id, fileName) {
+                                                                            $("#load2_txt").text("上传");
+                                                                        },
+                                                                        onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                            $("#load2_txt").text("上传");
+                                                                            if(responseJSON.state==200){
+                                                                                console.log(responseJSON)
+                                                                                var _html='<li><a href='+responseJSON.down+'><span>'+responseJSON.info['name']+'.'+responseJSON.info['ext']+'</span> </a><a class="btndel" href="javascript:;" onclick="delfile(this,'+"'"+responseJSON.del+"'"+')"><span>删除</span></a></li>';
+                                                                                 $('#contract').append(_html);
+                                                                                 $("#license_cancel").show();
+//                                                                                $("#file_url").val(responseJSON.uuid+"/"+responseJSON.uploadName);
+                                                                            }else{
+                                                                                $("#license_button").click();
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            </script>
+                         </div>
+                        </tr>
+        <tr><th style="vertical-align: top;">项目报价单</th>
+                          <td>
+                           <div class="input-group">
+                           <div id="load3">
+                                  </div>
+                                   <!--显示上传文件-->
+                                   <div>
+                                        <ul class="cont" id="offer">
+                                            <if condition="$mf['offer']">
+                                                 <foreach  name="mf['offer']" item="vo">
+                                                      <li><a href="{:U('doc/download?fid='.$vo['fileid'])}">{$vo['name']}.{$vo.ext}</a>
+                                                          <if condition="cando('Plan/meetfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                <a class="btndel" href="javascript:;" onclick='delfile(this,"{:U('Plan/meetfile?id='.$vo['mfid'])}")'> <span>删除</span></a>
+                                                          </if>
+                                                      </li>
+                                                 </foreach>
+
+                                             </if>
+                                        </ul>
+                                    </div>
+                                  
+                                     <script type="text/template" id="load3_t">
+                                                                <div class="qq-uploader-selector">
+                                                                    <ul class="qq-upload-list-selector" aria-live="polite"
+                                                                        aria-relevant="additions removals" style="display:none">
+                                                                        <li class="pli">
+                                                                            <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale>
+                                                                            <div class="pdel">
+                                                                                <button type="button"
+                                                                                        style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" >
+                                                                                </button>
+                                                                            </div>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <if condition="cando('Plan/loadfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                        <div class="qq-upload-button-selector qq-upload-button" id="load1_button">
+                                                                            <span id="load3_txt">上传</span>
+                                                                        </div>
+                                                                    </if>
+
+                                                                </div>
+                                                            </script>
+                                    <script>
+
+                                                                var restrictedUploader = new qq.FineUploader({
+                                                                    element: document.getElementById("load3"),
+                                                                    template: 'load3_t',
+                                                                    request: {
+                                                                        endpoint: "{:U('Plan/loadfile?pid='.$p['pid'].'&type=offer')}",
+                                                                        method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                                    },
+                                                                    thumbnails: {
+                                                                        placeholders: {
+                                                                            waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                            notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                                        }
+                                                                    },
+                                                                    validation: {
+                                                                        allowedExtensions:['jpeg', 'jpg', 'png','gif','txt','psd','doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+                                                                        itemLimit: 100,
+                                                                        sizeLimit: 115242880 // 500M = 500 * 1024 * 1024 bytes
+                                                                    },
+                                                                    debug: true,
+                                                                    callbacks: {
+                                                                        onSubmit: function(id, fileName) {
+                                                                            $("#load3_txt").text("上传中...");
+                                                                        },
+                                                                        onCancel: function(id, fileName) {
+                                                                            $("#load3_txt").text("上传");
+                                                                        },
+                                                                        onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                            $("#load3_txt").text("上传");
+                                                                            if(responseJSON.state==200){
+                                                                                var _html='<li><a href='+responseJSON.down+'><span>'+responseJSON.info['name']+'.'+responseJSON.info['ext']+'</span> </a><a class="btndel" href="javascript:;" onclick="delfile(this,'+"'"+responseJSON.del+"'"+')"><span>删除</span></a></li>';
+                                                                                 $('#offer').append(_html);
+                                                                                 $("#license_cancel").show();
+//                                                                                $("#file_url").val(responseJSON.uuid+"/"+responseJSON.uploadName);
+                                                                            }else{
+                                                                                $("#license_button").click();
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            </script>
+                         </div>
+                        </tr>
+                          <tr><th style="vertical-align: top;">其它文件</th>
+                          <td>
+                           <div class="input-group">
+                            <div id="load4">
+                                  </div>
+                                   <!--显示上传文件-->
+                                   <div>
+                                        <ul class="cont" id="other">
+                                          <if condition="$mf['other']">
+                                                 <foreach  name="mf['other']" item="vo">
+                                                      <li>
+                                                          <a href="{:U('doc/download?fid='.$vo['fileid'])}">{$vo['name']}.{$vo.ext}</a>
+                                                          <if condition="cando('Plan/meetfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                <a class="btndel" href="javascript:;" onclick='delfile(this,"{:U('Plan/meetfile?id='.$vo['mfid'])}")'> <span>删除</span></a>
+                                                          </if>
+                                                      </li>
+                                                 </foreach>
+                                             </if>
+                                        </ul>
+                                    </div>
+                                 
+                                     <script type="text/template" id="load4_t">
+                                                                <div class="qq-uploader-selector">
+                                                                    <ul class="qq-upload-list-selector" aria-live="polite"
+                                                                        aria-relevant="additions removals" style="display:none">
+                                                                        <li class="pli">
+                                                                            <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale>
+                                                                            <div class="pdel">
+                                                                                <button type="button"
+                                                                                        style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" >
+                                                                                </button>
+                                                                            </div>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <if condition="cando('Plan/loadfile',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                                                        <div class="qq-upload-button-selector qq-upload-button" id="load1_button">
+                                                                            <span id="load4_txt">上传</span>
+                                                                        </div>
+                                                                    </if>
+
+                                                                </div>
+                                                            </script>
+                                    <script>
+
+                                                                var restrictedUploader = new qq.FineUploader({
+                                                                    element: document.getElementById("load4"),
+                                                                    template: 'load4_t',
+                                                                    request: {
+                                                                        endpoint: "{:U('Plan/loadfile?pid='.$p['pid'].'&type=other')}",
+                                                                        method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                                    },
+                                                                    thumbnails: {
+                                                                        placeholders: {
+                                                                            waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                            notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                                        }
+                                                                    },
+                                                                    validation: {
+                                                                        allowedExtensions: ['jpeg', 'jpg', 'png','gif','txt','psd','doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+                                                                        itemLimit: 100,
+                                                                        sizeLimit: 115242880 // 500M = 500 * 1024 * 1024 bytes
+                                                                    },
+                                                                    debug: true,
+                                                                    callbacks: {
+                                                                        onSubmit: function(id, fileName) {
+                                                                            $("#load4_txt").text("上传中...");
+                                                                        },
+                                                                        onCancel: function(id, fileName) {
+                                                                            $("#load4_txt").text("上传");
+                                                                        },
+                                                                        onComplete: function(id,  fileName,  responseJSON)  {
+                                                                            $("#load4_txt").text("上传");
+                                                                            if(responseJSON.state==200){
+                                                                                console.log(responseJSON)
+                                                                                var _html='<li><a href='+responseJSON.down+'><span>'+responseJSON.info['name']+'.'+responseJSON.info['ext']+'</span> </a><a class="btndel" href="javascript:;" onclick="delfile(this,'+"'"+responseJSON.del+"'"+')"><span>删除</span></a></li>';
+                                                                                 $('#other').append(_html);
+                                                                                 $("#license_cancel").show();
+//                                                                                $("#file_url").val(responseJSON.uuid+"/"+responseJSON.uploadName);
+                                                                            }else{
+                                                                                $("#license_button").click();
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            </script>
+                         </div>
+                        </tr>
+
+                    <tr><th><h3>会议纪要</h3><th><td></td></tr>
+                    <tr> <th>时间</th><td>
+                     <div class="input-group" style="width:500px">
+                    <input type="text" name="mtime" id="mtime" class="form-control" style="width:200px">   <span class="input-group-addon" style="border:none;background-color:#fff;font-weight: bold">地点</span><input type="text" name="address" value="{$meet['address']}" class="form-control" style="width:555px">
+                     </div>
+                </td</tr>
+                <tr> <th>参会人员</th><td colspan="3"><input type="text" name="takepart" value="{$meet['takepart']}" class="form-control" placeholder="多个参与人用逗号相隔" style="width:800px"></td></tr>
+                <tr><th class="thtop">会议目的</th><td>
+                   <textarea name="target"  id="target" style="width: 800px;height:150px" rows="2" class="ckeditor">{$meet['target']}</textarea>
+                </td></tr>
+                 <tr><th class="thtop">讨论记录</th><td>
+                    <textarea name="description" id="description" style="width: 800px;height:150px"  class="ckeditor" rows="2">{$meet['description']}</textarea>
+
+                 </td></tr>
+                 <tr><th class="thtop">行动计划</th><td>
+                   <textarea name="plan" id="plan" style="width: 800px;height:150px" rows="2" class="ckeditor">{$meet['plan']}</textarea>
+                 </td></tr>
+                        <tr>
+                            <td></td>
+                            <td >
+                                <div class="rightdiv" style="margin-top: 10px">
+                                    <a href="{:U('Plan/meet?id='.$p['pid'])}" id="submit" class="btn btn-default"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                                    <if condition="cando('plan/meetedit',array($p['uid'],$p['pmuid']),$p['pid'])">
+                                        <a href="javascript:;" class="btn btn-primary" onclick="baocun()" ><i class="icon-save"></i> 保存</a>
+                                    </if>
+                                </div>
+                            </td>
+                        </tr>
+                </tbody>
+
+            </table>
+
+
+         </form>
+
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+        $(function(){
+            setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+            setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+            //resizetable();
+
+            $(window).resize(function(){
+                //resizetable();
+            });
+
+        });
+        function baocun(){
+            $('form').submit();
+        }
+        function delfile(obj,url){
+            if(confirm('您确定要删除文件吗？')){
+
+                $.get(url,function(data){
+                    if(data.done){
+                         $(obj).closest('li').remove();
+                    }
+                })
+            }
+        }
+
+    </script>
+</block>
+

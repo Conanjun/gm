@@ -1,0 +1,23 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+use Think\Model;
+
+/**
+ * 费用项目模型
+ */
+
+class FeeitemModel extends Model {
+
+	protected $_validate = array(
+		array('name','require','名称不能为空'), //默认情况下用正则进行验证
+	);
+	
+}

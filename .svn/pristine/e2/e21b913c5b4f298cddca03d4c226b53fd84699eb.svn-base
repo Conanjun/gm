@@ -1,0 +1,61 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+        <!-- 数据列表 -->
+        <div class="data-table table-striped">
+            <table
+                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th r="1" width="10px"></th>
+                    <th class="text-left"><span >项目名称</span></th>
+                    <th r="1" ><span >单号</span></th>
+                    <th r="1" width="100px"><span >状态</span></th>
+                    <th r="1" width="100px"><span >成本类型</span></th>
+                    <th r="1"  width="100px"><span >发票数</span></th>
+                    <th r="1"  width="100px"><span >金额</span></th>
+                    <th r="1"  width="100px"><span >申请时间</span></th>
+                    <th r="1" width="80px"><span >申请人</span></th>
+                    <th r="1"  width="100px"><span >审批时间</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="expenses">
+                    <volist name="expenses" id="vo">
+                        <tr>
+                            <td r="1" class="cell-id"></td>
+                            <td class="text-left">{$vo.pname}</td>
+                            <td >{$vo.code}</td>
+                            <td <if condition="$vo['state'] eq 3"> style="color:#21841d;"</if> >{$vo.d_key}</td>
+                            <td>{$vo.type}</td>
+                            <td>{$vo.innum|default=0}</td>
+                            <td style="text-align: right;">{$vo.amount|fomatprice}</td>
+                            <td>{$vo.addtime|time_format=###,'y-m-d H:i'}</td>
+                            <td>{$vo.uname}</td>
+                            <td>{$vo.checkedtime|time_format=###,'y-m-d H:i'}</td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr><td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td></tr>
+                </notempty>
+                </tbody>
+                <notempty name="expenses">
+                    <tfoot class="scrolled">
+                    <tr>
+                        <td r="1" colspan='10' id="colspan_1">
+                            <div style="float: right; clear: none;margin-right: 10px" class="pager form-inline">{$_page}</div>
+                        </td>
+                    </tr>
+                    </tfoot></notempty>
+            </table>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+    </script>
+</block>

@@ -1,0 +1,258 @@
+<div>
+    <form action="{:U('OrderTaskCw/confirm')}" class="form-horizontal" id="task_form" method='post' enctype="multipart/form-data">
+        <input type="hidden" name="tid" id="task_id" value="{$tid}" >
+        <div class="form-group">
+            <div>
+                <div class="clearfix">
+                    <div class="btn btn-info" id="tr-add" key="0">{:L(ADD)}</div>
+                </div>
+                <table class="table table-center">
+                    <thead>
+                    <tr>
+                        <th style="width: 80px">{:L('FEE_NAME')}</th>
+                        <th style="width: 80px">{:L('ORDER_STATE')}</th>
+                        <th style="width: 100px">{:L('PRICE_RMB')}</th>
+                        <th style="width: 80px">{:L('DOLLAR_PRICE')}</th>
+                        <th style="width: 80px">{:L('PAYAMOUNT')}</th>
+                        <th style="width: 80px">{:L('PAY_CURRENCY')}</th>
+                        <th style="width: 80px">{:L('PAY_METHOD')}</th>
+                        <th style="width: 80px">{:L('REMARK')}</th>
+                        <th style="width: 120px">{:L('HANDLE')}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <input type="hidden" name= "m" value="{$money}">
+                        <input type="hidden" name= "m1" value="{$money1}">
+                        <notempty name="pays">
+                            <volist name="pays" id="p">
+                                <tr>
+                                    <td>{$p.feename}</td>
+                                    <td><if condition="$p['state'] eq 1">{:L('ALREADY_PAY')}<else/>{:L('NOT_PAY')}</if></td>
+                                    <td><if condition="$p['state'] eq 1">{$p.money}<else/><input type="text" name= item[{$p.opid}][money] id="m_{$p.opid}_" class="form-control" value="{$p.money}"></if></td>
+                                    <td><if condition="$p['state'] eq 1">{$p.money1}<else/><input type="text" name= item[{$p.opid}][money1] id="m1_{$p.opid}_" class="form-control" value="{$p.money1}"></if></td>
+                                    <td><if condition="$p['state'] eq 1">{$p.pay_money}<else/></if></td>
+                                    <td><if condition="$p['state'] eq 1">{$p.currency}<else/></if></td>
+                                    <td><if condition="$p['paytype'] eq 1">{:L('PAY_MONTHLY')}<else/>{:L('CASH_PAYMENT')}</if></td>
+                                    <td><if condition="$p['state'] eq 1">{$p.note}<else/><textarea name= item[{$p.opid}][note] nh="note" class="form-control" id="note_{$p.opid}" rows="1" cols="20">{$p.note}</textarea></if></td>
+                                    <td><if condition="$p['state'] eq 1"><else/><a href="javascript:;" id="del_fee_{$p.opid}" class="delete" key="{$p.opid}" del="{$p.opid}">{:L('DELETE')}</a></if></td>
+                                </tr>
+                            </volist>
+                        </notempty>
+                    </tbody>
+                </table>
+                <div class="form-group">
+                    <label class="col-sm-1 control-label">{:L('S_TASK_TASK_SPEC')}</label>
+                    <div class="col-sm-11">
+                        <textarea id="finishnote"  name="finishnote" class="form-control" style="width: 1000px;height: 100px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div style="display: none;">
+    <table>
+        <tr id="tmp_tr">
+            <td>
+                <select name="item[0][feename]" nh="feename" id="feename_0" class="form-control">
+                    <volist name="fees" id="f">
+                        <option value="f.feename">{$f.feename}</option>
+                    </volist>
+                </select>
+            </td>
+            <td></td>
+            <td><input type="text" name= item[0][money] nh="money" id="money_0" class="form-control" value=""></td>
+            <td><input type="text" name= item[0][money1] nh="money1" id="money1_0" class="form-control" value=""></td>
+            <td><if condition="$p['state'] eq 1">{$p.pay_money}<else/></if></td>
+            <td><if condition="$p['state'] eq 1">{$p.currency}<else/></if></td>
+            <td><if condition="$p['paytype'] eq 1">{:L('PAY_MONTHLY')}<else/>{:L('CASH_PAYMENT')}</if></td>
+            <td><if condition="$p['state'] eq 1">{$p.note}<else/><textarea class="form-control" name= item[0][note] nh="note" id="note_0" rows="1" cols="20">{$p.note}</textarea></if></td>
+            <td><if condition="$p['state'] eq 1"><else/><a href="javascript:;" nh="del_fee" id="del_fee_0" class="delete" key="0" del="0">{:L('DELETE')}</a></if></td>
+        </tr>
+    </table>
+</div>
+<div class="modal-footer">
+    <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+    <a href="javascript:void(0);"  id="save_a" class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+</div>
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    {:L('sysnotice')}
+                </h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal -->
+</div>
+<script>
+    var error_box = $("#errorModal");
+    $(function () {
+        $('#tr-add').on('click', function(){
+            var _table = $(this).parent().prevAll('.table').find('tbody');
+            var row = _table.find('tr').length +1;
+            var t=$("#tmp_tr").clone();
+            var key_nh='';
+            $(t).find("input").each(function(){
+                key_nh=$(this).attr('nh');
+                $(this).attr('name',"item"+"["+row+"]["+key_nh+"]");
+                $(this).attr('id',key_nh+'_'+row);
+                $(this).val('');
+            });
+            $(t).find("select").each(function () {
+                key_nh=$(this).attr('nh');
+                $(this).attr('name',"item"+"["+row+"]["+key_nh+"]");
+                $(this).attr('id',key_nh+'_'+row);
+            });
+            $(t).find("textarea").each(function(){
+                key_nh=$(this).attr('nh');
+                $(this).attr('name',"item"+"["+row+"]["+key_nh+"]");
+                $(this).attr('id',key_nh+'_'+row);
+                $(this).off("click");
+                $(this).on("click", function () {
+                    $(this).removeClass("form-item-error");
+                });
+                $(this).val('');
+            });
+            $(t).find("td a").each(function(){
+                key_nh=$(this).attr('nh');
+                $(this).attr('key',row);
+                $(this).attr('id',key_nh+'_'+row);
+                $('.table').on('click','#'+key_nh+'_'+row,function () {
+                   
+                });
+            });
+            _table.append(t);
+        });
+        $('#task_form').on('click', '.table td > .delete', function(){
+            var t=$(this);
+            var pid = t.attr('key');
+            var del = t.attr('del');
+            if(del>0){
+                if(confirm("{:L('IF_DELETE')}")) {
+                    var ajax_url = "{:U('OrderTaskCw/delpay')}";
+                    $.ajax({
+                        url: base.url + ajax_url,
+                        type: 'POST',
+                        data: {'pid': pid},
+                        dataType: 'json',
+                        beforeSend: function () {
+                        },
+                        success: function (res) {
+                            if (res.status == 1) {
+                                t.parent().parent().remove();
+                            } else {
+                                modal.text(error_box, res.info);
+                                modal.open(error_box);
+                            }
+                        },
+                        error: function (err) {
+                        }
+                    })
+                }
+            }else{
+                t.parent().parent().remove();
+            }
+        });
+        $("#save_a").click(function () {
+            if(validate()){
+                var tid=$("#task_id").val() ;
+                var param = $("#task_form").serialize();
+                $.ajax({
+                    url: base.url + $('#task_form').attr('action') ,
+                    type: 'POST' ,
+                    data: param,
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+                })
+            }
+        })
+    });
+
+    function validate() {
+        var old_m = "{$money}";
+        var old_m1 = "{$money1}";
+        var user_state = "{$user_state}";
+        var is_error=0;
+        var new_m = 0;
+        var new_m1 = 0;
+        //现付
+        if(user_state==0){
+            $(".table [id^='money_']").each(function () {
+                if($(this).val()==''){
+                    is_error=1;
+                    return false;
+                }else{
+                    new_m += $(this).val();
+                }
+            });
+            $(".table [id^='money1_']").each(function () {
+                if($(this).val()==''){
+                    is_error=1;
+                    return false;
+                }else{
+                    new_m1 += $(this).val();
+                }
+            });
+            $(".table [id^='note_']").each(function () {
+                if($(this).val()==''){
+                    is_error=1;
+                    return false;
+                }
+            });
+            if(is_error==1){
+                modal.text(error_box, "{:L('FORM_EMPTY')}");
+                return false;
+            }
+            if(Math.abs(new_m)>old_m || Math.abs(old_m1)>old_m1){
+                modal.text(error_box, "{:L('REFUND_EXCEED')}");
+                return false;
+            }
+        }else{
+            $(".table [id^='money_']").each(function () {
+                if($(this).val()=='' || $(this).val()<1){
+                    is_error=1;
+                    return false;
+                }
+            });
+            $(".table [id^='money1_']").each(function () {
+                if($(this).val()==''|| $(this).val()<1){
+                    is_error=1;
+                    return false;
+                }
+            });
+           /* $(".table [id^='note_']").each(function () {
+                if($(this).val()==''){
+                    is_error=1;
+                    return false;
+                }
+            });*/
+            if(is_error==1){
+                modal.text(error_box, "{:L('FORM_MONEY')}");
+                return false;
+            }
+        }
+        return true;
+    }
+</script>

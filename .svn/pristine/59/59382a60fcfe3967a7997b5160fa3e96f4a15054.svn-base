@@ -1,0 +1,36 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class OfferSubLogModel extends Model
+{
+    const deleteTag = '-1'; // 删除的数据
+    const addTag = '1';    // 新增的数据
+    const upTag = '2';    // 新增的数据
+
+    public static $fieldType = [
+        'unit' => '单位',
+        'price' => '价格',
+        'quantity' => '数量',
+        'amount' => '金额',
+        'days' => '周期',
+        'hour' => '工时',
+    ];
+
+    protected
+        $pk = 'oslid';
+}

@@ -1,0 +1,98 @@
+<extend name="Public/base"/>
+<block name="body">
+    <link href="__CSS__/in/iviews-order.css" rel="stylesheet">
+    <div class="wrapper wrapper-content">
+        <!-- content begin -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox iviews-order">
+                    <div class="ibox-title">
+                        <div class="iviews-well">
+                            <h4>{:L('CASHER')}</h4>
+                            <strong>{:L('MONEY')}：<em id="m">￥{$money}</em></strong>
+                            <small>{:L('ORDER_SN')}：{$order.order_sn}</small>
+                        </div>
+                    </div>
+                    <div class="ibox-content iviews-order-pay">
+
+                        <div class="iviews-order-pay-item row">
+                            <div class="col-sm-12">
+                                <label>
+                                    <input type="radio" name="pay" class="i-checks" value="alipay">
+                                    <span class="icon-al"></span>
+                                    {:L('ALIPAY')}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="iviews-order-pay-item row">
+                            <div class="col-sm-12">
+                                <label>
+                                    <input type="radio" name="pay" class="i-checks" value="wxpay">
+                                    <span class="icon-wx"></span>
+                                    {:L('WXPAY')}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="iviews-order-pay-item row">
+                            <div class="col-sm-12">
+                                <label>
+                                    <input type="radio" name="pay" class="i-checks" value="paypal">
+                                    <span class="icon-pp"></span>
+                                    {:L('PAYPAL')}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row iviews-order-pay-btn">
+                            <div class="col-sm-2">
+                                <button class="btn btn-primary btn-block">{:L('NOW_PAY')}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- content end -->
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                radioClass: 'iradio_square-green',
+            });
+            var pay_type = "{$pay_type}";
+            var m = "{$money}";
+            var m1 = "{$money1}";
+            var m_str = '￥'+ m;
+            var m1_str = '$'+ m1;
+            
+            if(pay_type=='alipay'){
+                $(".ibox-content input:first").iCheck('check');
+                $("#m").html(m_str);
+            }else if(pay_type=='wxpay'){
+                $(".ibox-content input:eq(1)").iCheck('check');
+                $("#m").html(m_str);
+            }else{
+                $(".ibox-content input:last").iCheck('check');
+                $("#m").html(m1_str);
+            }
+
+            $('.i-checks').on('ifChecked', function(){
+                var type = $('input:radio:checked').val();
+                if(type=='alipay'){
+                    $(".ibox-content input:first").iCheck('check');
+                    $("#m").html(m_str);
+                }else if(type=='wxpay'){
+                    $(".ibox-content input:eq(1)").iCheck('check');
+                    $("#m").html(m_str);
+                }else{
+                    $(".ibox-content input:last").iCheck('check');
+                    $("#m").html(m1_str);
+                }
+            })
+        });
+    </script>
+</block>
+

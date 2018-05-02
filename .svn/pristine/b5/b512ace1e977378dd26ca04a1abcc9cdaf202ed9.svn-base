@@ -1,0 +1,109 @@
+<block name="body">
+    <!--<script src="__ROOT__/Admin/js/in/mlselection.js"></script>-->
+
+    <script>
+        var grid = 0;
+        $(function(){
+
+            setTimeout(function(){
+                regionInit("region");
+            },0)
+
+            $(document).on('click',"[name='edit_save']", function(){
+                // $("[name='save']").click(function(){
+                var  regionid =  $("[name='regionid']").val();
+                var  regionname =  $("[name='regionname']").val();
+                var  addr =  $("[name='addr']").val();
+                var  snee =  $("[name='snee']").val();
+                var  snee_tel =  $("[name='snee_tel']").val();
+                if(regionid == '' || regionid == null || regionid == undefined){
+                    $("[name='regid']").parent().addClass('error');
+                    return false;
+                }
+                if(addr == null || addr == '' || addr == undefined){
+                    $("[name='addr']").parent().addClass('error');
+                    return false;
+                }
+                if(snee == null || snee == '' || snee == undefined){
+                    $("[name='snee']").parent().addClass('error');
+                    return false;
+                }
+                if(snee_tel == null || snee_tel == '' || snee_tel == undefined){
+                    $("[name='snee_tel']").parent().addClass('error');
+                    return false;
+                }
+                var isdefault = $("[name='isdefault']:checked").val();
+                $.post(
+                    "{:U('Addess/edit?id='.$list['addr_id'])}",
+                    { regionid:regionid,regionname:regionname,addr:addr,isdefault:isdefault,snee:snee,snee_tel:snee_tel},
+                    function(data){
+                        if(data.done){
+                            order_choose({addr_id:data.addr_id,regionname:regionname+' '+addr,snee:snee,snee_tel:snee_tel});
+                        }else{
+                            alert(data.msg);
+                        }
+                    },'json'
+                );
+            });
+
+
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div  id="form" class="form-horizontal" >
+            <input type="hidden" name="id" value="{$list.addr_id}">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{:L('REGION')}</label>
+                <div id="region" class="col-sm-10">
+                    <input type="hidden" name="regionid"  class="mls_ids" value="{$list.regionid}" />
+                    <input type="hidden" name="regionname"  class="mls_names" value="{$list.regionname}"/>
+                    <select class="form-control">
+                        <option>{:L('PLEASE_SELECT')}</option>
+                        <volist name="regions" id="vo">
+                            <option value="{$vo.region_id}" <if condition="$vo.region_id eq $list.regionid">selected</if>>{$vo.region_name}</option>
+                        </volist>
+                    </select>
+                    <if condition="$list.regionid gt 0">
+                        <script>
+                            grid={$list.regionid};
+                        </script>
+                    </if>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{:L('ADDR')}</label>
+                <div class="col-sm-10">
+                    <input type="text" name="addr" class="form-control" value="{$list.addr}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{:L('SNEE')}</label>
+                <div class="col-sm-10">
+                    <input type="text" name="snee" class="form-control" value="{$list.snee}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{:L('TEL')}</label>
+                <div class="col-sm-10">
+                    <input type="text" name="snee_tel" class="form-control" value="{$list.snee_tel}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{:L('ISDEFAULT')}</label>
+                <div class="col-sm-10">
+                    <div class="radio  radio-inline"><input type="radio" value="1" name="isdefault"  <eq name="list.isdefault" value="1"> checked </eq> id="enabled1"> <label for="enabled1">{:L('OPEN')}</label></div>
+                    <div class="radio  radio-inline"><input type="radio" value="0" name="isdefault" <eq name="list.isdefault" value="0"> checked </eq> id="enabled2"> <label for="enabled2">{:L('CLOSE')}</label></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-4 col-sm-offset-2">
+                    <button class="btn btn-primary" name="edit_save">{:L('SAVE')}</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

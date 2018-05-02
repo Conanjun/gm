@@ -1,0 +1,205 @@
+<?php
+
+namespace Admin\Controller;
+/**
+ * 支付方式控制器 ：ZL
+ *
+ */
+class PaymentController extends AdminController
+{
+	private $model;
+	
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+		$this->model = D('Payment');
+	}
+	/*
+     * 首页
+     * */
+	public function index(){
+		$where = " 1=1 ";
+		$name = empty($_GET['name'])?'':trim($_GET['name']);//名称
+		if($name){
+			$where .= " and p.name like '%{$name}%'";
+		}
+		$code = I('code','');
+		if($code){
+			$where .= " and p.code like '%{$code}%'";
+		}
+		
+		$count = $this->model->countNum($where);
+		$page = new \Think\Page($count, 20);
+		$lists = $this->model
+				->alias('p')
+				->where($where)
+				->limit($page->firstRow . ',' . $page->listRows)
+				->select();
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+		$this->assign('_page', $page->show());
+		$this->display();
+	}
+	/*
+     * 新增支付方式
+     * */
+	public function add(){
+		if(IS_POST){
+			$Model = M(); // 实例化一个空对象
+			$Model->startTrans(); // 开启事务
+			
+			$name = empty($_POST['name'])?'':trim($_POST['name']);
+			if(empty($name)){//名称不能为空
+				$this->error(L('NAME_NOT_EMPTY'));
+			}
+			
+			if($this->model->uniqueName($name)){//名称已存在
+				$this->error(L('NAME_EXISTED'));
+			}
+			
+			$code = I('code','');
+			if(empty($code)){
+				$this->error(L('CODE_NOT_EMPTY'));
+			}
+			
+			if($this->model->uniqueCode($code)){//名称已存在
+				$this->error(L('CODE_EXISTED'));
+			}
+			
+			$data = array(
+				'name' => $name,
+				'code' => $code,
+			);
+			$id = $this->model->save($data);
+			if (!empty($id)) {
+				action_log_new(array('outtype' => 'ot_payment', 'outkey' => $id, 'action' => 'add', 'comment' => ''));
+				$Model->commit(); // 成功则提交事务
+				$this->redirect('Payment/index');
+			} else {
+				$Model->rollback(); // 否则将事务回滚
+				$this->error(L('ADD_ERROR'));
+			}
+		}else{
+			$this->display();
+		}
+	}
+	
+	/*
+     * 编辑支付方式
+     * */
+	public function edit(){
+		if(IS_POST){
+			$Model = M(); // 实例化一个空对象
+			$Model->startTrans(); // 开启事务
+			
+			$id = empty($_POST['id'])?0:trim($_POST['id']);
+			$where = "payid = {$id}";
+			$lists =$this->model->getList($where);
+			if(empty($lists)){
+				$this->error(L('Data_not_exist'));
+			}
+			
+			$name = empty($_POST['name'])?'':trim($_POST['name']);
+			if(empty($name)){//名称不能为空
+				$this->error(L('NAME_NOT_EMPTY'));
+			}
+			
+			if($this->model->uniqueName($name,$id)){//名称已存在
+				$this->error(L('NAME_EXISTED'));
+			}
+			
+			$code = I('code','');
+			if(empty($code)){
+				$this->error(L('CODE_NOT_EMPTY'));
+			}
+			
+			if($this->model->uniqueCode($code,$id)){//名称已存在
+				$this->error(L('CODE_EXISTED'));
+			}
+			
+			$data = array(
+				'title' => $name,
+				'code' => $code,
+				'id' => $id,
+			);
+			$id = $this->model->save($data);
+			if (!empty($id)) {
+				$history = array();
+				foreach ($data as $key => $vo) {
+					if ($vo != $lists [$key]) {
+						$history [] = array(
+							'field' => $key,
+							'olddata' => $lists [$key],
+							'newdata' => $vo
+						);
+					}
+				}
+				action_log_new(array('history'=>$history, 'outtype' => 'ot_payment', 'outkey' => $id, 'action' => 'edit', 'comment' => ''));
+				$Model->commit(); // 成功则提交事务
+				$this->redirect('Payment/index');
+			} else {
+				$Model->rollback(); // 否则将事务回滚
+				$this->error(L('EDIT_ERROR'));
+			}
+		}else{
+			$this->display();
+		}
+	}
+	/*
+     * 删除支付方式
+     * */
+	public function delete()
+	{
+		$ids = ( array )I('id');
+		if (empty($ids[0])) {
+			return $this->json_error(L('Data_not_exist'));
+		}
+		$msg = '';
+		foreach($ids as $id){
+			$where = "payid = {$id}";
+			$list =$this->model->getList($where);
+			if($list){
+				$res = $this->model->where($where)->delete();
+				if($res === false){
+					$msg .= "『{$list['name']}』".L('DELETE_FAILED')."\n";
+				}else{
+					$msg .= "『{$list['name']}』".L('DELETE_SUCCESS')."\n";
+					action_log_new(array('outtype' => 'ot_payment', 'outkey' => $id, 'action' => 'delete', 'comment' => ''));
+				}
+			}else{
+				$msg .= L('DELETE_FAILED')."\n";
+			}
+		}
+		$this->json_success($msg);
+	}
+	/*
+     * 支付方式的启用停用
+     * */
+	public function enabled(){
+		$id = I('id',0);
+		if(empty($id)){
+			return $this->json_error(L('Data_not_exist'));
+		}
+		$enabled = I('enabled',0);
+		if($enabled){
+			$enabled1 = 0;
+		}else{
+			$enabled1 = 1;
+		}
+		$res = $this->model->save(array('enabled'=>$enabled1,'payid'=>$id));
+		if($res === false){
+			return $this->json_error(L('EDIT_ERROR'));
+		}else{
+			$history = array();
+			$history [] = array(
+				'field' => 'enabled',
+				'olddata' => $enabled,
+				'newdata' => $enabled1
+			);
+			action_log_new(array('history'=>$history, 'outtype' => 'ot_payment', 'outkey' => $id, 'action' => 'edit', 'comment' => ''));
+			return $this->json_success(L('EDIT_SUCCESS'));
+		}
+		
+	}
+}

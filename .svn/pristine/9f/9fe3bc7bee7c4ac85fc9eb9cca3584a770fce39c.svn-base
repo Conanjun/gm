@@ -1,0 +1,331 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Studio\Controller;
+
+use User\Api\UserApi;
+
+/**
+ * 后台首页控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class PublicController extends \Think\Controller
+{
+    /**
+     * 后台用户登录
+     *
+     * @param null $username
+     * @param null $password
+     * @param null $verify
+     * @param int  $expiry
+     */
+    public function login($username = null, $password = null, $verify = null, $expiry = 0)
+    {
+        if (IS_POST) {
+            /* 检测验证码 TODO: */
+            /*if(!check_verify($verify)){
+             $this->error('验证码输入错误！');
+             }*/     
+            /* 调用UC登录接口登录 */
+            $User = new UserApi;
+            $uid = $User->login($username, $password);
+            if (0 < $uid) { //UC登录成功
+                /* 登录用户 */
+                $Member = D('Member');
+                if ($Member->login($uid, $expiry)) { //登录用户
+                    //TODO:跳转到登录前页面
+                    //写入缓存
+                    $uid = is_login();
+                    action_log_new(array('outtype' => 'ot_member', 'outkey' => $uid, 'action' => 'login', 'comment' => ''));
+					
+                    $r=empty($_REQUEST['r'])?'':$_REQUEST['r'];
+                    if($r){
+                    	$redrect= 'https://'.$_SERVER['HTTP_HOST'].str_replace('%', '/', $r);
+                    }else{
+                    	$redrect=U('Index/index');
+                    }
+                    $this->success('登录成功！', $redrect);
+                } else {
+                    $this->error($Member->getError());
+                }
+
+            } else { //登录失败
+                switch ($uid) {
+                    case -1:
+                        $error = '用户不存在或被禁用！';
+                        break; //系统级别禁用
+                    case -2:
+                        $error = '密码错误！';
+                        break;
+                    default:
+                        $error = '未知错误！';
+                        break; // 0-接口参数错误（调试阶段使用）
+                }
+                $this->error($error);
+            }
+        } else {
+            if (is_login()) {
+                $this->redirect('Index/index');
+            } else {
+                /* 读取数据库中的配置 */
+                $config = S('DB_CONFIG_DATA');
+                if (!$config) {
+                    $config = D('Config')->lists();
+                    S('DB_CONFIG_DATA', $config);
+                }
+                C($config); //添加配置
+                $this->assign('sucurl', C('RCODE_SUC_URL'));
+                $this->assign('rcodeurl', C('DXY_RCODE_URL'));
+                $this->assign('checkurl', C('DXY_CHECK_URL'));
+                $r=empty($_GET['r'])?'':$_GET['r'];
+                $this->assign('r', $r);
+                $this->display();
+            }
+        }
+    }
+
+    public static function getNonceStr($length = 16)
+    {
+        $chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        $str = "";
+        for ($i = 0; $i < $length; $i++) {
+            $str .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
+        }
+        return $str;
+    }
+
+    public function ToUrlParams($param)
+    {
+        $buff = "";
+        foreach ($param as $k => $v) {
+            if ($k != "sign" && $v != "" && !is_array($v)) {
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+
+        $buff = trim($buff, "&");
+        return $buff;
+    }
+
+    public function msign($param)
+    {
+        ksort($param);
+        $string = $this->ToUrlParams($param);
+        $string = sha1($string);
+        $result = strtolower($string);
+        return $result;
+    }
+
+    public function murl($url, $id, $key, $param)
+    {
+        if ($url) {
+            $nonce = $this->getNonceStr();
+            $pub = array('timestamp' => time(), 'appId' => $id, 'appSignKey' => $key, 'nonce' => $nonce);
+
+            $param = array_merge($pub, $param);
+            $sign = $this->msign($param);
+            $param['sign'] = $sign;
+
+            $i = 0;
+            if ($param) {
+                foreach ($param as $k => $v) {
+                    $i++;
+                    if ($i == 1) {
+                        $url .= '?' . $k . '=' . $v;
+                    } else {
+                        $url .= '&' . $k . '=' . $v;
+                    }
+                }
+            }
+
+        }
+        return $url;
+    }
+
+    public function rcodelogin()
+    {
+        if (is_login()) {
+            $this->redirect('Index/index');
+        } else {
+            /* 读取数据库中的配置 */
+            $ticket = $_REQUEST['ticket'] ? $_REQUEST['ticket'] : '';
+
+            if (empty($ticket)) {
+                $this->error('非法登录');
+            }
+
+
+            $id = C('DXY_RCODE_APPID');
+            $key = C('DXY_RCODE_KEY');
+            $param = array('ticket' => $ticket, 'address' => $_SERVER['REMOTE_ADDR']);
+            $url = $this->murl(C('DXY_TICKET_URL'), $id, $key, $param);
+
+            $data = file_get_contents($url);
+            $data = json_decode($data, TRUE);
+
+            if ($data && !empty($data['account'])) {
+
+                //用$data['account']（也就是用户email来判断用户是否存在）
+                //不存在 调用下边api读取用户信息创建用户后登陆，用户存在直接登录
+
+                $has = M('UcenterMember')->where("email='{$data['account']}'")->find();
+                if ($has) {
+                    $Member = D('Member');
+                    if ($Member->login($has['id'])) {
+                        $this->redirect('Index/index');
+                        exit();
+                    } else {
+                        $this->error($Member->getError());
+                        exit();
+                    }
+                }
+
+
+                $id = C('DXY_S_APPID');
+                $key = C('DXY_S_KEY');
+                $param = array('keyword' => $data['account'], 'applicationId' => '0', 'enable' => 'false');
+                $url = $this->murl(C('DXY_S_URL'), $id, $key, $param);
+
+                $data = file_get_contents($url);
+                $data = json_decode($data, TRUE);
+
+                if (empty($data) || empty($data['contact'])) {
+                    $this->error('非法登录');
+                }
+                $out = $data['contact'];
+                $out = $out[0];
+                //用户信息
+                //email 邮箱,name 实名,mobile 电话,gender 性别,wxid 微信号,birthday 生日
+
+                //$data['department'] 部门（判断信息有没有）$data['department']['name'] 匹配部门名称
+                $deptid = 0;
+                if (!empty($data['department']) && !empty($data['department']['name'])) {
+                    $dept = M('Dept')->where("name='{$data['department']['name']}'")->find();
+                    $deptid = $dept['did'];
+                }
+
+                $username = $out['email'];
+                $email = $out['email'];
+                $mobile = $out['mobile'];
+                $nickname = $out['name'];
+                $qq = empty($out['wxid']) ? '' : $out['wxid'];
+                if ($out['gender'] == '男') {
+                    $sex = 1;
+                } elseif ($out['gender'] == '女') {
+                    $sex = 2;
+                } else {
+                    $sex = 0;
+                }
+                $birthday = '';
+                $userpassword = C('INI_PWD');
+                if (empty($nickname)) {
+                    $nickname = $username;
+                }
+
+                /* 调用注册接口注册用户 */
+                $User = new UserApi;
+                $uid = $User->register($username, $userpassword, $email, $mobile);
+                if (0 < $uid) { //注册成功
+                    $user = array('uid' => $uid, 'nickname' => $nickname, 'status' => 1, 'dept' => $deptid, 'qq' => $qq, 'sex' => $sex, 'birthday' => $birthday);
+
+
+                    if (!M('Member')->add($user)) {
+                        $this->error('用户登录失败！');
+                    } else {
+                        $this->success('提交登录申请成功，等待管理员赋权！', U('login'));
+                    }
+                } else { //注册失败，显示错误信息
+                    $this->error($this->showRegError($uid));
+                }
+
+
+            } else {
+                $this->error('非法登录');
+            }
+        }
+    }
+
+    /**
+     * 获取用户注册错误信息
+     *
+     * @param  integer $code 错误编码
+     *
+     * @return string        错误信息
+     */
+    private function showRegError($code = 0)
+    {
+        switch ($code) {
+            case -1:
+                $error = '用户名长度必须在16个字符以内！';
+                break;
+            case -2:
+                $error = '用户名被禁止注册！';
+                break;
+            case -3:
+                $error = '用户名被占用！';
+                break;
+            case -4:
+                $error = '密码长度必须在6-30个字符之间！';
+                break;
+            case -5:
+                $error = '邮箱格式不正确！';
+                break;
+            case -6:
+                $error = '邮箱长度必须在1-32个字符之间！';
+                break;
+            case -7:
+                $error = '邮箱被禁止注册！';
+                break;
+            case -8:
+                $error = '邮箱被占用！';
+                break;
+            case -9:
+                $error = '手机格式不正确！';
+                break;
+            case -10:
+                $error = '手机被禁止注册！';
+                break;
+            case -11:
+                $error = '手机号被占用！';
+                break;
+            default:
+                $error = '未知错误';
+        }
+        return $error;
+    }
+
+    /* 退出登录 */
+    public function logout()
+    {
+        //写入日志
+        $uid = is_login();
+        action_log_new(array(
+            'outtype' => 'ot_member',
+            'outkey' => $uid,
+            'action' => 'logout',
+            'comment' => ''
+        ));
+        if (is_login()) {
+            D('Member')->logout();
+
+            session('[destroy]');
+            $this->redirect('login');
+        } else {
+            $this->redirect('login');
+        }
+    }
+
+    public function verify()
+    {
+        $verify = new \Think\Verify();
+        $verify->entry(1);
+    }
+
+}

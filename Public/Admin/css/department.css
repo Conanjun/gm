@@ -1,0 +1,25 @@
+* { margin: 0; padding: 0; }
+a { text-decoration: none; }
+.se-mask { display: none; position: fixed; top: 0; left: 0; z-index: 111; background: rgba(0,0,0,.5); width: 100%; height: 100%; z-index: 110; }
+.se-change { display: none; position: absolute; z-index: 111; left: 50%; top: 50%; margin: -250px 0 0 -350px; width: 700px;padding: 15px 10px; background: #fff; overflow: hidden; }
+.se-change .close1 { position: absolute; top: 10px; right: 10px; width: 14px; height: 14px; background: url('../images/icon-close1.png') center no-repeat; background-size: cover; }
+.se-change .pull-left { float: left; }
+.se-change .pull-right { float: right; }
+.se-change .change-item { width: 340px; }
+.se-change .change-item h3 { height: 30px; line-height: 30px; margin: 0; font-size: 12px; border-bottom: 1px solid #e7e7e7; font-weight: normal; padding-left: 15px; color: #999; }
+.se-change .change-item ._scroll { height: 420px; margin: 5px 0 15px; overflow: hidden; }
+.se-change .change-item ._scroll ,
+.se-change .change-item ._panel-box { position: relative; }
+.se-change .change-item ._panel-item { width: 310px; height: 24px; line-height: 24px; font-size: 12px; padding-left: 15px; border: 1px solid #fff; cursor: pointer; transition: all .3s; }
+.se-change .pull-left ._panel-item { background: url('../images/icon-arrow-right-g.png') 96% center no-repeat; }
+.se-change .pull-left ._panel-item.active ,
+.se-change .pull-left ._panel-item:hover { background: #ecf0f1 url('../images/icon-arrow-right-g.png') 96% center no-repeat; border-color: #c1c5c6; }
+/*.change .pull-right ._panel-item:hover ,*/
+.se-change ._panel-item.checked { background: #ecf0f1 url('../images/checked.png') 96% center no-repeat; border-color: #ecf0f1; color: #7540d8; }
+.se-change ._panel-item.checked:hover { background: #ecf0f1 url('../images/checked.png') 96% center no-repeat; border-color: #ecf0f1; color: #7540d8; }
+.se-change .change-button { margin-top: 15px; font-size: 0; text-align: center; }
+.se-change .change-button a { display: inline-block; vertical-align: top; width: 108px; height: 30px; line-height: 30px; font-size: 14px; margin: 0 15px; }
+.se-change .change-button .reset { background: #ecf0f1; color: #666; }
+.se-change .change-button .submit { background: #7540d8; color: #fff; }
+.se-change ._panel-tab-content { display: none; }
+.se-change ._panel-tab-content.active { display: block; }

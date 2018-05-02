@@ -1,0 +1,683 @@
+<div id="querybox" class="">
+		<script language="javascript">
+$(function()
+{
+    $("#searchform").keydown(function (e) {
+        var curKey = e.which;
+        if (curKey == 13) {
+            $("#searchform").submit();
+        }
+    });
+	$("#btnsubmit").click(function(){
+		$("#searchform").submit();
+	});
+    
+});
+</script>
+		<script>
+var noResultsMatch       = '没有匹配结果';
+var chooseUsersToMail    = '选择要发信通知的用户...';
+var defaultChosenOptions = {no_results_text: noResultsMatch, width:'100%', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+$(document).ready(function()
+{
+    $("#mailto").attr('data-placeholder', chooseUsersToMail);
+    $("#mailto, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+    {
+        var $this = $(this);
+        var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+        var $drop = $chosen.find('.chosen-drop');
+        $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+    });
+});
+</script>
+<style>
+#bysearchTab {transition: all .3s cubic-bezier(.175, .885, .32, 1);}
+#bysearchTab.active {background: #fff; padding: 2px 10px 3px; padding-bottom: 2px\0; border: 1px solid #ddd; border-bottom: none}
+#bysearchTab.active:hover {background: #ddd}
+
+#featurebar .nav {position: relative;}
+#featurebar .nav .dropdown .dropdown-menu{z-index:1010;}
+#querybox form{padding-right: 40px;}
+#querybox .form-control {padding: 2px}
+@-moz-document url-prefix() {#querybox .form-control {padding: 6px 2px;}}
+#querybox .table {border: none}
+#querybox .table-form td {border: none}
+#querybox .btn {padding: 5px 8px;}
+#querybox .table-form td td {padding: 2px;}
+#querybox .table .table {margin: 0;}
+.outer #querybox .table tr > th:first-child, .outer #querybox .table tr > td:first-child,
+.outer #querybox .table tr > th:last-child, .outer #querybox .table tr > td:last-child,
+.outer #querybox .table tbody > tr:last-child td {padding: 2px}
+#querybox a:hover {text-decoration: none;}
+
+#selectPeriod {padding: 4px; height: 197px; min-width: 120px}
+#selectPeriod > .dropdown-header {background: #f1f1f1; display: block; text-align: center; padding: 4px 0; line-height: 20px; margin-bottom: 5px; font-size: 14px; border-radius: 2px; color: #333; font-size: 12px}
+#selectPeriod li > a {padding: 4px 15px; border-radius: 2px}
+
+#moreOrLite {position: absolute; right: 0px; top: 0; bottom: 0}
+#searchlite, #searchmore {color: #5e4ba4; width: 50px; padding: 0 5px; line-height: 60px; text-align: center;}
+#searchlite {line-height: 127px}
+#searchform.showmore #searchmore, #searchform #searchlite {display: none;}
+#searchform.showmore #searchlite, #searchform #searchmore {display: inline-block;}
+#searchform .chosen-container .chosen-drop{min-width: 400px;}
+#searchform .chosen-container .chosen-drop ul.chosen-results li{white-space:normal}
+#searchmore > i, #searchlite > i {font-size: 28px;}
+#searchmore > i {position: relative; top: 4px;}
+#searchmore:hover, #searchlite:hover {color: #7865c7; background: #e5e5e5}
+
+#groupAndOr {display: inline-block;}
+
+.outer > #querybox {margin: -20px -20px 20px; border-top: none; border-bottom: 1px solid #ddd}
+
+#searchform input.date::-webkit-input-placeholder{color: #000000; opacity: 1;}
+#searchform input.date::-moz-placeholder{color: #000000; opacity: 1;} 
+#searchform input.date:-ms-input-placeholder{color: #000000; opacity: 1;}
+</style>
+<script language="Javascript">
+var dtOptions = {lang:'ch',timepicker:true,format:'Y/m/d H:i'};
+
+$(function()
+{
+    $('.date').each(function()
+    {
+        time = $(this).val();
+        if(!isNaN(time) && time != ''){
+            var Y = time.substring(0, 4);
+            var m = time.substring(4, 6);
+            var d = time.substring(6, 8);
+            time = Y + '-' + m + '-' + d;
+            $('.date').val(time);
+        }
+    });
+    setDateField('.date');
+    
+    var value1="{:I('value1')}";
+    var date_value1="{:I('date_value1')}";
+    var value2="{:I('value2')}";
+    var date_value2="{:I('date_value2')}";
+    var value3="{:I('value3')}";
+    var date_value3="{:I('date_value3')}";
+    var value4="{:I('value4')}";
+    var date_value4="{:I('date_value4')}";
+    var value5="{:I('value5')}";
+    var date_value5="{:I('date_value5')}";
+    var value6="{:I('value6')}";
+    var date_value6="{:I('date_value6')}";
+    if(value2||value3||value5||value6 || date_value2||date_value3||date_value5||date_value6){
+    	$("#searchmore").click();
+    }
+    
+});
+
+var userparams = {$fieldParams1};
+var groupItems    = "3";
+var setQueryTitle = '请输入查询标题（保存之前请先查询）：';
+var module        = 'user';
+var actionURL     = '{$actionURL}';
+
+/**
+ * Set date field
+ * 
+ * @param  string $query 
+ * @return void
+ */
+function setDateField(query, fieldNO)
+{
+    var $period = $('#selectPeriod');
+   /* if(!$period.length)
+    {
+        $period = $("<ul id='selectPeriod' class='dropdown-menu'>" +
+			"<li class='dropdown-header'>或  选择时间段</li>" +
+			"<li><a href='#lastWeek'>上周</a></li>" +
+			"<li><a href='#thisWeek'>本周</a></li>" +
+			"<li><a href='#yesterday'>昨天</a></li>" +
+			"<li><a href='#today'>今天</a></li>" +
+			"<li><a href='#lastMonth'>上月</a></li>" +
+			"<li><a href='#thisMonth'>本月</a></li>" +
+			"</ul>").appendTo('body');
+        $period.find('li > a').click(function(event)
+        {
+            var target = $(query).closest('form').find('#' + $period.data('target'));
+            if(target.length)
+            {
+                if(target.next('input[type=hidden]').length)
+                {
+                    target.next('input[type=hidden]').val($(this).attr('href').replace('#', '$'));
+                    target.attr('placeholder', $(this).attr('href').replace('#', '$'));
+                }
+                else
+                {
+                    target.val($(this).attr('href').replace('#', '$'));
+                }
+
+                $(query).closest('form').find('#operator' + $period.data('fieldNO')).val('between');
+                $period.hide();
+            }
+            event.stopPropagation();
+            return false;
+        });
+    }*/
+    $(query).datetimepicker('remove').datetimepicker(dtOptions).on('show', function(e)
+    {
+        var $e = $(e.target);
+        var ePos = $e.offset();
+        $period.css({'left': ePos.left + 175, 'top': ePos.top + 29, 'min-height': $('.datetimepicker').outerHeight()}).show().data('target', $e.attr('id')).data('fieldNO', fieldNO).find('li.active').removeClass('active');
+        if($e.attr('placeholder'))
+        {
+            $period.find("li > a[href='" + $e.attr('placeholder').replace('$', '#') + "']").closest('li').addClass('active');
+        }
+        else
+        {
+            $period.find("li > a[href='" + $e.val().replace('$', '#') + "']").closest('li').addClass('active');
+        }
+    }).on('changeDate', function()
+    {
+        var opt = $(query).closest('form').find('#operator' + $period.data('fieldNO'));
+        var target = $('#' + $period.data('target'));
+        if(target.length)
+        {
+            if(target.next('input[type=hidden]').length)
+            {
+                target.next('input[type=hidden]').val(target.val());
+            }
+        }
+        if(opt.val() == 'between') opt.val('<=');
+        $period.hide();
+    }).on('hide', function(){setTimeout(function(){$period.hide();}, 200);});
+}
+
+/**
+ * When the value of the fields select changed, set the operator and value of the new field.
+ * 
+ * @param  string $obj 
+ * @param  int    $fieldNO 
+ * @access public
+ * @return void
+ */
+function setField(obj, fieldNO, moduleparams)
+{
+    var params    = moduleparams;
+    var fieldName = $(obj).val();
+    var k=0;
+    for(var i=0;i<params.length;i++){
+    	if(params[i].fieldname==fieldName){
+    		k=i;
+    		break;
+    	}
+    }
+    
+    $(obj).closest('form').find('#operator' + fieldNO).val(params[k]['operator']);   // Set the operator according the param setting.
+    $(obj).closest('form').find('#valueBox' + fieldNO).html("");
+    $(obj).closest('form').find('#valueBox' + fieldNO).html($(obj).closest('form').find('#box' + k).children().clone());
+    $(obj).closest('form').find('#valueBox' + fieldNO).children().attr({name : 'value' + fieldNO, id : 'value' + fieldNO});
+
+    if(typeof(params[k]['class']) != undefined && params[k]['class'] == 'date')
+    {
+        setDateField($(obj).closest('form').find("#value" + fieldNO), fieldNO);
+        $(obj).closest('form').find("#value" + fieldNO).addClass('date');   // Shortcut the width of the datepicker to make sure align with others. 
+        $(obj).closest('form').find("#value" + fieldNO).attr('name','date_value'+fieldNO);
+		var groupItems = 3;
+        var maxNO      = 2 * groupItems;
+        var nextNO     = fieldNO > groupItems ? fieldNO - groupItems + 1 : fieldNO + groupItems;
+        var nextValue  = $(obj).closest('form').find('#value' + nextNO).val();
+        var operator   = $(obj).closest('form').find("#operator" + fieldNO).val();
+        if(nextNO <= maxNO && fieldNO < maxNO && (nextValue == '' || nextValue == 0) && operator == ">=")
+        {
+            $(obj).closest('form').find('#field' + nextNO).val($(obj).closest('form').find('#field' + fieldNO).val());
+            $(obj).closest('form').find('#operator' + nextNO).val('<=');
+            $(obj).closest('form').find('#valueBox' + nextNO).html($(obj).closest('form').find('#box' + k).children().clone());
+            $(obj).closest('form').find('#valueBox' + nextNO).children().attr({name : 'value' + nextNO, id : 'value' + nextNO});
+            setDateField($(obj).closest('form').find("#value" + nextNO), nextNO);
+            $(obj).closest('form').find("#value" + nextNO).addClass('date');
+        }
+    }
+    else if(params[k]['control'] == 'select')
+    {
+        $(obj).closest('form').find("#value" + fieldNO).chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+        {
+            var $this = $(this);
+            var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+            var $drop = $chosen.find('.chosen-drop');
+            $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+        });
+    }
+}
+
+/**
+ * Reset forms.
+ * 
+ * @access public
+ * @return void
+ */
+function resetForm(obj)
+{
+    for(i = 1; i <= groupItems * 2; i ++)
+    {
+        $(obj).closest('form').find('#value' + i).val('').trigger('chosen:updated');
+    }
+    $("#searchform").submit();
+}
+
+/**
+ * Show more fields.
+ * 
+ * @access public
+ * @return void
+ */
+function showmore(obj)
+{
+	 $(obj).closest('form').find('#searchbox' + 2).removeClass('hidden');
+	 $(obj).closest('form').find('#searchbox' + 3).removeClass('hidden');
+	 $(obj).closest('form').find('#searchbox' + 5).removeClass('hidden');
+	 $(obj).closest('form').find('#searchbox' + 6).removeClass('hidden');
+
+    $(obj).closest('form').find('#formType').val('more');
+    $(obj).closest('form').addClass('showmore');
+}
+
+/**
+ * Show lite search form.
+ * 
+ * @access public
+ * @return void
+ */
+function showlite(obj)
+{
+    
+    $(obj).closest('form').find('#value' + 2).val('');
+    $(obj).closest('form').find('#searchbox' + 2).addClass('hidden');
+    $(obj).closest('form').find('#value' + 3).val('');
+    $(obj).closest('form').find('#searchbox' + 3).addClass('hidden');
+    $(obj).closest('form').find('#value' + 5).val('');
+    $(obj).closest('form').find('#searchbox' + 5).addClass('hidden');
+    $(obj).closest('form').find('#value' + 6).val('');
+    $(obj).closest('form').find('#searchbox' + 6).addClass('hidden');
+    
+    $(obj).closest('form').removeClass('showmore');
+    $(obj).closest('form').find('#formType').val('lite');
+}
+
+/**
+ * loadQueries.
+ * 
+ * @param  queryID $queryID 
+ * @access public
+ * @return void
+ */
+function loadQueries(queryID)
+{
+    $('#queryBox').load(createLink('search', 'ajaxGetQuery', 'module=' + module + '&queryID=' + queryID));
+}
+
+/**
+ * Execute a query.
+ * 
+ * @param  int    $queryID 
+ * @access public
+ * @return void
+ */
+function executeQuery(queryID)
+{
+    if(!queryID) return;
+    location.href = actionURL.replace('myQueryID', queryID);
+}
+
+/**
+ * Delete a query.
+ * 
+ * @access public
+ * @return void
+ */
+function deleteQuery()
+{
+    queryID = $('#queryID').val();
+    if(!queryID) return;
+    deleteQueryLink = createLink('search', 'deleteQuery', 'queryID=' + queryID);
+    $.get(deleteQueryLink, function(data)
+    {
+        if(data == 'success') $('#queryBox').load(createLink('search', 'ajaxGetQuery', 'module=' + module));
+    });
+}
+
+$(function()
+{
+    $('#searchform select[id^="operator"]').change(function()
+    {
+        var value = $(this).val();
+        if(value == '>=' && $(this).closest('tr').find('input[id^="value"]').hasClass('date'))
+        {
+            fieldNO   = parseInt($(this).attr('id').replace('operator', ''));
+            fieldName = $(this).closest('tr').find("select[id^='field']").val();
+            var $form      = $(this).closest('form');
+            var groupItems = "{$groupItems}";
+            var maxNO      = 2 * groupItems;
+            var nextNO     = fieldNO > groupItems ? fieldNO - groupItems + 1 : fieldNO + groupItems;
+            var nextValue  = $form.find('#value' + nextNO).val();
+            if(nextNO <= maxNO && fieldNO < maxNO && (nextValue == '' || nextValue == 0))
+            {
+                $form.find('#field' + nextNO).val($form.find('#field' + fieldNO).val());
+                $form.find('#operator' + nextNO).val('<=');
+                $form.find('#valueBox' + nextNO).html($form.find('#box' + fieldName).children().clone());
+                $form.find('#valueBox' + nextNO).children().attr({name : 'value' + nextNO, id : 'value' + nextNO});
+                setDateField($form.find("#value" + nextNO), nextNO);
+                $form.find("#value" + nextNO).addClass('date');
+            }
+        }
+    })
+})
+</script>
+		<egt name="allc" value="1">
+		<form method="get"  id="searchform" class="form-condensed">
+			<input type="hidden" value="{$actionURL}" name="s">
+			<input type="hidden" value="{$pageshowcount}" name="pageshowcount">
+			<div class='hidden'>
+			   <foreach name="fieldParams[params1]" item="f" key="k" >
+				   <span id="box{$k}">
+				   	<eq name="f[control]" value="input">
+						<input type='text' name='field{$f.fieldname}' id='field{$f.fieldname}' value='{$f.values}' class='form-control searchInput' autocomplete='off' />
+					</eq>
+					<eq name="f[control]" value="select">
+						<select name='field{$f.fieldname}' id='field{$f.fieldname}' class="form-control searchSelect" style="display: none;">
+							<foreach name="f[values]" item="v" key="k" >
+								<option value="{$k}" data-keys="{$k}">{$v}</option>
+							</foreach>
+						</select>
+					</eq>
+				   </span>
+			   </foreach>
+			</div>
+			
+			
+			<table class="table table-condensed table-form" id="user-search"
+				style="max-width: 1050px; margin: 0 auto">
+				<tbody>
+					<tr>
+						<td class="w-400px">
+							<table class="table active-disabled table-fixed">
+								<tbody>
+									<egt name="allc" value="1">
+										<tr id="searchbox1" class="">
+										<td class="text-right w-60px"><span id="searchgroup1"><strong>第一组</strong>
+										</span><input type="hidden" name="andOr1" id="andOr1" value="AND">
+										</td>
+										<td class="w-90px">
+										<select name="field1" id="field1" onchange="setField(this, 1, userparams)" class="form-control">
+												<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field1">
+														selected="selected"
+														<elseif condition="$k eq 0 and empty($field1)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+												</foreach>
+										</select>
+										</td>
+										<td class="w-70px"><select name="operator1" id="operator1" class="form-control">
+										
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][0][operator]">selected="selected"</in> >{$o}</option>
+												</foreach>
+										
+										</select>
+										</td>
+										<td id="valueBox1" style="overflow: visible">
+										<if condition="($fieldParams[params][0][control] eq 'input') && ($fieldParams[params][0]['class'] eq 'date')">
+												<input type="text" name="date_value1" id="value1" value="{$fieldParams[params][0][values]}" class="form-control date searchInput" autocomplete="off">
+											<elseif condition="$fieldParams[params][0][control] eq 'input'"/>
+												<input type="text" name="value1" id="value1" value="{$fieldParams[params][0][values]}" class="form-control  searchInput" autocomplete="off">
+										</if>
+										<eq name="fieldParams[params][0][control]" value="select">
+											<select name="value1" id="value1" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][0][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value1 neq '' && ($value1 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+											</select>
+										</eq>
+										</td>
+									</tr>
+									</egt> 
+									<egt name="allc" value="2">
+									<tr id="searchbox2" class="hidden">
+										<td class="text-right w-60px"><select name="andOr2"
+											id="andOr2" class="form-control">
+												<option value="and" <eq name="andOr2" value="and">selected="selected"</eq>
+													data-keys="bingqie bq">并且</option>
+												<option value="or" <eq name="andOr2" value="or">selected="selected"</eq> data-keys="huozhe hz">或者</option>
+										</select></td>
+										<td class="w-90px">
+										<select name="field2" id="field2"
+											onchange="setField(this, 2, userparams)" class="form-control">
+												<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field2">
+														selected="selected"
+														<elseif condition="$k eq 1 and empty($field2)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+												</foreach>
+										</select></td>
+										<td class="w-70px"><select name="operator2"
+											id="operator2" class="form-control">
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][1][operator]">selected="selected"</in>  data-keys="{$k}">{$o}</option>
+												</foreach>
+										</select></td>
+										<td id="valueBox2" style="overflow: visible">
+											<if condition="($fieldParams[params][1][control] eq 'input') && ($fieldParams[params][1]['class'] eq 'date')">
+												<input type="text" name="date_value2" id="value2" value="{$fieldParams[params][1][values]}" class="form-control date searchInput" autocomplete="off">
+												<elseif condition="$fieldParams[params][1][control] eq 'input'"/>
+												<input type="text" name="value2" id="value2" value="{$fieldParams[params][1][values]}" class="form-control  searchInput" autocomplete="off">
+											</if>
+										<eq name="fieldParams[params][1][control]" value="select">
+											<select name="value2" id="value2" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][1][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value2 neq '' && ($value2 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+										</select>
+										</eq>
+										</td>
+									</tr>
+									</egt>
+									<egt name="allc" value="3">
+									<tr id="searchbox3" class="hidden">
+										<td class="text-right w-60px"><select name="andOr3"
+											id="andOr3" class="form-control">
+												<option value="and" <eq name="andOr3" value="and">selected="selected"</eq>
+													data-keys="bingqie bq">并且</option>
+												<option value="or" <eq name="andOr3" value="or">selected="selected"</eq> data-keys="huozhe hz">或者</option>
+										</select></td>
+										<td class="w-90px">
+										<select name="field3" id="field3"
+											onchange="setField(this, 3, userparams)" class="form-control">
+												<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field3">
+														selected="selected"
+														<elseif condition="$k eq 2 and empty($field3)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+												</foreach>
+										</select></td>
+										<td class="w-70px"><select name="operator3"
+											id="operator3" class="form-control">
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][2][operator]">selected="selected"</in>  data-keys="{$k}">{$o}</option>
+												</foreach>
+										</select></td>
+										<td id="valueBox3" style="overflow: visible">
+											<if condition="($fieldParams[params][2][control] eq 'input') && ($fieldParams[params][2]['class'] eq 'date')">
+												<input type="text" name="date_value3" id="value3" value="{$fieldParams[params][2][values]}" class="form-control date searchInput" autocomplete="off">
+												<elseif condition="$fieldParams[params][2][control] eq 'input'"/>
+												<input type="text" name="value3" id="value3" value="{$fieldParams[params][2][values]}" class="form-control  searchInput" autocomplete="off">
+											</if>
+										<eq name="fieldParams[params][2][control]" value="select">
+											<select name="value3" id="value3" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][2][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value3 neq '' && ($value3 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+										</select>
+										</eq>
+										</td>
+									</tr>
+									</egt>
+								</tbody>
+							</table></td>
+							<egt name="allc" value="4">
+						<td class="text-center nobr"><select name="groupAndOr"
+							id="groupAndOr" class="form-control w-60px">
+								<option value="and" <eq name="groupAndOr" value="and">selected="selected"</eq> data-keys="bingqie bq">并且</option>
+								<option value="or" <eq name="groupAndOr" value="or">selected="selected"</eq> data-keys="huozhe hz">或者</option>
+						</select></td></egt>
+						<td class="w-400px">
+							<table class="table active-disabled">
+								<tbody>
+								<egt name="allc" value="4">
+									<tr id="searchbox4" class="">
+										<td class="text-right w-60px"><span id="searchgroup2"><strong>第二组</strong>
+										</span><input type="hidden" name="andOr4" id="andOr4" value="AND">
+										</td>
+										<td class="w-90px">
+										<select name="field4" id="field4"
+											onchange="setField(this, 4, userparams)" class="form-control">
+											<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field4">
+														selected="selected"
+														<elseif condition="$k eq 3 and empty($field4)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+											</foreach>
+										</select></td>
+										<td class="w-70px"><select name="operator4"
+											id="operator4" class="form-control">
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][3][operator]">selected="selected"</in>  data-keys="{$k}">{$o}</option>
+												</foreach>
+										</select></td>
+										<td id="valueBox4">
+											<if condition="($fieldParams[params][3][control] eq 'input') && ($fieldParams[params][3]['class'] eq 'date')">
+												<input type="text" name="date_value4" id="value4" value="{$fieldParams[params][3][values]}" class="form-control date searchInput" autocomplete="off">
+												<elseif condition="$fieldParams[params][3][control] eq 'input'"/>
+												<input type="text" name="value4" id="value4" value="{$fieldParams[params][3][values]}" class="form-control  searchInput" autocomplete="off">
+											</if>
+										<eq name="fieldParams[params][3][control]" value="select">
+											<select name="value4" id="value4" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][3][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value4 neq '' && ($value4 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+										</select>
+										</eq>
+										</td>
+									</tr>
+									</egt>
+									<egt name="allc" value="5">
+									<tr id="searchbox5" class="hidden">
+										<td class="text-right w-60px"><select name="andOr5"
+											id="andOr5" class="form-control">
+												<option value="and" <eq name="andOr5" value="and">selected="selected"</eq>
+													data-keys="bingqie bq">并且</option>
+												<option value="or" <eq name="andOr5" value="or">selected="selected"</eq> data-keys="huozhe hz">或者</option>
+										</select></td>
+										<td class="w-90px"><select name="field5" id="field5"
+											onchange="setField(this, 5, userparams)" class="form-control">
+												<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field5">
+														selected="selected"
+														<elseif condition="$k eq 4 and empty($field5)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+											</foreach>
+										</select></td>
+										<td class="w-70px"><select name="operator5"
+											id="operator5" class="form-control">
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][4][operator]">selected="selected"</in>  data-keys="{$k}">{$o}</option>
+												</foreach>
+										</select></td>
+										<td id="valueBox5">
+											<if condition="($fieldParams[params][4][control] eq 'input') && ($fieldParams[params][4]['class'] eq 'date')">
+												<input type="text" name="date_value5" id="value5" value="{$fieldParams[params][4][values]}" class="form-control date searchInput" autocomplete="off">
+												<elseif condition="$fieldParams[params][4][control] eq 'input'"/>
+												<input type="text" name="value5" id="value5" value="{$fieldParams[params][4][values]}" class="form-control  searchInput" autocomplete="off">
+											</if>
+										<eq name="fieldParams[params][4][control]" value="select">
+											<select name="value5" id="value5" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][4][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value5 neq '' && ($value5 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+										</select>
+										</eq>
+										</td>
+									</tr>
+									</egt>
+									
+									<egt name="allc" value="6">
+									<tr id="searchbox6" class="hidden">
+										<td class="text-right w-60px"><select name="andOr6"
+											id="andOr6" class="form-control">
+												<option value="and" <eq name="andOr6" value="and">selected="selected"</eq>
+													data-keys="bingqie bq">并且</option>
+												<option value="or" <eq name="andOr6" value="or">selected="selected"</eq> data-keys="huozhe hz">或者</option>
+										</select></td>
+										<td class="w-90px"><select name="field6" id="field6"
+											onchange="setField(this, 6, userparams)" class="form-control">
+												<foreach name="fieldParams[params]" item="f" key="k" >
+													<option value="{$f.fieldname}" 
+													<if condition="$f.fieldname eq $field6">
+														selected="selected"
+														<elseif condition="$k eq 5 and empty($field6)"/>
+															selected="selected"
+													</if>
+													data-keys="{$k}">{$f.str}</option>
+											</foreach>
+										</select></td>
+										<td class="w-70px"><select name="operator6"
+											id="operator6" class="form-control">
+												<foreach name="fieldParams[operators]" item="o" key="k" >
+													<option value="{$k}" <in name="k" value="$fieldParams[params][5][operator]">selected="selected"</in>  data-keys="{$k}">{$o}</option>
+												</foreach>
+										</select></td>
+										<td id="valueBox6">
+											<if condition="($fieldParams[params][5][control] eq 'input') && ($fieldParams[params][5]['class'] eq 'date')">
+												<input type="text" name="date_value6" id="value6" value="{$fieldParams[params][5][values]}" class="form-control date searchInput" autocomplete="off">
+												<elseif condition="$fieldParams[params][5][control] eq 'input'"/>
+												<input type="text" name="value6" id="value6" value="{$fieldParams[params][5][values]}" class="form-control  searchInput" autocomplete="off">
+											</if>
+										<eq name="fieldParams[params][5][control]" value="select">
+											<select name="value6" id="value6" class="form-control searchSelect chosen" style="display: none;">
+												<foreach name="fieldParams[params][5][values]" item="v" key="k" >
+													<option value="{$k}" <if condition="$value6 neq '' && ($value6 eq $k)">selected="selected" <else /></if>  data-keys="{$k}">{$v}</option>
+												</foreach>
+										</select>
+										</eq></td>
+									</tr>
+									</egt>
+								</tbody>
+							</table></td>
+						<td class="w-160px"><input type="hidden" name="sid"
+							id="module" value="{$sid}"> 
+							<div class="btn-group">
+								<button type="button" id="btnsubmit" class="btn btn-primary"
+									>搜索</button>
+								<button type="button" class="btn btn-default"
+									onclick="resetForm(this)">重置</button>
+							</div></td>
+					</tr>
+				</tbody>
+			</table>
+			<egt name="allc" value="2">
+			<div id="moreOrLite">
+				<a id="searchmore" href="javascript:;" onclick="showmore(this)"><i
+					class="icon-double-angle-down icon-2x"></i>
+				</a> <a id="searchlite" href="javascript:;" onclick="showlite(this)"><i
+					class="icon-double-angle-up icon-2x"></i>
+				</a> <input type="hidden" name="formType" id="formType" value="lite">
+			</div></egt>
+		</form></egt>
+	</div>

@@ -1,0 +1,174 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+    <script>
+        var grid = 0;
+        $(function(){
+            regionInit("region");
+            $("[id^='li_']").click(function(){
+                var h=$(this).attr("h");
+                var item=$(this).attr("item");
+                if(h==0){
+                    $(this).attr("h",1);
+                    $(this).addClass("lion");
+                    var item1=$(this).attr("item1");
+                    $("#ss_"+item).val(item1);
+                }else if(h==1){
+                    $(this).attr("h",0);
+                    $(this).removeClass("lion");
+                    $("#ss_"+item).val("");
+                }
+            });
+            $('#form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).parent().append(error);
+                    console.log(error);
+                    console.log(element);
+                },
+                onkeyup: false,
+                rules: {
+                    feecode: {
+                        required: true,
+                        remote: {
+                            url: "{:U('Feeitem/checkcode')}",
+                            type: 'GET',
+                            data: {
+                            	feecode: function () {
+                                    return $('#feecode').val();
+                                },
+                                id: '{$data.itemid}'
+                            }
+                        }
+                    },
+                    feename: {
+                        required: true,
+                        remote: {
+                            url: "{:U('Feeitem/checkname')}",
+                            type: 'GET',
+                            data: {
+                            	feename: function () {
+                                    return $('#feename').val();
+                                },
+                                id: '{$data.itemid}'
+                            }
+                        }
+                    },
+                },
+                messages: {
+                    feecode: {
+                        required : "{:L('FEE_CODE_NOT_EMPTY')}",
+                        remote: "{:L('FEE_CODE_EXISTED')}"
+                    },
+                    feename: {
+                        required : "{:L('FEE_NAME_EXISTED')}",
+                        remote: "{:L('FEE_NMAE_EXISTED')}"
+                    },
+                }
+            });
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('FEEITEM')}
+                            <small>{:L('EDIT')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="{:U('Feeitem/edit')}" method='post' id="form" class="form-horizontal" enctype="multipart/form-data">
+                            <input type="hidden" name="id" value="{$data.itemid}">
+							 <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEE_CODE')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="feecode" name="feecode" class="form-control" value="{$data.feecode}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('FEE_NAME')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="feename" name="feename" class="form-control" value="{$data.feename}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-white" type="button">{:L('BACK')}</a>
+                                    <button class="btn btn-primary" type="submit">{:L('SAVE')}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

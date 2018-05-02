@@ -1,0 +1,134 @@
+<link rel="stylesheet" href="__THEME__/default/zh-cn.default.css"
+	type="text/css" media="screen">
+<block name="body">
+<div style="height: 20px;"></div>
+<eq name="offer.stype" value="报价单审核">
+    <div class="container mw-790px">
+        <div id="titlebar">
+            <div class="heading">
+                <span class="prefix"><i class="icon-user"></i> </span> <strong><small
+                    class="text-muted"><i class="icon-plus"></i> </small>报价单详情</strong>
+            </div>
+        </div>
+        <form action="{:U('edit?id='.$offer['oid'])}" method="post" class="form-condensed mw-700px">
+            <table align="center" class="table table-form">
+                <tbody>
+                <tr>
+                    <th class="w-120px">客户</th>
+                    <td class="w-p50">
+                        {$offer['cname']}
+                    </td>
+                    <td></td>
+                </tr>
+                 <tr>
+                    <th class="w-120px">联系人</th>
+                    <td class="w-p50">
+                        {$offer['contacts']}
+                    </td>
+                    <td></td>
+                </tr>
+                 <tr>
+                    <th class="w-120px">联系电话</th>
+                    <td class="w-p50">
+                        {$offer['telno']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">核心服务</th>
+                    <td class="w-p50">
+                        {$offer['coreservice']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">业务类型</th>
+                    <td class="w-p50">
+                        {$offer['type']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">销售机会</th>
+                    <td class="w-p50">
+                        {$offer['chance']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">销售阶段</th>
+                    <td class="w-p50">
+                        {$offer['step']}
+                    </td>
+
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">折扣</th>
+                    <td class="w-p50">
+                        {$offer['disoff_name']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">预计签约时间</th>
+                    <td class="w-p50">
+                        {$offer['signtime']|time_format}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">所有人</th>
+                    <td class="w-p50">
+                        {$offer['ownner']}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th class="w-120px">可能性</th>
+                    <td class="w-p50">
+                        <if condition="$offer['possible']">
+                            {$offer['possible']}%
+                            </if>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+        
+        <div id="titlebar">
+            <div class="heading">
+                <span class="prefix"><i class="icon-user"></i> </span> <strong><small
+                    class="text-muted"><i class="icon-plus"></i> </small>审核进程</strong>
+            </div>
+        </div>
+        <ul style="list-style-type: none;">
+        <volist name="process" id="p">
+        	<eq name="p.state" value="0"><li><span class="fiy">&nbsp;&nbsp;待审核&nbsp;&nbsp;</span><span>指定审核人 : {$p.checkname}&nbsp;&nbsp;</span></li></eq>
+        	<eq name="p.state" value="1"><li><span class="fig">&nbsp;&nbsp;已审核&nbsp;&nbsp;</span><span>指定审核人 : {$p.checkname}&nbsp;&nbsp;</span><span>审核时间 : {$p.checktime|time_format}</span><span>&nbsp;&nbsp;审核备注 : {$p.checknote}</span></li></eq>
+        	<eq name="p.state" value="-1"><li><span class="fir">&nbsp;&nbsp;已拒绝&nbsp;&nbsp;</span><span>指定审核人 : {$p.checkname}&nbsp;&nbsp;</span><span>审核时间 : {$p.refusetime|time_format}</span><span>&nbsp;&nbsp;审核备注  : {$p.refusenote}</span></li></eq>
+        </volist>
+        </ul>
+        
+    </div>
+    </eq>
+</block>
+
+<style>
+.fir{
+	color: red;
+    font-weight: bold;
+    font-style: italic;
+}
+.fig{
+	color: green;
+    font-weight: bold;
+    font-style: italic;
+}
+.fiy{
+	color: #ff8606;
+    font-weight: bold;
+    font-style: italic;
+}
+</style>

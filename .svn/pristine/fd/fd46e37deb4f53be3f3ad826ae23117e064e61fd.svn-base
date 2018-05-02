@@ -1,0 +1,158 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: taizi
+ * Date: 2017/9/13
+ * Time: 23:31
+ */
+
+namespace Admin\Controller;
+
+use Admin\Model\ProjectRoleModel;
+
+class ProjectRoleController extends AdminController
+{
+    private $pr_model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->pr_model = new ProjectRoleModel();
+    }
+
+    public function index()
+    {
+        $list = $this->pr_model->getList();
+        $this->assign('list', $list);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '项目角色', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function edit()
+    {
+        $data = I('post.');
+        $newData = array();
+        foreach ($data as $key => $value) {
+            foreach ($value as $k => $v) {
+                $newData[$k][$key] = $v;
+            }
+        }
+        $adddata = array();
+        $editdata = array();
+        foreach ($newData as $k => $vo) {
+            if (empty($vo['prid'])) {
+                if (!empty($vo['name'])) {
+                    $adddata[] = $vo;
+                }
+            } else {
+                $editdata[] = $vo;
+            }
+        }
+
+        if (is_array($adddata)) {
+            foreach ($adddata as $key => $value) {
+                M('project_role')->add($value);
+            }
+        }
+        if (is_array($editdata)) {
+            foreach ($editdata as $key => $value) {
+                M('project_role')->save($value);
+            }
+        }
+//         $this->success('操作成功',U('index'));
+        $this->redirect('Index');
+    }
+
+    public function deleteSub()
+    {
+        $prid = I('prid');
+        //检测角色是否参与到项目
+        $where = "pr.prid={$prid}  and (exists(select 1 from ot_takepart t where t.roleid=pr.prid))";
+        $result = M('project_role')->alias('pr')->where($where)->find();
+        if ($result) {
+            $this->ajaxReturn(['prid' => $prid, 'done' => false, 'msg' => '删除失败:项目角色下有成员参与项目']);
+        } else {
+            $res = M('project_role')->delete($prid);
+            if ($res) {
+                $this->ajaxReturn(['prid' => $prid, 'done' => true]);
+            }
+        }
+
+
+    }
+
+    /*    关联部门*/
+    public function relatedept()
+    {
+        if ($_POST) {
+
+            $prid = I('post.prid');
+            $dtid = array_unique(I('post.roleDept'));
+            $data = array('rdid' => I('post.rdid'), 'dtid' => $dtid);
+            $newData = array();
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newData[$k][$key] = $v;
+                }
+            }
+            $adddata = array();
+            $editdata = array();
+            foreach ($newData as $k => $vo) {
+                if (empty($vo['rdid'])) {
+                    if (!empty($vo['dtid'])) {
+                        $adddata[] = $vo;
+                    }
+                } else {
+                    $editdata[] = $vo;
+                }
+            }
+
+            if (is_array($adddata)) {
+                foreach ($adddata as $key => $value) {
+                    $value['prid'] = $prid;
+                    M('role_dept')->add($value);
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $val) {
+                    M('role_dept')->save($val);
+
+                }
+            }
+
+            echo "<script>window.parent.choose();</script>";
+        } else {
+            $prid = I('get.prid');
+            $result = M('projectRole')->alias('p')->field('p.name as pname,d.did,d.name as dname,rd.rdid')->join('ot_role_dept rd on rd.prid=p.prid', 'left')
+                ->join('ot_dept d on d.did=rd.dtid', 'left')
+                ->where(array('p.prid' => $prid))->select();
+            // 所有部门
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $depts = array_merge(array(0 => array('did' => '', 'title_show' => '', 'grade' => '')), $depts);
+            $this->assign('depts', $depts);
+            $this->assign('list', $result);
+            $this->assign('prid', $prid);
+            $this->display();
+        }
+    }
+
+    /*删除角色关联部门*/
+    public function deleteDept()
+    {
+        $id = I('get.id');
+        $res = M('role_dept')->where(array('rdid' => $id))->delete();
+        if ($res) {
+            $this->ajaxReturn(array('done' => true));
+        } else {
+            $this->ajaxReturn(array('done' => false));
+        }
+    }
+
+}
+

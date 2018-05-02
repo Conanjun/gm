@@ -1,0 +1,144 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('STUDIO_INFO')}
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Info/edit?id='.$list['stuid'])}" class="btn btn-primary btn-sm" type="button">{:L('EDIT')}</a>
+
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="" method='post' id="form" class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">LOGO</label>
+                                <div class="col-sm-10">
+                                    <img style="max-height: 120px"  src="{$list['logo']}">
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('NAME')}<span class="required"></span></label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['name']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('URLPARAM')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['urlparam']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('REGION')}</label>
+                                <div id="region" class="col-sm-10">
+                                    <p class="form-control-static">{$list['regionname']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('ADDR')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['addr']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('CONTACT')}</label>
+                                <p class="form-control-static">{$list['contacl']}</p>
+                                <div class="col-sm-3">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('TEL_PHONE')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['tel']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('STATE')}</label>
+                                <div class="col-sm-10">
+                                    <if condition="$list.enabled eq 1">{:L('OPEN')}</if>
+                                    <if condition="$list.enabled eq 0">{:L('CLOSE')}</if>
+                                </div>
+
+
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('LANGUAGE')}</label>
+                                <div class="col-sm-10">
+                                    <if condition="$list.language eq 'zh_cn'">{:L('ZH_CN')}</if>
+                                    <if condition="$list.language eq 'en_us'">{:L('EN_US')}</if>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('PROVIDES')}</label>
+                                <div class="col-sm-10">
+                                    <ul class="sitem">
+                                        <volist name="sts" id="s">
+                                            <if condition="$s.h neq 0">
+                                                <li item="{$s.d_tid}" item1="{$s.d_value}" h="1" id="sli_{$s.d_tid}" class="lion">
+                                                    {$s.name}
+                                                    <input type="hidden"  name="ps[{$s.d_tid}]" value="{$s.d_value}" id="sss_{$s.d_tid}">
+                                                </li>
+                                                <else/>
+                                                <li item="{$s.d_tid}" item1="{$s.d_value}" h="0" id="sli_{$s.d_tid}">
+                                                    {$s.name}
+                                                    <input type="hidden"  name="ps[{$s.d_tid}]"  id="sss_{$s.d_tid}">
+                                                </li>
+                                            </if>
+
+                                        </volist>
+                                        <div class="clear"></div>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('TAG')}</label>
+                                <div class="col-sm-10">
+                                    <ul class="sitem">
+                                        <volist name="tags" id="s">
+                                            <if condition="$s.h neq 0">
+                                                <li item="{$s.tag_id}" item1="{$s.tag_name}" h="1" id="li_{$s.tag_id}" class="lion">
+                                                    {$s.tag_name}
+                                                    <input type="hidden"  name="tags[{$s.tag_id}]" value="{$s.tag_name}" id="ss_{$s.tag_id}">
+                                                </li>
+                                                <else/>
+                                                <li item="{$s.tag_id}" item1="{$s.tag_name}" h="0" id="li_{$s.tag_id}">
+                                                    {$s.tag_name}
+                                                    <input type="hidden" name="tags[{$s.tag_id}]" id="ss_{$s.tag_id}">
+                                                </li>
+                                            </if>
+
+                                        </volist>
+                                        <div class="clear"></div>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('DESCRIPTION')}</label>
+                                <div class="col-sm-10">
+                                    <p class="form-control-static">{$list['description']}</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

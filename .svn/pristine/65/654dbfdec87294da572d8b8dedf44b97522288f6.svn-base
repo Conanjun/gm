@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Advanced Form Elements</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="../css/plugins/chosen/chosen.css" rel="stylesheet">
+    <link href="../css/plugins/datapicker/datepicker3.css" rel="stylesheet">
+
+    <link href="../css/plugins/daterangepicker/daterangepicker-bs3.css" rel="stylesheet">
+
+    <link href="../css/animate.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <link href="../css/stylesheet.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="../img/profile_small.jpg" />
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">David Williams</strong>
+                                    </span>
+                                    <span class="text-muted text-xs block">Art Director
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                    <a href="profile.html">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="contacts.html">Contacts</a>
+                                </li>
+                                <li>
+                                    <a href="mailbox.html">Mailbox</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="login.html">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>切换语言</span>
+                        <div class="nav-language-list">
+                            <a href="" class="nav-language-cn">
+                                <span>汉语</span>
+                            </a>
+                            <a href="" class="nav-language-en">
+                                <span>英语 </span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">系统管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">牙医管理</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="">
+                            <i class="fa fa-envelope"></i>
+                            <span class="nav-label">订单管理 </span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li>
+                                <a href="javascript:void(0);">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">植牙订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">矫正订单</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">待处理订单</span>
+                                    <span class="label label-warning pull-right">16/24</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>
+                                    <span class="nav-label">订单消息</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">物流管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">财务管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">投诉建议</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">数据分析</span>
+                        </a>
+                    </li>
+                </ul>
+        
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="搜索" class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">欢迎: 管理员</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+            
+            
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> 退出
+                            </a>
+                        </li>
+                    </ul>
+            
+                </nav>
+            </div>
+
+            <div class="wrapper wrapper-content">
+
+                <style>
+                    
+                    table td { padding: 5px 10px; }
+                    table .form-control ,
+                    table .chosen-container { display: inline-block; width: auto !important; margin: 0 10px; }
+                    table .chosen-container { height: 34px; }
+                    table .chosen-single { line-height: 24px; box-sizing: border-box; }
+                    table .btn { vertical-align: top; }
+                </style>
+            
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <label for="" class="control-label">品牌名称</label>
+                                <input class="queryInput form-control" type="text" name="b_name" value="">
+                            </td>
+                            <td>
+                                <label for="" class="control-label">类型</label>
+                                <select name="cateid" class="ui-select form-control">
+                                    <option value="">请选择...</option>
+                                    <option value="41">网咖</option>
+                                    <option value="40">中餐</option>
+                                    <option value="39">游戏</option>
+                                    <option value="38">美容</option>
+                                    <option value="37">砂锅</option>
+                                    <option value="36">酒店</option>
+                                    <option value="35">云南菜</option>
+                                    <option value="34">麻辣香锅</option>
+                                    <option value="33">湘菜</option>
+                                    <option value="32">东北菜</option>
+                                    <option value="31">日料</option>
+                                    <option value="29">健身</option>
+                                    <option value="28">健身餐</option>
+                                    <option value="27">户外旅行</option>
+                                    <option value="25">饮料</option>
+                                    <option value="24">营养早餐</option>
+                                    <option value="23">火锅</option>
+                                    <option value="22">西餐</option>
+                                    <option value="21">烧烤</option>
+                                    <option value="20">娱乐</option>
+                                    <option value="18">科技</option>
+                                    <option value="17">超市</option>
+                                    <option value="16">面食</option>
+                                    <option value="15">教育</option>
+                                    <option value="14">特色餐饮</option>
+                                    <option value="13">川式小吃</option>
+                                    <option value="12">甜品饮品</option>
+                                    <option value="11">西北菜</option>
+                                    <option value="10">川菜/家常菜</option>
+                                    <option value="9">面包甜点</option>
+                                    <option value="8">四川火锅</option>
+                                    <option value="7">简餐</option>
+                                    <option value="6">杭帮菜</option>
+                                    <option value="5">小吃快餐</option>
+                                    <option value="4">江浙小吃</option>
+                                </select>
+                            </td>
+                            <td>
+                                说明
+                                <input class="queryInput form-control" type="text" name="content" value="">
+                            </td>
+                            <td>
+                                <!--公司 -->
+                                <input class="queryInput form-control" type="text" name="o_name" value="">
+                                <input type="submit" class="formbtn btn btn-primary" value="查询">
+                                <input type="submit" class="formbtn btn btn-warning" value="查询">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <label for="" class="control-label">编码</label>
+                                                <input class="form-control" type="text" name="code" value="">
+                                            </td>
+                                            <td>
+                                                <label for="" class="control-label">门店名称</label>
+                                                <input class="form-control" type="text" name="store_name" value="">
+                                            </td>
+                                            <td>
+                                                <label class="control-label">状态</label>
+                                                <select name="state" class="ui-select">
+                                                    <option value="">请选择...</option>
+                                                    <option value="1">启用</option>
+                                                    <option value="0">停用</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                
+                                            <td>
+                                                <label for="" class="control-label">商圈</label>
+                                                <input class="form-control" type="text" name="area_name" value="">
+                                            </td>
+                                            <td>
+                                                <label for="" class="control-label">电话</label> 
+                                                <input class="form-control" type="text" name="tel" value="">
+                                            </td>
+                                
+                                            <td>
+                                                <div id="region">
+                                                    城市
+                                                    <input type="hidden" name="regionid" value="189983" class="mls_id">
+                                                    <input type="hidden" name="regionname" value="浙江省	杭州市	江干区" class="mls_names">
+                                
+                                                    <select class="ui-select">
+                                                        <option>请选择...</option>
+                                                        <option value="297790">北京</option>
+                                                        <option value="189839">浙江省</option>
+                                                        <option value="286519">山东省</option>
+                                                    </select>
+                                                    <select class="ui-select">
+                                                        <option>请选择...</option>
+                                                        <option value="189840">杭州市</option>
+                                                    </select>
+                                                    <select class="ui-select">
+                                                        <option>请选择...</option>
+                                                        <option value="189841">市辖区</option>
+                                                        <option value="189842">上城区</option>
+                                                        <option value="189903">下城区</option>
+                                                        <option value="189983">江干区</option>
+                                                        <option value="190144">拱墅区</option>
+                                                        <option value="190247">西湖区</option>
+                                                        <option value="190449">滨江区</option>
+                                                        <option value="190496">萧山区</option>
+                                                        <option value="191102">余杭区</option>
+                                                        <option value="191445">桐庐县</option>
+                                                        <option value="191660">淳安县</option>
+                                                        <option value="192120">建德市</option>
+                                                        <option value="192419">富阳市</option>
+                                                        <option value="192747">临安市</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="查询">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    10GB of
+                    <strong>250GB</strong> Free.
+                </div>
+                <div>
+                    <strong>Copyright</strong> Example Company &copy; 2014-2015
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="../js/jquery-2.1.1.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="../js/inspinia.js"></script>
+    <script src="../js/plugins/pace/pace.min.js"></script>
+    <script src="../js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Chosen -->
+    <script src="../js/plugins/chosen/chosen.jquery.js"></script>
+
+    <!-- Data picker -->
+    <script src="../js/plugins/datapicker/bootstrap-datepicker.js"></script>
+
+    <!-- MENU -->
+    <script src="../js/plugins/metisMenu/jquery.metisMenu.js"></script>
+
+    <!-- Date range picker -->
+    <script src="../js/plugins/daterangepicker/daterangepicker.js"></script>
+
+    <script src="../js/iviews.base.js"></script>
+
+    <script>
+    
+        $(function() {
+
+            // chosen
+            $('.ui-select').chosen();
+
+            // data1
+            $('#data_1 .date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true
+            });
+
+            // data group
+            $('#data_5 .input-daterange').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true
+            });
+
+        })
+
+    </script>
+
+</body>
+
+</html>

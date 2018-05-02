@@ -1,0 +1,356 @@
+<extend name="Public/base" />
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+						class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;" 
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+				
+						</block>
+
+<block name="body">
+	<script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+<script language="Javascript">browseType = "unclosed";</script>
+	<style>
+		#sonModule,#moduleBox>span>input,#moduleBox>table {
+			max-width: 1000px;
+		}
+
+		#childrenForm .col-table+.col-table .form-control {
+			/*border-left: transparent;*/
+		}
+		#childrenForm .chosen-single {
+			border-right: 0px;
+		}
+
+	</style>
+    	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script>
+		$(function() {
+            $('form').validate({
+                errorPlacement: function (error, element) {
+                    $(element).next('.field_notice').hide();
+                    if ($(element).css("display") == 'none') {
+                        $(element).next('div.chosen-container').children().addClass("error");
+                    }
+                },
+                onkeyup: false,
+                rules: {
+                    "comrate[]": {
+                        range: [0, 100],
+                    }
+
+                },
+                messages: {
+                    "comrate[]": {
+                        range: 'kpi范围在0-100'
+                    }
+                }
+            })
+        });
+    </script>
+	<div id="featurebar">
+	<ul class="nav" style="float: left">
+		<li ><a href="{:U('ProjectNew/service?id='.$p['pid'])}">任务清单</a>
+		</li>
+		<li><a href="{:U('ProjectNew/takepartindex?id='.$p['pid'])}">参与人</a>
+		</li>
+		<li><a href="{:U('ProjectNew/gantt?id='.$p['pid'])}">甘特图</a>
+		</li>
+		<li  class="active"><a href="{:U('ProjectNew/kpiindex?id='.$p['pid'])}">KPI</a>
+		</li>
+		<li><a href="{:U('ProjectNew/milestoneindex?id='.$p['pid'])}">里程碑</a>
+		</li>
+		<li><a href="{:U('ProjectNew/budgetindex?id='.$p['pid'])}">预算成本</a>
+		</li>
+		<li ><a href="{:U('ProjectNew/view?id='.$p['pid'])}">详情</a>
+		</li>
+	</ul>
+	<div class="" style="float: left;margin-left: 10px">
+			<strong><if condition="$p['progress']">
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="{$p.progress}">
+						<else/>
+						<img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+					</if>
+					<small>{$p.progress}%</small></strong>
+		</div>
+		<div class="btn-group actions" style="float: right">
+			<a href="javascript:history.go(-1);"  class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+		</div>
+		<div style="clear: both;"></div>
+</div>
+
+    <!-- 数据列表 -->
+		<script>setTreeBox();</script>
+		<form id="childrenForm" class="form-condensed" method="post"
+			  action="{:U('kpi',array('pid'=>$pid))}">
+			<div style="margin: 0 auto;width: 780px">
+				<table class="table table-form ">
+					<thead>
+					<tr class="text-center">
+						<th style="width: 150px">名称</th>
+						<th width="150px">KPI 目标值</th>
+                        <th style="width: 180px">KPI 实际值</th>
+						<th width="120px">KPI 达成率</th>
+						<th width="110">说明</th>
+						<th></th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr>
+						<td id="moduleBox" colspan="6" >
+
+							<div id="sonModule">
+								<notempty name="kpi">
+									<volist name="kpi" id="vo">
+										<div class="row-table addedItem" style="margin-bottom: 5px">
+											<div class="col-table">
+												<div class="input-group" style="width: 150px">
+													<input  type="text" name="name[]" value="{$vo['name']}"
+															class="form-control"  autocomplete="off" title="名称">
+												</div>
+                                                 <input type="hidden" name="kid[]" value="{$vo['kid']}">
+											</div>
+                                              <div class="col-table">
+												<div class="input-group" style="width: 150px">
+													<input  type="text" name="value2[]" value="{$vo['value2']}"
+															class="form-control"  autocomplete="off" title="KPI 目标值">
+												</div>
+											</div>
+                                            <div class="col-table">
+												<div class="input-group" style="width: 150px">
+													<input  type="text" name="value1[]" value="{$vo['value1']}"
+															class="form-control"  autocomplete="off" title="KPI 实际值">
+												</div>
+											</div>
+
+                                            <div class="col-table">
+												<div class="input-group" style="width: 135px;">
+													<input  type="text" name="comrate[]" value="{$vo['comrate']}"
+															class="form-control"  autocomplete="off" title="KPI 达成率">
+                                                    <span class="input-group-addon fix-border" style="border-right: 1px solid #ccc">%</span>
+												</div>
+
+											</div>
+											<div class="col-table" style="width: 150px">
+												<div class="input-group">
+													<input  type="text" name="note[]" value="{$vo['note']}"
+															class="form-control"  autocomplete="off" title="说明">
+													<span class="input-group-btn">
+														<a href="javascript:;" onclick='deletedata(this,"{:U('kpiDelete?kid='.$vo['kid'])}")'class="btn btn-block">
+																		<i class="icon icon-remove"></i>
+														</a> </span>
+												</div>
+											</div>
+											</div>
+									</volist>
+								</notempty>
+								<for start="0" end="5">
+									<div class="row-table addedItem" style="margin-bottom: 5px">
+										<div class="col-table">
+											<div class="input-group" style="width: 150px">
+												<input  type="text" name="name[]"
+														class="form-control"  autocomplete="off" title="名称">
+											</div>
+										</div><div class="col-table">
+										<div class="input-group" style="width: 150px">
+											<input  type="text" name="value1[]"
+													class="form-control"  autocomplete="off" title="KPI 实际值">
+										</div>
+									</div><div class="col-table">
+										<div class="input-group" style="width: 150px">
+											<input  type="text" name="value2[]"
+													class="form-control"  autocomplete="off" title="KPI 目标值">
+										</div>
+									</div><div class="col-table">
+										<div class="input-group" style="width: 135px;">
+											<input  type="text" name="comrate[]"
+													class="form-control"  autocomplete="off" title="KPI 达成率">
+                                            <span class="input-group-addon fix-border" style="border-right: 1px solid #ccc">%</span>
+										</div>
+									</div>
+										<div class="col-table" style="width: 150px">
+											<div class="input-group">
+												<input  type="text" name="note[]"
+														class="form-control"  autocomplete="off" title="说明">
+												<span class="input-group-btn"><a
+														href="javascript:;" onclick="addItem(this)" style="border-left:0px"
+														class="btn btn-block"><i class="icon icon-plus"></i>
+													</a> </span>
+												<span class="input-group-btn"><a
+														href="javascript:;" onclick="deleteItem(this)"
+														class="btn btn-block"><i class="icon icon-remove"></i>
+													</a> </span>
+											</div>
+										</div>
+									</div>
+								</for>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="6">
+							<if condition="cando('ProjectNew/edit',array($p['uid'],$p['pmuid']))"><button type="submit" id="submit"  class="btn btn-primary" >保存</button></if>
+							<button type="button" class="btn btn-default"
+									onclick="history.go(-1);">返回</button>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</form>
+
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+        function choose() {
+            $.closeModal();
+        }
+
+        $(".side-body li a").click(function(){
+            $(this).attr('class').val('active');
+        });
+
+        function deletedata(obj,url){
+            if(confirm("确定要删除数据吗？")){
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            deleteItem(obj);
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+        function addItem(obj)
+        {
+        	 var $inputgroup = $(obj).closest('.row-table');
+             $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+
+             $inputgroup.next().find("div.chosen-container").remove();
+             
+             var defaultChosenOptions = {no_results_text: noResultsMatch, width:'320px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+             $inputgroup.next().find(".chosen").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+             {
+                 var $this = $(this);
+                 var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                 var $drop = $chosen.find('.chosen-drop');
+                 $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+             });
+             
+             $inputgroup.next().find("[name^='mtime']").datetimepicker({step:10,lang:'ch',timepicker:true,format:'Y/m/d H:i'});
+        }
+
+        function insertItem(obj)
+        {
+            var $inputgroup = $(obj).closest('.row-table');
+            var insertHtml  = $('#insertItemBox').children('.row-table').clone();
+            $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+            updateItemOrder();
+        }
+
+        function updateItemOrder()
+        {
+            var order = 10;
+            $('#sonModule').children('.row-table').each(function(){
+                if($(this).find("input[name*='order']").length > 0)
+                {
+                    console.log(order);
+                    $(this).find("input[name*='order']").val(order);
+                    order += 10;
+                }
+            });
+
+            $('#maxOrder').val(order - 10);
+        }
+
+        function deleteItem(obj)
+        {
+            console.log($(obj).closest('.row-table').siblings('.row-table').find('i.icon-remove').size());
+            if($(obj).closest('.row-table').siblings('.row-table.addedItem').find('i.icon-remove').size() <= 0) return;
+            $(obj).closest('.row-table').remove();
+        }
+        function syncModule(rootID, type)
+        {
+            moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+            type     = type == 'task' ? 'task' : 'story';
+
+            link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+            $.getJSON(link, function(modules)
+            {
+                if(modules.length == 0) return false;
+                $('.helplink').addClass('hidden');
+                var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+                $.each(modules, function(key, module)
+                {
+                    $('.row-table').each(function()
+                    {
+                        moduleName = $(this).find('input[id^=modules]').val();
+                        if(moduleName == module.name) modules[key] = null;
+                        if(!moduleName) $(this).closest('.row-table').remove();
+                    })
+                });
+
+                $.each(modules, function(key, module)
+                {
+                    if(module)
+                    {
+                        $('#sonModule').append($inputgroup);
+                        $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+                        $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                    }
+                })
+                $('#sonModule').append($inputgroup);
+            })
+        }
+
+        function syncProductOrProject(obj, type)
+        {
+            if(type == 'product') viewType = 'story';
+            if(type == 'project') viewType = 'task';
+            link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+            $.getJSON(link, function(modules)
+            {
+                $('.helplink').addClass('hidden');
+                $('#' + type + 'Module').empty();
+                $.each(modules, function(key, value)
+                {
+                    $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+                });
+                $('#' + type + 'Module').trigger("chosen:updated");
+            })
+            $('#copyModule').attr('onclick', null);
+            $('#copyModule').bind('click', function(){syncModule(obj.value, viewType)});
+        }
+
+        function toggleCopy()
+        {
+            var $copy = $('table.copy');
+            if($copy.size() == 0) return false;
+            $copy.toggle();
+        }
+
+        $(document).ready(function()
+        {
+            toggleCopy();
+            $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+            $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+        });
+
+	</script>
+</block>
+<block name="script"> <script type="text/javascript">
+    //导航高亮
+    highlight_subnav("{$from_url}");
+</script> </block>

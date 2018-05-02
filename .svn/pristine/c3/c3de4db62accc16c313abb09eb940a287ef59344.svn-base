@@ -1,0 +1,97 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+use Admin\Common\Super\Task;
+
+/**
+ * 后台首页控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class IndexController extends AdminController
+{
+
+	private $meta_title;
+
+	/**
+	 * 后台首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index()
+	{
+		if (UID) {
+			
+			$this->display();
+		} else {
+			$this->redirect('Public/login');
+		}
+	}
+
+	public function loadfile($files=""){
+		try{
+			$p=C('DOWNLOAD_UPLOAD');
+
+			$p['subName']='';
+
+			$uploader = new \Think\Upload($p);// 实例化上传类
+			$uploader->maxSize = 500 * 1024 * 1024;
+			$method = $_SERVER["REQUEST_METHOD"];
+
+			if ($method == "POST") {
+				header("Content-Type: text/plain");
+
+				$info = $uploader->upload();
+				
+				if (!$info) {
+					//throw new \Think\Exception($info);
+				} else {
+					foreach ($info as $key => $value) {
+						$a = explode('.', $value['name']);
+						$name = $a[0];
+
+						$file['name'] = $name;
+						$c = C('DOWNLOAD_UPLOAD');
+						$file['savepath'] = $c['rootPath'] . $value['savepath'] . $value['savename'];
+						$file['ext'] = $value['ext'];
+						$file['size'] = $value['size'];
+						$file['addtime'] = time();
+						$file['uid'] = UID;
+						$file['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+						$fileid = M('File')->add($file);
+
+						if (file_exists($file['savepath'])){
+							$img_info = getimagesize($file['savepath']);
+						}else{
+							$img_info[0]=0;
+							$img_info[1]=0;
+						}
+					}
+				}
+				$m['done']=true;
+				$m['path']=U('doc/view?fid='.$fileid);
+				$m['w']=$img_info[0];
+				$m['h']=$img_info[1];
+				echo json_encode($m);
+				exit();
+			}else {
+				header("HTTP/1.0 405 Method Not Allowed");
+			}
+		}
+		catch (Exception $e){
+			$m['done']=false;
+			$m['msg']=$e->getMessage();
+			echo json_encode($m);
+			exit();
+		}
+	}
+
+}

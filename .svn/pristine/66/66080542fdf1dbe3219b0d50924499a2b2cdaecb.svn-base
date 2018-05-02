@@ -1,0 +1,33 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+use Think\Model;
+
+/**
+ * 部门model
+ */
+
+class DeptModel extends Model {
+
+	protected $_validate = array(
+		array('name','require','部门名称必须填写'), //默认情况下用正则进行验证
+	);
+
+	//获取树的根到子节点的路径
+	public function getPath($id){
+		$path = array();
+		$nav = $this->where("did={$id}")->field(true)->find();
+		$path[] = $nav;
+		if($nav['parent'] >0){
+			$path = array_merge($this->getPath($nav['parent']),$path);
+		}
+		return $path;
+	}
+}

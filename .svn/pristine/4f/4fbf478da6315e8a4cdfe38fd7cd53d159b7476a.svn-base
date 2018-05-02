@@ -1,0 +1,330 @@
+@charset "utf-8";
+/* CSS reset */
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+textarea,
+p,
+blockquote,
+th,
+td {
+  margin: 0;
+  padding: 0;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+fieldset,
+img {
+  border: 0;
+}
+img {
+  vertical-align: top;
+  margin-right: 10px;
+}
+address,
+caption,
+cite,
+code,
+dfn,
+em,
+strong,
+th,
+var {
+  font-style: normal;
+  font-weight: normal;
+}
+ol,
+ul {
+  list-style: none;
+}
+capation,
+th {
+  text-align: left;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: 100%;
+  font-weight: normal;
+}
+q:before,
+q:after {
+  content: '';
+}
+abbr,
+acronym {
+  border: 0;
+}
+.bc {
+  margin-left: auto;
+  margin-right: auto;
+}
+/*块状元素集中对齐 block center*/
+.fl {
+  float: left;
+  display: inline;
+}
+/* 可修复IE6中双倍边距bug */
+.fr {
+  float: right;
+  display: inline;
+}
+.clearfix:after {
+  content: '';
+  display: block;
+  /*只有块状元素才可以清除浮动造成的塌陷*/
+  height: 0;
+  visibility: hidden;
+  clear: both;
+}
+.clearfix {
+  zoom: 1;
+}
+/*
+***********************************************************************************
+*/
+html {
+  height: 100%;
+}
+body {
+  background-color: #a38df4;
+  background: url("../img/nb.png") no-repeat fixed;
+  -webkit-background-size: cover;
+  background-size: cover;
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+.content {
+  margin: auto;
+  flex: 0 0 auto;
+  width: 1045px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.login_wrapper {
+  width: 417px;
+  height: 400px;
+  position: relative;
+}
+/*金字塔管理系统字体样式 - start*/
+.slogan {
+  flex: 1 1 auto;
+}
+.slogan h1 {
+  font-size: 40px;
+  color: #fff;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  
+  letter-spacing: 7px;
+}
+.slogan p {
+  font-size: 27px;
+  color: #ffffff;
+}
+/*金字塔管理系统字体样式 - start*/
+/*账号密码登录部分的样式 - start*/
+.login_by_psd {
+  background-color: #fff;
+  top: 0;
+  right: 0;
+  width: 417px;
+  height: 400px;
+  box-sizing: border-box;
+  padding-top: 28px;
+  position: absolute;
+  z-index: 0;
+  /*切换登录方式样式 - start*/
+  /*切换登录方式样式 - end*/
+}
+.login_by_psd h3 {
+  font-size: 19px;
+  color: #333;
+  letter-spacing: 2px;
+  margin-bottom: 70px;
+  padding-left: 36px;
+}
+.login_by_psd p {
+  position: relative;
+  text-align: center;
+  margin-bottom: 25px;
+}
+.login_by_psd p input {
+  width: 342px;
+  height: 45px;
+  box-sizing: border-box;
+  border: 2px solid #e0e0e0;
+  padding-left: 90px;
+  outline: medium;
+}
+
+.login_by_psd p input.focus {
+  border: 2px solid #5e4ba4;
+}
+
+.login_by_psd p label {
+  font-size: 15px;
+  color: #666666;
+  position: absolute;
+  top: 12px;
+  left: 80px;
+}
+.login_by_psd p img {
+  position: absolute;
+  top: 15px;
+  left: 50px;
+}
+.login_by_psd p img.tri {
+  position: absolute;
+  top: 17px;
+  left: 350px;
+}
+.login_by_psd p select {
+  width: 342px;
+  height: 45px;
+  box-sizing: border-box;
+  border: 2px solid #e0e0e0;
+  padding-left: 160px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.login_by_psd p select option {
+  text-align: center;
+  height: 45px;
+  line-height: 45px;
+}
+.login_by_psd .auto_login {
+  margin-bottom: 40px;
+}
+.login_by_psd .login_btn {
+  margin-bottom: 55px;
+}
+.login_by_psd .login_btn input {
+  cursor: pointer;
+  font-size: 22px;
+  padding-left: 0;
+  border: 0 none;
+  letter-spacing: 3.3px;
+  color: #ffffff;
+  text-align: center;
+  line-height: 64px;
+  height: 64px;
+  width: 351px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  background-color: #6c3f9a;
+}
+.login_by_psd .prompt {
+  position: absolute;
+  width: 342px;
+  height: 45px;
+  box-sizing: border-box;
+  border: 1px solid red;
+  left: 38px;
+  top: 65px;
+  color: red;
+  padding-left: 5px;
+  line-height: 45px;
+  background-color: rgba(250, 128, 114, 0.4);
+}
+.login_by_psd .prompt img {
+  width: 12px;
+  height: 12px;
+  margin: 15px;
+  margin-top: 17px;
+}
+.login_by_psd .toggle_login_style {
+  position: absolute;
+  top: 20px;
+  left: 270px;
+  height: 42px;
+}
+.login_by_psd .toggle_login_style p {
+  font-size: 14px;
+  height: 31px;
+  line-height: 31px;
+  text-align: center;
+  width: 85px;
+  color: #4e8caf;
+  background: url("../img/d2.png") no-repeat;
+  float: left;
+}
+.login_by_psd .toggle_login_style img {
+  cursor: pointer;
+  width: 42px;
+  height: 42px;
+}
+/*使用扫码方式登录的样式*/
+.login_by_saoma {
+  font-family: ﻿MicrosoftYaHei;
+  background-color: #fff;
+  top: 0;
+  right: 0;
+  width: 417px;
+  height: 400px;
+  box-sizing: border-box;
+  padding-top: 28px;
+  position: absolute;
+  z-index: 100;
+  /*切换登录方式样式 - end*/
+}
+.login_by_saoma h3 {
+  font-size: 19px;
+  color: #333;
+  letter-spacing: 2px;
+  margin-bottom: 70px;
+  padding-left: 36px;
+}
+.login_by_saoma .saoma_pic {
+  display: block;
+  width: 182px;
+  height: 182px;
+  margin: 0 auto;
+  margin-top: 85px;
+}
+.login_by_saoma .toggle_login_style {
+  position: absolute;
+  top: 20px;
+  left: 270px;
+  height: 42px;
+}
+.login_by_saoma .toggle_login_style p {
+  font-size: 14px;
+  height: 31px;
+  line-height: 31px;
+  text-align: center;
+  width: 85px;
+  color: #4e8caf;
+  background: url("../img/d2.png") no-repeat;
+  float: left;
+}
+.login_by_saoma .toggle_login_style img {
+  cursor: pointer;
+  width: 35px;
+}

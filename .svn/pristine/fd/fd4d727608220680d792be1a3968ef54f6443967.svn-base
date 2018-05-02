@@ -1,0 +1,171 @@
+<extend name="Public/base"/>
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+						class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+
+						</block>
+<block name="body">
+<script language="Javascript">browseType = "unclosed";</script>
+    <div id="featurebar">
+        <ul class="nav" style="float: left">
+            <li><a href="{:U('ProjectNew/service?id='.$p['pid'])}">任务清单</a>
+            </li>
+            <li><a href="{:U('ProjectNew/takepartindex?id='.$p['pid'])}">参与人</a>
+            </li>
+            <li><a href="{:U('ProjectNew/gantt?id='.$p['pid'])}">甘特图</a>
+            </li>
+            <li class="active"><a href="{:U('ProjectNew/kpiindex?id='.$p['pid'])}">KPI</a>
+            </li>
+            <li ><a href="{:U('ProjectNew/milestoneindex?id='.$p['pid'])}">里程碑</a>
+            </li>
+            <li><a href="{:U('ProjectNew/budgetindex?id='.$p['pid'])}">预算成本</a>
+            </li>
+            <li><a href="{:U('ProjectNew/view?id='.$p['pid'])}">详情</a>
+            </li>
+            <!--<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>-->
+        </ul>
+        <div class="" style="float: left;margin-left: 10px">
+            <strong>
+                <if condition="$p['progress']">
+                    <img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16"
+                         width="{$p.progress}">
+                    <else/>
+                    <img class="progressbar" src="__THEME__/default/images/main/green.png" alt="" height="16" width="1">
+                </if>
+                <small>{$p.progress}%</small>
+            </strong>
+        </div>
+        <div class="" style="float: right;margin-right: 10px">
+
+            <div class="actions">
+              <if condition="cando('ProjectNew/edit',array($p['uid'],$p['pmuid']))">
+                    <a href="{:U('ProjectNew/kpi?id='.$p['pid'])}" class="btn"><i class="icon-edit"></i>批量编辑</a>
+                </if>
+
+            </div>
+        <div style="clear: both;"></div>
+    </div>
+        </div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+                <th width="10px"></th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="k.name">名称</span></th>
+                <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="k.value2">KPI 目标值</span></th>
+                 <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="k.value1">KPI 实际值</span></th>
+                <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="k.comrate">KPI 达成率</span></th>
+                <th r="1" class="text-left"><span class="sort" ectype="order_by" fieldname="k.note">说明</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="list">
+                <volist name="list" id="vo">
+                    <tr>
+                        <td class="cell-id"></td>
+                        <td class="text-left">{$vo['name']}</td>
+                         <td >{$vo['value2']}</td>
+                         <td >{$vo['value1']}</td>
+                         <td >{$vo['comrate']}%</td>
+                         <td class="text-left">{$vo['note']}</td>
+                    </tr>
+                </volist>
+                <else/>
+                <tr><td r="1" colspan="6" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td></tr>
+            </notempty>
+            </tbody>
+            <notempty name="list">
+            <tfoot class="scrolled">
+            <tr>
+                <td r="1" colspan='6' id="colspan_1">
+                    <!--<div class="table-actions clearfix">-->
+                        <!--<div class="checkbox btn">-->
+                            <!--<label><input type="checkbox" data-scope=""-->
+                                          <!--class="rows-selector"> 选择</label>-->
+                        <!--</div>-->
+                            <!--<button class="btn btn-default ajax-post confirm"-->
+                                     <!--url="{:U('ProjectNew/miledelete')}"-->
+                                    <!--target-form="ids">删 除-->
+                            <!--</button>-->
+                    <!--</div>-->
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+            </notempty>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+
+        //导航高亮
+        highlight_subnav("{:U('ProjectNew/index')}");
+        function deletedata(obj,url){
+            if(confirm("确定要删除数据吗？")){
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            $(obj).parent().parent().remove();
+//                            deleteItem(obj);
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+        var ajaxurl="{:U('Offer/ajax_col')}";
+
+        function resizetable(){
+    		var w=$(window).width();
+    		if(w<1400){
+    			$("#taskList").find("th[r!=1]").hide();
+    			$("#taskList").find("td[r!=1]").hide();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th[r=1]").size());
+    		}else{
+    			$("#taskList").find("th[r!=1]").show();
+    			$("#taskList").find("td[r!=1]").show();
+    			$("td[id^='colspan_']").attr("colspan",$("#taskList").find("th").size());
+    		}
+    	}
+
+        $(function(){
+        	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+        	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+        	//resizetable();
+
+        	$(window).resize(function(){
+        		//resizetable();
+        	});
+
+
+        	if($(".oop").size()==1){
+        		$(".oop").width("40px");
+        	}else{
+    	    	$(".oop").each(function(){
+    	    		if($(this).find("em").size()==0){
+    	    			$(this).width(max);
+    	    		}
+    	    	});
+        	}
+        });
+    </script>
+</block>

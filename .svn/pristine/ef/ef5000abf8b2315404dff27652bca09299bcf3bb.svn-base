@@ -1,0 +1,55 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        #cke_content{
+            width:640px !important;
+        }
+    </style>
+<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <form action="" class="form-condensed mw-980px">
+			<table align="center" class=" table-form iframeContentop ntable" style="border:0px">
+				<tbody>
+				<tr>
+					<th class="thtop">备注</th>
+					<td>
+						<textarea id="content" name="content" style="width: 500px;height: 100px"  class="ckeditor"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+                        <div style="float:right" class="form-condensed">
+                        <a href="javascript:;"  class="btn btn-primary"  onclick="choose()" ><i class="icon-project-start icon-play"></i> 启动</a>
+                        </div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+        </form>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose() {
+            var content=CKEDITOR.instances.content.getData();
+            var pid = "{$pid}";
+            window.parent.start(content,pid);
+           /* $.ajax({
+                type: "POST",
+                url: "{:U('ProjectNew/start')}",
+                data: {quantity:123,content:content,pid:pid},
+                dataType: "json",
+                success: function(data){
+                    if(data.done){
+                        $.closeModal();
+                        window.parent.location.href= window.parent.location;
+                    }else {
+                        alert(data.msg);
+                    }
+                }
+            });*/
+		}
+	</script>
+</block>

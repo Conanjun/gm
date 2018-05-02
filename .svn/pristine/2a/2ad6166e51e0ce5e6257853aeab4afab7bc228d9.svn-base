@@ -1,0 +1,214 @@
+<extend name="Public/base_choose"/>
+<block name="body">
+    <link rel="stylesheet" href="__THEME__/default/task.css" type="text/css" media="screen">
+    <style>
+        .choose-amount {
+            width: 49px;
+            height: 34px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            position: relative;
+            margin: 0 10px 0 0;
+        }
+        .choose-amount input {
+            display: block;
+            width: 31px;
+            height: 32px;
+            line-height: 32px;
+            position: absolute;
+            top: 1px;
+            left: 0;
+            border: none;
+            border: 0;
+            text-align: center;
+        }
+        .choose-amount a {
+            display: block;
+            width: 15px;
+            text-align: center;
+            height: 17px;
+            line-height: 17px;
+            overflow: hidden;
+            background: #f1f1f1;
+            color: #666;
+            position: absolute;
+            right: -1px;
+            border: 1px solid #ccc;
+        }
+
+        .choose-amount a.btn-reduce {
+            bottom: -1px;
+        }
+        .choose-amount a.btn-add {
+            top: -1px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $("a[id^='plus_num_']").click(function(){
+                var item = $(this).attr("item");
+                var q=$("#num_"+item).val();
+
+                var r=/^[1-9]+[0-9]*]*$/;
+                if(!r.test(q)){
+                    q=1;
+                }
+                q++;
+                $("#num_"+item).val(q);
+            });
+            $("a[id^='minus_num_']").click(function(){
+                var item = $(this).attr("item");
+                var q=$("#num_"+item).val();
+
+                var r=/^[1-9]+[0-9]*]*$/;
+                if(!r.test(q)){
+                    q=1;
+                }
+
+                if(q>1){
+                    q--;
+                }
+                $("#num_"+item).val(q);
+            });
+            $("input[id^='num_']").keyup(function(){
+                var q=$(this).val();
+
+                var r=/^[1-9]+[0-9]*]*$/;
+                if(!r.test(q)){
+                    q=1;
+                }
+                $(this).val(q);
+            }).change(function(){
+                var q=$(this).val();
+
+                var r=/^[1-9]+[0-9]*]*$/;
+                if(!r.test(q)){
+                    q=1;
+                }
+                $(this).val(q);
+            });
+
+            $('#submit').click(function () {
+                var obj_m = $("div[id^='s_check_']");
+                var mids = [];
+                obj_m.each(function(i){
+                    var t = $(this);
+                    if(t.hasClass("c-selected")){
+                        var mid = t.find('input').val();
+                        var next_key = t.attr('next');
+                        var option = $("div[id^='check_"+next_key+"_']");
+                        var ids = [];
+                        option.each(function(i){
+                            if($(this).hasClass("c-selected")){
+                                var id = $(this).find('input').val();
+                                ids.push(id);
+                            }
+                        });
+                        mids.push({"id":mid,"sub":ids});
+                    }
+                });
+
+                var mids = JSON.stringify(mids);
+
+                if (mids == undefined || mids == null || mids == "") {
+                    alert('请选择任务');
+                    return false;
+                }
+                $('#mids').val(mids);
+                var param = $("#config_form").serialize();
+                var ajaxurl = '/index.php?s=/Admin/Offer/offer_sub';
+                $.ajax({
+                    type: 'post',
+                    url: ajaxurl,
+                    data: param,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            window.parent.close_offer();
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <div class="container mw-700px">
+        <form action="{:U('config')}" method="post" class="form-condensed mw-700px" id="config_form">
+            <div class="aiui">
+                <div class="ai-treenav">
+                    <ul>
+                        <li>
+                            <ul class="nav-trunk">
+                                <input type="hidden" name="item" id="mids" value=""/>
+                                <input type="hidden" name="oid" id="oid" value="{$oid}"/>
+                                <foreach  name="list" item="fm" key="k">
+                                    <li >
+                                        <a  class="item-name c-f"><i></i>
+                                            <span class="pull-left">
+                                                <div class="all_checkbox" id="all_check_{$k}" item="{$k}">
+                                                    <input type="checkbox">
+                                                </div>
+                                            </span>
+                                            <span class="pull-left filename">{$fm.name}</span>
+                                        </a>
+                                        <ul class="nav-trunk fold ">
+                                            <if condition="$fm['item'] neq ''">
+                                                <foreach name="fm['item']" item="m" key="mk">
+                                                    <li >
+                                                        <a  class="item-name c-f" title=""><i></i>
+                                                            <span class="pull-left">
+                                                                <div class="s_checkbox <eq name='m.check' value='1'>c-selected</eq>" sg="{$m.sg}" id="s_check_{$k}_{$mk}" item="{$k}" next="{$k}_{$mk}">
+                                                                    <input type="checkbox" value="{$m.mid}">
+                                                                </div>
+                                                            </span>
+                                                            <span class="pull-left filename" >{$m.name}</span>
+                                                        </a>
+                                                        <ul class="nav-trunk fold">
+                                                            <if condition="$m['sub'] neq ''">
+                                                                <foreach name="m['sub']" item="s" key="sk">
+                                                                    <li>
+                                                                        <a  class="item-name item-name-last c-f"><i></i>
+                                                                            <span class="pull-left">
+                                                                                <div class="checkbox <eq name='s.check' value='1'>c-selected</eq>" filter="<eq name='s.required' value='1'>1<else/>0</eq>" group="{$s.sign}" id="check_{$k}_{$mk}_{$sk}" item="{$k}_{$mk}">
+                                                                                    <input type="checkbox" value="{$s.sid}">
+                                                                                </div>
+                                                                            </span>
+                                                                            <span class="pull-left filename">{$s.s_name}</span>
+                                                                            <div class="choose-amount fl ">
+                                                                                <div class="wrap-input">
+                                                                                    <a class="btn-reduce" href="javascript:;" id="minus_num_{$s.sid}" item="{$s.sid}">-</a>
+                                                                                    <a class="btn-add" href="javascript:;" id="plus_num_{$s.sid}" item="{$s.sid}">+</a>
+                                                                                    <input type="text" name="num[{$m.mid}][{$s.sid}]" id="num_{$s.sid}" value="{$s.quantity}">
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    </li>
+                                                                </foreach>
+                                                            </if>
+                                                        </ul>
+                                                    </li>
+                                                </foreach>
+                                            </if>
+                                        </ul>
+                                    </li>
+                                </foreach>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <a href="javascript:;" id="submit" class="btn btn-primary" data-loading="稍候...">保存</a>
+                <a href="javascript:" class="btn btn-back">返回</a>
+            </div>
+        </form>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script src="__JSNEW__/config.js"></script>
+</block>

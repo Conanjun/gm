@@ -1,0 +1,448 @@
+<extend name="Public/base"/>
+<block name="body">
+
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <script src='__JSNEW__/jquery.validate.min.js' type='text/javascript'></script>
+
+
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+    <link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet" type="text/css"/>
+    <script>
+        $(function(){
+            $('#start_addtime').datetimepicker({
+                value:'',
+                lang:'ch',
+                timepicker:false,format:'Y/m/d'
+            });
+            $('#end_addtime').datetimepicker({
+                value:'',
+                lang:'ch',
+                timepicker:false,format:'Y/m/d'
+            });
+            $('#start_finishtime').datetimepicker({
+                value:'',
+                lang:'ch',
+                timepicker:false,format:'Y/m/d'
+            });
+            $('#end_finishtime').datetimepicker({
+                value:'',
+                lang:'ch',
+                timepicker:false,format:'Y/m/d'
+            });
+        });
+    </script>
+
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('STUDIO_TASK_SJS')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Studio/OrderTaskSjs/index"/>
+                                    <table id="tt_1">
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('TASK_LIST_NAME')}</label>
+                                                <input class="form-control" type="text" name="tname" value="{$Think.get.tname}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('ORDER_SN')}</label>
+                                                <input class="form-control" type="text" name="order_sn" value="{$Think.get.order_sn}">
+                                            </td>
+                                              <td>
+                                                <label>{:L('ISURGENT')}</label>
+                                                <select name="isurgent" class="form-control" style="width: 180px">
+                                                    <option value="">{:L(PLEASE_SELECT)}</option>
+                                                    <option value="1" <if condition="$Think.get.isurgent eq 1">selected</if>>{:L('YES')}</option>
+                                                    <option value="2" <if condition="$Think.get.isurgent eq 2">selected</if>>{:L('NO')} </option>
+                                                </select>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('TASK_STATE')}</label>
+                                                <select name="state" class="form-control" style="width: 180px">
+                                                    <option value="">{:L(PLEASE_SELECT)}</option>
+                                                    <option value="1" <if condition="$Think.get.state eq 1">selected</if>>{:L('FINISH')}</option>
+                                                    <option value="2" <if condition="$Think.get.state eq 2">selected</if>>{:L('NOFINISH')} </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('TASK_SEND_TIME')}</label>
+                                                <input style="width: 110px;" class="form-control" type="text"  id="start_addtime" name="start_addtime" value="{$Think.get.start_addtime}">
+                                                <input style="width: 110px;" class="form-control" type="text" id="end_addtime" name="end_addtime" value="{$Think.get.end_addtime}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('FINISHTIME')}</label>
+                                                <input style="width: 110px;" class="form-control" type="text" id="start_finishtime" name="start_finishtime" value="{$Think.get.start_finishtime}">
+                                                <input style="width: 110px;" class="form-control" type="text" id="end_finishtime" name="end_finishtime" value="{$Think.get.end_finishtime}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('OrderTaskSjs/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="width: 240px">{:L('TASK_LIST_NAME')} </th>
+                                    <th>{:L('TASK_ORDER')} </span></th>
+                                      <th style="width: 100px"><span ectype="order_by" fieldname="t.isurgent">{:L('ISURGENT')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 100px">{:L('TASK_STATE')}</th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="t.addtime">{:L('TASK_SEND_TIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 150px"><span ectype="order_by" fieldname="t.finishtime">{:L('FINISHTIME')}<i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 80px">{:L('FINISHMAN')}</th>
+                                    <th style="width: 120px">{:L('HANDLE')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                                <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['tastkid']}" class="check"><label></label>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: left">{$vo['tname']}</td>
+                                            <td style="text-align: left">
+                                                <a href="{:U('Order/view?id='.$vo['oid'])}">{$vo.order_sn}-{:L($vo['str_state'])}</a>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['task_isurgent']">
+                                                    <img src="__IMG__/prompt.png"  title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                            <td><if condition="$vo['task_state'] eq 1">{:L(FINISH)}<else/>{:L(NOFINISH)}</if></td>
+                                            <td>
+                                                <if condition="$vo['task_addtime']">{$vo['task_addtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td>
+                                                <if condition="$vo['task_finishtime']">{$vo['task_finishtime']|date="Y-m-d H:i:s",###}<else/>-</if>
+                                            </td>
+                                            <td><if condition="$vo['task_finishuid'] gt 0">{$vo.task_finishman}<else/>-</if></td>
+                                            <td>
+                                                <if condition="$vo.task_state eq 0">
+                                                    <a href="javascript:void(0);"  onclick="reply({$vo['tastkid']},{$vo['oid']})"  data-width="800" data-height="600" class="btn btn-primary">{:L('FINISH_HANDEL')}</a>
+                                                </if>
+                                                <if condition="$vo.prompt eq 1"><span class="red">{:L('S_NOPAY')}</span></if>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                    <else />
+                                    <tr>
+                                        <td colspan="9">{:L('NOCONCENT')}</td>
+                                    </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="modal fade" id="edit-form">
+
+                            <div class="modal-dialog">
+
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <a class="close" href="#" data-dismiss="modal">×</a>
+                                        <h3>{:L('S_TASK_TASK_SPEC')}</h3>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <form action="{:U('OrderTaskSjs/confirm')}" class="form-horizontal" id="task_form" method='post' enctype="multipart/form-data">
+                                            <input type="hidden" name="id" id="oid" value="" >
+                                            <input type="hidden" name="task_id" id="task_id" value="" >
+
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">{:L('S_TASK_SJS_UPLOAD')}</label>
+                                                <div class="col-sm-10">
+                                                    <div style="position: relative;width: 200px;display: inline-block;margin-right: 10px;" id="pic_div">
+                                                        <div class="form-item" style="border: 0; line-height: 52px;">
+                                                            <input type="hidden" id="logo" name="task_image" />
+                                                            <input type="hidden" id="logos" name="task_image" />
+                                                            <div class="fl ">
+                                                                <script type="text/template" id="qq-template-validation-license">
+                                                                    <div class="qq-uploader-selector">
+                                                                        <ul class="qq-upload-list-selector" aria-live="polite"
+                                                                            aria-relevant="additions removals">
+                                                                            <li class="pli">
+                                                                                <img class="qq-thumbnail-selector" qq-max-size="200" qq-server-scale style="">
+                                                                                <div class="pdel">
+                                                                                    <button type="button"
+                                                                                            style="background: none;border: 0;height:20px;width:20px;margin-top: -30px;" class="qq-btn qq-upload-cancel-selector qq-upload-cancel" id="license_cancel">
+                                                                                    </button>
+                                                                                </div>
+                                                                            </li>
+                                                                        </ul>
+                                                                        <div class="qq-upload-button-selector qq-upload-button" id="license_button">
+                                                                            <div></div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </script>
+                                                                <div id="fine-uploader-license">
+                                                                </div>
+                                                                <script>
+                                                                    var restrictedUploader = new qq.FineUploader({
+                                                                        element: document.getElementById("fine-uploader-license"),
+                                                                        template: 'qq-template-validation-license',
+                                                                        request: {
+                                                                            endpoint: "{:U('Info/uploadPic')}",
+                                                                            method: 'POST' // Only for the gh-pages demo website due to Github Pages limitations
+                                                                        },
+                                                                        thumbnails: {
+                                                                            placeholders: {
+                                                                                waitingPath: '__JSNEW__/all.fine-uploader/placeholders/waiting-generic.png',
+                                                                                notAvailablePath: '__JSNEW__/all.fine-uploader/placeholders/not_available-generic.png'
+                                                                            }
+                                                                        },
+                                                                        // validation: {
+                                                                        //     allowedExtensions: ['jpeg', 'jpg', 'png','gif'],
+                                                                        //     itemLimit: 1,
+                                                                        // },
+                                                                        debug: true,
+                                                                        callbacks: {
+                                                                            onSubmit: function(id, fileName) {
+                                                                                $("#license_button").hide();
+                                                                                $("#fine-uploader-license").parent().parent().removeClass("form-item-error");
+                                                                                $("#fine-uploader-license").parent().parent().addClass("form-item-valid");
+                                                                                $("#license-error").text("");
+                                                                                $("#license-error").attr("id","");
+                                                                            },
+                                                                            onCancel: function(id, fileName) {
+                                                                                $("#license_button").show();
+                                                                                $("#logo").val("");
+                                                                            },
+                                                                            onComplete:  function(id,  fileName,  responseJSON)  {
+                                                                                if(responseJSON.success){
+
+                                                                                    $("#license_cancel").show();
+                                                                                    $("#logo").val(responseJSON.uploadName);
+                                                                                    $("#logos").val(responseJSON.saveName);
+                                                                                    //console.log(responseJSON);
+                                                                                }else{
+                                                                                    $("#license_button").click();
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                </script>
+                                                            </div>
+                                                            <div class="cl"></div>
+                                                            <i class="i-status"></i>
+                                                        </div>
+                                                        <div class="input-tip">
+                                                            <span></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">{:L('S_TASK_TASK_SPEC')}</label>
+                                                <div class="col-sm-9">
+                                                    <textarea  name="finishnote" id="finishnote" style="width: 400px;height: 170px;"></textarea>
+                                                </div>
+                                            </div>
+
+                                        </form>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-default" data-dismiss="modal">{:L('S_TASK_CANCEL')}</a>
+                                        <a href="javascript:void(0);"   id="save"  class="btn btn-primary" data-action="1">{:L('S_TASK_CONFIRM')}</a>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-default btn-sm">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        {:L('sysnotice')}
+                    </h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">{:L('close')}</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            var error_box = $("#errorModal");
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $("#save").click(function () {
+                var id=$("#oid").val() ;
+                var task_id=$("#task_id").val() ;
+                var finishnote = $("#finishnote").val() ;
+                var task_image=$("#logo").val() ;
+                var task_images=$("#logos").val() ;
+                $.ajax({
+                    url: $('#task_form').attr('action') ,
+                    type: 'POST' ,
+                    data: {'id':id,'task_id':task_id,'finishnote':finishnote,'task_image':task_image,'task_images':task_images},
+                    dataType: 'json' ,
+                    beforeSend: function() {
+                    },
+                    success: function(res) {
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text(error_box, res.info);
+                            modal.open(error_box);
+                        }
+                    },
+                    error: function(err) {
+                    }
+
+                })
+            })
+            $('.cancle').click(function () {
+                if(confirm("{:L('IF_CANCLE')}")) {
+                    var tid = $(this).attr('key');
+                    var url = $(this).attr('url');
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {'tid': tid},
+                        dataType: 'json',
+                        beforeSend: function () {
+                        },
+                        success: function (res) {
+                            if (res.status == 1) {
+                                window.location.href = res.url;
+                            } else {
+                                modal.text(error_box, res.info);
+                                modal.open(error_box);
+                            }
+                        },
+                        error: function (err) {
+                        }
+
+                    })
+                }
+            })
+        });
+
+        function reply($id,$oid) {
+            $('.ui-select').chosen();
+            $('#task_id').val($id);
+            $('#oid').val($oid);
+            modal.open('#edit-form');
+        }
+
+    </script>
+</block>
+

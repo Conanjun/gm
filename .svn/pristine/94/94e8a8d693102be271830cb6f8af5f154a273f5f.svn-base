@@ -1,0 +1,164 @@
+<extend name="Public/base"/>
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000"> <a href="{:U('Offer/veiw?id='.$o['oid'])}"><i class="icon-map-marker"></i>&nbsp;{$o.cname}-{$o.projectname}</a>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li></block>
+<block name="btnarea">
+    <li class="right">
+         <if condition="($hide neq 1)"><a href="{:U('Offer/adddetail?oid='.$oid)}"><i class="icon-list"></i>&nbsp;调整清单</a></if>
+    </li>
+    <li class="right">
+        <a href="{:U('Offer/export?id='.$oid)}"><i class="icon-file-excel"></i>&nbsp;导出Excel</a>
+    </li>
+</block>
+
+<block name="body">
+    <!-- 数据列表 -->
+    <div class="data-table table-striped" id="projectTaskForm">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+            <thead>
+            <tr>
+            <th width="30px"></th>
+            <th class="" style="text-align: left"></th>
+			<th class="text-left">必选</th>
+			<th class="" width="50px"><span class="sort" ectype="order_by" fieldname="standard">标配</span></th>
+			<th class="" width="50px">单位</th>
+			<th class="" width="70px"><span class="sort" ectype="order_by" fieldname="os.price">价格</span></th>
+			<th class="" width="50px"><span class="sort" ectype="order_by" fieldname="os.quantity">数量</span></th>
+			<th width="70px"><span class="sort" ectype="order_by" fieldname="amount">总金额</span></th>
+			<th width="60px"><span class="sort" ectype="order_by" fieldname="discount">优惠</span></th>
+			<th width="50px"><span class="sort" ectype="order_by" fieldname="os.days">周期</span></th>
+			<th width="50px"><span class="sort" ectype="order_by" fieldname="hour">工时</span></th>
+            <th  width="50px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="offer">
+                <volist name="offer" id="v">
+                	<tr title="{$v.mname}">
+                	<td style="background-color: #f1f1f1;color:#5e4ba4"></td>
+                	<th colspan="11" style="background-color: #f1f1f1;color:#5e4ba4"><if condition="$v['mname']">{$v.mname}<else/>非标准服务</if></th>
+                	</tr>
+                	<volist name="v.list" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                                <input class="ids" type="checkbox" name="id[]" value="{$vo.osid}"/>
+                        </td>
+                        <td class="text-left">{$vo.name}
+                            <if condition="$vo['bulb']">
+                                <a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.s_name}-指导备注"  data-width="1000"
+                                   data-height="600" class="iframe">
+                                    <i class="icon-lightbulb"></i></a>
+                            </if>
+                        </td>
+                        <td class="text-left">
+							<if condition="$vo['is_required'] ==0">
+								否
+								<elseif condition="$vo['is_required'] ==1" />
+								是
+								<elseif condition="$vo['is_required'] ==2" />
+								多选一{$vo.regroup_name}
+								<elseif condition="$vo['is_required'] ==3" />
+								关联{$vo.remid_name}
+							</if>
+						</td>
+                        <td>
+							<if condition="$vo['standard'] ==1">
+								是
+								<elseif condition="$vo['standard'] ==0" />
+								否
+							</if>
+						</td>
+                        <td>{$vo.unit}</td>
+                       <td style="text-align: right;">{$vo.price|fomatprice}</td>
+                        <td>{$vo.quantity}</td>
+                        <td style="text-align: right;">{$vo.amount|fomatprice}</td>
+                        <td style="text-align: right;">{$vo.discount|fomatprice}</td>
+                        <td>{$vo.days}d</td>
+                        <td>{$vo.hour}h</td>
+                        <td>
+                                <a <eq name="hide" value="1"> style="display: none;"</eq> href="{:U('Offer/subedit?id='.$vo['osid'].'&oid='.$oid)}">编辑</a>
+                           
+                        </td>
+                    </tr>
+                </volist></volist>
+                <tr>
+                    <td colspan="12" style="text-align: right;font-weight: bold;">
+                         金额合计:<span class="textr">{$all_amount|fomatprice}</span>&nbsp;&nbsp;&nbsp;周期合计:<span class="textr">{$all_days}d</span>&nbsp;&nbsp;&nbsp;工时合计:<span class="textr">{$all_hours}h</span>
+                    </td>
+                </tr>
+                <else/>
+                <td colspan="12" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan='12'>
+                    <div class="table-actions clearfix">
+                        <if condition="($hide neq 1)"> <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div></if>
+                        <button <eq name="hide" value="1"> style="display: none;"</eq> class="btn btn-default ajax-post confirm" url="{:U('Offer/deletesub?oid='.$oid)}" target-form="ids">删 除
+                        </button>
+                        <button type="button"  class="btn btn-default" onclick="window.location.href='{:U('index')}';">返回</button>
+                        <button type="button"  class="btn btn-default" onclick="window.location.href='{:U('veiw?id='.$oid)}';">报价单详情</button>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+    $(function(){
+    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+    });
+        //搜索功能
+        $("#search").click(function () {
+            var url = $(this).attr('url');
+            var query = $('.search-form').find('input').serialize();
+            query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+            query = query.replace(/^&/g, '');
+            if (url.indexOf('?') > 0) {
+                url += '&' + query;
+            } else {
+                url += '?' + query;
+            }
+            window.location.href = url;
+        });
+        //回车搜索
+        $(".search-input").keyup(function (e) {
+            if (e.keyCode === 13) {
+                $("#search").click();
+                return false;
+            }
+        });
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+
+        var ajaxurl="{:U('Offer/ajax_col')}";
+
+        function tijiao(id,es_eid,disoff){
+            if(confirm("确认提交吗？"))
+            $.post(
+                    "{:U('Offer/present')}",
+                    {'id':id,'eid':es_eid,'disoff':disoff},
+                    function(data){
+                       if(data.code){
+                           alert(data.msg);
+                       }else{
+                           window.location.href = window.location.href;
+                       }
+                    },
+                    'json'
+            );
+        }
+    </script>
+</block>

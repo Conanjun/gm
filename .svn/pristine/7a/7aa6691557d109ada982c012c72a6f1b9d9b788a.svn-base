@@ -1,0 +1,218 @@
+<extend name="Public/base" />
+<block name="navhead">
+             <if condition="$pid">
+
+
+				<li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+						class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+  </if>
+</block>
+<block name="btnarea">
+</block> 
+<block name="body">
+<style>
+.outer .side {
+    width: 192px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+.panel{border: 0;}
+</style>
+    	<script language="Javascript">browseType = "unclosed";</script>
+    <style>
+        #sonModule,#moduleBox>span>input,#moduleBox>table {
+            max-width: 500px;
+        }
+
+        #childrenForm .col-table+.col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+    </style>
+    <div id="featurebar">
+	    <ul class="nav"  style="float: left">
+			<if condition="cando('Doc/attach')">
+			<!--<li class="<eq name='actname' value='attach'>active</eq>"><a href="{:U('doc/attach?pid='.$pid)}">所有</a>-->
+			<!--</li>-->
+                <li class="<if condition='$uploade eq null and $dtid eq null'>active</if>"><a href="{:U('doc/attach?pid='.$pid)}">所有</a>
+			</li>
+			</if>
+			<if condition="cando('Doc/uploade')">
+			<li class="<eq name='uploade' value='uploade'>active</eq>"><a href="{:U('doc/uploade?pid='.$pid)}" >我的上传</a>
+			</li>
+			</if>
+			<if condition="cando('Doc/docMore')">
+            <li id="statusTab" <if condition="$dtid">class="dropdown active"<else/>class="dropdown"  </if>  ><a href="javascript:;" data-toggle="dropdown">
+                <empty name="dtid">
+                    更多{$dtid}
+                    <else/>
+                    <foreach name="docTypes" item="doctype">
+                       <if condition="$doctype['dtid'] eq $dtid">{$doctype['name']}
+                       </if>
+                    </foreach>
+                </empty>
+                <span class="caret"></span></a>
+	<ul class="dropdown-menu">
+        <foreach name="docTypes" item="doctype">
+            <li <if condition="$doctype['dtid'] eq $dtid"> class="active" </if>><a href="{:U('doc/docMore?dtid='.$doctype['dtid'].'&pid='.$pid)}">{$doctype['name']}</a></li>
+        </foreach>
+    </ul>
+			</li>
+			</if>
+            <li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+            
+		</ul>
+		<div class="actions">
+		<a href="{:U('Doc/attachupload?pid='.$pid)}" class="btn"><i class="icon-plus"></i>上传文档</a>
+		</div>
+		
+		<div style="clear: both;"></div>
+        <include file="Doc/search" />
+    </div>
+    <div style="position: relative;">
+    <!-- 数据列表 -->
+	<div class="side">
+		<div class="side-body">
+			<div class="panel panel-sm">
+				<div class="panel-heading nobr">
+					<i class="icon-sitemap"></i>
+					<strong>我的项目</strong>
+				</div>
+				<ul id="report-list" class="list-group"   style="overflow:auto;height:100%;position: absolute;width: 100%;left: 0px;
+    padding-bottom: 35px">
+                    <foreach name="projectList" item="vo">
+                        <a style="white-space:nowrap;overflow: hidden;padding-right: 20px;
+width: 190px;    text-overflow: ellipsis;" href="{:U('doc/attach?pid='.$vo['pid'].'&dtid='.$dtid.'&uploade='.$uploade)}" title="{$vo.name}"  <if condition="$vo['pid'] eq $pid">class="list-group-item  active" <else/> class="list-group-item"</if>>{$vo.shortsign}</a>
+                    </foreach>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="main">
+
+		<div class="data-table table-striped" id="projectTaskForm">
+
+			<!--原table-->
+	<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+    <thead>
+        <tr>
+		    <th style="width:40px"></th>
+            <th class="text-left"><span  class="sort" ectype="order_by" fieldname="name">名称</span></th>
+            <th class="text-left"><span  class="sort" ectype="order_by" fieldname="tid">任务</span></th>
+
+            <th width="100px"><span  class="sort" ectype="order_by" fieldname="dtid">类型</span></th>
+            <th width="60px"><span  class="sort" ectype="order_by" fieldname="size">大小</span></th>
+            <th width="70px"><span  class="sort" ectype="order_by" fieldname="ext">扩展名</span></th>
+            <th  width="140px"><span  class="sort" ectype="order_by" fieldname="addtime">上传时间</span></th>
+            <th width="80px"><span  class="sort" ectype="order_by" fieldname="views">下载数</span></th>
+            <th width="80px"><span  class="sort" ectype="order_by" fieldname="adduname">上传人</span></th>
+            <th  width="100px">操作</th>
+		</tr>
+    </thead>
+    <tbody>
+	       <empty name="fileList">
+			   <td colspan="10" class="text-center table_nodata">暂时还没有内容!</td>
+		   <else/>
+
+          <foreach name="fileList" item="each_attach">
+			<tr title="{$each_attach['note']}">
+            <td class="cell-id" ><input class="ids" type="checkbox" name="id[]" value="{$each_attach['docid']}"></td>
+			<td class="text-left">
+
+				<if condition="$logid eq $each_attach['uid'] or cando('Doc/ajax_col')">
+					<span ectype="inline_edit" fieldname='name' fieldid="{$each_attach['fileid']}" required="1" class="editable" title="编辑">
+					<if condition="$each_attach['url']">
+						<if condition="$each_attach['urlname']">{$each_attach['urlname']}</span><else/>{$each_attach['url']}</span></if>
+						<else/>
+						 {$each_attach.name}</span>
+					</if>
+				<else/>
+					<if condition="$each_attach['url']">
+						<if condition="$each_attach['urlname']">{$each_attach['urlname']}</span><else/>{$each_attach['url']}</span></if>
+						<else/>
+						{$each_attach.name}
+					</if>
+				</if>
+			</td>
+				<td class="text-left"> <a href="{:U('Task/view?id='.$each_attach['tid'])}">{$each_attach.title}</a></td>
+			<td>{$each_attach.type}</td>
+                <td><if condition="$each_attach['url']"><else/>{$each_attach.size}K</if></td>
+            <td ><if condition="$each_attach['url']">链接<else/>{$each_attach.ext}</if></td>
+			<td>{$each_attach.addtime}</td>
+			<td>{$each_attach.views}</td>
+			<td>{$each_attach.uname}</td>
+			<td>
+              <if condition="$each_attach['url']">
+                  	<a href="{$each_attach['url']}" target="_blank" title="{$each_attach.url}"> <span class="download">预览</span></a>
+                  <else/>
+                  	<a href="{:U('doc/view?fid='.$each_attach['fileid'])}" class="iframe" data-width="1000" data-height="800" title="{$each_attach.name} 预览"> <span class="download">预览</span></a>
+                <a href="{:U('doc/download?fid='.$each_attach['fileid'])}"> <span class="download">下载</span></a>
+              </if>
+				<if condition="cando('doc/deleteDoc')">
+					<a href="{:U('doc/deleteDoc?id='.$each_attach['docid'])}"  class="confirm ajax-get">删除</a>
+				<elseif condition="$logid eq $each_attach['uid']"/>
+					<a href="{:U('Task/deleteDoc?id='.$each_attach['docid'])}"  class="confirm ajax-get">删除</a>
+				</if>
+            </td>
+			</tr>
+	</foreach></empty>
+	</tbody>
+                    <notempty name="fileList">
+	<tfoot>
+			<tr>
+				<td colspan="10">
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope="" class="rows-selector"> 选择</label>
+						</div>
+						<if condition="cando('doc/deleteDoc')">
+	           				 <button class="btn btn-default ajax-post confirm" url="/index.php?s=/Admin/Doc/deleteDoc" target-form="ids">删 除</button>
+						</if>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+                    </notempty>
+    </table>
+
+	</div>
+	</div></div>
+    <script>
+        var ajaxurl="{:U('doc/ajax_col')}";
+        $(function(){
+	    	setTimeout(function(){fixedTfootAction('#projectTaskForm')}, 100);
+	    	setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+	    	//分类搜索隐藏传输dtid
+                var dtid_input='<input type="hidden" name="dtid" value="{$dtid}">';
+                	 $("#searchform").append(dtid_input);
+	    });
+//        function adownload(obj){
+//            var $(obj).addClass('href="{$each_attach['savepath']}" download="{$each_attach['name']}"');
+//
+//        }
+
+    </script>
+
+</block>
+
+<block name="script">
+	<script>
+        //导航高亮
+        highlight_subnav("{:U('Doc/attach')}");
+
+    </script>
+</block>

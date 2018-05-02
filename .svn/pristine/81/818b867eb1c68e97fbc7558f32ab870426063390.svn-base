@@ -1,0 +1,140 @@
+<extend name="Public/base_choose" />
+<block name="body">
+<style>
+body {padding-bottom: 0px;}
+#wrap{padding: 0;background: #fff}
+#wrap .outer{border: 0;-webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0); box-shadow: 0 1px 5px rgba(0, 0, 0, 0);}
+</style>
+	<div id="querybox" class="show form-condensed">
+        <!-- 高级搜索 -->
+		<table class="table table-form search-form" style="width: 300px;">
+		<tr>
+		<td>
+			<input type="text" name="key" class="form-control  searchInput"
+				   value="{:I('key')}" placeholder="请输入服务内容" /></td>
+			<td>
+			<button type="button" class="btn btn-primary" href="javascript:;" id="search" url="{:U('choose_service',array('mid'=>$mid))}">搜索</button>
+			</td>
+		</tr>
+		</table>
+    </div>
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+	<table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+    <thead>
+        <tr>
+		<th></th>
+		<th class="">服务内容</th>
+		<th class="">单位</th>
+		<th class="">价格</th>
+		<th class="">数量</th>
+		<th class="">制作周期</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="vo">
+		<tr>
+			<td class="cell-id"><input class="ids" type="checkbox" name="id[]" value="{$vo.sid}" o_name="{$vo.name}" <eq name="vo.check" value="1">checked</eq>/></td>
+			<td>{$vo.name}</td>
+			<td>{$vo.unit}</td>
+			<td>{$vo.price}</td>
+			<td>{$vo.quantity}</td>
+			<td>{$vo.days}d</td>
+		</tr>
+		</volist>
+		<else />
+		<td colspan="6" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+	<tfoot>
+			<tr>
+				<td colspan='6'>
+					<div class="table-actions clearfix">
+						<div class="checkbox btn">
+							<label><input type="checkbox" data-scope=""
+								class="rows-selector check-all"> 选择</label>
+						</div>
+						<input type="hidden" name="choose_ids" id="choose_ids" value="">
+						<input type="hidden" name="choose_names" id="choose_names" value="">
+						 <button class="btn btn-default" onclick='change()'>确定</button>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+	<script type="text/javascript">
+        $(function () {
+            $(".check-all").click(function(){
+                $(".ids").prop("checked", this.checked);
+                var items = '';
+                var names = '';
+                $('.ids:checked').each(function () {
+                    items += this.value + ',';
+                    names += $(this).attr('o_name') + ',';
+                });
+                items = items.substr(0, (items.length - 1));
+                names = names.substr(0, (names.length - 1));
+                $("#choose_ids").val(items);
+                $("#choose_names").val(names);
+            });
+            $(".ids").click(function(){
+                var option = $(".ids");
+                option.each(function(i){
+                    if(!this.checked){
+                        $(".check-all").prop("checked", false);
+                        return false;
+                    }else{
+                        $(".check-all").prop("checked", true);
+                    }
+                });
+                var items = '';
+                var names = '';
+                $('.ids:checked').each(function () {
+                    items += this.value + ',';
+                    names += $(this).attr('o_name') + ',';
+                });
+                items = items.substr(0, (items.length - 1));
+                names = names.substr(0, (names.length - 1));
+                $("#choose_ids").val(items);
+                $("#choose_names").val(names);
+            });
+        });
+        function change() {
+            var ids = $("#choose_ids").val();
+            var names = $("#choose_names").val();
+            if (ids) {
+                window.parent.changechoose(ids,names);
+            }
+        }
+		//搜索功能
+		$("#search").click(function(){
+			var url = $(this).attr('url');
+			var query  = $('.search-form').find('input').serialize();
+			query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+			query = query.replace(/^&/g,'');
+			if( url.indexOf('?')>0 ){
+				url += '&' + query;
+			}else{
+				url += '?' + query;
+			}
+			window.location.href = url;
+		});
+		//回车搜索
+		$(".search-input").keyup(function(e){
+			if(e.keyCode === 13){
+				$("#search").click();
+				return false;
+			}
+		});
+		//导航高亮
+		highlight_subnav('{:U('Service/index')}');
+	</script>
+</block>

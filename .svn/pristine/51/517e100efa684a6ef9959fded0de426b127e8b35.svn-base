@@ -1,0 +1,1317 @@
+<?php
+
+namespace Admin\Controller;
+
+use Admin\Model\DocModel;
+
+/*
+ * 文档控制器
+ */
+
+class DocController extends AdminController
+{
+    // 定义数据表
+    private $db;
+    private $pro_module;
+    private $meta_title;
+    private $document_model;
+
+    // 构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->document_model = new DocModel();
+    }
+
+    public function editurl()
+    {
+        $this->display();
+    }
+
+    public function index()
+    {
+        $where['_string'] = "(1=1)";
+        $act = "";
+        $data = I('get.');
+        $name = trim($data['name']);
+        if (!empty($name)) {
+            $where['_string'] .= " and p.name like '%" . $name . "%'";
+            $this->assign('srname', $name);
+            $act = 1;
+        }
+        $pm = trim($data['pm']);
+        if (!empty($pm)) {
+            $where['_string'] .= " and p.pm like '%" . $pm . "%'";
+            $this->assign('srpm', $pm);
+            $act = 1;
+        }
+        $drug_name = trim($data['drug_name']);
+        if (!empty($drug_name)) {
+            $where['_string'] .= " and drug_name like '%" . $drug_name . "%'";
+            $this->assign('srdrug_name', $drug_name);
+            $act = 1;
+
+        }
+        //治疗领域
+        $therapy_area = trim($data['therapy_area']);
+        if (!empty($therapy_area)) {
+            $where['_string'] .= " and p.therapy_area like '%" . $data['therapy_area'] . "%'";
+            $this->assign('srtherapy_area', $therapy_area);
+            $act = 1;
+        }
+        //服务类型
+        $type = trim($data['type']);
+        if (!empty($data['type'])) {
+            $where['_string'] .= " and p.path like '%" . $type . "%'";
+            $this->assign('srtype', $type);
+            $act = 1;
+
+        }
+
+
+        $filter = I('get.');
+        $uid = UID;
+        $res = $this->document_model->searchPersonProject($uid, $filter, $where, $act);
+        $doctyps = $this->document_model->docTypes();
+        foreach ($doctyps as &$dt) {
+            foreach ($res[1] as $re) {
+                if ($dt['dtid'] == $re['dtid']) {
+                    $dt['pid'] = $re['pid'];
+                    $dt['sum'] = $re['sum'];
+                }
+            }
+        }
+        //治疗领域
+        $therapy_areas = array();
+        $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+        $this->assign('therapy_areas', $therapy_areas);
+        //项目类型
+        $project_types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+        $this->assign('protype', $project_types);
+        //文档类型个数
+        $num = M('doc_type')->count('dtid');
+        $this->assign('num', $num);
+        $this->assign('_page', $res[2]->show());
+        $this->assign("projectList", $res[0]);
+        $this->assign('pdfs', $res[1]);
+        $this->assign('docTypes', $doctyps);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '项目文档', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->display();
+    }
+
+    //	预览文档
+    public function preview()
+    {
+        $id = I('id');
+        $result = $this->document_model->docDetail($id);
+        $this->assign('doc', $result[0]);
+        $this->assign('attachFiles', $result[1]);
+        $this->display();
+    }
+
+    //添加文件
+    public function add()
+    {
+        $pid = I('pid');
+        $uid = UID;
+        //        $result = $this->document_model->relateProject($uid);
+        $project = $this->document_model->getProject($pid);
+        $docType = $this->document_model->docTypes();
+        $this->assign('pid', $pid);
+        $this->assign('docTypes', $docType);
+        $this->assign('project', $project);
+        $p = M('project')->alias('p')->field('p.name,p.state,p.pid,d1.d_key as sname')->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')->where(array('p.pid' => $pid))->find();
+        if ($p) {
+            $this->assign('p', $p);
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '项目文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '上传文档', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    public function edit()
+    {
+        $id = I('id');
+        $result = $this->document_model->docDetail($id);
+        $doctypes = $this->document_model->dcoType();
+        $this->assign('doc', $result[0]);
+        $this->assign('attach', $result[1]);
+        $this->assign('types', $doctypes);
+        $this->display();
+    }
+
+    public function save()
+    {
+        $id = I('get.pid');
+        if (empty($id)) {
+            $this->error('请选择指定的项目', U('Admin/Doc/index'));
+        }
+        $temp = "";
+        //        $num = count(array_filter($_FILES['files']['tmp_name']));
+        $accessories = array_filter($_FILES['files']['tmp_name']);
+        if (!empty($accessories)) {
+            $file_ids = $this->file_uplode();
+            if (!empty($file_ids)) {
+                $sql = 'insert into ot_doc (pid,fileid,dtid,note,addtime,uid,uname,edittime,edituid,edituname) values ';
+                foreach ($file_ids as $key => $vo) {
+                    $dtid = $_POST['dtids'][$key];
+                    $note = $_POST['contents'][$key];
+                    $addtime = time();
+                    $uid = UID;
+                    $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                    $sql .= "($id,$vo,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "'),";
+                }
+                $sql = substr($sql, 0, -1);
+                $temp = M('doc')->execute($sql);
+            }
+        }
+        //网络资料
+        $temp2 = "";
+        $dtids = I('post.dtid');
+        foreach ($dtids as $kk => $dt) {
+            if ($_POST['url'][$kk]) {
+                //网络资料填写
+                $url = $_POST['url'][$kk];
+                $dtid = $dt;
+                $note = $_POST['content'][$kk];
+                $addtime = time();
+                $uid = UID;
+                $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                $urlname = $_POST['label'][$kk];
+                if (empty($urlname)) {
+                    $this->error('网络资料标题名称不可为空', U("Admin/Doc/add?pid={$id}"));
+                }
+                $sql = 'insert into ot_doc (pid,fileid,dtid,note,addtime,uid,uname,edittime,edituid,edituname,url,urlname) values ';
+                $sql .= "($id,0,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "','" . $url . "','" . $urlname . "'),";
+                $sql = substr($sql, 0, -1);
+                $temp2 = M('doc')->execute($sql);
+            }
+        }
+        if ($temp || $temp2) {
+            $this->redirect('Admin/Doc/index');
+        } else {
+            $this->error('请添加上传文档或网络资料', U("Admin/Doc/add?pid={$id}"));
+        }
+    }
+
+
+    public function deleteDoc()
+    {
+        $ids = (array)I('id');
+        if (empty($ids[0])) {
+            return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+        }
+        $msg = '';
+        $module = M('Doc');
+        foreach ($ids as $v) {
+            $res = $module->alias('d')->field('d.*,f.name')->join('ot_file f on f.fileid = d.fileid', 'left')->where("d.docid = {$v}")->find();
+            $this->project_out($res['pid'], 1);//判断项目是否可以操作
+            if ($res) {
+                if (!$module->where("docid = {$v}")->delete()) {
+                    if ($res['url']) {
+                        $msg .= "『" . ($res['urlname'] ?: $res['url']) . "』删除失败。\n";
+                    } else {
+                        $msg .= "『{$res['name']}』删除失败。\n";
+                    }
+
+                } else {
+                    if ($res['fileid'] > 0) {
+                        $update_delete['delete'] = 1;
+                        M('file')->where("fileid = {$res['fileid']}")->save($update_delete);
+                        M('meet_file')->where("fileid = {$res['fileid']}")->delete();
+                        M('imFile')->where("fileid = {$res['fileid']}")->delete();
+                        $msg .= "『{$res['name']}』删除成功。\n";
+                    } else {
+                        $msg .= "『" . ($res['urlname'] ?: $res['url']) . "』删除成功。\n";
+                    }
+                }
+            } else {
+                $msg .= "删除失败，附件不存在。\n";
+            }
+        }
+        return $this->ajaxReturn(array('done' => true, 'msg' => "{$msg}"));
+
+
+        /*
+         if(IS_POST){
+         $id=I('post.id');
+         $ids=implode(',',$id);
+         $where="fileid in (".$ids.")";
+         //假删除
+         $update_delete['delete']=1;
+         M('file')->where($where)->save($update_delete);
+         $res=M('doc')->where($where)->delete();
+         $this->ajaxReturn(['status'=>1]);
+         $this->redirect('Admin/Doc/attach');
+         }else{
+         $id = I('id');
+         $result = $this->document_model->delete_doc($id);
+         $pid=I('get.pid');
+         if ($result) {
+         $this->redirect("Admin/Doc/attach?pid={$pid}");
+         } else {
+         $this->error('操作失败', U('Admin/Doc/attach'));
+         }
+         }*/
+
+    }
+
+    public function ajax_col()
+    {
+        $id = empty($_GET['id']) ? 0 : intval($_GET['id']);
+        $column = empty($_GET['column']) ? '' : trim($_GET['column']);
+        $value = isset($_GET['value']) ? trim($_GET['value']) : '';
+        $data = array();
+        $data[$column] = $value;
+        $res = M('file')->where('fileid=' . $id)->save($data);
+        if ($res) {
+            return;
+        } else {
+            return;
+        }
+
+    }
+
+    //  文档的搜索 : LGW
+    public function docSearch()
+    {
+        // 文档类型
+        $docType = M('Doc_type')->field('dtid,name')->select();
+        // 文档格式
+        $fileExt = M("Dictionary")->where("d_code='file_ext'")->select(array('order' => 'd_order asc'));
+        //客户
+        $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+        //治疗领域
+        $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+
+        $this->assign('areas', $therapy_areas);
+        $this->assign('docType', $docType);
+        $this->assign('customer', $customer);
+        $this->assign('fileExt', $fileExt);
+        $c1 = " 1=1 ";
+        $c2 = "";
+        $c3 = "";
+        $c4 = "";
+        $c5 = "";
+        $c6 = "";
+        $c7 = "";
+        $c8 = "1=1 ";
+        $c9 = "";
+        $c10 = "";
+        $c11 = "";
+        $c12 = "";
+        $c13 = "";
+
+        $field1 = 'f.name';
+        $field2 = 'd.dtid';
+        $field3 = 'f.ext';
+        $field4 = 'd.uname';
+        $field5 = 'd.note';
+        $field6 = 'daysss';
+        $field7 = 'f.size';
+        $field8 = 'p.name';
+        $field9 = 'p.pm';
+        $field10 = 'p.cid';
+        $field11 = 'p.therapy_area';
+        // $field12 = '';
+        $field13 = 'p.drug_name';
+
+
+        $value1 = I('get.name', '');     // 文档名称
+        $value2 = I('get.type');         // 文档类型
+        $value3 = I('get.ext');          // 文档格式
+        $value4 = I('get.uname');        // 上传人
+        $value5 = I('get.note', '');         // 文档备注
+        $value6 = I('get.addtime', '');         // 上传时间
+        $value7 = I('get.size', '');         // 文档大小
+        $value8 = I('get.pname', '');         // 项目名称
+        $value9 = I('get.pm', '');         // 项目经理
+        $value10 = I('get.cid', '');        // 客户
+        $value11 = I('get.therapy_area', '');   // 治疗领域 多选
+
+        $value12 = I('get.section', '');        // 目标科室
+        $value13 = I('get.drug_name', '');        // 药品
+
+        $value1 and $c1 = " ($field1 like '%{$value1}%' or d.urlname like '%{$value1}%') ";
+        $value2 and $c2 = " and $field2=$value2";
+        $value3 and $c3 = " and $field3='{$value3}'";
+        $value4 and $c4 = " and  $field4 like '%{$value4}%'";
+        $value5 and $c5 = " and $field5 like '%{$value5}%'";
+        if ($value6) {
+            $uptime = date('Ymd', strtotime($value6));
+            $c6 = " $field6 ";
+            $condition['uptime'] = $uptime;
+        }
+        $exists = "EXISTS(SELECT 1 FROM ot_project p WHERE p.pid=d.pid and";
+        $value7 and $c7 = " and $field7 <= ($value7*1024)";
+        $value8 and $c8 = " $exists $field8 like '%{$value8}%')";
+        $value9 and $c9 = " and EXISTS(SELECT 1 FROM ot_project p LEFT JOIN ot_ucenter_member um on um.id=p.pmuid LEFT JOIN ot_member m on um.id=m.uid
+        WHERE p.pid=d.pid and ($field9 like '%{$value9}%' or m.nickname like  '%{$value9}%' or um.email like '%{$value9}%' or um.username like '%{$value9}%' or um.mobile like '%{$value9}%'))";
+        $value10 and $c10 = " and $exists $field10=$value10 )";
+
+        if (is_array($value11) && !empty($value11)) {
+            $c11 = "and $exists( ";
+            foreach ($value11 as $k => $v) {
+                if ($k > 0) {
+                    $c11 .= "or $field11 like '%{$v}%'";
+                } else {
+                    $c11 .= " $field11 like '%{$v}%'";
+
+                }
+
+            }
+            $c11 .= "))";
+        }
+        $value13 and $c13 = " and $exists $field13 like '%{$value13}%')";
+        $actionURL = strstr(__ACTION__, '/Admin');
+        $this->assign('actionURL', $actionURL);
+
+        $reset = I('get.reset');
+        if ($reset == 1) {
+            $c1 = " 1=1 ";
+            $condition ['_string'] = "(( $c1))";
+            return $condition;
+        }
+        $condition ['_string'] = "(($c1 $c2 $c3 $c4 $c5 $c6 $c7) and ($c8 $c9 $c10 $c11 $c12 $c13) )";
+        if (is_array($value11) && !empty($value11)) {
+            $value11 = implode(',', $value11);
+        } else {
+            $value11 = '';
+        }
+        $this->assign('value1', $value1);
+        $this->assign('value2', $value2);
+        $this->assign('value3', $value3);
+        $this->assign('value4', $value4);
+        $this->assign('value5', $value5);
+        $this->assign('value5', $value5);
+        $this->assign('value6', $value6);
+        $this->assign('value7', $value7);
+        $this->assign('value8', $value8);
+        $this->assign('value9', $value9);
+        $this->assign('value10', $value10);
+        $this->assign('value11', $value11);
+        $this->assign('value12', $value12);
+        $this->assign('value13', $value13);
+
+
+        $show = 0;
+        $second = 0;
+        if ($value1 || $value2 || $value3 || $value4 || $value5 || $value6 || $value7 || $value8 || $value9 || $value10 || $value11 || $value12 || $value13) $show = 1;
+        if ($value8 || $value9 || $value10 || $value11 || $value12 || $value13) $second = 1;
+        $this->assign('show', $show);
+        $this->assign('second', $second);
+
+        return $condition;
+
+    }
+
+
+    /*附件*/
+    public function attach()
+    {
+
+        $where = $this->docSearch();  //  文档搜索
+        //        $list=$this->lists('file',$where);
+        $filter['pid'] = I('get.pid');
+        $filter['dtid'] = I('get.dtid');
+        $filter['sort'] = I('get.sort');
+        $filter['order'] = I('get.order');
+        $filter['uploade'] = I('get.uploade');
+        $map['dtid'] = I('dtid');
+        $uid = UID;
+        $res = $this->document_model->searchPersonAttach($uid, $filter, $where, $map);
+
+        $doctyps = $this->document_model->docTypes();
+        foreach ($res[0] as &$project) {
+            if ($project['shortsign']) {
+                $name = $project['shortsign'] . '-' . $project['name'];
+                $project['shortsign'] = $name;
+            } else {
+                $project['shortsign'] = $project['name'];
+            }
+
+        }
+        $p = M('project')->alias('p')->field('p.name,p.state,p.pid,d1.d_key as sname')->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')->where(array('p.pid' => $filter['pid']))->find();
+        if ($p) {
+            $this->assign('p', $p);
+        }
+        $this->assign('logid', UID);
+        $this->assign("projectList", $res[0]);
+        $this->assign("fileList", $res[1]);
+        $this->assign('pid', $filter['pid']);
+        $this->assign('dtid', $filter['dtid']);
+        $this->assign('docTypes', $doctyps);
+        $this->assign('_page', $res[2]->show());
+        //	    $this->assign('actname',ACTION_NAME);
+        $this->assign('uploade', $filter['uploade']);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '附件', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display();
+    }
+
+    /*我的上传*/
+    public function uploade()
+    {
+        $where = $this->docSearch();
+        $filter['pid'] = I('get.pid');
+        $filter['dtid'] = I('get.dtid');
+        $filter['sort'] = I('get.sort');
+        $filter['order'] = I('get.order');
+        $filter['uploade'] = 'uploade';
+        $uid = UID;
+        $res = $this->document_model->searchPersonAttach($uid, $filter, $where);
+        foreach ($res[0] as &$project) {
+            if ($project['shortsign']) {
+                $name = $project['shortsign'] . '-' . $project['name'];
+                $project['shortsign'] = $name;
+            } else {
+                $project['shortsign'] = $project['name'];
+            }
+        }
+        $doctyps = $this->document_model->docTypes();
+        $this->assign("projectList", $res[0]);
+        $this->assign("fileList", $res[1]);
+        $this->assign('pid', $filter['pid']);
+        $this->assign('docTypes', $doctyps);
+        $this->assign('uploade', $filter['uploade']);
+        $this->assign('actname', ACTION_NAME);
+        $this->assign('_page', $res[2]->show());
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '附件-我上传的', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display('attach');
+    }
+
+    //文件下载
+    public function download()
+    {
+        $fileid = I('get.fid');
+        $res = M('file')->field('fileid,name,ext,savepath,size')->where(array('fileid' => $fileid))->find();
+        $filename = $res['name'] . "." . $res['ext'];
+        if ($res) {
+            $file = @ fopen($res['savepath'], "r");
+            if ($file) {
+                header("Content-type: application/octet-stream");
+                header("Content-Disposition: attachment; filename=" . $filename);
+                while (!feof($file)) {
+                    echo fread($file, 50000);
+                }
+                fclose($file);
+                M('file')->where(array('fileid' => $fileid))->setInc('views', 1);
+            } else {
+                $this->error('文件不存在', U('Admin/Doc/Attach'));
+                exit;
+            }
+        } else {
+            $this->error('文件不存在', U('Admin/Doc/attach'));
+            exit;
+        }
+    }
+
+    public function view()
+    {
+        $fileid = I('get.fid');
+        $res = M('file')->field('fileid,name,ext,savepath,size')->where(array('fileid' => $fileid))->find();
+
+        if ($res) {
+            $file = basename($res['savepath']);
+            if (file_exists($res['savepath'])) {
+                $extlist = array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx');
+                $extimg = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tiff');
+                if (in_array($res['ext'], $extlist)) {
+
+                    if (!file_exists($res['savepath'] . '.pdf')) {
+                        $p = str_replace('../', '/', $res['savepath']);
+                        
+                        word2pdf($p, $p . '.pdf', $res['ext']);
+                    }
+                    $path = $res['savepath'] . '.pdf';
+
+                    ob_get_contents();
+                    ob_flush();
+                    ob_clean();
+                    ob_end_flush();
+                    ob_end_clean();
+
+                    header("Content-type:application/pdf");
+                    header('Pragma: public');
+                    header('Expires: 0');
+                    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                    header('Content-Transfer-Encoding: binary');
+                    header('Content-Length: ' . filesize($path));
+                    header('Content-Disposition: inline; filename="' . $path . '";');
+                    echo file_get_contents($path);
+                    exit();
+
+                } elseif (in_array($res['ext'], $extimg)) {
+                    header('Content-type: image/jpg');
+                    echo file_get_contents($res['savepath']);
+                    exit();
+                } elseif ($res['ext'] == 'txt' || $res['ext'] == 'log') {
+                    //echo file_get_contents($res['savepath']);
+                    $welcomefile = file($res['savepath']); //返回数组的内容
+                    foreach ($welcomefile as $v) {
+                        echo $v . '<br>';
+                    }
+                    exit();
+                } elseif ($res['ext'] == 'pdf') {
+                    $path = $res['savepath'];
+
+                    ob_get_contents();
+                    ob_flush();
+                    ob_clean();
+                    ob_end_flush();
+                    ob_end_clean();
+
+                    header("Content-type:application/pdf");
+                    header('Pragma: public');
+                    header('Expires: 0');
+                    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                    header('Content-Transfer-Encoding: binary');
+                    header('Content-Length: ' . filesize($path));
+                    header('Content-Disposition: inline; filename="' . $path . '";');
+                    echo file_get_contents($path);
+                    exit();
+                } else {
+                    $this->error('文件暂不支持预览', 'javascript:window.parent.choose();');
+                    exit;
+                }
+
+            } else {
+                $path = str_replace('/' . $file, '', $res['savepath']);
+                $this->error('文件路径:(' . $path.') 不存在', 'javascript:window.parent.choose();');
+                exit;
+            }
+        } else {
+            $this->error('文件不存在', 'javascript:window.parent.choose();');
+            exit;
+        }
+    }
+
+    /*更多*/
+    public function docMore()
+    {
+
+        $where = $this->docSearch();
+        //        $list=$this->lists('file',$where);
+        $filter['pid'] = I('get.pid');
+        $filter['dtid'] = I('get.dtid');
+        $filter['sort'] = I('get.sort');
+        $filter['order'] = I('get.order');
+        $map['dtid'] = I('get.dtid');
+        $uid = UID;
+        $res = $this->document_model->searchPersonAttach($uid, $filter, $where, $map);
+        $doctyps = $this->document_model->docTypes();
+        foreach ($res[0] as &$project) {
+            if ($project['shortsign']) {
+                $name = $project['shortsign'] . '-' . $project['name'];
+                $project['shortsign'] = $name;
+            } else {
+                $project['shortsign'] = $project['name'];
+            }
+        }
+        $this->assign("projectList", $res[0]);
+        $this->assign("fileList", $res[1]);
+        $this->assign('pid', $filter['pid']);
+        $this->assign('dtid', $filter['dtid']);
+        $this->assign('docTypes', $doctyps);
+        $this->assign('_page', $res[2]->show());
+        $this->assign('actname', ACTION_NAME);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '附件', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->display('attach');
+    }
+
+    public function attachupload()
+    {
+        if (IS_POST) {
+            $id = I('post.pid');;
+            $temp = "";
+            $accessories = array_filter($_FILES['files']['tmp_name']);
+            if (!empty($accessories)) {
+                $file_ids = $this->file_uplode();
+                if (!empty($file_ids)) {
+                    $sql = 'insert into ot_doc (pid,fileid,dtid,note,addtime,uid,uname,edittime,edituid,edituname) values ';
+                    foreach ($file_ids as $key => $vo) {
+                        $dtid = $_POST['dtids'][$key];
+                        $note = $_POST['contents'][$key];
+                        $addtime = time();
+                        $uid = UID;
+                        $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                        $sql .= "($id,$vo,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "'),";
+                    }
+                    $sql = substr($sql, 0, -1);
+                    $temp = M('doc')->execute($sql);
+                }
+            }
+            //网络资料
+            $dtids = I('post.dtid');
+            $temp2 = "";
+            foreach ($dtids as $kk => $dt) {
+                if ($_POST['url'][$kk]) {
+                    //网络资料填写
+                    $url = $_POST['url'][$kk];
+                    $dtid = $dt;
+                    $note = $_POST['content'][$kk];
+                    $addtime = time();
+                    $uid = UID;
+                    $uname = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                    $urlname = $_POST['label'][$kk];
+                    if (empty($urlname)) {
+                        $this->error('网络资料标题名称不可为空', U("Admin/Doc/attachupload"));
+                    }
+                    $sql = 'insert into ot_doc (pid,fileid,dtid,note,addtime,uid,uname,edittime,edituid,edituname,url,urlname) values ';
+                    $sql .= "($id,0,$dtid,'" . $note . "',$addtime,$uid,'" . $uname . "',$addtime,$uid,'" . $uname . "','" . $url . "','" . $urlname . "'),";
+                    $sql = substr($sql, 0, -1);
+                    $temp2 = M('doc')->execute($sql);
+                }
+            }
+            if ($temp || $temp2) {
+                $this->redirect('Admin/Doc/attach?pid=' . $id);
+            } else {
+                $this->error('请添加上传文档或网络资料', U('Admin/Doc/attachupload'));
+            }
+        } else {
+            $pid = I('get.pid');
+            $this->assign('pid', $pid);
+            $where['_string'] = "1=1 and p.state !=2 and p.state !=-1 ";
+            $where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and tp.uid=" . UID . ")
+			or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.assigneduid=" . UID . ")) and p.del = 0 ";
+
+            $pro = M('project')->field('p.pid,p.name')->alias('p')->where($where)->order('p.addtime desc')->select();
+            $this->assign('project', $pro);
+            $docType = $this->document_model->docTypes();
+            $this->assign('docTypes', $docType);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+            $root_mbx[] = array('title' => '文档', 'url' => U('Doc/attach'));
+            $root_mbx[] = array('title' => '上传文档', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+
+    }
+
+    /*学习文档*/
+    public function study()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Doc/study",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '学习文档', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study');
+        $this->display();
+    }
+
+    /*学习文档*/
+    public function study1()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Doc/study1",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+
+        $where['_string'] .= " and (doctype='流程' or doctype='标准' or doctype='规范' or doctype='须知')";
+
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '学习文档', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study1');
+        $this->display('study');
+    }
+
+
+    /*学习文档*/
+    public function study2()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Doc/study2",
+            "operators" => array("include" => "包含", "=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<="),
+            "params" => array(
+                0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '类型', 'fieldname' => 'doctype', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => "")
+            , 3 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '=', 'control' => 'input', 'values' => "", 'class' => 'date')
+            ));
+
+        if ($config && $config['params']) {
+            $st = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type'])->select();
+            $doctype = array("" => "");
+            if ($st) {
+                foreach ($st as $k => $v) {
+                    $doctype[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][1]['values'] = $doctype;
+        }
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $where['_string'] .= " and (doctype='总结' or doctype='报告' or doctype='培训' or doctype='分享')";
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if (empty($sort)) {
+            $orderby = 'sort_order  desc';
+            $this->assign('orderBy', $orderby);
+        } else {
+            $orderby = $sort . ' ' . $order;
+        }
+        $page = new \Think\Page(M('doc_study')->where($where)->count(), 20);
+        $result = M('doc_study')
+            ->field('docid,doctype,content,uid,uname,addtime,sort_order,name')
+            ->where($where)
+            ->order($orderby)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '学习文档', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('studylist', $result);
+        $this->assign('actname', 'study2');
+        $this->display('study');
+    }
+
+    /*学习文档上传*/
+    public function studyupload()
+    {
+        if (IS_POST) {
+            $data['name'] = I('post.name');
+            $data['sort_order'] = I('post.sort_order');
+            $data['doctype'] = I('post.doctype');
+            $data['content'] = I('post.content');
+            $data['uid'] = UID;
+            $data['uname'] = get_nickname(UID) ?: get_username(UID);
+            $data['edituid'] = UID;
+            $data['edituname'] = get_nickname(UID) ?: get_username(UID);
+            $data['addtime'] = time();
+            $data['edittime'] = time();
+            $res_id = M('doc_study')->add($data);
+            //将附件存入数据库
+            $upload = new \Think\Upload();
+            $info = $upload->upload();
+            $file_ids = array();
+            $c = C('DOWNLOAD_UPLOAD');
+            foreach ($info as $file) {
+                $file_arr = explode('.', $file['name']);
+                $fileList['name'] = $file_arr[0];
+                $fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+                $fileList['ext'] = $file['ext'];
+                $fileList['size'] = $file['size'];
+                $fileList['uid'] = $data['uid'];
+                $fileList['uname'] = $data['uname'];
+                $fileList['addtime'] = time();
+                $fileId = $this->document_model->file_insert($fileList);
+                array_push($file_ids, $fileId);
+            }
+            //更新文件标题
+            $labels = I('post.labels');
+            if (array_filter($labels)) {
+                $fls = array_combine($file_ids, array_filter($labels));
+                foreach ($fls as $k => $fl) {
+                    M('file')->where(array('fileid' => $k))->save(array('name' => $fl));
+                }
+            }
+            //			更新doc_study_file
+            foreach ($file_ids as $file_id) {
+                $study_list['docid'] = $res_id;
+                $study_list['fileid'] = $file_id;
+                $study_list['uid'] = UID;
+                $study_list['uname'] = get_nickname(UID) ?: get_username(UID);
+                $study_list['addtime'] = time();
+                $sort = M('doc_study_file')->max('sort_order');
+                $study_list['sort_order'] = $sort + 1;
+                M('doc_study_file')->add($study_list);
+            }
+            if ($res_id) {
+                $this->redirect('study');
+            } else {
+                $this->error('操作失败', U('study'));
+
+            }
+        } else {
+            $res = M('doc_study')->max('sort_order');
+            $sort = intval($res) + 1;
+            $this->assign('sort', $sort);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+            $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+            $root_mbx[] = array('title' => '学习文档', 'url' => U('Doc/study'));
+            $root_mbx[] = array('title' => '创建文档', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+
+
+    }
+
+    /*学习文档详请*/
+    public function studyview()
+    {
+        $docid = I('get.docid');
+        $docinfo = M('doc_study')->where(['docid' => $docid])->find();
+        $files = M('doc_study_file')
+            ->field('f.fileid,f.name,f.ext,f.uname,f.size,f.addtime,f.savepath')
+            ->alias('sf')
+            ->join('ot_file f on f.fileid=sf.fileid')
+            ->where(['sf.docid' => $docid])
+            ->select();
+        foreach ($files as &$file) {
+            $file['size'] = ceil($file['size'] / 1024);
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+        $root_mbx[] = array('title' => '学习文档', 'url' => U('Doc/study'));
+        $root_mbx[] = array('title' => $docinfo['name'], 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('docinfo', $docinfo);
+        $this->assign('studyFiles', $files);
+        $this->display();
+    }
+
+    public function ajax_type()
+    {
+        $type = I('post.type');
+        $docIds = M('dictionary')->field('d_key,d_value')->where(['d_code' => 'doc_study_type', 'd_assist' => $type])->select();
+        if ($docIds) {
+            echo json_encode($docIds);
+        }
+    }
+
+    /*学习文档编辑*/
+    public function studyedit()
+    {
+        if (IS_POST) {
+            $data = array();
+            $new_data = array('fileid' => I('post.fileid'), 'name' => I('post.updateTitle'));
+            foreach ($new_data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $data[$k][$key] = $v;
+                }
+            }
+            foreach ($data as $ke => $va) {
+                if ($va['name']) {
+                    M('file')->where(['fileid' => $va['fileid']])->save(['name' => $va['name']]);
+                }
+            }
+            $docid = I('post.docid');
+            $data['name'] = I('post.name');
+            $data['doctype'] = I('post.type');
+            $data['edittime'] = time();
+            $data['edituid'] = UID;
+            $data['edituname'] = get_nickname(UID) ?: get_username(UID);
+            $data['content'] = I('post.content');
+            //更新学习文档
+            M('doc_study')->where(['docid' => $docid])->save($data);
+            //将附件存入数据库
+            $upload = new \Think\Upload();
+            $info = $upload->upload();
+            $file_ids = array();
+            $c = C('DOWNLOAD_UPLOAD');
+            foreach ($info as $file) {
+                $file_arr = explode('.', $file['name']);
+                $fileList['name'] = $file_arr[0];
+                $fileList['savepath'] = $c['rootPath'] . $file['savepath'] . $file['savename'];
+                $fileList['ext'] = $file['ext'];
+                $fileList['size'] = $file['size'];
+                $fileList['uid'] = UID;
+                $fileList['uname'] = get_nickname(UID) ?: get_username(UID);
+                $fileList['addtime'] = time();
+                $fileId = $this->document_model->file_insert($fileList);
+                array_push($file_ids, $fileId);
+            }
+            //更新文件标题
+            $labels = I('post.labels');
+            if (array_filter($labels)) {
+                $fls = array_combine($file_ids, array_filter($labels));
+                foreach ($fls as $k => $fl) {
+                    M('file')->where(array('fileid' => $k))->save(array('name' => $fl));
+                }
+            }
+            //			更新doc_study_file
+            foreach ($file_ids as $file_id) {
+                $study_list['docid'] = $docid;
+                $study_list['fileid'] = $file_id;
+                $study_list['uid'] = UID;
+                $study_list['uname'] = get_nickname(UID) ?: get_username(UID);
+                $study_list['addtime'] = time();
+                $sort = M('doc_study_file')->max('sort_order');
+                $study_list['sort_order'] = $sort + 1;
+                M('doc_study_file')->add($study_list);
+            }
+            $this->redirect('study');
+
+        } else {
+            $docid = I('get.docid');
+            $res = M('doc_study')->field('ds.docid,ds.doctype,ds.content,ds.name,d.d_assist')->alias('ds')
+                ->join('ot_dictionary d on d.d_key=ds.doctype')
+                ->where(['docid' => $docid])->find();
+            $files = M('doc_study_file')
+                ->field('f.fileid,f.name,f.ext')
+                ->alias('sf')
+                ->join('ot_file f on f.fileid=sf.fileid')
+                ->where(['sf.docid' => $docid])
+                ->select();
+            if ($res['d_assist'] == 'procedure') {
+                $res['d_assist'] = 1;
+                $doctype = M('dictionary')->field('d_key')->where(['d_assist' => 'procedure', 'd_code' => 'doc_study_type'])->select();
+                $this->assign('doctype', $doctype);
+            } else {
+                $doctype = M('dictionary')->field('d_key')->where(['d_assist' => 'summary', 'd_code' => 'doc_study_type'])->select();
+                $this->assign('doctype', $doctype);
+                $res['d_assist'] = 2;
+            }
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '我的地盘', 'url' => U('Index/index'));
+            $root_mbx[] = array('title' => '文档', 'url' => U('Doc/index'));
+            $root_mbx[] = array('title' => '学习文档', 'url' => U('Doc/study'));
+            $root_mbx[] = array('title' => $res['name'], 'url' => U('Doc/studyview?docid=' . $res['docid']));
+            $root_mbx[] = array('title' => '编辑文档', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('files', $files);
+            $this->assign('study', $res);
+            $this->display();
+        }
+    }
+
+    public function studyDel()
+    {
+        if (IS_POST) {
+            $docids = I('post.docid');
+            foreach ($docids as $id) {
+                $res = M('doc_study')->where(['docid' => $id])->delete();
+            }
+            if ($res) {
+                $this->success('删除成功', U('study'));
+            } else {
+                $this->error('删除失败', U('study'));
+            }
+        } else {
+            $docid = I('get.docid');
+            $files = M('doc_study_file')
+                ->field('f.fileid')
+                ->alias('sf')
+                ->join('ot_file f on f.fileid=sf.fileid')
+                ->where(['sf.docid' => $docid])
+                ->select();
+            //删除文档
+            $res = M('doc_study')->where(['docid' => $docid])->delete();
+            //假删除文件
+            $list['delete'] = 1;
+            foreach ($files as $vo) {
+                M('file')->where(['fileid' => $vo['fileid']])->save($list);
+            }
+            if ($res) {
+                $this->redirect('study');
+            } else {
+                $this->error('删除失败', U('study'));
+            }
+        }
+
+    }
+
+    public function studyOrder()
+    {
+        $idList = trim(I('post.docid'), ',');
+        $orderBy = I('post.orderBy');
+        $study = M('doc_study')->where("docid in ({$idList})")->order("{$orderBy}")->getField('sort_order,docid');
+        $idList = explode(",", $idList);
+        foreach ($study as $order => $id) {
+            $newID = array_shift($idList);
+            if ($id == $newID) continue;
+            M('doc_study')->where("docid = {$newID}")->save(array('sort_order' => $order));
+        }
+    }
+
+    public function studyFileDel()
+    {
+        $fileid = I('get.fileid');
+        $res = M('doc_study_file')->where(['fileid' => $fileid])->delete();
+        //假删除file表
+        M('file')->where(['fileid' => $fileid])->save(['delete' => 1]);
+        if ($res) {
+            $this->ajaxReturn(['done' => 1]);
+        } else {
+            $this->ajaxReturn(['done' => false]);
+        }
+    }
+
+    public function taskview()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("任务信息不存在");
+        }
+
+        $taskmod = M("Task");
+        $task = $taskmod->alias('t')->field("t.*,d2.d_key,d3.d_key as typename,m.name as o_name,g.name as gname,s.name as ssname,pc.name as pcname,d1.d_key as statestr")->
+        join('ot_dictionary d2 on t.level = d2.d_value and d2.d_code=\'task_level\'', 'LEFT')
+            ->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+            ->join("ot_dictionary d3 on d3.d_value = t.tasktype and d3.d_code='task_type'", 'left')
+            ->join("ot_project_config pc on pc.pid=t.pcid", 'LEFT')
+            ->join("ot_service s on s.sid=t.sid", 'LEFT')
+            ->join('ot_module m ON m.mid = t.mid', 'LEFT')
+            ->join('ot_group g ON m.role = t.groupid', 'LEFT')
+            ->where("t.tid='{$id}' and t.deleted=0")->find();
+        if (empty($task)) {
+            $this->error("任务信息不存在");
+        }
+
+        $doc = M("doc")->where("tid=$id and f.delete=0")->join('ot_file f on d.fileid=f.fileid', 'left')->join('ot_doc_type t on d.dtid=t.dtid', 'left')->
+        field(array(
+            't.name as tname',
+            'f.name as dname',
+            'savepath',
+            'size', 'views', 'd.uname', 'd.addtime', 'note', 'f.fileid'
+        ))->order('addtime desc')->select(array('alias' => 'd'));
+
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+        }
+        $this->assign('doc', $doc);
+
+        $task['finishcontent'] = strip_tags($task['finishcontent']);
+        $task['finishcontent'] = trim($task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\t", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\r", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace("\n", "", $task['finishcontent']);
+        $task['finishcontent'] = ereg_replace(" ", "", $task['finishcontent']);
+
+        $task['closereason'] = strip_tags($task['closereason']);
+        $task['closereason'] = trim($task['closereason']);
+        $task['closereason'] = ereg_replace("\t", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\r", "", $task['closereason']);
+        $task['closereason'] = ereg_replace("\n", "", $task['closereason']);
+        $task['closereason'] = ereg_replace(" ", "", $task['closereason']);
+
+        $this->assign('info', $task);
+
+        $wlist = M("TaskWarn")->where("tid='{$id}'")->order("addtime desc")->select();
+        $rlist = M("TaskComment")->where("tid='{$id}'")->order("addtime desc")->select();
+
+        $this->assign('wlist', $wlist);
+        $this->assign('rlist', $rlist);
+
+        //任务转阅列表
+        $readlist = M("Toread")->where("tid='{$id}'")->select();
+        $this->assign('readlist', $readlist);
+
+
+        //审核进程
+        $process = M("exprocess")->alias('e')->where("exid='" . $id . "' and type='任务审核'")->order('e.order asc')->select();
+        $this->assign('process', $process);
+
+        $logs = M("Log")->where(array("outtype" => "ot_task", "outkey" => $id))->order("addtime asc")->select();
+
+
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_task", $vv['field']);
+                        switch ($vv['field']) {
+                            case "state":
+                                $mod = M("Dictionary");
+                                $orow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='taskstatus' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $this->assign('logs', $logs);
+
+        $project = M('Project')
+            ->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_offer o on p.oid = o.oid', 'LEFT')
+            ->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where('p.pid=' . $task['pid'])
+            ->find();
+
+        $project['description'] = htmlspecialchars_decode($project['description']);
+        $project['risk'] = htmlspecialchars_decode($project['risk']);
+        $project['feedback'] = htmlspecialchars_decode($project['feedback']);
+
+        $this->assign('p', $project);
+
+        $from_route_t = Cookie('__from_route_t__') ? Cookie('__from_route_t__') : '我的任务';
+        $from_url_t = Cookie('__from_url_t__') ? Cookie('__from_url_t__') : U('Task/index');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route_t, 'url' => $from_url_t);
+        $root_mbx[] = array('title' => $task['title'], 'url' => U('Task/view?id=' . $task['tid']));
+        $root_mbx[] = array('title' => '查看任务', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url_t);
+
+        $this->display();
+    }
+
+    public function file_uplode($files = '')
+    {
+        $upload = new \Think\Upload(C('DOWNLOAD_UPLOAD'));// 实例化上传类
+        // 上传文件
+        $info = $upload->upload($files);
+        if (!$info) {// 上传错误提示错误信息
+            $this->error($upload->getError());
+        } else {// 上传成功 获取上传文件信息
+            $filelids = array();
+            foreach ($info as $key => $value) {
+                $a = explode('.', $value['name']);
+                $name = $a[0];
+                $file['name'] = $_POST['labels'][$key] ? $_POST['labels'][$key] : $name;
+                $c = C('DOWNLOAD_UPLOAD');
+                $file['savepath'] = $c['rootPath'] . $value['savepath'] . $value['savename'];
+                $file['ext'] = $value['ext'];
+                $file['size'] = $value['size'];
+                $file['addtime'] = time();
+                $file['uid'] = UID;
+                $file['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+                $filelid = M('File')->add($file);
+                $filelids[$key] = $filelid;
+            }
+            return $filelids;
+        }
+    }
+
+    // 删除文件
+    public function fileDelete()
+    {
+        $fileid = I('get.id');
+        if (!$fileid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        $data = M('File')->find($fileid);
+        @unlink($data['savepath']);
+        M('File')->where('fileid=' . $fileid)->delete();
+        action_log_new(array('outtype' => 'ot_file', 'outkey' => $fileid, 'action' => 'filedel', 'comment' => ''));
+        $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+    }
+
+}

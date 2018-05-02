@@ -1,0 +1,162 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<!--<script language="Javascript">browseType = "unclosed";</script>-->
+    	<style>
+		tbody.sortable > tr.drag-shadow {display: none}
+		tbody.sortable > tr > td.sort-handler {cursor: move; color: #999;}
+		tbody.sortable > tr > td.sort-handler > i {position: relative; top: 2px}
+		tbody.sortable-sorting > tr {transition: all .2s; position: relative; z-index: 5; opacity: .3;}
+		tbody.sortable-sorting {cursor: move;}
+		tbody.sortable-sorting > tr.drag-row {opacity: 1; z-index: 10; box-shadow: 0 2px 4px red}
+		tbody.sortable-sorting > tr.drag-row + tr > td {box-shadow: inset 0 4px 2px rgba(0,0,0,.2)}
+		tbody.sortable-sorting > tr.drag-row > td {background-color: #edf3fe!important}
+		tbody.sortable > tr.drop-success > td {background-color: #cfe0ff; transition: background-color 2s;}
+	</style>
+    <script language="Javascript">orderBy = "{$orderBy}";</script>
+	<script>
+        $(document).ready(function()
+        {
+            $('.sortable:not(tbody)').sortable();
+            $('tbody.sortable').each(function()
+            {
+                var $tbody = $(this);
+                $tbody.sortable(
+                    {
+                        reverse: true,
+                        selector: 'tr',
+                        dragCssClass: 'drag-row',
+                        trigger: $tbody.find('.sort-handler').length ? '.sort-handler' : null,
+                        finish: function(e)
+                        {
+                            var orders = {};
+                            e.list.each(function(){
+                                var $this = $(this);
+                                orders[$this.data('id')] = parseInt($this.attr('data-order'));
+                            });
+                            e.orders = orders;
+                            $tbody.trigger('sort.sortable', e);
+                            var $thead = $tbody.closest('table').children('thead');
+                            $thead.find('.headerSortDown, .headerSortUp').removeClass('headerSortDown headerSortUp').addClass('header');
+                            $thead.find('th.sort-default .header').removeClass('header').addClass('headerSortDown');
+                            e.element.addClass('drop-success');
+                            setTimeout(function(){e.element.removeClass('drop-success');}, 800)
+                        }
+                    });
+            });
+
+            $('#projectTableList').on('sort.sortable', function(e, data)
+            {
+                var list = '';
+                for(i = 0; i < data.list.length; i++) list += $(data.list[i]).attr('data-id') + ',';
+                $.post("{:U('Knowledge/studyOrder')}",{'docid' : list, 'orderBy' : orderBy});
+            });
+        });
+
+	</script>
+   <script language="Javascript">browseType = "unclosed";</script>
+	<div id="featurebar">
+		<ul class="nav" style="float: left">
+			<li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+		</ul>
+		<div class="actions">
+				<if condition="cando('Knowledge/studyupload')">
+				<a href="{:U('Knowledge/studyupload?id='.$type)}" class="btn"><i class="icon-plus"></i>创建文档</a>
+			</if>
+		</div>
+		<div style="clear: both;"></div>
+		
+	<include file="Public/search" />	
+</div>
+
+    <div class="data-table table-striped" id="projectTaskForm">
+			<!--原table-->
+	<table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+    <thead>
+        <tr>
+		    <th style="width:30px"></th>
+            <th class="text-left"><span  class="sort" ectype="order_by" fieldname="name">名称</span></th>
+            <th width="80px"><span  class="sort" ectype="order_by" fieldname="doctype">类型</span></th>
+            <th width="80px"><span  class="sort" ectype="order_by" fieldname="uname">添加人</span></th>
+            <th width="120px"><span  class="sort" ectype="order_by" fieldname="addtime">添加时间</span></th>
+            <th  width="100px">操作</th>
+            <if condition="$orderBy">
+                            <th width="60px"><span  class="sort" ectype="order_by" fieldname="sort">排序</span></th>
+
+            </if>
+		</tr>
+    </thead>
+    <tbody class="sortable" id='projectTableList'>
+	       <empty name="studylist">
+                 <if condition="$orderBy">
+			   <td colspan="7" class="text-center table_nodata">暂时还没有内容!</td>
+                     <else/>
+                      <td colspan="6" class="text-center table_nodata">暂时还没有内容!</td>
+                 </if>
+		   <else/>
+
+          <foreach name="studylist" item="study">
+			<tr title="{$study.title_show}" data-id="{$study.docid}" data-order="{$study['sort_order']}">
+            <td class="cell-id" ><input class="ids" type="checkbox" name="docid[]" value="{$study.docid}"></td>
+			<td class="text-left"><a href="{:U('studyview?docid='.$study['docid'])}">{$study.name}</a>
+</td>
+			<td>{$study.doctype}</td>
+            <td>{$study.uname}</td>
+			<td>{$study.addtime|date='Y/m/d H:i',###}</td>
+			<td>
+                	<if condition="cando('Knowledge/studyedit')">
+                <a href="{:U('Knowledge/studyedit?docid='.$study['docid'])}"> <span class="download">编辑</span></a>
+                    </if>
+                <if condition="cando('Knowledge/studyDel')">
+				<a  class="confirm ajax-get" title="删除" href="{:U('Knowledge/studyDel?docid='.$study['docid'])}">删除</a>
+                     </if>
+            </td>
+                <if condition="$orderBy">
+                    <td class="sort-handler"><i class="icon icon-move"></i></td>
+                </if>
+
+			</tr>
+	</foreach>
+           </empty>
+	</tbody>
+        <notempty name="studylist">
+	<tfoot>
+			<tr>
+                  <if condition="$orderBy">
+                    <td colspan="7">
+                        <div class="table-actions clearfix">
+                            <div class="checkbox btn">
+                                <label><input type="checkbox" data-scope="" class="rows-selector"> 选择</label>
+                            </div>
+                            <button class="btn btn-default ajax-post confirm" url="/index.php?s=/admin/Knowledge/studyDel.html" target-form="ids">删 除
+                            </button>
+                        </div>
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                      <else/>
+                      <td colspan="6">
+                        <div class="table-actions clearfix">
+                            <div class="checkbox btn">
+                                <label><input type="checkbox" data-scope="" class="rows-selector"> 选择</label>
+                            </div>
+                            <button class="btn btn-default ajax-post confirm" url="/index.php?s=/admin/Knowledge/studyDel.html" target-form="ids">删 除
+                            </button>
+                        </div>
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                  </if>
+
+			</tr>
+		</tfoot>
+        </notempty>
+    </table>
+	</div>
+</block>
+
+<block name="script">
+	<script>
+        //导航高亮
+        highlight_subnav("{:U('Knowledge/study')}");
+
+    </script>
+</block>

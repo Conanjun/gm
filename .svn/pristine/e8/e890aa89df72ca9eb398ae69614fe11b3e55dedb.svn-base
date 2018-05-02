@@ -1,0 +1,107 @@
+<extend name="Public/base"/>
+<block name="btnarea">
+
+</block>
+<block name="body">
+     <include file="Public/search" />
+    <!-- 数据列表 -->
+    <div class="data-table table-striped">
+        <table class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="30px"></th>
+                <th width="60px"><span class="sort" ectype="order_by" fieldname="id">ID</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="title">名称</span></th>
+                <th class="text-left"><span class="sort" ectype="order_by" fieldname="url">URL</span></th>
+                <!--<th width="80px"><span class="sort" ectype="order_by" fieldname="group">分组</span></th>-->
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="pid">父级菜单</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="sort">排序</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="is_dev">开发可见</span></th>
+                <th width="80px"><span class="sort" ectype="order_by" fieldname="hide">隐藏</span></th>
+                <th width="100px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="list">
+                <volist name="list" id="menu">
+                    <tr>
+                        <td><input class="ids row-selected" type="checkbox" name="id[]" value="{$menu.id}"></td>
+                        <td>{$menu.id}</td>
+                        <td class="text-left">
+                            <a href="{:U('index?pid='.$menu['id'])}">{$menu.title}</a>
+                        </td>
+                        <td class="text-left">{$menu.url}</td>
+                        <!--<td>{$menu.group}</td>-->
+                        <td>{$menu.up_title|default='无'}</td>
+                        <td>{$menu.sort}</td>
+                        <td>
+                            <a href="{:U('toogledev',array('id'=>$menu['id'],'value'=>abs($menu['is_dev']-1)))}" class="ajax-get">
+                            {$menu.is_dev_text}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{:U('tooglehide',array('id'=>$menu['id'],'value'=>abs($menu['hide']-1)))}" class="ajax-get">
+                            {$menu.hide_text}
+                            </a>
+                        </td>
+                        <td>
+                            <a title="编辑" href="{:U('edit?id='.$menu['id'])}">编辑</a>
+                            <a class="confirm ajax-get" title="删除" href="{:U('del?id='.$menu['id'])}">删除</a>
+                        </td>
+                    </tr>
+                </volist>
+				<else/>
+				<td colspan="9" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+				</notempty>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan='9'>
+                    <div class="table-actions clearfix">
+                        <div class="checkbox btn">
+                            <label><input type="checkbox" data-scope=""
+                                          class="rows-selector"> 选择</label>
+                        </div>
+                        <button class="btn btn-default ajax-post confirm"
+                                url="{:U('Offer/delete')}"
+                                target-form="ids">删 除
+                        </button>
+                        <if condition="I('get.pid',0)">
+                        <button class="btn btn-default ajax-post confirm" onclick="history.go(-1)">返回
+                        </button>
+                        </if>
+                    </div>
+                    <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+
+        //导航高亮
+        highlight_subnav("{:U('Menu/index')}");
+
+
+        function tijiao(id,es_eid,disoff){
+            if(confirm("确认提交吗？"))
+            $.post(
+                    "{:U('Offer/present')}",
+                    {'id':id,'eid':es_eid,'disoff':disoff},
+                    function(data){
+                       if(data.code){
+                           alert(data.msg);
+                       }else{
+                           window.location.href = window.location.href;
+                       }
+                    },
+                    'json'
+            );
+        }
+    </script>
+</block>

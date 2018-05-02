@@ -1,0 +1,97 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+        <!-- 数据列表 -->
+        <div class="data-table table-striped">
+            <table
+                    class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th r="1" width="10px">
+                    </th>
+                    <th class="text-left"><span class="sort" ectype="order_by" fieldname="pb.outitem">费用项目</span></th>
+                    <th r="1" class="text-left" width="200px"><span class="sort" ectype="order_by" fieldname="pb.type">类型</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.budget">预算金额</span></th>
+                    <th r="1" width="100px"><span class="sort" ectype="order_by" fieldname="pb.cost">发生金额</span></th>
+                    <th r="1"  width="80px"><span class="sort" ectype="order_by" fieldname="pb.chours">预算工时</span></th>
+                    <th r="1"  width="80px"><span class="sort" ectype="order_by" fieldname="pb.finishours">实际工时</span></th>
+                    <th r="1"  width="50px"><span >占比</span></th>
+                    <th r="1" width="120px"><span class="sort" ectype="order_by" fieldname="pb.addtime">预算时间</span></th>
+                    <th r="1"  width="130px"><span class="sort" ectype="order_by" fieldname="pb.updatetime">发生时间</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="list">
+                    <volist name="list" id="vo">
+                        <tr>
+                            <td r="1" class="cell-id">
+                                <!--<input class="ids" type="checkbox" name="id[]" value="{$vo['pbid']}"/>-->
+                            </td>
+                            <td class="text-left">{$vo['outitem']}</td>
+                            <td class="text-left">{$vo['type1']}<if condition="$vo['type'] == '人力成本'">项目工时<else/>{$vo['type']}</if></td>
+                            <td>
+                                <if condition="$vo['type'] == '人力成本'">
+                                    {$vo['cbudget']|fomatprice2}
+                                    <else/>
+                                    {$vo['budget']|fomatprice}
+                                </if>
+                            </td>
+                            <td>
+                                <if condition="$vo['type'] == '人力成本'">
+                                    {$vo['cost']|fomatprice2}
+                                    <else/>
+                                    <if condition="$vo['cost'] gt $vo['budget']">
+                                        <span class='textr'>{$vo['cost']|fomatprice} </span>
+                                        <else/>
+                                        {$vo['cost']|fomatprice}
+                                    </if>
+                                </if>
+
+                            </td>
+
+                            <td>
+                                <if condition="$vo['type'] == '人力成本'">
+                                    {$vo['chours']?$vo['chours']:''}
+                                    <else/>
+                                    {$vo['hours']?$vo['hours']:''}
+                                </if>
+                            </td>
+                            <td>{$vo['finishours']?$vo['finishours']:''}</td>
+                            <td>
+                                <if condition="$vo['type'] == '人力成本'">
+                                    {$vo['b2']?$vo['b2']:0}%
+                                    <else/>
+                                    {$vo['bl']?$vo['bl']:0}%
+                                </if>
+                            </td>
+                            <td>{$vo['addtime']|time_format}</td>
+                            <td>{$vo['updatetime']|time_format}</td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr><td r="1" colspan="10" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td></tr>
+                </notempty>
+                </tbody>
+                <notempty name="list">
+                    <tfoot class="scrolled">
+                    <tr>
+                        <td r="1" colspan='10' id="colspan_1">
+                            <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                            <div style="float: right;line-height: 27px;margin-right:10px">
+                                {$budgetlog}
+                            </div>
+                        </td>
+                    </tr>
+                    </tfoot></notempty>
+            </table>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+    </script>
+</block>

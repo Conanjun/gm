@@ -1,0 +1,227 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Studio\Controller;
+
+/**
+ * 工作室 收费项目管理控制器 : LGW
+ */
+class CostplanController extends AdminController
+{
+    private $model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model = D('Costplan');    // 收费项目Model
+    }
+
+    /**
+     *收费项目管理首页
+     */
+    public function index()
+    {
+        $where = " 1=1 and d_code = 'ser_type' and d_del =1";
+		$filter= '';
+		$name = empty($_GET['name'])?'':trim($_GET['name']);
+        $discount = empty($_GET['discount'])?'':trim($_GET['discount']);
+		if($name){
+			$filter .= " and p.pname like '%{$name}%'";
+		}
+        if($discount){
+            $filter .= " and p.discount like '%{$discount}%'";
+        }
+        $servicetype = empty($_GET['servicetype'])?'':trim($_GET['servicetype']);//code
+		if($servicetype){
+			$filter .= " and  p.servicetype like '%{$servicetype}%'";
+		}
+
+		$where .= $filter;
+
+		$count = $this->model->countNum($where);
+		$page = new \Think\Page($count, 10);
+		$lists = $this->model
+				->alias('p')
+                ->join('ot_costplan_sub s on p.planid = p.planid')
+                ->join('ot_dictionary d on p.servicetype = d.d_key')
+                ->field('p.planid,p.pname,p.discount,d.d_value')
+				->where($where)
+				//->order("$sort $order")
+                ->group('p.planid')
+				->limit($page->firstRow . ',' . $page->listRows)
+				->select();
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+
+        $dic = M('Dictionary')->where("d_code = 'ser_type' and d_del =1")->select();
+        $this->assign('dic', $dic);
+
+		$this->assign('_page', $page->show());
+		$this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+		$this->display();
+    }
+
+    /**
+     * 新增收费项目
+     */
+    public function add()
+    {
+        if (IS_POST) {
+
+            $servicetype = empty($_POST['servicetype']) ? '' : trim($_POST['servicetype']);
+            $discount = empty($_POST['discount']) ? '' : trim($_POST['discount']);
+            $pname = empty($_POST['pname']) ? '' : trim($_POST['pname']);
+            $itemid = empty($_POST['itemid']) ? '' : trim($_POST['itemid']);
+			$price = empty($_POST['price']) ? 0 : $_POST['price'];      
+			$price1 = empty($_POST['price1']) ? 0 : $_POST['price1'];
+			if(!empty($servicetype)){
+                $dic = M('Dictionary')->where("d_code = 'ser_type' and d_del =1 and d_key = {$servicetype}")->find();
+                if(empty($dic)){
+
+                }
+            }
+            if(!empty($itemid)){
+                $fee = M('Feeitem')->where('itemid='.$itemid)->find();
+                if(empty($itemid)){
+
+                }
+            }
+
+            $data = array(
+                'servicetype' => $servicetype,
+				'servicecode' => $dic['d_code'],
+                'pname' => $pname,
+                'discount'=>$discount,
+				'addtime' => time(),
+				'adduid' => UID,
+
+            );
+			$planid = M('Costplan')->add($data);
+            if (!$planid) {
+                $this->error(L('ADD_ERROR'));
+            } else {
+                $data1 = array(
+                    'feeitem' => $itemid,
+                    'feecode' => $fee['feecode'],
+                    'feename' => $fee['feename'],
+                    'price' => $price,
+                    'price1' => $price1,
+                    'addtime' => time(),
+                    'adduid' => UID,
+                    'planid'=>$planid
+                );
+                M('Costplan_sub')->add($data1);
+
+                $this->success(L('ADD_SUCCESS'), U('index'));
+            }
+        } else {
+            //方案类型
+            $dic = M('Dictionary')->where("d_code = 'ser_type' and d_del =1")->select();
+            $this->assign('dic', $dic);
+            //费用
+            $fee = M('Feeitem')->select();
+            $this->assign('fee', $fee);
+
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑收费项目
+     */
+    public function edit()
+    {
+		$id = empty($_GET['id'])?0:$_GET['id'];
+        if (IS_POST) {
+			$id = empty($_POST['id']) ? '' : trim($_POST['id']);
+            $servicetype = empty($_POST['servicetype']) ? '' : trim($_POST['servicetype']);
+            $discount = empty($_POST['discount']) ? '' : trim($_POST['discount']);
+            $pname = empty($_POST['pname']) ? '' : trim($_POST['pname']);
+            $itemid = empty($_POST['itemid']) ? '' : trim($_POST['itemid']);
+            $price = empty($_POST['price']) ? 0 : $_POST['price'];
+            $price1 = empty($_POST['price1']) ? 0 : $_POST['price1'];
+            if(!empty($servicetype)){
+                $dic = M('Dictionary')->where("d_code = 'ser_type' and d_del =1 and d_key = {$servicetype}")->find();
+                if(empty($dic)){
+
+                }
+            }
+            if(!empty($itemid)){
+                $fee = M('Feeitem')->where('itemid='.$itemid)->find();
+                if(empty($itemid)){
+
+                }
+            }
+
+            $data = array(
+                'servicetype' => $servicetype,
+                'servicecode' => $dic['d_code'],
+                'pname' => $pname,
+                'discount'=>$discount,
+                'adduid' => UID,
+                'planid'=>$id
+            );
+			
+            if (D('Costplan')->save($data) === false) {
+                $data1 = array(
+                    'feeitem' => $itemid,
+                    'feecode' => $fee['feecode'],
+                    'feename' => $fee['feename'],
+                    'price' => $price,
+                    'price1' => $price1,
+                    'adduid' => UID,
+                    'planid'=>$id
+                );
+                M('Costplan_sub')->save($data1);
+                $this->error(L('EDIT_ERROR'), U('Costplan/edit?id=' . $id));
+            } else {
+                $this->success(L('EDIT_SUCCESS'), U('index'));
+            }
+        } else {
+            $id = empty($_GET['id'])?0:$_GET['id'];
+            //方案类型
+            $dic = M('Dictionary')->where("d_code = 'ser_type' and d_del =1")->select();
+            $this->assign('dic', $dic);
+            //费用
+            $fee = M('Feeitem')->select();
+            $this->assign('fee', $fee);
+            $data = $this->model
+                ->alias('p')
+                ->join('ot_costplan_sub s on p.planid = s.planid')
+                ->field('p.planid,p.pname,p.discount,p.servicetype,s.feeitem,s.price,s.price1')
+                ->where('p.planid ='.$id)->find();
+            if (empty($data)) {
+                $this->error(L('Data_not_exist'));
+            }
+			
+            $this->assign('data', $data);
+            $this->display();
+        }
+    }
+
+    /*
+     * 删除收费项目
+     * */
+    public function delete()
+    {
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error(L('PLEASE_SELECT_DATA'));
+        }
+        $map ['itemid'] = array('in', $id);
+        if (M('Feeitem')->where($map)->delete() !== false) {
+            $this->success(L('DELETE_SUCCESS'), U('index'));
+        } else {
+            $this->error(L('DELETE_FAILED'));
+        };
+    }
+
+}

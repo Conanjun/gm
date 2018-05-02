@@ -1,0 +1,82 @@
+<?php
+return array(
+		'STUDIO_EXIST'=>'工作室已存在',
+		'STUDIO_NOT_EMPTY'=>'工作室名称不能为空',
+		'PLEASE_SELECT_DATA'=>'请选择要操作的数据',
+		'NAME_NOT_EMPTY'=>'名称不能为空',
+		'NAME_EXISTED'=>'名称已存在',
+		'CODE_NOT_EMPTY'=>'编码不能为空',
+		'CODE_EXISTED'=>'编码已存在',
+		'PLUPONFORM'=>'平台管理',
+		'STUDIO'=>'工作室',
+		'PLATFORM_ROLE'=>'平台角色',
+		'PLATFORM_PERSONNEL'=>'平台人员',
+		'DATA_DICTIONARY'=>'数据字典',
+		'REGION_MAINTAIN'=>'区域维护',
+		'TAG_LIBRARY'=>'标签库',
+		'STUDIO_ROLE'=>'工作室角色',
+		'LOG_VIEW'=>'日志查看',
+		'RETURN_TABLE'=>'回访跟踪表',
+		'DATA_BACKUP'=>'数据备份',
+		'DATA_MANAGE'=>'数据管理',
+		'Order'=>'订单',
+		'DENTIST'=>'牙医',
+		'PATIENT'=>'患者',
+		'DENTAL_FEEDBACK'=>'牙医意见反馈',
+		'PATIENT_FEEDBACK'=>'牙医意见反馈',
+		'FINANCIAL_SETTLEMENT'=>'财务结算',
+		'STUDIO_SETTLEMENT'=>'工作室结算',
+		'STATISTICAL_ANALYSIS'=>'统计分析',
+		
+		//工作室
+		'CODE'=>'编码',
+		'NAME'=>'名称',
+		'STATE'=>'状态',
+		'REGION'=>'所在区域',
+		'PLEASE_SELECT'=>'请选择...',
+		'TEL_PHONE'=>'联系电话',
+		'CONTACT'=>'联系人',
+		'HANDLE'=>'操作',
+		'EDIT'=>'修改',
+		'DELETE'=>'删除',
+		'TAG'=>'标签',
+		'ADD'=>'新增',
+		'ADDR'=>'地址',
+		'URLPARAM'=>'工作室标识',
+		'DESCRIPTION'=>'说明',
+		'LANGUAGE'=>'默认语言',
+		'ENABLED'=>'是否可用',
+		'OPEN'=>'开启',
+		'CLOSE'=>'关闭',
+		
+		//平台人员
+		'MNAME'=>'姓名',
+		'DNAME'=>'部门',
+		'EMAIL'=>'邮箱',
+		'JOB_NUM'=>'工号',
+		'ROLE_NAME'=>'角色',
+		'MOBILE'=>'手机号',
+		'UNAME'=>'用户名',
+		'PASSWORD'=>'密码',
+		'BIRTHDAY'=>'生日',
+		'SEX'=>'性别',
+		'MAN'=>'男',
+		'WOMAN'=>'女',
+		'SECRECY'=>'保密',
+		'REG_TIME'=>'注册时间',
+		
+		//数据字典
+		'DKEY'=>'键值',
+		'DVALUE'=>'字典值',
+		'DORDER'=>'排序',
+		'DDEL'=>'是否有效',
+		
+		//标签库
+		'TYPE'=>'类型',
+		'STUDIO'=>'工作室',
+		'DENTIST'=>'医生',
+		
+		
+		
+		
+);

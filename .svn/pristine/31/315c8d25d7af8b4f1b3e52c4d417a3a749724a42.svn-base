@@ -1,0 +1,525 @@
+<extend name="Public/base" />
+<block name="navhead">
+				<li data-id="account"><span id="myname" style="color: #000">
+                    <a href="{:U('ProjectView/view?id='.$item_id)}">
+                    <i class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+				</li>
+				
+						</block>
+<block name="body">
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+<style>
+#sonModule,#moduleBox>span>input,#moduleBox>table {
+	max-width: 500px;
+}
+.w-90px strong{color: #333;font-size: 12px;float: right;
+}
+#childrenForm .col-table+.col-table .form-control {
+	border-left: transparent;
+}
+
+#sonModule .row-table .input-group input {
+	border-right: none;
+}
+#dropMenu {
+	min-width: 250px;
+}
+#searchResult>.search-list, #defaultMenu, #moreMenu {
+	display: table-cell;
+	vertical-align: top;
+	min-width: 205px;
+}
+.outer .side {
+	width: 260px;
+}
+.outer .side-body .panel {
+	min-width: 250px;
+}
+.outer.with-side .main, .outer.with-side .side+form, .outer.with-side .main, .outer.with-side .side+table {
+	margin-left: 270px;
+	margin-right: 0;
+}
+.tSerach
+{
+	position: absolute;
+	top: 1px;
+	right: 10px;
+	width: 150px;
+	height: 32px;
+	border: 0;
+	border-left: 1px solid #ddd;
+}
+.outer .table {
+	margin-bottom: 0;
+	 border: 0;
+}
+ .nrtd td,.table-striped>tbody>tr:nth-child(odd)>td, .table-striped>tbody>tr:nth-child(odd)>th{background: #fff;}
+
+#fourheading a
+{
+	color: #333;
+}
+#fourheading .active
+{
+	color: #7865c7;
+}
+#searchbox1 th {
+	border: 0 !important;
+}
+</style>
+	<div id="featurebar">
+		<include file="Public:newtitle" />
+		<div class="btn-group actions" style="float: right">
+			<a href="javascript:history.go(-1);"  class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+		</div>
+	</div>
+<div class="fnavbox">
+    <div>
+             <include file="Public:newfourtitle" />
+        </div>
+			<div class="actions" id="newcontent" >
+               <div class="btn-group">
+				项目范围（Project Scope）包括项目的最终产品或者服务，以及实现该产品或服务所需要执行的全部工作。与后续的里程碑计划和任务拆解有关，多个任务的集合即形成项目范围。
+		</div>
+			</div>
+		<div class="clearfix"></div>
+		</div>
+	<div class="side">
+		<a class="side-handle" data-id="companyTree">
+			<i class="icon-caret-left"></i>
+		</a>
+		<div class="side-body">
+			<div class="panel panel-sm">
+				<li style="line-height: 30px;display: block;color: #808080;    border-bottom: 1px solid #e5e5e5;" data-id="list" class="">
+					<a style="display: block;padding: 0 7px;color: #5e4ba4;" id="currentItem" href="javascript:showSearchMenu()">{$pname}<span class="icon-caret-down"></span></a>
+					<input type="text"  placeholder="点击回车搜索" class="form-control tSerach" id="treeSerach" name="treekey" value="">
+					<div id="dropMenu" style="width: 180px;">
+					</div>
+					<input type="hidden" name="ppid" class="ppid" value="{$ppid}">
+				</li>
+				<div class='panel-body'>
+					{$ProjectConfig}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="main">
+	<script>setTreeBox();</script>
+		<form method="get"  id="searchform" class="form-condensed">
+			<input type="hidden" value="{$actionURL}" name="s">
+			<input type="hidden" name="item_id" value="{$item_id}">
+			<input type="hidden" id="reset" name="reset" value="">
+			<table class="table table-condensed table-form" id="user-search"
+				   style="max-width: 800px; margin: 0 auto" >
+				<tbody >
+				<tr>
+					<td>
+						<table class="table active-disabled table-fixed"  >
+							<tbody>
+
+							<tr id="searchbox1" class="" >
+								<th class="w-90px"><strong>服务模块</strong> </th>
+								<td><input class="form-control  searchInput" type="text" name="manme" value="{$manme}"></td>
+								<th  class="w-90px"><strong>服务内容</strong></th>
+								<td><input class="form-control  searchInput" type="text" name="sname" value="{$sname}"></td>
+
+							</tr>
+
+							</tbody>
+						</table></td>
+
+
+					<td class="w-160px"><input type="hidden" name="sid"
+											   id="module" value="{$sid}">
+						<div class="btn-group">
+							<button type="button" id="btnsubmit" class="btn btn-primary">搜索</button>
+							<button type="button" class="btn btn-default"
+									onclick="resetForm(this)">重置</button>
+
+						</div></td>
+				</tr>
+				</tbody>
+			</table>
+
+
+		</form>
+		<div class="panel">
+
+			<div class="panel-heading">
+				<strong>{$module_name}</strong>
+			</div>
+			<div style="clear: both;"></div>
+			
+			<!-- 数据列表 -->
+    <div class="data-table table-striped">
+    <form id="childrenForm" class="form-condensed" method="post" action="{:U('ProjectNew/add_item')}">
+	    <input type="hidden" name="item_id" value="{$item_id}">
+	     <input type="hidden" name="pid" value="{$pid}">
+        <table
+		class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center" id="taskList">
+    <thead>
+        <tr>
+		<th style="width: 30px"></th>
+		<th class="" style="text-align: left"></th>
+		<th class="" width="120px">必选</th>
+		<th class="" width="60px">标配</th>
+		<th class="" width="60px">周期</th>
+		<th class="" width="60px">工时</th>
+		<th class="" width="150px">单价</th>
+		<th class="" width="90px">数量</th>
+		</tr>
+    </thead>
+    <tbody>
+		<notempty name="_list">
+		<volist name="_list" id="v" key='k'>
+		
+		<tr style="height: 50px;cursor: pointer;color: #000" id="trp_{$v.mid}" k="{$v.mid}" o="c">
+			<td style="background: #f9f9f9"><i class="icon-double-angle-down icon-2x"></i></td><th colspan="7" style="background: #f9f9f9">{$v.mname}</th>
+		</tr>
+		<volist name="v.list" id="vo">
+			<tr id="tritem_{$v.mid}_{$vo.sid}"  k="{$v.mid}" <eq name="vo.h" value="1">class="active"</eq> style="display:none">
+			<td class="cell-id">
+				<input <eq name="vo.h" value="1">checked='checked'</eq> id="sitem_{$vo.sid}" sid="{$vo.sid}" mid="{$vo.mid}" srequired="{$vo.required}" regroup="{$vo.regroup}" remid="{$vo.remid}" class="ids" type="checkbox" name="ids[]" value="{$vo.sid}"  />
+            </td>
+			<td style="text-align: left" >
+				<a href="{:U('Offer/module_file?id='.$vo['mid'])}" class="iframe">{$vo.g_name}<notempty name="vo.g_name">-</notempty>{$vo.o_name}-{$vo.name}</a>
+				<if condition="$vo['bulb']">
+					<a href="{:U('Offer/direction?sid='.$vo['sid'])}" data-title="{$vo.name}-指导备注"  data-width="1000"
+					   data-height="600" class="iframe">
+						<i class="icon-lightbulb"></i></a>
+				</if>
+			</td>
+			<td>
+				<if condition="$vo['required'] ==0">
+					否
+					<elseif condition="$vo['required'] ==1" />
+					是
+					<elseif condition="$vo['required'] ==2" />
+					{$vo.regroup_name}多选一
+					<elseif condition="$vo['required'] ==3" />
+					绑定{$vo.remid_name}模块
+				</if>
+			</td>
+			<td>
+				<if condition="$vo['standard'] ==0">
+					否
+					<elseif condition="$vo['standard'] ==1" />
+					是
+				</if>
+			</td>
+			<td id="day_{$vo.sid}" key="{$vo.sid}" title="{$vo.days}d">{$vo.days}d</td>
+			<td title="{$vo.hour}h">{$vo.hour}h</td>
+			<td <eq name="vo.canupdate" value="0">title="{$vo.price}"</eq>
+			<eq name="vo.canupdate" value="1">
+				title="{$vo.minprice|fomatprice}-{$vo.maxprice|fomatprice}"
+			</eq> >
+				<eq name="vo.canupdate" value="0">{$vo.price}</eq>
+				<eq name="vo.canupdate" value="1">
+					<span style="margin-right: 10px;font-size: 10px;color: #666">{$vo.minprice|fomatprice}-{$vo.maxprice|fomatprice}</span>
+				</eq>
+			</td>
+
+			<td style="text-align: left;"><input style="width: 50px;display: inline-block;" type="number" step="1" min="1"  name="qs[{$vo.sid}]" qu="{$vo.quantity}" id="quantity_{$vo.sid}"
+					   key="{$vo.sid}"  <if condition="$vo.quantity gt 0">value="{$vo.quantity}"<else/>value="1"</if> class="form-control" autocomplete="off"  placeholder="数量"> {$vo.unit}</td>
+		</tr>
+		</volist></volist>
+		<else />
+		<td colspan="8" class="text-center table_nodata"> aOh! 暂时还没有内容! </td>
+		</notempty>
+	</tbody>
+         		<notempty name="_list">
+	<tfoot>
+			<tr>
+				<td colspan='8'>
+					<div class="table-actions clearfix">
+	            <button type="button" id="imort" class="btn btn-default" ><i class="icon-download"></i> 引入到项目</button>
+	            <button type="button"  class="btn btn-default" onclick="window.location.href='{:U('ProjectNew/service?id='.$item_id)}';"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</button>
+					</div>
+					<div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+				</td>
+			</tr>
+		</tfoot>
+                </notempty>
+    </table>
+    </form>
+    </div>
+			
+		</div>
+	</div>
+	<script>config.onlybody = 'no';</script>
+	<script language="Javascript">
+        var state = "{$offer.static}";
+        var pid1 = "{$offer.pid}";
+
+        $(function()
+        {
+            // 对树进行搜索
+            $("#treeSerach").keydown(function (e) {
+                if (e.keyCode == 13) {
+                    var val = $(this).val();
+                    var ppid = $(".ppid").val();
+                    var item_id = "{$item_id}";
+                    var url = "{:U('ProjectNew/ajaxSearch')}";
+                    $.get(url, {'val': val, 'ppid': ppid,'item_id':item_id}, function (data) {
+                        if (data.done) {
+                            $('.panel-body').html("");
+                            $('.panel-body').html(data.retval);
+
+                            $(".tree").tree({
+                                name: config.currentModule + "-" + config.currentMethod,
+                                initialState: "preserve"
+                            });
+
+                        }
+                    });
+                }
+            });
+            $("#searchform").keydown(function (e) {
+                var curKey = e.which;
+                if (curKey == 13) {
+                    $("#searchform").submit();
+                }
+            });
+
+            $("#btnsubmit").click(function(){
+                $("#searchform").submit();
+            });
+
+        });
+        $(document).ready(function()
+        {
+            $("#list{$pid}").attr('class','active');
+            $("[id^='trp_']").click(function(){
+                var o=$(this).attr("o");
+                var k=$(this).attr("k");
+                if(o=="o"){
+                    $("[id^='tritem_"+k+"']").hide();
+                    $(this).attr("o","c");
+                    $(this).find("td").html("<i class=\"icon-double-angle-down icon-2x\"></i>");
+                }else{
+                    $("[id^='tritem_"+k+"']").show();
+                    $(this).attr("o","o");
+                    $(this).find("td").html("<i class=\"icon-double-angle-up icon-2x\"></i>");
+                }
+            });
+
+
+            setTimeout(function(){fixedTfootAction('#childrenForm')}, 100);
+            setTimeout(function(){fixedTheadOfList('#taskList')}, 100);
+
+            $("[id^='tritem_']").each(function(){
+                var tr=$(this);
+                var td=$(this).find(".cell-id");
+                var input=td.find("input");
+                if(input.is(':checked')){
+                    var remid=input.attr("mid");
+                    if(remid){
+                        $("[id^='tritem_']").each(function(){
+                            var mtr=$(this);
+                            var minput=mtr.find(".cell-id").find("input");
+                            var mremid=minput.attr("remid");
+                            var msrequired=minput.attr("srequired");
+                            if(mremid==remid&&msrequired==3){
+                                minput.attr("checked","checked");
+                                mtr.addClass("active");
+                            }
+                        });
+                    }
+                }
+
+               /* var srequired=input.attr("srequired");
+                if(srequired==2){
+                    var is_true = 1;
+                    var groupid=input.attr("regroup");
+                    obj = $("[id^='tritem_']").find("input[regroup="+groupid+"]");
+                    $.each(obj,function (i,b) {
+                        var td=$(this).find(".cell-id");
+                        var input=td.find("input");
+                        if(input.is(':checked')){
+                            is_true=0;
+                        }
+                    });
+                    if(is_true==1){
+                        $(obj[0]).attr("checked","checked");
+                        $(obj[0]).parent().parent().addClass("active");
+                    }
+                }*/
+            });
+            count();
+
+            $("[id^='tritem_']").click(function(){
+                var tr=$(this);
+                var td=$(this).find(".cell-id");
+                var input=td.find("input");
+                var srequired=input.attr("srequired");
+
+                //绑定模块
+                if(input.is(':checked')){
+                    var remid=input.attr("mid");
+                    if(remid){
+                        $("[id^='tritem_']").each(function(){
+                            var mtr=$(this);
+                            var minput=mtr.find(".cell-id").find("input");
+                            var mremid=minput.attr("remid");
+                            var msrequired=minput.attr("srequired");
+                            if(mremid==remid&&msrequired==3){
+                                minput.attr("checked","checked");
+                                mtr.addClass("active");
+                            }
+                        });
+                    }
+
+                    var lasttd=tr.find("td:last-child");
+                    var qsin=lasttd.find("input");
+                    var qu=qsin.attr("qu");
+                    if(qu==undefined||qu==''||qu<1){
+                        qu=1;
+                    }
+                    if(qsin.val()==undefined||qsin.val()==''||qsin.val()<1){
+                        qsin.val(qu);
+                    }
+                }
+
+            /*    if(srequired==1){
+                    //必选
+                    input.attr("checked","checked");
+                    $(this).addClass("active");
+                }else if(srequired==2){
+                    //多选一
+                    if(input.is(':checked')){
+                        var groupid=input.attr("regroup");
+                        var sid=input.attr("sid");
+                        $("[id^='tritem_']").each(function(){
+                            var mtr=$(this);
+                            var minput=mtr.find(".cell-id").find("input");
+                            var mg=minput.attr("regroup");
+                            var mr=minput.attr("srequired");
+                            var msid=minput.attr("sid");
+                            if(mg&&mg==groupid&&msid!=sid&&mr==2){
+                                minput.attr("checked",false);
+                                mtr.removeClass("active");
+                            }
+                        });
+                    }else{
+                        input.attr("checked","checked");
+                        $(this).addClass("active");
+                    }
+                }else if(srequired==3){
+                    var remid=input.attr("remid");
+                    $("[id^='tritem_']").each(function(){
+                        var mtr=$(this);
+                        var minput=mtr.find(".cell-id").find("input");
+                        var mmid=minput.attr("mid");
+                        if(minput.is(':checked')&&mmid==remid){
+                            //必选
+                            input.attr("checked","checked");
+                            tr.addClass("active");
+                            return false;
+                        }
+                    });
+                }*/
+                count();
+            });
+
+            $("#imort").click(function(){
+                var has=false;
+                $("[id^='tritem_']").each(function(){
+                    var td=$(this).find(".cell-id");
+                    var input=td.find("input");
+                    if(input.attr("checked")){
+                        has=true;
+                        return false;
+                    }
+                });
+                if(!has){
+                    alert("请选择需要引入的内容");
+                    return;
+                }
+
+                var qid="";
+                $("[id^='tritem_']").each(function(){
+                    var td=$(this).find(".cell-id");
+                    var input=td.find("input");
+                    if(input.attr("checked")){
+                        var sid=input.attr("sid");
+                        var q=$("#quantity_"+sid).val();
+                        if(q<=0||isNaN(q)){
+                            qid="#quantity_"+sid;
+                            return false;
+                        }
+                    }
+                });
+
+                if(qid!=""){
+                    alert("请输入正确的数量");
+
+                    if($(qid).parent().parent().css("display")=="none"){
+                        var k=$(qid).parent().parent().attr("k");
+                        $("#trp_"+k).click();
+                    }
+
+                    $(qid).focus();
+                    return;
+                }
+
+                if(state==3){
+                    if(confirm("是否确认修改已生效的报价单？")){
+                        $('#l1').show();$('#l2').show();
+                        $("#childrenForm").submit();
+                    }
+                }else{
+                    if(confirm("确认要引入这些服务内容吗？")){
+                        $('#l1').show();$('#l2').show();
+                        $("#childrenForm").submit();
+                    }
+                }
+            });
+
+            $("[id^='quantity_']").change(function () {
+                var q = $(this).val();
+                var key = $(this).attr('key');
+                var price = $('#price_'+key).val();
+                var amount = parseFloat(price*q);
+                $('#subtotal_'+key).html(amount);
+
+                var tr= $(this).parent().parent();
+                var input=tr.find("input");
+                input.attr("checked","checked");
+                tr.addClass("active");
+                return false;
+
+                count();
+            });
+        });
+        //计算
+        function count() {
+            var all_day =0;
+            var all_amount =0;
+            $('.ids:checked').each(function () {
+                var key = $(this).attr('sid');
+                var sub_total = $('#subtotal_'+key).html();
+                var day = $('#day_'+key).attr("v");
+                var q = $('#quantity_'+key).val();
+                all_day+=parseInt(day*q);
+                all_amount+=parseFloat(sub_total);
+            });
+            $('#all_day').text(all_day);
+            $('#all_amount').text(all_amount);
+        }
+	</script>
+
+
+
+</block>
+
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+		highlight_subnav("{$from_url}");
+        var ajaxGetDropMenu="{:U('ProjectNew/ajaxGetDropMenu/',array('module'=>'ProjectNew','index'=>'add_item','item_id'=>$item_id))}";
+    </script> </block>

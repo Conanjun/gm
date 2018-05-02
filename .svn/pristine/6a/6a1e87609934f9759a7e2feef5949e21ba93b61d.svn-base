@@ -1,0 +1,587 @@
+<?php
+namespace Admin\Controller;
+/*
+ * 项目维护控制器
+ * */
+class ProjectController extends AdminController{
+	//定义数据表
+	private $db;
+    private $meta_title;
+	//构造函数
+	public function __construct(){
+		parent::__construct();
+		$this->db=D('Project');
+	}
+	
+	public function index(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'addtime';
+			$order = 'desc';
+		}
+		
+		$code = I('code');
+		if($code){
+			$where = "dc.d_code = 'level' and nickname like '%".$code."%' or uid like '%".$code."%' or coreservice like '%".$code."%'";
+		}else{
+			$where = "dc.d_code = 'level'";
+		}
+		$page = new \Think\Page($this->db->where($where)->count(),20);
+		$projects = $this->db
+			->field('p.*,d.name as orgname,dc.d_key as levelname ')
+			->alias('p')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_dictionary dc on p.level = dc.d_value','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->limit($page->firstRow.','.$page->listRows)
+			->select();
+		/*echo $this->db->getLastSql();
+		p($projects);*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('projects',$projects);
+		$this->display();
+	}
+	/**
+	 * 所有项目
+	 */
+	public function project(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		$config=array(
+			"actionURL"=>"/Admin/Service/index",
+			"operators"=>array("="=>"=","!="=>"!=",">"=>">",">="=>">=","<"=>"<","<="=>"<=","include"=>"包含"),
+			"params"=>array(0=>array('str'=>'项目名称','fieldname'=>'p.name','operator' => 'include',  'control' => 'input',  'values' => '')
+			,1=>array('str'=>'编号','fieldname'=>'p.code','operator' => 'include',  'control' => 'input',  'values' => '' )
+			,2=>array('str'=>'类型','fieldname'=>'p.type','operator' => '=',  'control' => 'select',  'values' => array())
+			,3=>array('str'=>'合同号','fieldname'=>'p.contract','operator' => 'include',  'control' => 'input',  'values' => '')
+			,4=>array('str'=>'客户','fieldname'=>'P.cid','operator' => '=',  'control' => 'select',  'values' => array())
+			,5=>array('str'=>'项目部门','fieldname'=>'p.orgid','operator' => '=',  'control' => 'select',  'values' => array())
+			,6=>array('str'=>'项目经理','fieldname'=>'p.pmuid','operator' => '=',  'control' => 'select',  'values' => array())
+			,7=>array('str'=>'销售','fieldname'=>'p.sale','operator' => '=',  'control' => 'select',  'values' => array())
+			,8=>array('str'=>'状态','fieldname'=>'p.state','operator' => '=',  'control' => 'select',  'values' => array())
+			,9=>array('str'=>'报价单','fieldname'=>'p.oid','operator' => '=',  'control' => 'select',  'values' => array())
+			,10=>array('str'=>'优先级','fieldname'=>'p.level','operator' => '=',  'control' => 'select',  'values' => array())
+			,11=>array('str'=>'业绩归属','fieldname'=>'p.recorduid','operator' => '=',  'control' => 'select',  'values' => array())
+			,12=>array('str'=>'添加人','fieldname'=>'p.uid','operator' => '=',  'control' => 'select',  'values' => array())
+			,13=>array('str'=>'PMID','fieldname'=>'p.pmid','operator' => 'include',  'control' => 'input',  'values' => '')
+			,14=>array('str'=>'进度','fieldname'=>'p.progress','operator' => '=',  'control' => 'select',  'values' => array()))
+		);
+		if($config&&$config['params']){
+			//类型
+			$types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order'=>'d_order asc'));
+			//客户
+			$customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+			//项目部门
+			$dept = M('Dept')->field('did,name')->select();
+			//项目经理
+			$pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			//销售
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			//状态
+			$states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order'=>'d_order asc'));
+			//报价单
+			$offer = D('Offer')->field('oid,code')->select();
+			//优先级
+			$levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order'=>'d_order asc'));
+			//进度
+			$progress = M('dictionary')->where("d_code = 'progress'")->field(true)->select(array('order'=>'d_order asc'));
+
+			$mcustomer=array(""=>"");
+			$mdept=array(""=>"");
+			$mtypes=array(""=>"");
+			$mpm=array(""=>"");
+			$msales=array(""=>"");
+			$mstates=array(""=>"");
+			$moffer=array(""=>"");
+			$mlevels=array(""=>"");
+			$mprogress=array(""=>"");
+			if($customer){
+				foreach ($customer as $v){
+					$mcustomer[$v['cid']]=$v['name'];
+				}
+			}
+			if($pm){
+				foreach ($pm as $v){
+					$mpm[$v['uid']]=$v['nickname'];
+				}
+			}
+			if($dept){
+				foreach ($dept as $v){
+					$mdept[$v['did']]=$v['name'];
+				}
+			}
+			if($types){
+				foreach ($types as $v){
+					$mtypes[$v['d_value']]=$v['d_value'];
+				}
+			}
+			if($sales){
+				foreach ($sales as $v){
+					$msales[$v['uid']]=$v['nickname'];
+				}
+			}
+			if($states){
+				foreach ($states as $v){
+					$mstates[$v['d_value']]=$v['d_key'];
+				}
+			}
+			if($offer){
+				foreach ($offer as $v){
+					$moffer[$v['oid']]=$v['code'];
+				}
+			}
+			if($levels){
+				foreach ($levels as $v){
+					$mlevels[$v['d_value']]=$v['d_key'];
+				}
+			}
+			if($progress){
+				foreach ($progress as $v){
+					$mprogress[$v['d_value']]=$v['d_key'];
+				}
+			}
+
+			$config['params'][2]['values']=$mtypes;
+			$config['params'][4]['values']=$mcustomer;
+			$config['params'][5]['values']=$mdept;
+			$config['params'][6]['values']=$mpm;
+			$config['params'][7]['values']=$msales;
+			$config['params'][8]['values']=$mstates;
+			$config['params'][9]['values']=$moffer;
+			$config['params'][10]['values']=$mlevels;
+			$config['params'][11]['values']=$msales;
+			$config['params'][12]['values']=$msales;
+			$config['params'][14]['values']=$mprogress;
+		}
+
+		$this->setSearchConfig($config);
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime';
+			$order = 'desc';
+		}
+		//查询条件
+		$where = $this->getCondition();
+
+		$where['_string'] .= " and d1.d_code = 'project_state'";
+		$page = new \Think\Page($this->db->where($where)->count(),20);
+		$pro = $this->db
+			->field('p.*,d1.d_key sname,c.name cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->limit($page->firstRow . ',' . $page->listRows)
+			->select();
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+
+		$this->meta_title = '所有项目';
+
+		$this->display();
+	}
+	/**
+	 * 添加报价单
+	 */
+	public function add(){
+		$pid = I('get.pid');
+		//设置cookie
+		setProCookie($pid);
+		if(IS_POST){
+			//获取表单数据
+			$data = $this->db->create();
+			// 获取报检编码并判断是不是唯一
+			$code = $this->get_rand_number ();
+			$res = $this->db->where("name = '".$data['name']."' || code ='".$code."'")->find();
+			if($res){
+				$this->error('项目名称已存在！');
+			}
+			//获取经理名称
+			$temp = M('Member')->field('nickname')->find($data['pmuid']);
+			$data1 = array(
+				'name' => $data['name'],
+				'code' => $code,
+				'level' => $data['level'],
+				'type' => $data['type'],
+				'contract' => $data['contract'],
+				'oid' => $data['oid'],
+				'cid' => $data['cid'],
+				'money' => $data['money'],
+				'state' => $data['state'],
+				'orgid' => $data['orgid'],
+				'pmuid' => $data['pmuid'],
+				'pm' =>    $temp['pm'],
+				'sale' => $data['sale'],
+				'recorduid' => $data['recorduid'],
+				'adviser' => $data['adviser'],
+				'pmid' => $data['pmid'],
+				'name' => $data['name'],
+				'pstime' =>strtotime($data['pstime']) ,
+				'petime' => strtotime($data['petime']),
+				'days' => $data['days'],
+				'cost' => $data['cost'],
+				'description' => $data['description'],
+				'objective' => $data['objective'],
+				'feedback' => $data['feedback'],
+				'risk' => $data['risk'],
+				'addtime' => time(),
+				'uid' => UID,
+				'uname' => get_nickname(UID)?get_nickname(UID):get_username(UID),
+
+			);
+
+			$tmp = $this->db->add($data1);
+			if(!$tmp){
+				$this->error('添加失败！');
+			}else{
+				$this->success('添加成功！',U('index'));
+			}
+		} else {
+			//合同号
+			$contract = array(
+				1 => 'QE123456',
+				2 => 'QR123456',
+				3 => 'QT123456',
+				4 => 'QV123456',
+				5 => 'QW123456'
+			);
+			$this->assign('contracts', $contract);
+			//项目类型
+			$types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order'=>'d_order asc'));
+			$this->assign('types', $types);
+			//优先级
+			$levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order'=>'d_order asc'));
+			$this->assign('levels', $levels);
+			//报价单
+			$offer = D('Offer')->field('oid,code')->select();
+			$this->assign('offer', $offer);
+			//客户
+			$customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+			$this->assign('customer', $customer);
+			//项目状态
+			$states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order'=>'d_order asc'));
+			$this->assign('states', $states);
+			//项目部门
+			$dept = M('Dept')->field('did,name')->select();
+			$this->assign('dept', $dept);
+			//项目经理
+			$pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$this->assign('pm', $pm);
+			//销售
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$this->assign('sales', $sales);
+			//业务归属
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$this->assign('sales', $sales);
+			
+			$this->meta_title = '添加项目';
+			$this->display();
+		}
+	}
+	public function get_rand_number() {
+		$number = 'P';
+		for($i = 1; $i < 9; $i ++) {
+			$number .= rand ( 1, 9 );
+		}
+		return $number;
+	}
+	public function delete(){
+		$id = I('id');
+		if(!$id){
+			$this->error('请选择要操作的数据！');
+		}
+		if(is_array($id)){
+			$ids = implode(',',$id);
+		}else{
+			$ids = $id;
+		}
+		$where =array('oid'=>array('in',$ids));
+		$where1 =array('exid'=>array('in',$ids));
+		M('Exprocess')->where($where1)->delete();
+		$tmp = $this->db->where($where)->delete();
+		if($tmp){
+			$this->success('删除成功！',U('index'));
+		}else{
+			$this->error('删除失败！');
+		}
+	}
+
+	/**
+	 *编辑
+	 */
+	public function edit(){
+		$id = I('get.id');
+		if(!$id){
+			$this->error('请选择要操作的数据！');
+		}
+		if(IS_POST){
+			$data = $this->db->create();
+			$data = array(
+				'name' => $data['name'],
+				'type' => $data['type'],
+				'contract' => $data['contract'],
+				'orgid' => $data['orgid'],
+				'pmid' => $data['pmid'],
+				'pm' => $data['pm'],
+				'oid' => $data['oid'],
+				'level' => $data['level'],
+				'pstime' => strtotime($data['pstime']),
+				'petime' => strtotime($data['petime']),
+				'stime' => strtotime($data['stime']),
+				'etime' => strtotime($data['etime']),
+				'livetime' => strtotime($data['livetime']),
+				'contractcost' => $data['contractcost'],
+				'progress' => $data['progress'],
+				'description' => $data['description'],
+			);
+			$tmp = $this->db->where('pid = '.$id)->save($data);
+			if($tmp === false){
+				$this->error('编辑失败！',U ( 'Offer/edit?id='.$id ) );
+			}else{
+				$this->success ( '编辑成功！',U('index'));
+			}
+			
+		}else{
+			//合同号
+			$contract = array(
+				0 =>  '请选择',
+				1 => 'QE123456',
+				2 => 'QR123456',
+				3 => 'QT123456',
+				4 => 'QV123456',
+				5 => 'QW123456'
+			);
+			$this->assign('contracts', $contract);
+			//项目类型
+			$types = M('dictionary')->where("d_code = 'offer_type '")->field(true)->select(array('order'=>'d_order asc'));
+			$types = array_merge(array(0=>array('d_value'=>'','d_key'=>'请选择...')), $types);
+			$this->assign('types', $types);
+			//审核流程
+			$examines = M('dictionary')->where("d_code = 'offer_examine '")->field(true)->select(array('order'=>'d_order asc'));
+			$examines = array_merge(array(0=>array('d_value'=>'','d_key'=>'请选择...')), $examines);
+			$this->assign('examines', $examines);
+			//折扣
+			$disdefines= M('disdefine','ot_')->field(true)->select();
+			$disdefines= array_merge(array(0=>array('dis'=>'','name'=>'请选择...')), $disdefines);
+			$this->assign('disdefines', $disdefines);
+			//优先级
+			$levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order'=>'d_order asc'));
+			$levels = array_merge(array(0=>array('d_value'=>'','d_key'=>'请选择...')), $levels);
+			$this->assign('levels', $levels);
+			//项目
+			$project = $this->db
+				->field('p.*,o.code oname,d1.name orgname')
+				->alias('p')
+				->join('ot_offer o on p.oid = o.oid','LEFT')
+				->join('ot_dept d1 on p.orgid = d1.did','LEFT')
+				->where('p.pid='.$id)
+				->find();
+			$this->assign('project', $project);
+
+			$this->meta_title = '编辑项目';
+			$this->display();
+
+		}
+	}
+	//异步修改数据
+	public function ajax_col()
+	{
+		$id     = empty($_GET['id']) ? 0 : intval($_GET['id']);
+		$column = empty($_GET['column']) ? '' : trim($_GET['column']);
+		$value  = isset($_GET['value']) ? trim($_GET['value']) : '';
+		$data   = array();
+		
+		if (in_array($column ,array( 'sort_order')))
+		{
+			$data[$column] = $value;
+			$this->db->where('mid='.$id)->save($data);
+		}
+		else
+		{
+			return ;
+		}
+		return ;
+	}
+
+	public function choose(){
+		$key = I ( 'key' ,'');
+		$state=I('state','');
+		$channels=I('channels','');
+		$order="";
+		$map=array();
+		if($key){
+			$map ['_string'] = "(code like '%".$key."%' or name like '%".$key."%' or contact like '%".$key."%')";
+		}
+		if($state){
+			$map['state']=$state;
+		}
+		if($channels){
+			$map['channels']=$channels;
+		}
+
+		if (I('sort','') && I('order','')){
+			$order=I("sort")." ".I("order");
+		}
+
+		$list = $this->lists ( 'Customer', $map,$order);
+		$this->assign ( '_list', $list );
+		$this->meta_title = '客户管理';
+		$this->display ();
+	}
+	//提交
+	public function present(){
+		$id = $_POST['id'];
+		$es_eid = $_POST['eid'];
+		M('Exprocess')->where("exid =".$id)->delete();
+		$this->db->where("oid=".$id)->save(array("static"=>2));
+		$res = M('ExamineSub')->where('es_eid = '.$es_eid)->select();
+		foreach ($res as $vo){
+			$data2 = array(
+				'exid' => $id,
+				'type' => '报价单审核',
+				'checkid' => $vo['uid'],
+				'esid' => $vo['esid'],
+				'order' => $vo['sort_order'],
+				'checkname' => $vo['uname']
+			);
+			M('Exprocess')->add($data2);
+		}
+		return;
+	}
+	//查看
+	public function veiw(){
+		$id = I("get.id");
+		if(empty($id)){
+			$this->error('请选择要操作的数据！');
+		}
+		$offer = $this->db
+			->field('o.*,d.name as disoff_name')
+			->alias('o')
+			->join('ot_disdefine d on o.disoff = d.dis','LEFT')
+			->where("oid = ".$id)
+			->find();
+		/*echo $this->db->getLastSql();*/
+		$this->assign('offer',$offer);
+		$this->display();
+
+	}
+	//选择项目经理
+	public function choosepm(){
+		$code = I('code');
+		if($code){
+			$where = "status = 1 and nickname like '%".$code."%' or uid ='".$code."'";
+		}else{
+			$where = "status = 1";
+		}
+		$db = M('Member');
+		$page = new \Think\Page($db->where($where)->count(),20);
+		$member = $db
+			->field('uid,nickname')
+			->where($where)
+			->limit($page->firstRow.','.$page->listRows)
+			->select();
+		/*echo $db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('member',$member);
+		$this->display();
+	}
+	//选择报价单
+	public function chooseoffer(){
+		$db = D('Offer');
+		$code = I('code');
+		if($code){
+			$where = "static = 3 and code like '%".$code."%' or custom like '%".$code."%' or coreservice like '%".$code."%'";
+		}else{
+			$where = "static = 3";
+		}
+		$page = new \Think\Page($db->where($where)->count(),20);
+		$offer = $db
+			->field('o.*,d.name as disoff_name')
+			->alias('o')
+			->join('ot_disdefine d on o.disoff = d.dis','LEFT')
+			->where($where)
+			->order('addtime')
+			->limit($page->firstRow.','.$page->listRows)
+			->select();
+		/*echo $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('offer',$offer);
+		$this->display();
+	}
+	//选择项目部门
+	public function chooseorg(){
+		$DeptM =   M('Dept');
+		//查询条件
+		$name = I('name');
+		if($name){
+			$where['d.name'] =  array('LIKE','%'.$name.'%');
+		}else{
+			$where = "1=1";
+		}
+		$page = new \Think\Page($DeptM->where($where)->count(),20);
+
+		$dept = $DeptM
+			->field('d.*,d1.name parent_name')
+			->alias('d')
+			->join('ot_dept d1 on d.parent = d1.did','LEFT')
+			->where($where)
+			->order('did')
+			->limit($page->firstRow.','.$page->listRows)
+			->select();
+		/*  echo  M()->getLastSql();*/
+		/*p($dept);die;*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('Dept',$dept);
+		$this->display();
+	}
+	public function ajaxGetDropMenu(){
+		$url=I('get.module').'/'.I('get.index').'?pid=';
+		$pro = $this->db->field('pid,name')->select();
+		$list1 = "<input type='text' class='form-control' id='search' value='' placeholder='搜索'/>
+		<div id='searchResult'><div id='defaultMenu' class='search-list'>
+    	<ul>";
+		$list2 = '';
+		foreach ($pro as $vo){
+			$list2 .= " <li data-id=".$vo['pid']." data-key='".str_replace(' ','',pinyin($vo['name'],'all','--'))."' ><a href='".U($url.$vo['pid'])."' ><i class='icon-folder-close-alt'></i> ".$vo['name']."</a></li>";
+		}
+		$list3 = "</ul> <div><a href='".U('project')."' ><i class='icon-th-large mgr-5px'></i> 所有项目</a></div></div>";
+
+		echo $list1.$list2.$list3;
+	}
+}

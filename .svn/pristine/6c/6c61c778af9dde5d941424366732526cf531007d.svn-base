@@ -1,0 +1,418 @@
+
+<extend name="Public/base_choose" />
+<block name="body">
+    <script src='__JSNEW__/jquery.datetimepicker.full.js' type='text/javascript'></script>
+    <script src="__JSNEW__/department/yi-scroll.js"></script>
+    <script src="__JSNEW__/department/project.department.js"></script>
+	<link href="__CSS__/jquery.datetimepicker.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <link href="__CSS__/department.css" rel="stylesheet"  type="text/css" />
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <style>
+
+        .popover {
+            max-width:550px;
+            width:550px;
+        }
+          .outer.with-side #titlebar{
+            margin-bottom:0;
+        }
+          #projectTip{
+              cursor:pointer;
+          }
+          #cke_target,#cke_description{
+            width:916px;
+        }
+        .form-control[readonly]{
+            background-color:#fff !important;
+            color : #222 !important;
+            cursor: pointer !important;
+        }
+        .se-change{
+            top: 70% !important;
+        }
+    </style>
+    <script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+    <script>
+        $(function () {
+            $("._scroll").yi_scroll();
+
+            // 构建数据列表
+            var _parentDom 	= 	'',
+                _childDom 	= 	'',
+                _vals 		= 	'',
+
+                _parent 	=	$('._panel-parent'),
+                _child 		= 	$('._panel-child');
+
+
+
+            // $('._panel-parent').append(_parentDom);
+            // $('._panel-child').append(_childDom);
+            // $('._panel-child ._panel-tab-content').eq(0).show();
+
+
+            var __select = {
+
+                init: function(){
+                    this.doms();
+                    this.tabs();
+                    this.check();
+                    this.reset();
+                    this.close1();
+                    this.submit();
+                },
+
+                doms: function(){
+                    for( var i = 0; i < data.length; i++ ) {
+                        _parentDom += '<div class="_panel-item" data-id="' + data[i].id + '">' + data[i].name + '</div>';
+
+                        _childDom += '<div class="_panel-tab-content" data-id="' + data[i].id + '">'
+                        for( var j = 0; j < data[i].array.length; j++ ) {
+                            _childDom += '	<div class="_panel-item">' + data[i].array[j].name + '</div>'
+                        }
+                        _childDom += '</div>'
+                    }
+
+                    _parent.append(_parentDom);
+                    _child.append(_childDom);
+                    _parent.find('._panel-item').eq(0).addClass('tab');
+                    _child.find('._panel-tab-content').eq(0).addClass('active');
+
+                    _parentDom = '';
+                    _childDom = '';
+                },
+
+                check: function(){
+                    $('._panel-box').on('click','._panel-item', function(){
+
+                        var _this = $(this);
+                        console.log(_this.hasClass('haschild'));
+                        // _this.toggleClass('checked');
+                        if( !_this.hasClass('haschild') ) {
+                            _this.toggleClass('checked');
+                        } else {
+                            return false;
+                        }
+
+                        if( _this.parent().hasClass('_panel-tab-content') ) {
+                            if( $('._panel-tab-content.active .checked').length > 0 ) {
+                                _parent.find('.tab').addClass('active haschild').removeClass('checked');
+                            } else {
+                                _parent.find('.tab').removeClass('active , checked , haschild');
+                            }
+                        } else {
+                            _this.removeClass('active');
+                            $('._panel-child .active ._panel-item').removeClass('checked');
+                            console.log($('._panel-child .active ._panel-item').length);
+                        }
+
+                    })
+                },
+
+                close1: function(){
+                    $('.se-change .close1').on('click', function(){
+                        $('.se-change , .se-mask').fadeOut();
+                    })
+                },
+
+                reset: function(){
+                    $('.reset').on('click', function(){
+                        $('._panel-item').removeClass('checked , active , haschild');
+                    })
+                },
+
+                submit: function(){
+                    $('.submit').on('click', function(){
+                        var _pitem 	= $('._panel-parent .checked') ,
+                            _citem 	= $('._panel-child .checked');
+                        for ( var i = 0; i < _pitem.length; i++ ) {
+                            _vals += _pitem.eq(i).text() + ',';
+                        }
+
+                        for ( var k = 0; k < _citem.length; k++ ) {
+                            _vals += $('._panel-parent ._panel-item[data-id="'+_citem.eq(k).parent().attr('data-id')+'"]').text() + '-' + _citem.eq(k).text() + ',';
+                        }
+
+                        $('#change').val(_vals.substring(0,_vals.length-1));
+
+                        _vals = '';
+                        $('.se-mask , .se-change').fadeOut();
+                    })
+                },
+
+                tabs: function(){
+                    _parent.on('click','._panel-item', function(){
+                        $(this).addClass('tab').siblings().removeClass('tab');
+                        $('._panel-tab-content').eq($(this).index()).addClass('active').siblings().removeClass('active');
+                    })
+                }
+
+            }
+
+            __select.init();
+
+
+            $('#change').on('click',function(){
+
+                $('.se-mask , .se-change').fadeIn();
+
+                var _this 	=	$(this),
+                    _array	= 	_this.val().split(','),
+                    _parr 	=	[],
+                    _carr 	= 	[];
+
+                // console.log(_array);
+                for( var i = 0; i < _array.length; i++ ){
+                    if( Math.abs(_array[i].indexOf('-')) == true ) {
+                        _parr.push(_array[i]);
+                    } else {
+                        _carr.push(_array[i]);
+                    }
+                }
+
+
+                for ( var j = 0; j < _parr.length; j++ ) {
+                    for( var k = 0; k < $('._panel-parent ._panel-item').length; k++ ) {
+                        if( $('._panel-parent ._panel-item').eq(k).text() == _parr[j] ) {
+                            $('._panel-parent ._panel-item').eq(k).addClass('checked');
+                        }
+                    }
+                }
+
+                var _first = null , _second = null;
+                for ( var j = 0; j < _carr.length; j++ ) {
+                    for( var k = 0; k < $('._panel-child ._panel-item').length; k++ ) {
+                        _first = _carr[j].substring(0,_carr[j].indexOf('-'));
+                        _second = _carr[j].substring(_carr[j].indexOf('-')+1,_carr[j].length);
+
+                        if( $('._panel-child ._panel-item').eq(k).text() == _second ) {
+                            $('._panel-child ._panel-item').eq(k).addClass('checked');
+                        }
+                    }
+
+                    for( var n = 0; n < $('._panel-parent ._panel-item').length; n++ ) {
+                        if( $('._panel-parent ._panel-item').eq(n).text() == _first ) {
+                            $('._panel-parent ._panel-item').eq(n).addClass('active haschild');
+                        }
+                    }
+                }
+                // console.log(_parr);
+            })
+
+            var time1="{$project['pstime']}";
+             $('#pstime').datetimepicker({value:time1,lang:'ch',timepicker:false,format:'Y/m/d'});
+               var time2="{$project['petime']}";
+             $('#petime').datetimepicker({value:time2,lang:'ch',timepicker:false,format:'Y/m/d'});
+               var time3="{$project['livetime']}";
+             $('#livetime').datetimepicker({value:time3,lang:'ch',timepicker:false,format:'Y/m/d'});
+             $('#petime').change(function(){
+                var etime=$(this).val();
+                var stime=$('#pstime').val();
+                etime=new Date(etime).getTime();
+                stime=new Date(stime).getTime();
+                if(etime>=stime || isNaN(etime)){
+                    $('#petime').removeClass('error')
+                }else{
+                     $('#petime').addClass('error')
+
+                }
+             })
+
+
+
+            $('#projectTip').mouseover(function () {
+                $('#projectTip').popover({"html": true, trigger: "focus"});
+                $('#projectTip').popover('show');
+            });
+            $('#projectTip').mouseleave(function () {
+                $('#projectTip').popover({"html": true, trigger: "focus"});
+                $('#projectTip').popover('hide');
+            });
+            var str = "{$therapy}";
+            var arr = str.split(',');
+            var options = $("#contract").find("option");
+            for (var i = 0; i < arr.length; i++) {
+                for (var j = 0; j < options.length; j++) {
+                    if (options.eq(j).val() == arr[i]) {
+                        options.eq(j).attr("selected", 'true');
+                    }
+                }
+            }
+
+            var noResultsMatch     = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'400px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#contract, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+            var noResultsMatch     = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'120px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#druptype, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+
+            var noResultsMatch     = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'170px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#name,.chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+        })
+
+
+
+    </script>
+    <div class="se-mask"></div>
+    <div class="se-change clearfix">
+
+        <div class="change-item pull-left">
+            <h3>科室</h3>
+            <div class="_scroll">
+                <div class="_panel-box _panel-parent" data-class="parent">
+                </div>
+            </div>
+        </div>
+
+        <div class="change-item pull-right">
+            <h3>科室</h3>
+            <div class="_scroll">
+                <div class="_panel-box _panel-child" data-class="child">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="change-button">
+            <a href="javascript:void(0);" class="reset">重选</a>
+            <a href="javascript:void(0);" class="submit">确定</a>
+        </div>
+
+        <span class="close1"></span>
+
+    </div>
+       <div style="margin:0 20px;">
+           <div style="margin-top:10px;color:#888">
+              <p style="margin-bottom:2px"> 这部分主要介绍项目背景、目标及相关信息。其中项目背景和目标尤其关键，便于团队对项目有更深的了解，对项目目标达成统一。
+治疗领域、目标科室等信息，这些将作为我们重要的数据统计来源，数据统计整合后也会用于指导项目。</p>
+           </div>
+            <span class="grhead">项目概述及相关</span>
+        </div>
+      <form action="{:U('summary',array('pid'=>$project['pid'],'edit'=>1))}" method='post' class="form-condensed" style="margin-left: 20px;">
+            <table class="table-form mytable table ntable" style="width:1060px;border:none;" >
+                <tr>
+                    <th class="thtop">项目背景 <span class="required"></span></th>
+                    <td colspan="7" >
+						<textarea placeholder="为什么要做这个项目，这是个什么项目。通常包括项目名称、相关产品、目标人群、整体目标、启动时间、整体计划和阶段、当前所处阶段。" id="description" name="description" style="width: 100%;height: 150px" class="ckeditor">{$project['description']}</textarea>
+					</td>
+                </tr>
+                <tr>
+                    <th class="thtop">项目目标 <span class="required"></span></th>
+                    <td colspan="7" >
+						<textarea placeholder="明确列出项目目标，通常不超过3个：对（更广阔的）目标医生群体实现更好地覆盖；对核心医生群体进行深入互动；量化互动前后的医生认知变化。
+所有具体项目的目标，均以上述三点为核心进行具体展开。" id="target" name="target" style="width: 100%;height: 150px" class="ckeditor">{$project['target']}</textarea>
+					</td>
+                </tr>
+                <tr>
+                    <th style="width: 100px">目标科室</span></th>
+                    <td style="width: 180px">
+                        <input type="hidden" name="dcode" id="vals" value="{$project.dcode}">
+                        <input class="form-control" type="text" name="department" id="change" readonly data-vals="" data-type="{$project.dtype}" value="{$project.department}" data-class="child" >
+                    </td>
+                    <th style="width: 80px">产品类型</th>
+                    <td style="width: 120px">
+                        <select name="drug_type"  id="druptype"  class="form-control" data-placeholder="请选择..." style="display:none">
+                            <volist name="druptypes" id="vo">
+                                <option value="{$vo.d_value}"
+                                <if condition="$vo['d_value'] eq $project['drug_type']">selected</if>
+                                >{$vo.d_key}</option>
+                            </volist>
+                        </select>
+                    </td>
+                    <th>产品名称</th><td>   <input type="text" name="drug_name" id="drug_name" value="{$project[drug_name]}" class="form-control" autocomplete="off" style="width:135px;float: none" ></td>
+                    <th style="width: 100px">预计启动时间</th><td>  <input type="text" name="pstime" id="pstime" value="" class="form-control" autocomplete="off" style="width: 130px;float: none" ></td>
+                </tr>
+                <tr>
+                    <th>治疗领域</th>
+                    <td colspan="3" style="width:380px"><div >
+                        <select name="therapy_area[]"  id="contract" multiple="" class="form-control" data-placeholder="请选择..." style="display:none">
+                            <volist name="therapy_areas" id="vo">
+                                <option value="{$vo.d_value}">{$vo.d_key}</option>
+                            </volist>
+                        </select>
+
+                    </div>
+                    </td>
+                    <th>预计结束时间</th><td>  <input type="text" name="petime" id="petime" value="{$project['petime']}" class="form-control" autocomplete="off" style="width: 135px;float: none" ></td>
+                    <th>上线时间</th><td>   <input type="text" name="livetime" id="livetime" value="{$project['livetime']}" class="form-control" autocomplete="off" style="width: 130px;float: none" ></td>
+                    </td>
+                </tr>
+
+            </table>
+          <div style="width:1060px;margin-top:10px;padding-bottom: 80px">
+              <div style="float:right;margin-right:37px">
+                  <a href="javascript:window.parent.choose()" id="breakBtn" name='breakBtn' class="btn btn-default" ><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+                  <button  id="nextBtn" name='nextBtn' class="btn btn-primary"><i class="icon-save"></i> 保存</button>
+          </div>
+          </div>
+
+        </div>
+        </form>
+    <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;"><div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+</block>
+<block name="script">
+    <script>
+     //导航高亮
+	highlight_subnav("{:U('ProjectNewFromMe/index')}");
+        $('#nextBtn').click(function(){
+            var t=true;
+            var desc = CKEDITOR.instances.description.getData();
+            if(desc==''||desc==undefined || desc==null){
+                $("#cke_description").css('border','1px solid red');
+                t=false;
+                return false;
+            }
+            var tar=CKEDITOR.instances.target.getData();
+            if(tar==''||tar==undefined || tar==null){
+                $("#cke_target").css('border','1px solid red');
+                t=false;
+                return false;
+            }
+            var pstime=$('#pstime').val();
+            var  petime=$('#petime').val();
+               stime=new Date(pstime).getTime();
+               etime=new Date(petime).getTime();
+                if(stime>etime || isNaN(stime)){
+                    alert("预计结束时间应大于预计启动时间");
+                    $("#petime").addClass('error');
+                       t=false;
+                    return false;
+                }
+
+            if(t){
+                $('form').submit();
+                $("#loadertip").show();
+            }
+        });
+       $('#preBtn').click(function(){
+           $("#loadertip").show();
+       })
+       $('#breakBtn').click(function(){
+               $("#loadertip").show();
+       })
+    </script>
+</block>

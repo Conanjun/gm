@@ -1,0 +1,229 @@
+<?php
+
+namespace Admin\Controller;
+use Think\Controller;
+use Admin\Model\ExpenseModel;
+
+/*
+ * 报价单控制器
+ */
+class OtherController extends Controller {
+	// 定义数据表
+	private $db;
+	private $pro_module;
+	// 构造函数
+	public function __construct() {
+		parent::__construct ();
+		$this->db = D ( 'Offer' );
+		$this->pro_module=D('ProjectConfig');
+	}
+
+	public function printpage(){
+		$id = I ( "get.id" );
+		if (empty ( $id )) {
+			$this->error ( '报价单不存在！' );
+		}
+		$offer = $this->db->field ( 'o.*,d.name as disoff_name,m1.shortsign as cname,m1.name as cuname' )->alias ( 'o' )
+		->join ( 'ot_customer m1 on m1.cid = o.cid', 'LEFT' )
+		->join ( 'ot_disdefine d on o.disoff = d.dis', 'LEFT' )->where ( "oid = " . $id )->find ();
+
+		$this->assign ( 'offer', $offer );
+
+		if($offer['apid']){
+			$row=M("UcenterMember")->where("id='{$offer['apid']}'")->find();
+			if($row){
+				$this->assign('email',$row['email']);
+			}
+		}
+
+
+		$where['_string']="  os.oid='{$id}'";
+		$offersub = M("OfferSub")->field (  array ('s.hour','os.*','s.*','m.name as o_name',
+				'g.name as ganme',
+				"pc.type as pctype","pc.pid as pcid","pc.parentid as ppid","os.quantity",'os.*'))->alias ( 'os' )->join ( 'ot_service s ON s.sid = os.sid', 'LEFT' )
+		->join ( 'ot_module m ON m.mid = s.mid', 'LEFT' )
+		->join ( 'ot_project_config pc ON pc.pid = m.pid', 'LEFT' )
+		->join ( 'ot_group g ON m.role = g.groupid', 'LEFT' )
+		->where ( $where )->order ("os.osid desc")->select ();
+
+		$jcbj=0;
+
+		if($offersub){
+			foreach ($offersub as $k=>$v){
+				$jcbj+=floatval($v['amount']);
+			}
+		}
+
+		$this->assign('jcbj',$jcbj);
+		$this->assign ( 'offers', $offersub);
+
+		$this->assign('s',floatval($offer['amount_tax']-$offer['amount_notax']));
+		$disoff = intval($offer['disoff']);
+		$this->assign('zk',empty($disoff)?0:100-$offer['disoff']);
+		$this->assign('zkm',empty($disoff)?0:floatval($offer['amount_tax']*(100-$offer['disoff'])/100));
+		$process = M("exprocess")->alias('e')->where("exid='".$id."' and type='报价单审核'")->order('e.order asc')->select();
+		$this->assign ( 'process', $process);
+
+		$this->display ();
+	}
+
+	public function eprintpage(){
+		$id = I ( "get.id" );
+		if (empty ( $id )) {
+			$this->error ( '报销不存在！' );
+		}
+
+		$exp_model=new ExpenseModel();
+		$types = M('dictionary')->field('d_key,d_value')->where("d_code='cost_type'")->select();
+		foreach ($types as $value) {
+			$type[$value['d_value']] = $value['d_key'];
+		}
+		$result = $exp_model->getExpenseSub($id);
+		foreach ($result as &$vo) {
+			$vo['money'] = sprintf("%.1f",$vo['money']);
+
+		}
+        //获取报销单相关信息
+		 $res=M('expense')
+            ->alias('e')
+            ->field('e.uid,p.contract,p.name as pname,p.pid,d.d_key as status,f.name as fname,f.ext,f.savepath,e.account,e.fileid,e.eid,e.uname,e.pid,e.addtime,e.state,e.type,d1.d_key,e.code,e.amount,e.description,e.checkedtime,e.unit,e.bank,e.innum,dt.name as dtname,ex.checkid,ex.checkname')
+            ->join('ot_project  p on p.pid=e.pid','left')
+            ->join('ot_file f on f.fileid=e.fileid','left')
+            ->join('ot_dictionary d on d.d_value=e.state  and d.d_code=\'Reimbursement_static\'','left')
+            ->join('ot_dictionary d1 on d1.d_value=e.type  and d1.d_code=\'expense_type\'','left')
+            ->join('ot_member m on  m.uid=e.uid')
+            ->join('ot_dept dt on dt.did=m.dept','left')
+            ->join('ot_exprocess ex on ex.exid=e.eid and ex.type=\'报销单审核\'','left')
+            ->where(['e.eid'=>$id])
+            ->find();
+		if($res['addtime']){
+			$res['addtime']=date('Y/m/d',$res['addtime']);
+		}
+		if($res['amount']){
+		    $res['rmb']=num2rmb($res['amount']);
+		    $res['amount']=sprintf("%.1f",$res['amount']);
+        }
+
+		if($res['checkedtime']){
+			$res['checkedtime']=date('Y-m-d H:i:s',$res['checkedtime']);
+		}
+
+		$this->assign ( 'sub', $result);
+		$this->assign ( 'res', $res);
+		$this->display ();
+	}
+    public function view1(){
+        $this->assign('cname',CONTROLLER_NAME);
+        $wid = I("get.id");
+        $this->assign('id',$wid);
+
+        $this->assign('e',I("get.e"));
+
+        if(IS_POST){
+            $content = I("post.content",'');
+            if($content){
+                M('Weekly')->where("weekid=".$wid)->save(array('content'=>$content));
+            }
+        }
+        $week = M('Weekly')->field(true)->where('weekid='.$wid)->find();
+        $week_project = M('WeeklyProject')->field("wp.*,d1.d_key dname")->alias('wp')
+            ->join('ot_dictionary d1 on wp.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->where('wp.wid='.$wid)->select();
+        $week_task = M('WeeklyTask')->field(true)->where('wid='.$wid)->select();
+        $fuwu = '';
+        $fuwu1 = '';
+        $renwu = '';
+        $renwu1 = '';
+        $role = '';
+        $role1 = '';
+        $pamoney = 0;
+        if(!empty($week_project)){
+            foreach($week_project as $k => $vo){
+                if($vo['sname']){
+                    $fuwu .= ','.$vo['sname'];
+                }
+                if($vo['dname']){
+                    $renwu .= ','.$vo['dname'];
+                }
+                if($vo['role']){
+                    $role .= ','.$vo['role'];
+                }
+	            if($vo['money']){
+		            $pamoney += (float)($vo['money'])/10000;
+		            $week_project[$k]['money'] = round((float)($vo['money'])/10000,2);
+	            }
+            }
+            if($fuwu){
+                $fuwu = substr($fuwu,1);
+                $fuwu = explode(',',$fuwu);
+                $fuwu = array_count_values($fuwu);
+                foreach($fuwu as $k => $v){
+                    $fuwu1 .= $k.$v."/".$week['pznum']."</br>";
+                }
+            }
+            if($renwu){
+                $renwu = substr($renwu,1);
+                $renwu = explode(',',$renwu);
+                $renwu = array_count_values($renwu);
+                foreach($renwu as $k => $v){
+                    $renwu1 .= $k.$v."</br>";
+                }
+            }
+            if($role){
+                $role = substr($role,1);
+                $role = explode(',',$role);
+                $role = array_count_values($role);
+                foreach($role as $k => $v){
+                    $role1 .= "作为".$k.$v."个项目</br>";
+                }
+            }
+
+        }
+        $p_zj = array(
+            'pzum' => "合计".$week['pznum']."个",
+            "role1" => $role1,
+            "renwu1" => $renwu1,
+            "fuwu1" => $fuwu1,
+	        "pamoney" => round($pamoney,2),
+
+        );
+        $da = 0;$t1=0;$t2=0;$t3=0;$t4=0;
+        if(!empty($week_task)){
+	        foreach($week_task as $k => $vo){
+                if($vo['type'] == 1){
+                    $t1 = $vo['tmum'];
+                }else{
+                    $t2 = $vo['tmum'];
+                }
+                if($vo['type'] == 1 && $vo['state'] == 3){
+                    $t3 = $vo['tmum'];
+                }
+                if($vo['type'] == 3){
+                    $t4 = $vo['tmum'];
+                }
+                $da += $vo['days'];
+	            $week_task[$k]['money'] = round((float)($vo['money'])/10000,2);
+            }
+        }
+        $num = "总任务 ".$week['tznum']."</br>"."项目交付型 ".$t1."(完成 ".$t3.")</br>.项目管理型任务 ".$t2."</br>会议 $t4";
+        $t_zj = array(
+            'pzum' => "合计",
+            "num" => $num,
+            "da" => $da,
+	        "money" => round((float)($week['tzmoney'])/10000,2),
+
+        );
+
+        $this->assign('t_zj', $t_zj);
+        $this->assign('p_zj', $p_zj);
+        $this->assign('week', $week);
+        $this->assign('week_project', $week_project);
+        $this->assign('week_task', $week_task);
+        $root_mbx=array();
+        $root_mbx[]=array('title'=>'我的看板','url'=>U('Index/index'));
+        $root_mbx[]=array('title'=>'周报','url'=>U('Review/index'));
+        $root_mbx[]=array('title'=>'查看周报','url'=>'');
+        $this->assign('root_mbx',$root_mbx);
+        $this->display();
+    }
+}

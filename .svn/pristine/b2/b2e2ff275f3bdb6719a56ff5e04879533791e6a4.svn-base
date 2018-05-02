@@ -1,0 +1,728 @@
+<?php
+
+namespace Admin\Controller;
+
+/**
+ * 成本预算
+ */
+class BudgetController extends AdminController
+{
+    //定义数据表
+    private $db;
+    private $pro_module;
+    private $meta_title;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->db = D('Project');
+        $this->pro_module = D('ProjectConfig');
+    }
+
+    /*所有项目 - 所有*/
+    public function project()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Budget/project",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'p.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '编号', 'fieldname' => 'p.code', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '项目类型', 'fieldname' => 'p.type', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 4 => array('str' => '客户', 'fieldname' => 'P.cid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 5 => array('str' => '合同号', 'fieldname' => 'p.contract', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '报价单号', 'fieldname' => 'p.oid', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 7 => array('str' => '关联机会', 'fieldname' => 'p.chance', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 8 => array('str' => '项目经理', 'fieldname' => 'p.pmuid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 9 => array('str' => '所属部门', 'fieldname' => 'p.orgid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 10 => array('str' => '销售', 'fieldname' => 'p.sale', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '优先级', 'fieldname' => 'p.level', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 12 => array('str' => '金额', 'fieldname' => 'p.money', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 13 => array('str' => '任务数', 'fieldname' => 'p.tasknum', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 14 => array('str' => '成本', 'fieldname' => 'p.cost', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 15 => array('str' => '合同推广费用', 'fieldname' => 'p.promotion', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 16 => array('str' => '计划开始时间', 'fieldname' => 'p.pstime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 17 => array('str' => '计划结束时间', 'fieldname' => 'p.petime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 18 => array('str' => '实际开始时间', 'fieldname' => 'p.stime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 19 => array('str' => '实际结束时间', 'fieldname' => 'p.etime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 20 => array('str' => '顾问', 'fieldname' => 'p.adviser', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '是否拆解', 'fieldname' => 'p.breakdown', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "0" => '否', '1' => "是"))
+            , 22 => array('str' => '创建人', 'fieldname' => 'p.uid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '创建时间', 'fieldname' => 'p.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            )
+        );
+        if ($config && $config['params']) {
+            //类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            //客户
+            $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+            //项目部门
+            $dept = M('Dept')->field('did,name')->select();
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //销售
+            $sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //状态
+            $states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order' => 'd_order asc'));
+            //报价单
+            $offer = D('Offer')->field('oid,code')->select();
+            //优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            //进度
+            $progress = M('dictionary')->where("d_code = 'progress'")->field(true)->select(array('order' => 'd_order asc'));
+
+            $mcustomer = array("" => "");
+            $mdept = array("" => "");
+            $mtypes = array("" => "");
+            $mpm = array("" => "");
+            $msales = array("" => "");
+            $mstates = array("" => "");
+            $moffer = array("" => "");
+            $mlevels = array("" => "");
+            $mprogress = array("" => "");
+            if ($customer) {
+                foreach ($customer as $v) {
+                    $mcustomer[$v['cid']] = $v['name'];
+                }
+            }
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($dept) {
+                foreach ($dept as $v) {
+                    $mdept[$v['did']] = $v['name'];
+                }
+            }
+            if ($types) {
+                foreach ($types as $v) {
+                    $mtypes[$v['d_value']] = $v['d_value'];
+                }
+            }
+            if ($sales) {
+                foreach ($sales as $v) {
+                    $msales[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($states) {
+                foreach ($states as $v) {
+                    $mstates[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($offer) {
+                foreach ($offer as $v) {
+                    $moffer[$v['oid']] = $v['code'];
+                }
+            }
+            if ($levels) {
+                foreach ($levels as $v) {
+                    $mlevels[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($progress) {
+                foreach ($progress as $v) {
+                    $mprogress[$v['d_value']] = $v['d_key'];
+                }
+            }
+
+            $config['params'][3]['values'] = $mtypes;
+            $config['params'][4]['values'] = $mcustomer;
+            $config['params'][9]['values'] = $mdept;
+            $config['params'][8]['values'] = $mpm;
+            $config['params'][10]['values'] = $msales;
+            $config['params'][1]['values'] = $mstates;
+            $config['params'][11]['values'] = $mlevels;
+            $config['params'][20]['values'] = $mpm;
+            $config['params'][22]['values'] = $mpm;
+        }
+
+        $this->setSearchConfig($config);
+
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'p.addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'p.addtime';
+            $order = 'desc';
+        }
+        //查询条件
+        $where = $this->getCondition();
+        $where['_string'] .= " and p.del = 0 ";
+        $count = $this->db
+            ->distinct(true)
+            ->alias('p')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_dept d on p.orgid = d.did', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where($where)->count();
+        $page = new \Think\Page($count, 20);
+        $pro = $this->db
+            ->distinct(true)
+            ->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_dept d on p.orgid = d.did', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where($where)
+            ->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        /*echo M()->getlastsql();*/
+        foreach ($pro as $key => $vo) {
+            if ($vo['money'] != '0.00') {
+                $duty = round((float)$vo['amount'] / (float)$vo['money'] * 100);
+                if ($duty > 100) {
+                    $pro[$key]['duty'] = 100;
+                } else {
+                    $pro[$key]['duty'] = $duty;
+                }
+            } else {
+                $pro[$key]['duty'] = 0;
+            }
+        }
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('_list', $pro);
+        $this->assign('actname', ACTION_NAME);
+        $this->meta_title = '成本预算';
+
+        $projectlog = $this->projectlog();
+
+        $this->assign('projectlog', $projectlog);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '成本预算-所有的项目', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route__', '成本预算');
+        Cookie('__from_url__', U('Budget/project'));
+
+        $this->display();
+    }
+
+    public function projectlog()
+    {
+        $pro1 = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 ")->count();
+
+        $pro2 = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 and p.state =2")->count();
+        $pro3 = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 and p.state =1")->count();
+
+        $projectlog = "<span>参与 <span class='textr'>$pro1</span><span>个项目</span>
+&nbsp;已完成<span class='textr'>$pro2</span><span>个项目</span>
+&nbsp;进行中<span class='textr'>$pro3</span><span>个项目</span></span>  ";
+        return $projectlog;
+    }
+
+    public function projectall()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Budget/allindex",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'p.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '编号', 'fieldname' => 'p.code', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '项目类型', 'fieldname' => 'p.type', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 4 => array('str' => '客户', 'fieldname' => 'P.cid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 5 => array('str' => '合同号', 'fieldname' => 'p.contract', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '报价单号', 'fieldname' => 'p.oid', 'operator' => '=', 'control' => 'input', 'values' => '')
+            , 7 => array('str' => '关联机会', 'fieldname' => 'p.chance', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 8 => array('str' => '项目经理', 'fieldname' => 'p.pmuid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 9 => array('str' => '所属部门', 'fieldname' => 'p.orgid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 10 => array('str' => '销售', 'fieldname' => 'p.sale', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '优先级', 'fieldname' => 'p.level', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 12 => array('str' => '金额', 'fieldname' => 'p.money', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 13 => array('str' => '任务数', 'fieldname' => 'p.tasknum', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 14 => array('str' => '成本', 'fieldname' => 'p.cost', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 15 => array('str' => '合同推广费用', 'fieldname' => 'p.promotion', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 16 => array('str' => '计划开始时间', 'fieldname' => 'p.pstime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 17 => array('str' => '计划结束时间', 'fieldname' => 'p.petime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 18 => array('str' => '实际开始时间', 'fieldname' => 'p.stime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 19 => array('str' => '实际结束时间', 'fieldname' => 'p.etime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 20 => array('str' => '顾问', 'fieldname' => 'p.adviser', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '是否拆解', 'fieldname' => 'p.breakdown', 'operator' => '=', 'control' => 'select', 'values' => array("" => "", "0" => '否', '1' => "是"))
+            , 22 => array('str' => '创建人', 'fieldname' => 'p.uid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '创建时间', 'fieldname' => 'p.addtime', 'operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date')
+            )
+        );
+        if ($config && $config['params']) {
+            //类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            //客户
+            $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+            //项目部门
+            $dept = M('Dept')->field('did,name')->select();
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //销售
+            $sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //状态
+            $states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order' => 'd_order asc'));
+            //报价单
+            $offer = D('Offer')->field('oid,code')->select();
+            //优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            //进度
+            $progress = M('dictionary')->where("d_code = 'progress'")->field(true)->select(array('order' => 'd_order asc'));
+
+            $mcustomer = array("" => "");
+            $mdept = array("" => "");
+            $mtypes = array("" => "");
+            $mpm = array("" => "");
+            $msales = array("" => "");
+            $mstates = array("" => "");
+            $moffer = array("" => "");
+            $mlevels = array("" => "");
+            $mprogress = array("" => "");
+            if ($customer) {
+                foreach ($customer as $v) {
+                    $mcustomer[$v['cid']] = $v['name'];
+                }
+            }
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($dept) {
+                foreach ($dept as $v) {
+                    $mdept[$v['did']] = $v['name'];
+                }
+            }
+            if ($types) {
+                foreach ($types as $v) {
+                    $mtypes[$v['d_value']] = $v['d_value'];
+                }
+            }
+            if ($sales) {
+                foreach ($sales as $v) {
+                    $msales[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($states) {
+                foreach ($states as $v) {
+                    $mstates[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($offer) {
+                foreach ($offer as $v) {
+                    $moffer[$v['oid']] = $v['code'];
+                }
+            }
+            if ($levels) {
+                foreach ($levels as $v) {
+                    $mlevels[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($progress) {
+                foreach ($progress as $v) {
+                    $mprogress[$v['d_value']] = $v['d_key'];
+                }
+            }
+
+            $config['params'][3]['values'] = $mtypes;
+            $config['params'][4]['values'] = $mcustomer;
+            $config['params'][9]['values'] = $mdept;
+            $config['params'][8]['values'] = $mpm;
+            $config['params'][10]['values'] = $msales;
+            $config['params'][1]['values'] = $mstates;
+            $config['params'][11]['values'] = $mlevels;
+            $config['params'][20]['values'] = $mpm;
+            $config['params'][22]['values'] = $mpm;
+        }
+
+        $this->setSearchConfig($config);
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'p.addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'p.addtime desc , ';
+            $order = 'p.addtime desc';
+        }
+        //查询条件
+        $where = $this->getCondition();
+
+        $where['_string'] .= " and p.del = 0 and ( p.pmuid=" . UID . ") ";
+
+        if (I("get.exportexcel", "") == 1) {
+            $pro = $this->db
+                ->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+                ->alias('p')
+                ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+                ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+                ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+                ->join('ot_dept d on p.orgid = d.did', 'LEFT')
+                ->join('ot_member m on p.sale = m.uid', 'LEFT')
+                ->where($where)
+                ->order($sort . " " . $order)
+                ->select();
+            $this->export($pro);
+            exit();
+        }
+
+        $count = $this->db
+            ->alias('p')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_dept d on p.orgid = d.did', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where($where)->count();
+        $page = new \Think\Page($count, 20);
+        $pro = $this->db
+            ->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_dept d on p.orgid = d.did', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where($where)
+            ->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($pro as $key => $vo) {
+            if ($vo['money'] != '0.00') {
+                $duty = round((float)$vo['amount'] / (float)$vo['money'] * 100);
+                if ($duty > 100) {
+                    $pro[$key]['duty'] = 100;
+                } else {
+                    $pro[$key]['duty'] = $duty;
+                }
+            } else {
+                $pro[$key]['duty'] = 0;
+            }
+
+            if ($vo['costh'] > 0) {
+                $duty1 = round((float)$vo['costh'] / (float)$vo['cost'] * 100, 0);
+                if ($duty1 > 100) {
+                    $pro[$key]['duty1'] = 100;
+                } else {
+                    $pro[$key]['duty1'] = $duty1;
+                }
+            } else {
+                $pro[$key]['duty1'] = 0;
+            }
+        }
+        /* echo   $this->db->getLastSql();*/
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('_list', $pro);
+        $this->assign('actname', ACTION_NAME);
+
+        $this->meta_title = '我管理的项目';
+
+        $projectlog = $this->projectlog1();
+
+        $this->assign('projectlog', $projectlog);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('Offer/index'));
+        $root_mbx[] = array('title' => '成本预算-我管理的项目', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route__', '成本预算');
+        Cookie('__from_url__', U('Budget/project'));
+        $this->display();
+    }
+
+    public function projectlog1()
+    {
+        $project = M('Project')->alias('p')->where(" p.del = 0 and (p.pmuid=" . UID . " or p.uid=" . UID . ") ")->count();
+        $project1 = M('Project')->alias('p')->where(" p.del = 0 and (p.pmuid=" . UID . " or p.uid=" . UID . ") and p.state = 1")->count();
+        $project2 = M('Project')->alias('p')->where("p.del = 0 and (p.pmuid=" . UID . " or p.uid=" . UID . ") and p.state = 2")->sum('p.money');
+        $project3 = M('Project')->alias('p')->where("p.del = 0 and (p.pmuid=" . UID . " or p.uid=" . UID . ")")->sum('p.amount');
+        $project2 = fomatprice($project2);
+        $project3 = fomatprice($project3);
+        $mprojectlog = "<span>管理项目 <span class='textr'>$project</span><span>个</span>
+&nbsp;进行中项目<span class='textr'>$project1</span><span>个</span>
+&nbsp;已完成项目金额<span class='textr'>$project2</span>项目挣值<span class='textr'>$project3</span></span>  ";
+        return $mprojectlog;
+    }
+
+    public function budgetlog($pid)
+    {
+        $map = [];
+        $map['pid'] = $pid;
+        $map['type'] = '现金成本';
+        $column = "sum(budget) as budget,sum(cost) as cost";
+        $cashTotal = M('Projectbudget')->field($column)->where($map)->find();   // 现金
+        $map['type'] = '人力成本';
+        $column = "type1,sum(chours) as chours,sum(finishours) as finishours";
+        $laborTotal = M('Projectbudget')->field($column)->where($map)->group('type1')->select();    // 人力
+        $total = $cashTotal['budget'];
+        $costtotal = $cashTotal['cost'];
+        $budget = $cashTotal['cost'];
+        $notTotal = $total - $costtotal;
+        $notTotal < 0 and $notTotal = 0;
+        $hours1 = $hours2 = $hours3 = number_format(0,1);
+        $finishours1 = $finishours2 = $finishours3 = number_format(0,1);
+        foreach ($laborTotal as $k => $v) {
+            if ($v['type1'] == '预算内') {
+                $hours1 = $v['chours'];
+                $finishours1 = $v['finishours'];
+            }
+            if ($v['type1'] == '预算外') {
+                $hours2 = $v['chours'];
+                $finishours2 = $v['finishours'];
+            }
+            if ($v['type1'] == '变更') {
+                $hours3 = $v['chours'];
+                $finishours3 = $v['finishours'];
+            }
+        }
+        $budgetlog = "<span>现金成本 预算<span class='textg'>" . fomatprice($total) . "</span>         
+                      发生 <span class='textr'>" . fomatprice($costtotal) . "</span>，
+                      预算内项目工时  预算<span class='textg'>" . $hours1 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours1 . "h</span>，
+                      预算外项目工时  预算<span class='textg'>" . $hours2 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours2 . "h</span> ，
+                      变更项目工时  预算<span class='textg'>" . $hours3 . "h</span>
+                      &nbsp;发生 <span class='textr'>" . $finishours3 . "h</span>
+                     </span>";
+
+        return $budgetlog;
+    }
+
+    /*预算成本列表*/
+    public function budgetIndex()
+    {
+        $id = I('get.id');
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if ($order && $sort) {
+            $sort == 'pb.b1' and $sort = "pb.cost/pb.budget*10000/100";
+            $sort == 'pb.b2' and $sort = "pb.finishours/pb.chours*10000/100";
+            $order_sort = $sort . ' ' . $order;
+        } else {
+            $order_sort = 'pb.updatetime desc';
+        }
+        $project = $this->db
+            ->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_offer o on p.oid = o.oid', 'LEFT')
+            ->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where('p.pid=' . $id)
+            ->find();
+        $this->assign('p', $project);
+        $page = new \Think\Page(M('projectbudget')->alias('pb')->where(array('pb.pid=' . $id))->count(), 20);
+        $list = M("projectbudget")->alias('pb')
+            ->field(array('pb.type1', 'pb.cbudget', 'pb.chours', 'pb.pid', 'pb.finishours',
+                'pb.hours', 'pb.outid', 'pb.hours', 'pb.finishours', 'pb.pbid', 'pb.type', 'pb.budget',
+                'pb.cost', 'pb.cost/pb.budget*10000/100 as bl', 'pb.finishours/pb.chours*10000/100 as b2', 'pb.addtime', 'pb.updatetime', 'pb.outitem'))
+            ->where('pb.pid=' . $id)
+            ->order($order_sort)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        if ($list) {
+            foreach ($list as $k => $v) {
+            	$list[$k]['bl']=round($list[$k]['bl'],2);
+            	$list[$k]['b2']=round($list[$k]['b2'],2);
+                if ($v['chours'] == 0.00) {
+                    $list[$k]['chours'] = '';
+                } else {
+                    $list[$k]['chours'] = $v['chours'] . 'h';
+                }
+                if ($v['hours'] == 0.00) {
+                    $list[$k]['hours'] = '';
+                } else {
+                    $list[$k]['hours'] = $v['hours'] . 'h';
+                }
+                if ($v['finishours'] == 0.00) {
+                    $list[$k]['finishours'] = '';
+                } else {
+                    $list[$k]['finishours'] = $v['finishours'] . 'h';
+                }
+                if (empty($v['bl'])) {
+                    $list[$k]['bl'] = 0;
+                } elseif ($v['bl'] > 100) {
+                    $list[$k]['bl'] = 100;
+                }
+                if (empty($v['b2'])) {
+                    $list[$k]['b2'] = 0;
+                } elseif ($v['b2'] > 100) {
+                    $list[$k]['b2'] = 100;
+                }
+
+            }
+        }
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('list', $list);
+        $this->assign('_page', $page->show());
+        $from_route = Cookie('__from_route__') ? Cookie('__from_route__') : '成本预算';
+        $from_url = Cookie('__from_url__') ? Cookie('__from_url__') : U('Budget/project');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route . '-所有的项目', 'url' => $from_url);
+        $root_mbx[] = array('title' => $project['name'], 'url' => U('Budget/budgetIndex?id=' . $project['pid']));
+        $root_mbx[] = array('title' => '预算成本', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url);
+        $budgetlog = $this->budgetlog($id);
+
+        $this->assign('budgetlog', $budgetlog);
+        $this->display();
+    }
+
+    /*预算成本列表*/
+    public function budgetIndex1()
+    {
+        $id = I('get.id');
+        $order = I('get.order');
+        $sort = I('get.sort');
+        if ($order && $sort) {
+            $order_sort = $sort . ' ' . $order;
+        } else {
+            $order_sort = 'pb.updatetime desc';
+        }
+        $project = $this->db
+            ->field('p.*,o.code oname,o.chance,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+            ->alias('p')
+            ->join('ot_offer o on p.oid = o.oid', 'LEFT')
+            ->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+            ->join('ot_customer c on p.cid = c.cid', 'LEFT')
+            ->join('ot_member m on p.sale = m.uid', 'LEFT')
+            ->where('p.pid=' . $id)
+            ->find();
+        $this->assign('p', $project);
+        $page = new \Think\Page(M('projectbudget')->alias('pb')->where(array('pb.pid=' . $id))->count(), 20);
+        $list = M("projectbudget")->alias('pb')
+            ->field(array('pb.pid', 'pb.outid', 'pb.pbid', 'pb.type', 'pb.budget', 'pb.cost', 'FORMAT(pb.cost/pb.budget*10000/100,0) as bl', 'pb.addtime', 'pb.updatetime', 'pb.outitem'))->where('pb.pid=' . $id)->order($order_sort)->limit($page->firstRow . ',' . $page->listRows)->select();
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('list', $list);
+        $this->assign('_page', $page->show());
+        $from_route = Cookie('__from_route__') ? Cookie('__from_route__') : '成本预算';
+        $from_url = Cookie('__from_url__') ? Cookie('__from_url__') : U('Budget/project');
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '费用', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => $from_route . '-我管理的项目', 'url' => $from_url);
+        $root_mbx[] = array('title' => $project['name'], 'url' => U('Budget/budgetIndex1?id=' . $project['pid']));
+        $root_mbx[] = array('title' => '预算成本', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('from_url', $from_url);
+        $budgetlog = $this->budgetlog($id);
+
+        $this->assign('budgetlog', $budgetlog);
+        $this->display();
+    }
+
+    //获取人力成本下的任务
+    public function human_cost()
+    {
+        $id = I('id');
+        $pid = I('pid');
+        $type = I('type');
+        $files = M('ProjectService')->alias('ps')
+            ->field('r.price  as price1 ,ps.title,ps.assignedname,ts.finishuname,r2.price * ifnull(ts.finishours,0) as amount,r.price * ifnull(ps.hours,0) as amount1,ps.description,r2.price,ts.finishours,ps.hours,ts.finishtime')
+            ->join('ot_member m on m.uid=ps.assigneduid', 'left')
+            ->join('ot_auth_group_access a on m.uid=a.uid', 'left')
+            ->join('ot_role_level r on a.rlid=r.rlid', 'left')
+            ->join('ot_task t on t.psid=ps.psid', 'left')
+            ->join('ot_task_sub ts on ts.tid=t.tid', 'left')
+            ->join('ot_member m2 on m2.uid=ts.finishuid', 'left')
+            ->join('ot_auth_group_access a2 on m2.uid=a2.uid', 'left')
+            ->join('ot_role_level r2 on a2.rlid=r2.rlid', 'left')
+            ->where("ps.groupid='{$id}' and ps.pid = '{$pid}' and ps.type ='{$type}' ")
+            ->order('ts.finishtime desc')
+            ->select();
+        $amount = 0;    // 发生金额
+        $chours = 0;    // 预计工时
+        $finishours = 0;    // 完成工时
+        foreach ($files as $key => $vo) {
+            $files[$key]['description'] = preg_replace("/(\s|\&nbsp\;|　|\xc2\xa0)/", "", strip_tags(htmlspecialchars_decode($vo['description'])));
+            $amount += (float)$vo['amount'];
+            $chours += $vo['hours'];
+            $finishours += $vo['finishours'];
+        }
+        $amount1 = M("projectbudget")->where('pid=' . $pid . ' and outid = ' . $id . " and type1 = '{$type}'")->getfield('cbudget');
+        $this->assign('amount', $amount);
+        $this->assign('chours', $chours);
+        $this->assign('finishours', $finishours);
+        $this->assign('amount1', $amount1);
+        $this->assign('files', $files);
+        $this->display();
+    }
+
+    //获取现金成本的详情
+    public function bx_cost()
+    {
+        $id = I('id');
+        $pid = I('pid');
+        $files = M('ExpenseSub')->alias('es')->field("e.code,e.uname,es.money,es.invoicenum,e.checkedtime,e.description,es.feetype")
+            ->join('ot_expense e on e.eid=es.eid')
+            ->where("es.feetype='{$id}' and e.pid = '{$pid}'")->select();
+        $amountTotal = 0;
+        foreach ($files as $key => $vo) {
+            $files[$key]['description'] = preg_replace("/(\s|\&nbsp\;|　|\xc2\xa0)/", "", strip_tags(htmlspecialchars_decode($vo['description'])));
+            $amountTotal += (float)$vo['money'];
+        }
+        $this->assign('amountTotal', $amountTotal);
+        $this->assign('files', $files);
+        $this->display();
+    }
+
+    // 获取人力成本下项目质量的详情 : LGW
+    public function bug_cost()
+    {
+        $pid = I('get.pid');
+        $map['b.pid'] = $pid;
+        $files = M('Bug_hours')
+            ->alias('h')
+            ->field('h.*,t.title as task,b.title,b.finishuname,l.price,b.finishtime,b.hours as predicthours,l.price,h.hours')
+            ->join('ot_bug b on b.bugid = h.bugid', 'INNER')
+            ->join('ot_task t on t.tid = b.tid', 'LEFT')
+            ->join('ot_auth_group_access a on a.uid = b.finishuid', 'LEFT')
+            ->join('ot_role_level l on l.rlid = a.rlid', 'LEFT')
+            ->where($map)
+            ->select();
+        $amountTotal = 0;
+        $hours = 0;
+        $finishhours = 0;
+
+        foreach ($files as $k => $val) {
+            $val['amount'] = round($val['price'] * $val['hours'], 2);
+            $amountTotal += $val['amount'];
+            $hours += $val['predicthours'];
+            $finishhours += $val['hours'];
+
+            $files[$k] = $val;
+        }
+
+
+        $this->assign('amountTotal', $amountTotal);
+        $this->assign('hours', $hours);
+        $this->assign('finishhours', $finishhours);
+        $this->assign('files', $files);
+        $this->display();
+    }
+
+}

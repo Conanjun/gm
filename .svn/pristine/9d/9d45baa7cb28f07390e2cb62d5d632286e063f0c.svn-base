@@ -1,0 +1,552 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<script src='__JSNEW__/jquery.validate.js' type='text/javascript'></script>
+	<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<script>
+		$(function(){
+			/*$('form').validate({
+				errorPlacement: function (error, element) {
+					$(element).next('.field_notice').hide();
+					$(element).parent().next().append(error);
+				},
+				onkeyup: false,
+				rules: {
+                    finishours: {
+                        required: true
+                    }
+				},
+				messages: {
+                    finishours: {
+                        required : '实际工时不能为空'
+                    }
+				}
+			});*/
+
+            var noResultsMatch       = '没有匹配结果';
+            var defaultChosenOptions = {no_results_text: noResultsMatch, width:'310px', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+            $("#mailto, .chosen, #productID").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function()
+            {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+		});
+	</script>
+    <style>
+         #cke_content{
+            width:890px !important;
+        }
+    </style>
+	<div >
+		<form action="{:U('finish?id='.$id)}" method="post" class="form-condensed mw-980px" enctype="multipart/form-data" >
+			<table align="center" class=" table-form iframeContentop ntable">
+				<tbody>
+				<tr>
+					<th style="width: 100px">标准工时</th>
+					<td class="w-p50"  ><div class="input-group"style="width:290px;" >
+						<input type="number" name="hours" id="hours" class="form-control" autocomplete="off" min="1" style="width:265px;border-left:1px solid #ccc" value="{$task.hours}" disabled="disabled">
+						<span class="input-group-addon ">h</span>
+					</div>
+					</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th style="width: 100px">实际工时 <span class="required"></span></th>
+					<td class="w-p50"  ><div class="input-group"style="width:290px;" >
+						<input type="number" name="finishours" id="finishours" class="form-control" autocomplete="off" min="1" style="width:265px;border-left:1px solid #ccc" value="{$task.hours}">
+						<span class="input-group-addon ">h</span>
+					</div>
+					</td>
+					<td></td>
+				</tr>
+				<gt name="task.checkuid" value="0">
+				<tr>
+					<th style="width: 100px">审核人</th>
+					<td class="w-p50" style="width:310px;">
+					 {$task.checkuname|default='-'}
+					</td>
+					<td></td>
+				</tr>
+				</gt>
+                <tr>
+                    <th style="width: 100px">转阅给</th>
+                    <td colspan="2" >
+                        <div style="width:890px">
+                            <select name="mailto[]" id="mailto" multiple="" class="form-control" data-placeholder="请选择..." style="display: none;">
+                                <volist name="ses" id="c">
+                                    <option value="{$c.uid}">{$c.nickname}</option>
+                                </volist>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+				<tr>
+					<th style="width: 100px" class="thtop">备注</th>
+					<td class="w-p50" colspan="2">
+						<textarea id="content" name="note" style="width: 860px;height: 200px" class="ckeditor"></textarea>
+					</td>
+				</tr>
+				<tr id='fileBox'>
+					<th style="width: 100px">附件</th>
+					<td colspan='2'><style>
+						       .fileBox ,.fileBox1 {
+                                margin-bottom: 10px;
+                                width: 100%
+                            }
+
+                            table.fileBox td,table.fileBox1 td  {
+                                padding: 0 !important
+                            }
+
+                            .fileBox .input-control > input[type='file'],.fileBox1 .input-control > input[type='file'] {
+                                width: 100%;
+                                height: 100%;
+                                height: 26px;
+                                line-height: 26px;
+                                border: none;
+                                position: relative;
+                            }
+
+                            .fileBox td .btn,.fileBox1 td .btn {
+                                border-radius: 0;
+                                border-left: none
+                            }
+
+                            .file-wrapper.form-control {
+                                border-left: 0px
+                            }
+
+                            input.form-control {
+                                border-left: 0px
+                            }
+
+                            .file-wrapper.form-control .fileControl {
+                                width: 100%;
+                            }
+
+                            @-moz-document url-prefix() {
+                                .file-wrapper.form-control .fileControl {
+                                    margin-top: -3px;
+                                }
+                            }
+                            .btn-op{border-left: 0}
+					</style>
+
+                        <div id='fileform' class="pr" style="width: 688px;">
+                            <a href="javascript:;" style="right: -200px;width: 40px" class="btn-addrow" onclick="addFile($('#add1'))"><i class="icon icon-plus"></i></a>
+							<script language='Javascript'>dangerFiles = "php,php3,php4,phtml,php5,jsp,py,rb,asp,aspx,ashx,asa,cer,cdx,aspl,shtm,shtml,html,htm";</script>
+					<!--	<notempty name="sdoc">
+                            <foreach name="sdoc" item="vo1" >
+								<table class='fileBox' id='fileBox{$k}' >
+								<tr>
+									<td style='width: 116px'>
+										<select name='dtid[]'  class='form-control searchSelect'>
+											<option value=''>请选择文档类型</option>
+											<volist name='doc_type' id='vo'>
+												<option <in name="vo.dtid" value="$vo1.dtid">selected="selected"</in> value='{$vo.dtid}'>{$vo.name}</option>
+											</volist>
+										</select>
+									</td>
+									<td style='width: 168px'>
+										<div class='form-control file-wrapper'>
+											<input type='file' name='files[]' class='fileControl'  tabindex='-1' onchange='checkSizeAndType(this)'/>
+										</div>
+									</td>
+                                    <td class='' width="100px"><input type='text' name='urls[]' class='form-control' placeholder='网络资料地址' tabindex='-1'/></td>
+									<td class=''><input type='text' name='labels[]' class='form-control' placeholder='标题：' tabindex='-1' /></td>
+									<td class='content'><input type='text' name='contents[]' class='form-control' placeholder='内容：' tabindex='-1' /></td>
+									<td class='w-30px'><a href='javascript:void(0);' onclick='addFile(this)' class='btn btn-block'><i class='icon-plus'></i></a></td>
+								</tr>
+							</table>
+							</foreach>
+                             </notempty>-->
+                            <notempty name="sdoc">
+                             <foreach name="sdoc" item="vo1" >
+							   <table class='fileBox' style="width:840px">
+                                        <tr>
+                                             <td style="width: 140px">
+                                               <select name="dtids[]" class="form-control searchSelect">
+                                                   <option value=''>请选择文档类型</option>
+                                                <foreach name="doc_type" item="vo">
+                                                    <option value="{$vo.dtid}" <in name="vo.dtid" value="$vo1.dtid">selected="selected"</in>>{$vo.name}</option>
+                                                </foreach>
+                                            </select>
+                                        </td>
+                                            <td style="width:220px">
+                                            <div class='form-control file-wrapper'>
+                                                <input type='file' name='files[]' class='fileControl'  onchange='checkSizeAndType(this)' tabindex='-1'/>
+                                            </div>
+                                        </td>
+
+                                        <td class=''><input type='text' name='labels[]' class='form-control'
+                                                            placeholder='标题' tabindex='-1'/></td>
+                                        <td class='w-30px'id="add1" style="display: none"></td>
+                                        <td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)'
+                                                              class='btn-op btn-block'><i class='icon-remove'></i></a></td>
+                                        </tr>
+                                    </table>
+                                 </foreach>
+                                <else/>
+                                   <table class='fileBox' style="width:840px">
+                                        <tr>
+                                             <td style="width: 140px">
+                                               <select name="dtids[]" class="form-control searchSelect">
+                                                   <option value=''>请选择文档类型</option>
+                                                <foreach name="doc_type" item="vo">
+                                                    <option value="{$vo.dtid}" >{$vo.name}</option>
+                                                </foreach>
+                                            </select>
+                                        </td>
+                                            <td style="width:220px">
+                                            <div class='form-control file-wrapper'>
+                                                <input type='file' name='files[]' class='fileControl'  onchange='checkSizeAndType(this)' tabindex='-1'/>
+                                            </div>
+                                        </td>
+
+                                        <td class=''><input type='text' name='labels[]' class='form-control'
+                                                            placeholder='标题' tabindex='-1'/></td>
+                                        <td class='w-30px' style="display: none" id="add1"></td>
+                                        <td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)'
+                                                              class='btn-op btn-block'><i class='icon-remove'></i></a></td>
+                                        </tr>
+                                    </table>
+
+                            </notempty>
+                        </div>
+                        <div id='fileform' class="pr"  style="width: 688px;">
+                            <a href="javascript:;" style="right: -200px;width: 40px"class="btn-addrow"onclick="addFile1($('#add2'))"><i class="icon icon-plus"></i></a>
+                            <notempty name="sdoc">
+                                <foreach name="sdoc" item="vo1" >
+                             <table class='fileBox1' style="width:840px">
+                                        <tr>
+                                             <td style="width: 140px">
+                                               <select name="dtid[]" class="form-control searchSelect">
+                                                   <option value=''>请选择文档类型</option>
+                                                <foreach name="doc_type" item="vo">
+                                                    <option value="{$vo.dtid}" <in name="vo.dtid" value="$vo1.dtid">selected="selected"</in>>{$vo.name}</option>
+                                                </foreach>
+                                            </select>
+                                        </td>
+                                        <td  style="width:220px"><input type='text' name='url[]' class='form-control'
+                                                            placeholder='网络资料地址' tabindex='-1' readonly="readonly"
+                                                            style="cursor: pointer;"  data-width="600" data-toggle="modal" id="mtk" href="{:U('Task/editurl')}" title="修改链接地址" onclick="s(this)"/></td>
+                                        <td class=''><input type='text' name='label[]' class='form-control'
+                                                            placeholder='标题' tabindex='-1'/></td>
+                                        <td class='w-30px' style="display: none" id="add2"></td>
+                                        <td class='w-30px'><a href='javascript:void(0);' onclick='delFile1(this)'
+                                                              class='btn-op btn-block'><i class='icon-remove'></i></a></td>
+                                        </tr>
+                                    </table>
+                                </foreach>
+                                <else/>
+                                 <table class='fileBox1' style="width:840px">
+                                        <tr>
+                                             <td style="width: 140px">
+                                               <select name="dtid[]" class="form-control searchSelect">
+                                                   <option value=''>请选择文档类型</option>
+                                                <foreach name="doc_type" item="vo">
+                                                    <option value="{$vo.dtid}" <in name="vo.dtid" value="$vo1.dtid">selected="selected"</in>>{$vo.name}</option>
+                                                </foreach>
+                                            </select>
+                                        </td>
+                                        <td  style="width:220px"><input type='text' name='url[]' class='form-control '
+                                                            placeholder='网络资料地址' tabindex='-1' readonly="readonly"
+                                                            style="cursor: pointer;"  data-width="600" data-toggle="modal" id="mtk" href="{:U('Task/editurl')}" title="修改链接地址" onclick="s(this)"/></td>
+                                        <td class=''><input type='text' name='label[]' class='form-control'
+                                                            placeholder='标题' tabindex='-1'/></td>
+                                        <td class='w-30px' style="display: none" id="add2"></td>
+                                        <td class='w-30px'><a href='javascript:void(0);' onclick='delFile1(this)'
+                                                              class=' btn-block btn-op'><i class='icon-remove'></i></a></td>
+                                        </tr>
+                                    </table>
+                                </notempty>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+                    <td class="form-condensed" style="    padding-right: 28px;" colspan="2">
+                        <div  style="float: right;margin-right: 74px;">
+                            <button type="button" class="btn btn-default" onclick="choose1()"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</button>
+                            <a href="javascript:;" id="submit" class="btn btn-primary" onclick="choose()" ><i class="icon-project-start icon-ok-sign icon-ok"></i> 完成</a>
+                        </div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+        <div id="loadertip" style="display:none">
+        <div class="modal fade modal-loading in" style="display: block;"><div class="icon-spinner icon-spin loader"></div>
+        </div>
+        <div class="modal-backdrop fade in"></div>
+    </div>
+</div>
+</block>
+
+<block name="script">
+
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+	<script type="text/javascript">
+        var se;
+        function closew() {
+            $.closeModal();
+        }
+
+        function getv() {
+            return se;
+        }
+
+        function setv(u, t) {
+            if (se != undefined) {
+                $(se).val(u);
+                $(se).attr("title", u);
+                $(se).parent().next().find("input").val(t);
+            }
+                $.closeModal();
+        }
+
+        function s(e) {
+            se = e;
+        }
+
+
+
+        function choose() {
+            //判断要求文档是否填加
+
+            var st = true;
+            $("[name='url[]']").each(function (k, v) {
+                var u = $(this).val();
+                var t = $(this).parent().next().find("input").val();
+                var dt = $(this).parent().prev().find("select[name='dtid[]']  option:selected").val();
+                if ((dt == "" || dt == undefined || dt == null) && u) {
+                    $(this).parent().prev().find("select[name='dtid[]']").addClass('error');
+                    st = false;
+                }
+                if ((u && t == '') || (u && t == undefined)) {
+                    $(this).parent().next().find("input").addClass("error");
+                    st = false;
+                }
+            });
+            //本地文件验证
+            var sf = true,num=0;
+            $("[name='files[]']").each(function (kk, vv) {
+                var length = $(this)[0].files.length;
+                num+=length;
+                if (length) {
+                    var dts = $(this).parent().parent().prev().find("[name='dtids[]']  option:selected").val();
+                    if (dts == '' || dts == undefined || dts == null) {
+                        $(this).parent().parent().prev().find("[name='dtids[]']").addClass('error');
+                        ;
+                        sf = false;
+                    }
+                }
+            })
+            if (st && sf) {
+                if(num>0){
+                    $("#loadertip").show();
+                }
+                $('form').submit();
+
+            }
+		};
+        $("[name='dtids[]']").live("change",function(){
+        var dt=$(this).val();
+        if(dt!=''||dt !=undefined || dt!=null){
+            $(this).removeClass('error');
+        }
+    });
+     $("[name='dtid[]']").live("change",function(){
+        var dt=$(this).val();
+        if(dt!=''||dt !=undefined || dt!=null){
+            $(this).removeClass('error');
+        }
+    });
+		function choose1(){
+			window.parent.choose();
+		}
+	//搜索功能
+	$("#search").click(function(){
+		var url = $(this).attr('url');
+        var query  = $('.search-form').find('input').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g,'');
+        query = query.replace(/^&/g,'');
+        if( url.indexOf('?')>0 ){
+            url += '&' + query;
+        }else{
+            url += '?' + query;
+        }
+		window.location.href = url;
+	});
+	//回车搜索
+	$(".search-input").keyup(function(e){
+		if(e.keyCode === 13){
+			$("#search").click();
+			return false;
+		}
+	});
+	</script>
+	<script language='javascript'>
+		$(function()
+		{
+			var maxUploadInfo = maxFilesize();
+			parentTag = $('#fileform').parent();
+			if(parentTag.get(0).tagName == 'TD')
+			{
+				parentTag.parent().find('th').append(maxUploadInfo);
+			}
+			if(parentTag.get(0).tagName == 'FIELDSET')
+			{
+				parentTag.find('legend').append(maxUploadInfo);
+			}
+		});
+
+		/**
+		 * Check file size and type.
+		 *
+		 * @param  obj $obj
+		 * @access public
+		 * @return void
+		 */
+		function checkSizeAndType(obj)
+		{
+			if(typeof($(obj)[0].files) != 'undefined')
+			{
+				var maxUploadInfo = '500M';
+				var sizeType = {'K': 1024, 'M': 1024 * 1024, 'G': 1024 * 1024 * 1024};
+				var unit = maxUploadInfo.replace(/\d+/, '');
+				var maxUploadSize = maxUploadInfo.replace(unit,'') * sizeType[unit];
+				var fileSize = 0;
+				$(obj).closest('#fileform').find(':file').each(function()
+				{
+					/* Check file type. */
+					fileName = $(this)[0].files[0].name;
+					dotPos   = fileName.lastIndexOf('.');
+					fileType = fileName.substring(dotPos + 1);
+					if((',' + dangerFiles + ',').indexOf((',' + fileType + ',')) != -1) alert(' 您选择的文件存在安全风险，系统将不予上传。');
+
+					if($(this).val()) fileSize += $(this)[0].files[0].size;
+				})
+				if(fileSize > maxUploadSize) alert(' 文件大小已经超过限制，可能不能成功上传！');//Check file size.
+			}
+		}
+
+		/**
+		 * Show the upload max filesize of config.
+		 */
+		function maxFilesize(){return "(<span class='red'>500M</span>)";}
+
+		/**
+		 * Set the width of the file form.
+		 *
+		 * @param  float  $percent
+		 * @access public
+		 * @return void
+		 */
+		function setFileFormWidth(percent)
+		{
+			totalWidth = Math.round($('#fileform').parent().width() * percent);
+			titleWidth = totalWidth - $('.fileControl').width() - $('.fileLabel').width() - $('.icon').width();
+			if($.browser.mozilla) titleWidth  -= 8;
+			if(!$.browser.mozilla) titleWidth -= 12;
+			$('#fileform .text-3').css('width', titleWidth + 'px');
+		};
+
+		/**
+		 * Add a file input control.
+		 *
+		 * @param  object $clickedButton
+		 * @access public
+		 * @return void
+		 */
+  function addFile(clickedButton) {
+            fileRow = "  <table class='fileBox' id='fileBox{$i}' style='width:840px'>\n    <tr>\n  " +
+                " <td style='width: 140px'>" +
+                " <select name='dtids[]' class='form-control searchSelect chosen'>" +
+                " <option value=''>请选择文档类型</option> <foreach name='doc_type' item='vo'>" +
+                " <option value='{$vo.dtid}'>{$vo.name}</option> </foreach>  </select>" +
+                "</select> </td>  <td style='width:220px'><div class='form-control file-wrapper'>" +
+                "<input type='file' name='files[]' class='fileControl'  tabindex='-1' onchange='checkSizeAndType(this)'\/><\/div><\/td>\n     " +
+                " <td class=''><input type='text' name='labels[]' class='form-control' placeholder='标题' tabindex='-1' \/><\/td>\n  " +
+                "  <td class='w-30px'style='display: none' id='add1'><\/td>\n  " +
+                "    <td class='w-30px'><a href='javascript:void(0);' onclick='delFile(this)' class='btn-op btn-block'><i class='icon-remove'><\/i><\/a><\/td>\n  " +
+                "  <\/tr>\n  <\/table>";
+            fileRow = fileRow.replace('$i', $('.fileID').size() + 1);
+
+            /* Get files and labels name.*/
+            filesName = $(clickedButton).closest('tr').find('input[type="file"]').attr('name');
+            /*    labelsName = $(clickedButton).closest('tr').find('input[type="text"]').attr('name');*/
+
+            /* Add file input control and set files and labels name in it.*/
+            $fileBox = $(clickedButton).closest('.fileBox').after(fileRow).next('.fileBox');
+            $fileBox.find('input[type="file"]').attr('name', filesName);
+            /*   $fileBox.find('input[type="text"]').attr('name', labelsName);*/
+
+            setFileFormWidth(0.9);
+            updateID();
+        }
+
+		/**
+		 * Delete a file input control.
+		 *
+		 * @param  object $clickedButton
+		 * @access public
+		 * @return void
+		 */
+		function delFile(clickedButton)
+		{
+			if($('.fileBox').size() == 1) return;
+			$(clickedButton).closest('.fileBox').remove();
+			updateID();
+		}
+        function delFile1(clickedButton)
+		{
+			if($('.fileBox1').size() == 1) return;
+			$(clickedButton).closest('.fileBox1').remove();
+			updateID();
+		}
+ function addFile1(clickedButton) {
+             url= "{:U('Task/editurl')}";
+            fileRow = "  <table class='fileBox1' id='fileBox{$i}' style='width:840px'>\n    <tr>\n  " +
+                " <td style='width: 140px'>" +
+                " <select name='dtid[]' class='form-control searchSelect chosen'>" +
+                " <option value=''>请选择文档类型</option> <foreach name='doc_type' item='vo'>" +
+                " <option value='{$vo.dtid}'>{$vo.name}</option> </foreach>  </select>" +
+                "</select> </td> " + ' <td  style="width:220px"><input type="text" name="url[]" class="form-control" placeholder="网络资料地址" tabindex="-1" readonly="readonly" style="cursor: pointer;" data-width="600" data-toggle="modal" href="{:U(\'Task/editurl\')}" title="修改链接地址" onclick="s(this)"/></td>' +
+                " <td class=''><input type='text' name='label[]' class='form-control' placeholder='标题' tabindex='-1' \/><\/td>\n  " +
+                "  <td class='w-30px'style='display: none' id='add2'><\/td>\n  " +
+                "    <td class='w-30px'><a href='javascript:void(0);' onclick='delFile1(this)' class='btn-op btn-block'><i class='icon-remove'><\/i><\/a><\/td>\n  " +
+                "  <\/tr>\n  <\/table>";
+            fileRow = fileRow.replace('$i', $('.fileBox1').size() + 1);
+            /* Get files and labels name.*/
+//            filesName = $(clickedButton).closest('tr').find('input[name="urls[]"]').attr('name');
+            /*    labelsName = $(clickedButton).closest('tr').find('input[type="text"]').attr('name');*/
+
+            /* Add file input control and set files and labels name in it.*/
+            $fileBox = $(clickedButton).closest('.fileBox1').after(fileRow).next('.fileBox1');
+//            $fileBox.find('input[name="urls[]"]').attr('name', filesName);
+            /*   $fileBox.find('input[type="text"]').attr('name', labelsName);*/
+
+            setFileFormWidth(0.9);
+            updateID();
+            setModal();
+
+        }
+		/**
+		 * Update the file id labels.
+		 *
+		 * @access public
+		 * @return void
+		 */
+		function updateID()
+		{
+			i = 1;
+			$('.fileID').each(function(){$(this).html(i ++)});
+		}
+
+		$(function(){setFileFormWidth(0.9)});
+	</script>
+</block>

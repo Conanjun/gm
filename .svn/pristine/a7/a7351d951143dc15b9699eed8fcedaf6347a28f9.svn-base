@@ -1,0 +1,875 @@
+<?php
+
+namespace Admin\Controller;
+
+use Admin\Common\Super\Bug;
+use Admin\Common\Super\Project;
+use Admin\Common\Super\Api;
+
+
+/*
+ * 指派给我的Bug : LGW
+ * */
+
+class ProjectAssignedController extends AdminController
+{
+    //定义数据表
+    private $db;
+    private $bugModel;
+    private $meta_title;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->db = D('Project_bug');
+        $this->bugModel = D('Bug');
+    }
+
+    /**
+     * 根据状态判断显示数据
+     *
+     * @param $state
+     */
+    public function listing($state)
+    {
+        $actionURL = strstr(__ACTION__, '/Admin');
+        $config = array(
+            "actionURL" => $actionURL,
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '任务名称', 'fieldname' => 't.title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 2 => array('str' => '主题', 'fieldname' => 'b.title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '状态', 'fieldname' => 'b.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 4 => array('str' => '添加人', 'fieldname' => 'b.uname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '添加时间', 'fieldname' => 'b.addtime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 6 => array('str' => '被指派人', 'fieldname' => 'b.assignedname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 7 => array('str' => '开始时间', 'fieldname' => 'b.pstime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 8 => array('str' => '完成时间', 'fieldname' => 'b.petime', 'operator' => '=', 'control' => 'input', 'values' => "", "class" => "date")
+            , 9 => array('str' => '分派人', 'fieldname' => 'b.manageruname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '跟踪', 'fieldname' => 'b.type', 'operator' => '=', 'control' => 'select', 'values' => array())
+            )
+        );
+        if ($config && $config['params']) {
+            $dictionary = M('dictionary'); // 字典
+            // 状态
+            $problemTypes = $dictionary->where("d_code = 'bug_type'")->field(true)->select();
+            // 跟踪
+            $traces = $dictionary->where("d_code = 'trace_type'")->field(true)->select();
+            $mstates = array("" => "");
+            $tstates = array("" => "");
+            if ($problemTypes) {
+                foreach ($problemTypes as $v) {
+                    $mstates[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($traces) {
+                foreach ($traces as $v) {
+                    $tstates[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][3]['values'] = $mstates;
+            $config['params'][10]['values'] = $tstates;
+
+        }
+        $this->setSearchConfig($config);
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'b.addtime';
+                $order = 'desc';
+            }
+        } else {
+            $sort = 'b.addtime desc,';
+            $order = 'b.addtime desc';
+        }
+        //查询条件
+        $where = $this->getCondition();
+
+        $where['_string'] .= "and b.assigneduid = '" . UID . "' ";  // 新建
+        if ($state) {
+            if ($state == -1) {
+                $where['_string'] .= "and (b.state=0 or b.state=1 or b.state=2 or b.state=3) ";
+            } else {
+                $where['_string'] .= "and b.state='" . $state . "'";
+            }
+        }
+
+        $count = M('Bug')
+            ->alias('b')
+            ->where($where)->count();
+        $page = new \Think\Page($count, 20);
+        $Bugs = M('Bug')
+            ->field('b.*,t.title as task,p.name')
+            ->alias('b')
+            ->join('ot_project p on p.pid=b.pid', 'INNER')
+            ->join('ot_task t on t.tid=b.tid', 'LEFT')
+            ->where($where)
+            ->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($Bugs as $k => $v) {
+            $v['state'] = Bug::$projectState[$v['state']];
+            $Bugs[$k] = $v;
+        }
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('_list', $Bugs);
+        $this->assign('actname', ACTION_NAME);
+
+        $this->meta_title = '我创建的Bug';
+    }
+
+    // 问题列表
+    public function index()
+    {
+        $state = Bug::UNSOLVED;
+        $this->listing($state);  // 搜索功能 + 根据状态判断列表
+        $this->rootMbx('未解决');
+        $this->display();
+    }
+
+    //  已解决
+    public function resolved()
+    {
+        $state = Bug::RESOLVED;
+        $this->listing($state);     // 搜索功能 + 根据状态判断列表
+        $this->rootMbx('已解决');
+        $this->display('index');
+    }
+
+    //  已关闭
+    public function closed()
+    {
+        $state = Bug::CLOSE;   // 状态
+        $this->listing($state);     // 搜索功能 + 根据状态判断列表
+        $this->rootMbx('已关闭');
+        $this->display('index');
+    }
+
+    //  所有
+    public function allIndex()
+    {
+        $state = Bug::THEREFORE;
+        $this->listing($state);     // 搜索功能 + 根据状态判断列表
+        $this->rootMbx('所有');
+        $this->display('index');
+    }
+
+    /**
+     * 标签
+     *
+     * @param $title
+     */
+    public function rootMbx($title)
+    {
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '指派给我的Bug-' . $title, 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        Cookie('__from_route__', '所有项目');
+        Cookie('__from_url__', U('ProjectAll/index'));
+    }
+
+
+    /**
+     *  问题详情
+     */
+    public function view()
+    {
+        $map = [];
+        $bugId = I('get.id');
+        $map['b.bugid'] = $bugId;
+        $map['d.d_code'] = 'bug_type';
+        $map['d1.d_code'] = 'priority_type';
+        $list = M('bug')->alias('b')
+            ->field('b.*,t.title as task,p.name,d.d_key,d1.d_key as level')
+            ->alias('b')
+            ->join('ot_project p on p.pid = b.pid', 'INNER')
+            ->join('ot_task t on t.tid = b.tid', 'LEFT')
+            ->join('ot_dictionary d on b.state = d.d_value', 'LEFT')
+            ->join('ot_dictionary d1 on b.level = d1.d_value', 'LEFT')
+            ->where($map)
+            ->find();
+        $where['bugid'] = $bugId;
+        $doc = M('File')->alias('f')
+            ->field('f.*,f.name as dname,f.ext as tname')
+            ->join('ot_bug_file bf on bf.fileid = f.fileid', 'LEFT')
+            ->where($where)
+            ->select();
+
+        $this->assign('doc', $doc);
+        // 操作记录
+        $logs = M("Log")->where(array("outtype" => "ot_bug", "outkey" => $bugId))->order("addtime asc")->select();
+        if ($logs) {
+            foreach ($logs as $k => $v) {
+                $hs = M("History")->where("logid='{$v['logid']}'")->select();
+                if ($hs) {
+                    $mod = M("Dictionary");
+                    foreach ($hs as $kk => $vv) {
+                        $hs[$kk]['fname'] = tf_name("ot_bug", $vv['field']);
+                        switch ($vv['field']) {
+                            case "cid":
+                                $oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+                                if ($oldtemp) {
+                                    $olddata = $oldtemp['name'];
+                                }
+                                if ($olddata) {
+                                    $hs[$kk]['olddata'] = $olddata;
+                                }
+
+                                $newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+                                if ($newtemp) {
+                                    $newdata = $newtemp['name'];
+                                }
+                                if ($newdata) {
+                                    $hs[$kk]['newdata'] = $newdata;
+                                }
+
+                                break;
+                            case "pstime":
+                            case "petime":
+                            case "livetime":
+                            case "addtime":
+                            case "assignedtime":
+                            case "finishtime":
+                                $hs[$kk]['olddata'] and $hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+                                $hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+                                break;
+                            case "state":
+
+                                $orow = $mod->field("d_key")->where("d_code='bug_type' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='bug_type' and d_value='{$vv['newdata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                            case "level";
+                                $orow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$vv['olddata']}'")->find();
+                                if ($orow) {
+                                    $hs[$kk]['olddata'] = $orow["d_key"];
+                                }
+                                $nrow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$vv['newdata']}'")->find();
+                                if ($nrow) {
+                                    $hs[$kk]['newdata'] = $nrow["d_key"];
+                                }
+                                break;
+                        }
+                    }
+
+                    $logs[$k]['hs'] = $hs;
+                }
+            }
+        }
+
+        $pid = $list['pid'];
+        $partin = $list['partin'];
+
+        //跟踪者
+        $tplist = M("takepart")
+            ->alias('t')
+            ->where("pid=$pid and uid in ($partin)")
+            ->join('ot_project_role pr on t.roleid=pr.prid', 'left')
+            ->join('ot_ucenter_member m on m.id=t.uid', 'left')
+            ->field(array('t.uname', 't.addtime', 't.adduname', 'pr.name as  title', 'm.mobile'))
+            ->order('addtime desc')
+            ->select();
+        $this->assign('tplist', $tplist);
+
+        $this->assign('logs', $logs);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+        $root_mbx[] = array('title' => '指派给我的Bug', 'url' => U('ProjectAssigned/index'));
+        $root_mbx[] = array('title' => $list['title'], 'url' => U('ProjectAssigned/view?id=' . $list['bugid']));
+        $root_mbx[] = array('title' => '查看Bug', 'url' => '');
+
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('list', $list);
+        $this->display();
+
+    }
+
+    /**
+     *  问题详情
+     */
+    public function edit()
+    {
+        if (IS_POST) {
+            //获取表单数据
+            $data = $_POST;
+            $bugId = $data['bugid'];
+            $this->validation();  // 验证数据是否为空
+
+            $tag = $data['tag'];
+            if (is_array($tag) && !empty($tag)) {
+                $tag = implode(',', $tag);
+            } else {
+                $tag = '';
+            }
+            $partin = $data['partin'];
+            if (is_array($partin) && !empty($partin)) {
+                $partin = implode(',', $partin);
+            } else {
+                $partin = '';
+            }
+            $state = $data['state'];
+            $finishhours = $data['finishhours'];
+            $this->project_out($data['pid']);//判断项目是否可以操作
+            $data1 = [
+                'pid' => $data['pid'],
+                'tid' => $data['tid'],
+                'title' => $data['title'],
+                'state' => $state,
+                'description' => $data['description'],
+                //'uid' => UID,
+                //'uname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'assigneduid' => $data['assigneduid'],
+                'assignedname' => get_nickname($data['assigneduid']) ? get_nickname($data['assigneduid']) : get_username($data['assigneduid']),
+                'pstime' => strtotime($data['pstime']),
+                'petime' => strtotime($data['petime']),
+                'hours' => $data['hours'],
+                'level' => $data['level'],
+                'manageruid' => UID,
+                'manageruname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'progress' => $data['progress'],
+                'version' => $data['version'],
+                'partin' => $partin,
+                'type' => $data['type'],
+                'env' => $data['env'],
+                'tag' => $tag,
+            ];
+            // 关闭
+            if ($state == Bug::CLOSE) {
+                $data1['closeuid'] = UID;
+                $data1['closeuname'] = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                $data1['closetime'] = time();
+            }
+            $comment = '';
+            $tmp2 = true;
+            $map['bugid'] = $bugId;
+            $dataOrigin = M('Bug')->where($map)->find();
+            // 如果从已解决变为其他则完成度为0
+            if ($dataOrigin['state'] == Bug::RESOLVED && $state != Bug::RESOLVED) {
+                $data1['progress'] = 0;
+            }
+            // 如果从其他变为已解决则完成度为100
+            if ($dataOrigin['state'] != Bug::RESOLVED && $state == Bug::RESOLVED) {
+                $data1['progress'] = 100;
+            }
+            // 如果添加了完成工时并且当前状态是已解决，原状态是进行中则更新预算
+            if ($finishhours > 0.0 && $state == Bug::RESOLVED && $dataOrigin['state'] == Bug::ONGOING) {
+                $data1['finishhours'] = $finishhours;
+                $data1['finishuid'] = UID;
+                $data1['finishuname'] = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+                $data1['finishtime'] = time();
+                $comment = "完成工时:" . $finishhours . "h";
+                // 更新预算
+                // 写入
+                $pid = $dataOrigin['pid'];
+                $data2 = [
+                    'finishuid' => UID,
+                    'finishhours' => $finishhours,
+                ];
+                $this->bugHours($dataOrigin['bugid'], $data2, $pid);
+            }
+            $Model = M(); // 实例化一个空对象
+            $Model->startTrans(); // 开启事务
+            $tmp1 = true;
+            $result = M('Bug')->where($map)->save($data1);
+            $history = [];
+            foreach ($data1 as $k => $vo) {
+                if ($vo != $dataOrigin[$k]) {
+                    $history[] = array(
+                        'field' => $k,
+                        'olddata' => $dataOrigin[$k],
+                        'newdata' => $vo
+                    );
+                }
+            }
+            $accessories = array_filter($_FILES['files']['tmp_name']);
+            if (!empty($accessories)) {
+                $file_ids = $this->file_uplode();
+                if (!empty($file_ids)) {
+                    $sql = 'insert into ot_bug_file (bugid,fileid) values ';
+                    foreach ($file_ids as $key => $vo) {
+
+                        $sql .= "($bugId,$vo),";
+                    }
+                    $sql = substr($sql, 0, -1);
+                    $tmp1 = $Model->execute($sql);
+                }
+            }
+
+            if (!empty($tmp1) && $tmp2) {
+                if ($state == Bug::RESOLVED) {
+                    $action = 'finish';
+                    $type1 = 'finish_bug';
+                } else {
+                    $action = 'edit';
+                    $type1 = 'edit_bug';
+                }
+                action_log_new(array('history' => $history, 'outtype' => 'ot_bug', 'pid' => $data['pid'], 'outkey' => $data['bugid'], 'action' => $action, 'comment' => $comment));
+                $logs = $this->getLogs($data['bugid'], $action);       // 操作记录 编辑
+                $p = M('project')->alias('p')
+                    ->field('p.name')
+                    ->where("p.pid='{$data['pid']}'")
+                    ->find();
+                // 发给创建人/被指派人/跟踪者 时间点：创建bug  LGW
+                $dynamic = [
+                    'a' => $p['name'],                                  // 项目名称
+                    'b' => $data['title'],                              // bug名称
+                ];
+                $url = 'ProjectAssigned/view/id/'.$bugId;
+                // 跟踪者
+                $partins = $data['partin'];
+                if (!empty($partins)) {
+                    foreach ($partins as $k => $v) {
+                        $dynamic['email'] = get_email($v);
+                        $cost3 = sendTemplate($dynamic, $type1,$url);
+                        $cost3['data'] .= $logs;
+                        apiRead(Api::S_SEND, Api::DXY_S, $cost3); // 发给跟踪者
+                    }
+                }
+                // 创建人
+                $dynamic['email'] = get_email(UID);
+                $cost1 = sendTemplate($dynamic, $type1,$url);
+                // 被指派人
+                $dynamic['email'] = get_email($data['assigneduid']);
+                $cost2 = sendTemplate($dynamic, $type1,$url);
+                $cost1['data'] .= $logs;
+                $cost2['data'] .= $logs;
+                apiRead(Api::S_SEND, Api::DXY_S, $cost1); // 发给创建人 : LGW
+                apiRead(Api::S_SEND, Api::DXY_S, $cost2); // 发给被指派人
+                $Model->commit(); // 成功则提交事务
+                $this->redirect('admin/ProjectAssigned/view', array('id' => $dataOrigin['bugid']));
+            } else {
+                $Model->rollback(); // 否则将事务回滚
+                $this->error('编辑问题失败！');
+            }
+        } else {
+            $map = [];
+            $bugid = I('get.id');
+            $map['b.bugid'] = $bugid;
+            $list = M('bug')->alias('b')
+                ->field('b.*,t.title as task,p.name')
+                ->alias('b')
+                ->join('ot_project p on p.pid=b.pid', 'INNER')
+                ->join('ot_task t on t.tid=b.tid', 'LEFT')
+                ->where($map)
+                ->find();
+            $con = $list['tag'];
+            if ($con) {
+                $this->assign('con', $con);
+            }
+
+            // tag
+            $tags = explode(',', $list['tag']);
+            $this->assign('tags', $tags);
+            // 版本
+            $where1['p.pid'] = $list['pid'];
+
+            $version = M("Project")
+                ->alias('p')
+                ->field('p.version')
+                ->where($where1)
+                ->find();
+
+            $version = explode(',', $version['version']);
+            $this->assign('versions', $version);
+
+            $where['t.pid'] = $list['pid'];
+
+
+            // 跟踪者
+            $partins = M("takepart")
+                ->alias('t')
+                ->field('distinct(t.uname),t.uid')
+                ->where($where)
+                ->order('t.addtime desc')
+                ->select();
+
+            $list['partin'] = explode(',', $list['partin']);
+
+            foreach ($partins as $key => $val) {
+                $val['being'] = 0;
+                foreach ($list['partin'] as $k => $v) {
+                    if ($v == $val['uid']) {
+                        $val['being'] = 1;
+                    }
+                    $partins[$key] = $val;
+                }
+
+            }
+
+            $this->assign('partins', $partins);
+
+            $this->fetchData();
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '项目', 'url' => U('ProjectNew/index'));
+            $root_mbx[] = array('title' => '指派给我的Bug', 'url' => U('ProjectAssigned/index'));
+            $root_mbx[] = array('title' => $list['title'], 'url' => U('ProjectAssigned/view?id=' . $list['bugid']));
+            $root_mbx[] = array('title' => '编辑Bug', 'url' => '');
+
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('list', $list);
+            $this->display();
+        }
+    }
+
+    public function validation()
+    {
+        // 获取报检编码并判断是不是唯一
+        if (empty ($_POST ['pid'])) {
+            $this->error('请填写项目名称，不能为空');
+        }
+        if (empty ($_POST ['type'])) {
+            $this->error('请填写跟踪，不能为空');
+        }
+        if (empty ($_POST ['title'])) {
+            $this->error('请填写主题，不能为空');
+        }
+        if ($_POST ['state'] < 0) {
+            $this->error('请填写状态，不能为空');
+        }
+        if (!is_numeric($_POST['finishhours'])) {
+            $this->error('完成工时只能为数字');
+        }
+        if (!is_numeric($_POST['hours'])) {
+            $this->error('预期时间只能为数字');
+        }
+        $pstime = strtotime($_POST['pstime']);
+        $petime = strtotime($_POST['petime']);
+        if (empty ($pstime)) {
+            $this->error('开始日期不能为空');
+        }
+        if (empty ($petime)) {
+            $this->error('完成日期不能为空');
+        }
+        if ($petime < $pstime) {
+            $this->error('完成日期必须大于开始日期');
+        }
+
+    }
+
+    /*
+    * 取到数据 添加和编辑通用
+    */
+    public function fetchData()
+    {
+        $sort = ['order' => 'd_order desc'];
+        $dictionary = M('dictionary'); // 字典
+        $finished = Project::FINISHED; // 已完成
+        $close = Project::CLOSE;       // 已结束
+        // 项目
+        $where['_string'] = "1=1 and p.state !=$finished and p.state !=$close ";
+        $where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and tp.uid=" . UID . ")
+			or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.assigneduid=" . UID . ")) and p.del = 0 ";
+
+        $pro = $this->db
+            ->field('p.pid,p.name')
+            ->alias('p')
+            ->where($where)
+            ->order('p.addtime desc')
+            ->select();
+
+        // 跟踪
+        $traces = $dictionary->where("d_code = 'trace_type'")->field(true)->select($sort);
+        // 新建Bug的状态
+        $problemTypes = $dictionary->where("d_code = 'bug_type'")->field(true)->select($sort);
+        // 优先级
+        $prioritys = $dictionary->where("d_code = 'priority_type'")->field(true)->select($sort);
+        // 指派人
+        $user = M('Ucenter_member')
+            ->field('m.id,me.nickname')
+            ->join('ot_member me on m.id=me.uid', 'INNER')
+            ->alias('m')
+            ->select();
+
+        // 类别
+        $genres = $dictionary->where("d_code = 'genre_type'")->field(true)->select($sort);
+
+        // Bug标签
+        $bugTag = $dictionary->where("d_code = 'bug_tag'")->field(true)->select($sort);
+
+        $this->assign('assigneds', $user);
+        $this->assign('items', $pro);
+        $this->assign('bugTag', $bugTag);
+        $this->assign('genres', $genres);
+        $this->assign('prioritys', $prioritys);
+        $this->assign('traces', $traces);
+        $this->assign('problemTypes', $problemTypes);
+
+        $this->assign('uid', UID);
+        $uanme = get_nickname(UID) ? get_nickname(UID) : get_username(UID);
+        $this->assign('uanme', $uanme);
+
+    }
+
+    // 进行中的Bug可以点击完成
+    public function finish()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("指派的Bug不存在", 'javascript:window.parent.choose();');
+        }
+        $where['b.bugid'] = $id;
+        $where['b.assigneduid'] = UID;
+        // 指派的Bug
+        $bugList = $this->bugModel
+            ->alias('b')
+            ->where($where)
+            ->find();
+        if (empty($bugList)) {
+            $this->error("指派的Bug不存在", 'javascript:window.parent.choose();');
+        }
+
+        if (IS_POST) {
+            $finishours = I("post.finishours", 0);      // 工时
+            if (empty($finishours)) {
+                $this->error("完成工时不能为空", 'javascript:window.parent.choose();');
+            }
+            $content = I("post.finishcontent", "");     // 备注
+            $data = [
+                'state' => Bug::RESOLVED,
+                'finishhours' => $finishours,
+                'finishuid' => UID,
+                'finishuname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'finishtime' => time(),
+                'finishcontent' => $content,
+            ];
+            $map['bugid'] = $id;
+            $dataOrigin = M('Bug')->where($map)->find();
+            $result = M('Bug')->where($map)->save($data);
+            $history = [];
+            foreach ($data as $k => $vo) {
+                if ($vo != $dataOrigin[$k]) {
+                    $history[] = array(
+                        'field' => $k,
+                        'olddata' => $dataOrigin[$k],
+                        'newdata' => $vo
+                    );
+                }
+            }
+            if ($result) {
+                $comment = "完成工时:" . $finishours . "h" . "" . $content;
+                action_log_new(array('outtype' => 'ot_bug', 'outkey' => $dataOrigin['bugid'], 'pid' => $dataOrigin['pid'], 'action' => 'finish', 'comment' => $comment));
+                $logs = $this->getLogs($dataOrigin['bugid'], 'finish');       // 操作记录 完成
+                $p = M('project')->alias('p')
+                    ->field('p.name')
+                    ->where("p.pid='{$bugList['pid']}'")
+                    ->find();
+                // 发给创建人/被指派人/跟踪者 时间点：创建bug  LGW
+                $dynamic = [
+                    'a' => $p['name'],                                  // 项目名称
+                    'b' => $bugList['title'],                              // bug名称
+                ];
+                $url = 'ProjectAssigned/view/id/'.$result;
+                // 跟踪者
+                $partins = explode(',', $bugList['partin']);
+
+                if (!empty($partins)) {
+                    foreach ($partins as $k => $v) {
+                        $dynamic['email'] = get_email($v);
+                        $cost3 = sendTemplate($dynamic, 'finish_bug',$url);
+                        $cost3['data'] .= $logs;
+                        apiRead(Api::S_SEND, Api::DXY_S, $cost3); // 发给跟踪者
+                    }
+                }
+                // 创建人
+                $dynamic['email'] = get_email($bugList['uid']);
+                $cost1 = sendTemplate($dynamic, 'finish_bug',$url);
+                // 被指派人
+                $dynamic['email'] = get_email($bugList['assigneduid']);
+                $cost2 = sendTemplate($dynamic, 'finish_bug',$url);
+                $cost1['data'] .= $logs;
+                $cost2['data'] .= $logs;
+                apiRead(Api::S_SEND, Api::DXY_S, $cost1); // 发给创建人 : LGW
+                apiRead(Api::S_SEND, Api::DXY_S, $cost2); // 发给被指派人
+                // 写入
+                $pid = $dataOrigin['pid'];
+                $this->bugHours($id, $data, $pid);
+                echo "<script>window.parent.choose(true);</script>";
+            } else {
+                $this->error('完成失败！');
+            }
+
+        } else {
+
+            $this->assign('bugList', $bugList);
+            $this->assign('id', $id);
+
+            $this->display();
+        }
+
+    }
+
+    /**
+     * 记录工时表更新发生金额 : LGW
+     *
+     * @param $bugId  问题id
+     * @param $data   完成时的信息
+     * @param $pid    项目id
+     */
+    public function bugHours($bugId, $data, $pid)
+    {
+        $hourList = [
+            'bugid' => $bugId,
+            'uid' => $data['finishuid'],
+            'hours' => $data['finishhours'],
+            'addtime' => time(),
+        ];
+        M('Bug_hours')->add($hourList);
+
+        $map['pid'] = $pid;
+        $map['outitem'] = '项目质量';
+        $bugGet = M('Projectbudget')->alias('p')->where($map)->find();
+        $bugGet ? $this->updateProjectCost($pid) : $this->addProjectCost($pid);
+    }
+
+    // 添加项目预算 : LGW
+    public function addProjectCost($pid)
+    {
+        $list = D('Bug')->individualPrice($pid);
+
+        $data = [
+            'type1' => '预算外',
+            'type' => '人力成本',
+            'outitem' => '项目质量',
+            'outid' => '10000',
+            'cost' => $list['amount'], // 发生
+            'finishours' => $list['finishours'],
+            'chours' => $list['hours'],
+            'addtime' => time(),
+            'uid' => UID,
+            'uname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+            'pid' => $pid,
+            'updatetime' => time(),
+        ];
+        M('Projectbudget')->add($data);
+        // 更新项目
+        update_project($pid);
+    }
+
+    // 更新项目预算 : LGW
+    public function updateProjectCost($pid)
+    {
+        $list = D('Bug')->individualPrice($pid);
+        $map['pid'] = $pid;
+        $map['outitem'] = '项目质量';
+        $data = [
+            'cost' => $list['amount'], // 发生
+            'finishours' => $list['finishours'],
+            'chours' => $list['hours'],
+            'updatetime' => time(),
+        ];
+        M('Projectbudget')->where($map)->save($data);
+        // 更新项目
+        update_project($pid);
+
+    }
+
+    /**
+     * 获取操作记录
+     *
+     * @param $id
+     * @param $action
+     *
+     * @return string
+     */
+    public function getLogs($id, $action)
+    {
+        $map = [];
+        $map['outtype'] = 'ot_bug';
+        $map['outkey'] = $id;
+        $map['action'] = $action;
+        $logs = M("Log")
+            ->field('logid,addtime,uname,action')
+            ->where($map)
+            ->order("addtime desc")
+            ->find();
+        $title = '';
+        $content = '';
+        if ($logs) {
+            $addTime = date("Y-m-d H:i", $logs['addtime']);
+            $action = ac_name($logs['action']);
+            $title = ' ' . $addTime . '，由 ' . $logs['uname'] . ' ' . $action . '。';
+            $hs = M("History")->where("logid='{$logs['logid']}'")->select();
+            if ($hs) {
+                $mod = M("Dictionary");
+                foreach ($hs as $kk => $vv) {
+                    $fname = tf_name("ot_bug", $vv['field']);
+                    $olddata = $vv['olddata'];
+                    $newdata = $vv['newdata'];
+                    switch ($vv['field']) {
+                        case "cid":
+                            $oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+                            if ($oldtemp) {
+                                $olddata = $oldtemp['name'];
+                            }
+                            $newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+                            if ($newtemp) {
+                                $newdata = $newtemp['name'];
+                            }
+                            break;
+                        case "pstime":
+                        case "petime":
+                        case "livetime":
+                        case "addtime":
+                        case "assignedtime":
+                        case "finishtime":
+                            $olddata and $olddata = date('Y/m/d H:i', $olddata);
+                            $newdata = date('Y/m/d H:i', $newdata);
+                            break;
+                        case "state":
+                            $orow = $mod->field("d_key")->where("d_code='bug_type' and d_value='{$olddata}'")->find();
+                            if ($orow) {
+                                $olddata = $orow["d_key"];
+                            }
+                            $nrow = $mod->field("d_key")->where("d_code='bug_type' and d_value='{$newdata}'")->find();
+                            if ($orow) {
+                                $newdata = $nrow["d_key"];
+                            }
+                            break;
+                        case "partin" :
+                            $m1['t.uid'] = ['in', "{$olddata}"];
+                            $orow = M("takepart")->alias('t')->field('DISTINCT(t.uid),t.uname')->where($m1)->select();
+                            if ($orow) {
+                                $unames = array_column($orow, 'uname');
+                                $olddata = implode(',', $unames);
+                            }
+                            $m2['t.uid'] = ['in', "{$newdata}"];
+                            $nrow = M("takepart")->alias('t')->field('DISTINCT(t.uid),t.uname')->where($m2)->select();
+                            if ($nrow) {
+                                $unames = array_column($nrow, 'uname');
+                                $newdata = implode(',', $unames);
+                            }
+                            break;
+                        case "level";
+                            $orow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$olddata}'")->find();
+                            if ($orow) {
+                                $olddata = $orow["d_key"];
+                            }
+                            $nrow = $mod->field("d_key")->where("d_code='priority_type' and d_value='{$newdata}'")->find();
+                            if ($nrow) {
+                                $newdata = $nrow["d_key"];
+                            }
+                            break;
+                    }
+                    $content .= "修改了 " . $fname . '，旧值为"' . $olddata . '"新值为"' . $newdata . '"。';
+                }
+            }
+        }
+        $message = $title . $content;
+        return $message;
+    }
+}

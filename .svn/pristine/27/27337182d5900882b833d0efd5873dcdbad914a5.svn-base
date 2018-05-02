@@ -1,0 +1,188 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 工作室 收费项目管理控制器 : LGW
+ */
+class FeeitemController extends AdminController
+{
+    private $model;
+
+    //构造函数
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model = D('Feeitem');    // 收费项目Model
+    }
+
+    /**
+     *收费项目管理首页
+     */
+    public function index()
+    {
+        $where = " 1=1 ";
+		$filter= '';
+		$name = empty($_GET['name'])?'':trim($_GET['name']);//工作室名称
+		if($name){
+			$filter .= " and f.feename like '%{$name}%'";
+		}
+		$code = empty($_GET['code'])?'':trim($_GET['code']);//code
+		if($code){
+			$filter .= " and  f.feecode like '%{$code}%'";
+		}
+
+		$where .= $filter;
+
+		$count = $this->model->countNum($where);
+		$page = new \Think\Page($count, 10);
+		$lists = $this->model
+				->alias('f')
+                ->join('ot_member m on f.uid = m.uid')
+				->where($where)
+				->order("itemid desc")
+				->limit($page->firstRow . ',' . $page->listRows)
+				->select();
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+		$this->assign('_page', $page->show());
+		$this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+		$this->display();
+    }
+
+    /**
+     * 新增收费项目
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $feecode = empty($_POST['feecode']) ? '' : trim($_POST['feecode']);
+            $feename = empty($_POST['feename']) ? 0 : $_POST['feename'];
+
+            if($this->model->uniqueName($feename)){
+                $this->error(L('NAME_EXISTED'));
+            }
+
+            if($this->model->uniqueCode($feecode)){
+                $this->error(L('CODE_EXISTED'));
+            }
+            $data = array(
+				'feename' => $feename,
+                'feecode' => $feecode,
+				'addtime' => time(),
+				'uid' => UID,
+
+            );
+            if (!M('Feeitem')->add($data)) {
+                $this->error(L('ADD_ERROR'));
+            } else {
+            	$this->redirect('Feeitem/index');
+                //$this->success(L('ADD_SUCCESS'), U('index'));
+            }
+        } else {
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑收费项目
+     */
+    public function edit()
+    {
+		$id = empty($_GET['id'])?0:$_GET['id'];
+        if (IS_POST) {
+			$id = empty($_POST['id']) ? '' : trim($_POST['id']);
+
+            $feecode = empty($_POST['feecode']) ? '' : trim($_POST['feecode']);
+            $feename = empty($_POST['feename']) ? 0 : $_POST['feename'];
+
+            if($this->model->uniqueName($feename,$id)){
+                $this->error(L('NAME_EXISTED'));
+            }
+
+            if($this->model->uniqueCode($feecode,$id)){
+                $this->error(L('CODE_EXISTED'));
+            }
+            $data = array(
+				'itemid' => $id,
+				'feename' => $feename,
+                'feecode' => $feecode,
+            );
+			
+            if (D('Feeitem')->save($data) === false) {
+                $this->error(L('EDIT_ERROR'), U('Feeitem/edit?id=' . $id));
+            } else {
+            	$this->redirect('Feeitem/index');
+                //$this->success(L('EDIT_SUCCESS'), U('index'));
+            }
+        } else {
+            $data = M('Feeitem')->where("itemid=" . $id)->find();
+            if (empty($data)) {
+                $this->error(L('Data_not_exist'));
+            }
+			
+            $this->assign('data', $data);
+            $this->display();
+        }
+    }
+
+    /*
+     * 删除收费项目
+     * */
+    public function delete()
+    {
+    	$id = I('id');
+    	if (!$id) {
+    		$this->json_error(L('Data_not_exist'), false);
+    	}
+    	if (is_array($id)) {
+    		$ids = $id;
+    	} else {
+    		$ids = (array)$id;
+    	}
+    	
+    	$msg = '';
+    	foreach($ids as $id){
+    		$where = "itemid = {$id}";
+    		$list =$this->model->getList($where);
+    		if(empty($list)){
+    			$failmsg.= "ID".$id.L("DELETE_FAILED")."<br>";
+    		}else{
+    			$res = $this->model->where($where)->delete();
+    			action_log_new(array('outtype' => 'ot_feeitem', 'outkey' => $id, 'action' => 'delete', 'comment' => ''));
+    			$sucmsg.="{$list['feename']}".L("DELETE_SUCCESS")."<br/>";
+    		}
+    	}
+    	$this->json_success($failmsg.$sucmsg);
+    }
+    
+    public function checkname(){
+    	$name=I("get.feename","");
+    	$id=I("get.id","");
+    	
+    	if(D("Feeitem")->uniqueName($name,$id)){
+    		echo json_encode(false);
+    		return;
+    	}
+    	echo json_encode(true);
+    	
+    }
+    public function checkcode(){
+    	$name=I("get.feecode","");
+    	$id=I("get.id","");
+    	
+    	if(D("Feeitem")->uniqueCode($name,$id)){
+    		echo json_encode(false);
+    		return;
+    	}
+    	echo json_encode(true);
+    }
+
+}

@@ -1,0 +1,28 @@
+<script>
+var blockID="{$blockID}";
+var config={"webRoot":"\/\/","appName":"","cookieLife":30,"requestType":"PATH_INFO","requestFix":"-","moduleVar":"m","methodVar":"f","viewVar":"t","defaultView":"html","themeRoot":"\/\/theme\/","currentModule":"my","currentMethod":"index","clientLang":"zh-cn","requiredFields":"","router":"\/\/index.php","save":"\u4fdd\u5b58","runMode":"","timeout":30000,"pingInterval":""};
+</script>
+<script language="Javascript" src="__JSNEW__/block/admin.js"></script>
+<link href="__CSS__/n.css" rel="stylesheet" type="text/css"/>
+<style>
+
+
+.form-control {
+    height: 35px;
+    }
+</style>
+<table class="table table-form ntable" style="margin-bottom: 0;">
+  <tbody><tr><th class="w-100px"></th><td></td><td class="w-100px"></td></tr>
+<tr style="display: table-row;">
+    <th>区块</th>
+    <td>
+    	<select name="moduleBlock" id="moduleBlock" class="form-control" onchange="getBlockParams(this.value,blockID)">
+    		<option value=""  data-keys=" ">请选择区块</option>
+	    	<volist name="slist" id="s">
+	    		<option value="{$s.d_key}" data-keys="{$s.d_key}"  <in name="s.d_key" value="$b.source">selected="selected"</in> >{$s.d_value}</option>
+	    	</volist>
+		</select>
+	</td>
+</tr>
+</tbody></table>
+<div id="blockParam"></div>

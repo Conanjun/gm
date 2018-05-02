@@ -1,0 +1,115 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('PATIENT')}</h5>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/PlatPatient/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('P_KEYS')}</label>
+                                                <input  placeholder="{:L('P_KEYS_TIP')}" class="form-control" type="text" name="keys" value="{$Think.get.keys}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('P_TEL')}</label>
+                                                <input  class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('P_SEX')}</label>
+                                                <select name="gender" class="form-control m-b" style="width: 50px">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.gender eq 1">selected</if>>{:L('MAN')}</option>
+                                                    <option value="2" <if condition="$Think.get.gender eq 2">selected</if>>{:L('WOMAN')}</option>
+                                                    <option value="0" <if condition="$Think.get.gender === '0'">selected</if>>{:L('SECRECY')}</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('PlatPatient/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th><span>{:L('P_NAME')}</span></th>
+									<th><span>{:L('P_DNAME')}</span></th>
+									<th><span  ectype="order_by" fieldname="gender">{:L('P_SEX')}<i class="fa fa-sort"></i></span></th>
+                                    <th><span>{:L('P_TEL')}</span></th>
+                                    <th><span>{:L('P_ADDR')}</span></th>
+                                    <th><span>{:L('P_COM')}</span></th>
+									<th><span>{:L('P_TAG')}</span></th>
+									<th><span ectype="order_by" fieldname="birthday">{:L('P_BR')}<i class="fa fa-sort"></i></span></th>
+									<th><span ectype="order_by" fieldname="addtime">{:L('P_ADDTIME')}<i class="fa fa-sort"></i></span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>{$vo['realname']}</td>
+                                            <td>{$vo['dname']}</td>
+                                            <td><if condition="$vo['gender'] eq 1">{:L('MAN')}</if><if condition="$vo['gender'] eq 2">{:L('WOMAN')}</if><if condition="$vo['gender'] eq 0">{:L('SECRECY')}</if></td>
+                                            <td>{$vo['tel']}</td>
+                                            <td>{$vo['addr']}</td>
+                                            <td>{$vo['company']}</td>
+                                            <td>{$vo['tag']}</td>
+                                            <td><if condition="$vo['birthday']">{$vo['birthday']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                            <td><if condition="$vo['addtime']">{$vo['addtime']|date="Y-m-d H:i:s",###}<else/>-</if></td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

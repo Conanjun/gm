@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Login</title>
+
+    <link href="__ROOT__/Admin/css/in/bootstrap.min.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="__ROOT__/Admin/css/in/animate.css" rel="stylesheet">
+    <link href="__ROOT__/Admin/css/in/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="__ROOT__/Admin/css/stylesheet.css">
+
+</head>
+
+<body class="white-bg">
+
+    <div id="page">
+
+        <div id="page-header"></div>
+        <div id="page-main">
+            <div class="form-user clearfix">
+                <div class="pull-right form-user-main">
+
+                    <h2>欢迎登录</h2>
+
+                    <form data-action="{:U('login')}" method="post">
+                        <input type="hidden" name="r" value="{$r}" />
+                        <!-- group -->
+                        <div class="form-user-group form-user-user">
+                            <label for="">账号</label>
+                            <div class="form-user-control">
+                                <input type="text" autocomplete="off" name="username" placeholder="请输入账号" autofocus>
+                            </div>
+                        </div>
+
+                        <!-- group -->
+                        <div class="form-user-group form-user-lock">
+                            <label for="">密码</label>
+                            <div class="form-user-control">
+                                <input type="password" name="password" placeholder="请输入密码">
+                            </div>
+                        </div>
+
+                        <!-- group -->
+                        <div class="form-user-group form-user-folder">
+                            <label for="">请选择工作室</label>
+                            <div class="form-user-control">
+                                <i class="fa fa-caret-down"></i>
+                                <input type="text" value="该美工作室" data-value="1" readonly>
+                            </div>
+                            <div class="form-user-select">
+                                <ul>
+                                    <li data-value="1">该美工作室</li>
+                                    <li data-value="2">天美工作室</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="form-user-button">
+                            <input type="button" class="form-user-submit" value="登录">
+                        </div>
+                    </form>
+                </div>
+                <div class="pull-right form-user-logo">
+                    <h1 class="logo"></h1>
+                    <h2>该美生物科(上海)管理系统</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">
+                            验证提醒
+                        </h4>
+                    </div>
+                    <div class="modal-body"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="__ROOT__/Admin/js/in/jquery-2.1.1.js"></script>
+    <script src="__ROOT__/Admin/js/in/bootstrap.min.js"></script>
+    <script src="__ROOT__/Admin/js/in/base.js"></script>
+    <script>
+    
+        $(function(){
+
+            // 模拟select
+            var 
+                $form_folder        =       $('.form-user-folder') ,
+                $form_user          =       $('.form-user-user') ,
+                $form_pass          =       $('.form-user-lock') ,
+                $form_select        =       $('.form-user-select') ,
+                $form_group         =       $('.form-user-group') ,
+                $modal              =       $('#loginModal') ,
+                $modal_msg          =       $('#loginModal .modal-body');
+
+            $form_folder.focusin(function(){
+                $form_select.slideDown();
+            }).focusout(function(){
+                $form_select.slideUp();
+            })
+
+            $form_group.focusin(function () {
+                $(this).closest('.form-user-group').addClass('focus');
+            }).focusout(function () {
+                $(this).closest('.form-user-group').removeClass('focus');
+            })
+
+            $form_select.find('li').on('click', function(){
+                var $this = $(this) ,
+                    $val  = $this.attr('data-value');
+
+                $form_folder.find('input').attr('data-value', $val).val($this.text());
+            })
+
+            $form_group.find('input').keyup(function(){
+                form.len($form_group, 6);
+            })
+
+            $('.form-user-submit').on('click', function(){
+                var 
+                    $username       =       $form_user.find('input').val() ,
+                    $password       =       $form_pass.find('input').val() ,
+                    $type           =       $form_folder.find('input').val() ,
+                    $typeid         =       $form_folder.find('input').attr('data-value') ,
+                    $data           =       {
+                        username: $username ,
+                        password: $password , 
+                        type    : $type ,
+                        typeid  : $typeid
+                    }
+                
+                // console.log($(this).closest('form').attr('action'));
+                // console.log(base.url + $(this).closest('form').attr('action'))
+                // return false;
+                $.ajax({
+                    url: base.url + $(this).closest('form').attr('data-action') ,
+                    type: 'POST' ,
+                    data: $data ,
+                    dataType: 'json' ,
+                    beforeSend: function() {
+
+                    },
+                    success: function(res) {
+                        console.log('----success');
+                        console.log(res);
+                        if( res.status == 1 ) {
+                            window.location.href = res.url;
+                        } else {
+                            modal.text($modal, res.info);
+                            modal.open($modal);
+                        }
+                    },
+                    error: function(err) {
+                        console.log('----error');
+                        console.log(err);
+                    }
+                    
+                })
+
+                $('#loginModal').modal('show');
+            })
+            
+        })
+
+    </script>
+
+</body>
+
+</html>

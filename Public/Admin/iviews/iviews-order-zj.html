@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>INSPINIA | Empty Page</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!-- plugin css -->
+    <link href="../css/plugins/chosen/chosen.css" rel="stylesheet">
+    <link href="../css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="../css/plugins/datapicker/datepicker3.css" rel="stylesheet">
+    <link href="../css/plugins/daterangepicker/daterangepicker-bs3.css" rel="stylesheet">
+    <link href="../css/plugins/dropzone/basic.css" rel="stylesheet">
+    <link href="../css/plugins/dropzone/dropzone.css" rel="stylesheet">
+
+    <link href="../css/animate.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <link href="../css/stylesheet.css" rel="stylesheet">
+    <link href="../css/iviews-order.css" rel="stylesheet">
+
+    <link href="../css/piezas_dentales.css" rel="stylesheet">
+    <style>
+        .ibox-content { padding: 0 !important; }
+    </style>
+
+</head>
+
+<body class="">
+    
+    <div id="wrapper">
+
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav metismenu" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <span>
+                                <img alt="image" class="img-circle" src="../img/profile_small.jpg" />
+                            </span>
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">David Williams</strong>
+                                    </span>
+                                    <span class="text-muted text-xs block">Art Director
+                                        <b class="caret"></b>
+                                    </span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                                <li>
+                                    <a href="profile.html">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="contacts.html">Contacts</a>
+                                </li>
+                                <li>
+                                    <a href="mailbox.html">Mailbox</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="login.html">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="logo-element">
+                            GM
+                        </div>
+                    </li>
+                    <li class="nav-language">
+                        <span>切换语言</span>
+                        <div class="nav-language-list">
+                            <a href="" class="nav-language-cn">
+                                <span>汉语</span>
+                            </a>
+                            <a href="" class="nav-language-en">
+                                <span>英语 </span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">系统管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">牙医管理</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="">
+                            <i class="fa fa-envelope"></i>
+                            <span class="nav-label">订单管理 </span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li>
+                                <a href="javascript:void(0);">
+                                    <i class="fa fa-diamond"></i>植牙订单
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>矫正订单
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>待处理订单
+                                    <span class="label label-warning pull-right">16/24</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="">
+                                    <i class="fa fa-diamond"></i>订单消息
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">物流管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">财务管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">投诉建议</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="">
+                            <i class="fa fa-diamond"></i>
+                            <span class="nav-label">数据分析</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="搜索" class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form>
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li>
+                            <span class="m-r-sm text-muted welcome-message">欢迎: 管理员</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="">个人资料</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> 退出
+                            </a>
+                        </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <!-- content begin -->
+            <div class="wrapper wrapper-content animated fadeInRight" id="app">
+
+                <div class="row">
+                    <div class="col-sm-12">
+
+                        <!-- page-heading -->
+                        <div class="wrapper white-bg page-heading">
+                            <h2>订单详情</h2>
+                            <ol class="breadcrumb">
+                                <li>
+                                    <a href="">首页</a>
+                                </li>
+                                <li>
+                                    <a href="">植牙订单</a>
+                                </li>
+                                <li class="active">
+                                    <strong>E1205525</strong>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="iviews-order">
+
+                            <div class="row iviews-steps steps">
+                                <ul>
+                                    <li v-for="( item , $index ) in stepArr" :index="$index" :data-index="$index" :class="{ active: stepArr[$index].active , error: stepArr[$index].error }" @click="tab($index)">
+                                        {{ item.name }}
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- step1// -->
+                            <div class="iviews-order-content iviews-order-step1" v-show="stepArr[0].show">
+                            
+                                <div class="iviews-order-type">
+                                    <!-- {{ step1.type }} -->
+                                    <!-- <span style="font-size: 24px">{{ step1.type }}</span> -->
+                                    <a href="javascript:void(0);" @click="step1Type(1);" data-type="1" class="iviews-order-type-1">种植</a>
+                                    <a href="javascript:void(0);" @click="step1Type(2);" data-type="2" class="iviews-order-type-2">固定正畸</a>
+                                    <a href="javascript:void(0);" @click="step1Type(3);" data-type="3" class="iviews-order-type-3">隐形正畸</a>
+                                </div>
+                            
+                            </div>
+
+                            <!-- step2// -->
+                            <div class="iviews-order-content iviews-order-step2" v-show="stepArr[1].show">
+                            
+                                <div class="iviews-order-form ibox-content">
+                            
+                                    <form method="get" class="form-horizontal">
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                加工方式
+                                            </label>
+                                            <div class="col-sm-2">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="checkbox" name="step2type" value="1" :checked="step2.typeActive == 1">
+                                                        <i></i> 设计方案
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="checkbox" name="step2type" value="2">
+                                                        <i></i> 模型制作
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                普通服务内容
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <select name="" class="form-control" @change="step2Server">
+                                                    <option :value="item.key" :index="$index" v-for="(item , $index) in step2.serverArr">{{ item.value }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                其他服务内容
+                                            </label>
+                                            <div class="col-sm-6">
+                                                <ul class="iviews-type clearfix">
+                                                    <li v-for="(item , $index) in step2.otherArr" :value="item.key" :index="$index" @click="step2Other(item.key)" :class="{ active: step2.ohter === item }">{{ item.value }}</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                是否加急
+                                            </label>
+                                            <div class="col-sm-2">
+                                                <div class="i-checks inline">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="step2Urgent" value="1" :checked="step2.urgent == 1">
+                                                        <i></i> 是
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="step2Urgent" value="2" :checked="!step2.urgent == 1">
+                                                        <i></i> 否
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" @click="step2submit" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                            
+                                </div>
+                            
+                            </div>
+                            
+                            <!-- step3// -->
+                            <div class="iviews-order-content iviews-order-step3" v-show="stepArr[2].show">
+                                <div class="ibox-content iviews-order-form">
+                            
+                                    <form method="get" class="form-horizontal">
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                诊所名称
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{{ step3.clinic.name }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                诊所地址
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{{ step3.clinic.address }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                邮寄地址
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <p class="form-control-static">{{ step3.mailing.name }} &emsp; {{ step3.mailing.phone }}</p>
+                                                <p class="form-control-static">{{ step3.mailing.address }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">
+                                                主治医师
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control" name="doctor" @keydown="rclass" value="" v-model="step3.team.doctor">
+                                            </div>
+                                        </div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                医生助理
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control" name="doctorAssistant" @keydown="rclass" value="" v-model="step3.team.doctorAssistant">
+                                            </div>
+                                        </div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                转诊医生
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control" name="referralDoctor" @keydown="rclass" value="" v-model="step3.team.referralDoctor">
+                                            </div>
+                                        </div>
+                            
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                转诊助理
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control" name="referralAssistant" @keydown="rclass" value="" v-model="step3.team.referralAssistant">
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                            
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block" @click="step3submit">下一步</button>
+                                            </div>
+                                        </div>
+                            
+                                    </form>
+                            
+                                </div>
+                            </div>
+                            
+                            <!-- step4// -->
+                            <div class="iviews-order-content iviews-order-step4" v-show="stepArr[3].show">
+
+                                <div class="ibox-content iviews-order-form">
+                                    <form action="" class="form-horizontal">
+
+                                        <div class="form-group" id="name4">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">患者姓名</label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control" name="name4">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                性别
+                                            </label>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks inline">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="sex" value="1">
+                                                        <i></i> 男
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="sex" value="2">
+                                                        <i></i> 女
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group" id="birthday">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">出生日期</label>
+                                            <div class="col-sm-4">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control date">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                                        
+                                        <div class="form-group">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label">
+                                                治疗区域
+                                            </label>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks inline">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="sex" value="1">
+                                                        <i></i> 上颌
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="radio" name="sex" value="2">
+                                                        <i></i> 上颌
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- step5// -->
+                            <div class="iviews-order-content iviews-order-step5" v-show="stepArr[4].show">
+
+                                <div class="ibox-content iviews-order-form">
+                                    <form action="" class="form-horizontal">
+                                    
+                                        <div class="form-group">
+
+                                        </div>
+
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- step6// -->
+                            <div class="iviews-order-content iviews-order-step6" v-show="stepArr[5].show">
+
+                                <div class="ibox-content iviews-order-form">
+                                    <form action="" class="form-horizontal">
+
+                                        <div class="form-group s6f" v-for="(item,$index) in step6.checkedArr" :index="$index" :data-class="item.type">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label" :class="{ 'border-l': item.name == '上颌中线' }">
+                                                {{ item.name }}
+                                            </label>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks inline">
+                                                    <label class="control-label">
+                                                        <input type="radio" :name="item.type" value="1" :checked=" item.checked == 1 ">
+                                                        <i></i> 保持
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="radio" :name="item.type" value="2" :checked=" item.checked == 2 ">
+                                                        <i></i> 改善
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <div class="i-checks">
+                                                    <label class="control-label">
+                                                        <input type="radio" :name="item.type" value="2" :checked=" item.checked == 3 ">
+                                                        <i></i> 优化
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">备注</label>
+                                            <br><br><br>
+                                            <div class="col-sm-11 col-sm-offset-1">
+                                                <textarea class="step6note" name="step6note" id="" cols="30" rows="10"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- step7// -->
+                            <div class="iviews-order-content iviews-order-step7" v-show="stepArr[6].show">
+                                <div class="ibox-content iviews-order-form">
+                                    <form method="" class="form-horizontal">
+
+                                        <div class="form-group" style="overflow: hidden;">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">不移动牙位选择 ( 桥体，修复牙等:</label>
+                                            <div id="img_pz" class="col-md-offset-1 col-md-11">
+                                                <div id="pz_dentales">
+                                                    <div class="d_sup1 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup1" value="valuable" id="sup1">
+                                                        <label for="sup1"></label>
+                                                    </div>
+                                                    <div class="d_sup2 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup2" value="valuable" id="sup2">
+                                                        <label for="sup2"></label>
+                                                    </div>
+                                                    <div class="d_sup3 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup3" value="valuable" id="sup3">
+                                                        <label for="sup3"></label>
+                                                    </div>
+                                                    <div class="d_sup4 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup4" value="valuable" id="sup4">
+                                                        <label for="sup4"></label>
+                                                    </div>
+                                                    <div class="d_sup5 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup5" value="valuable" id="sup5">
+                                                        <label for="sup5"></label>
+                                                    </div>
+                                                    <div class="d_sup6 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup6" value="valuable" id="sup6">
+                                                        <label for="sup6"></label>
+                                                    </div>
+                                                    <div class="d_sup7 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup7" value="valuable" id="sup7">
+                                                        <label for="sup7"></label>
+                                                    </div>
+                                                    <div class="d_sup8 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup8" value="valuable" id="sup8">
+                                                        <label for="sup8"></label>
+                                                    </div>
+                                                    <div class="d_sup9 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup9" value="valuable" id="sup9">
+                                                        <label for="sup9"></label>
+                                                    </div>
+                                                    <div class="d_sup10 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup10" value="valuable" id="sup10">
+                                                        <label for="sup10"></label>
+                                                    </div>
+                                                    <div class="d_sup11 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup11" value="valuable" id="sup11">
+                                                        <label for="sup11"></label>
+                                                    </div>
+                                                    <div class="d_sup12 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup12" value="valuable" id="sup12">
+                                                        <label for="sup12"></label>
+                                                    </div>
+                                                    <div class="d_sup13 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup13" value="valuable" id="sup13">
+                                                        <label for="sup13"></label>
+                                                    </div>
+                                                    <div class="d_sup14 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup14" value="valuable" id="sup14">
+                                                        <label for="sup14"></label>
+                                                    </div>
+                                                    <div class="d_sup15 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup15" value="valuable" id="sup15">
+                                                        <label for="sup15"></label>
+                                                    </div>
+                                                    <div class="d_sup16 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup16" value="valuable" id="sup16">
+                                                        <label for="sup16"></label>
+                                                    </div>
+                                                    <!--INFERIOR-->
+                                                    <div class="d_inf1 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf1" value="valuable" id="inf1">
+                                                        <label for="inf1"></label>
+                                                    </div>
+                                                    <div class="d_inf2 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf2" value="valuable" id="inf2">
+                                                        <label for="inf2"></label>
+                                                    </div>
+                                                    <div class="d_inf3 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf3" value="valuable" id="inf3">
+                                                        <label for="inf3"></label>
+                                                    </div>
+                                                    <div class="d_inf4 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf4" value="valuable" id="inf4">
+                                                        <label for="inf4"></label>
+                                                    </div>
+                                                    <div class="d_inf5 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf5" value="valuable" id="inf5">
+                                                        <label for="inf5"></label>
+                                                    </div>
+                                                    <div class="d_inf6 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf6" value="valuable" id="inf6">
+                                                        <label for="inf6"></label>
+                                                    </div>
+                                                    <div class="d_inf7 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf7" value="valuable" id="inf7">
+                                                        <label for="inf7"></label>
+                                                    </div>
+                                                    <div class="d_inf8 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf8" value="valuable" id="inf8">
+                                                        <label for="inf8"></label>
+                                                    </div>
+                                                    <div class="d_inf9 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf9" value="valuable" id="inf9">
+                                                        <label for="inf9"></label>
+                                                    </div>
+                                                    <div class="d_inf10 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf10" value="valuable" id="inf10">
+                                                        <label for="inf10"></label>
+                                                    </div>
+                                                    <div class="d_inf11 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf11" value="valuable" id="inf11">
+                                                        <label for="inf11"></label>
+                                                    </div>
+                                                    <div class="d_inf12 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf12" value="valuable" id="inf12">
+                                                        <label for="inf12"></label>
+                                                    </div>
+                                                    <div class="d_inf13 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf13" value="valuable" id="inf13">
+                                                        <label for="inf13"></label>
+                                                    </div>
+                                                    <div class="d_inf14 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf14" value="valuable" id="inf14">
+                                                        <label for="inf14"></label>
+                                                    </div>
+                                                    <div class="d_inf15 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf15" value="valuable" id="inf15">
+                                                        <label for="inf15"></label>
+                                                    </div>
+                                                    <div class="d_inf16 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf16" value="valuable" id="inf16">
+                                                        <label for="inf16"></label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                                
+                                        <div class="form-group" style="overflow: hidden;">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">附件不可添加牙位:</label>
+                                            <div id="img_pz_2" class="col-md-offset-1 col-md-11">
+                                                <div id="pz_dentales_2">
+                                                    <div class="d_sup1 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup1" value="valuable" id="sup1_2">
+                                                        <label for="sup1_2"></label>
+                                                    </div>
+                                                    <div class="d_sup2 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup2" value="valuable" id="sup2_2">
+                                                        <label for="sup2_2"></label>
+                                                    </div>
+                                                    <div class="d_sup3 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup3" value="valuable" id="sup3_2">
+                                                        <label for="sup3_2"></label>
+                                                    </div>
+                                                    <div class="d_sup4 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup4" value="valuable" id="sup4_2">
+                                                        <label for="sup4_2"></label>
+                                                    </div>
+                                                    <div class="d_sup5 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup5" value="valuable" id="sup5_2">
+                                                        <label for="sup5_2"></label>
+                                                    </div>
+                                                    <div class="d_sup6 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup6" value="valuable" id="sup6_2">
+                                                        <label for="sup6_2"></label>
+                                                    </div>
+                                                    <div class="d_sup7 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup7" value="valuable" id="sup7_2">
+                                                        <label for="sup7_2"></label>
+                                                    </div>
+                                                    <div class="d_sup8 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup8" value="valuable" id="sup8_2">
+                                                        <label for="sup8_2"></label>
+                                                    </div>
+                                                    <div class="d_sup9 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup9" value="valuable" id="sup9_2">
+                                                        <label for="sup9_2"></label>
+                                                    </div>
+                                                    <div class="d_sup10 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup10" value="valuable" id="sup10_2">
+                                                        <label for="sup10_2"></label>
+                                                    </div>
+                                                    <div class="d_sup11 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup11" value="valuable" id="sup11_2">
+                                                        <label for="sup11_2"></label>
+                                                    </div>
+                                                    <div class="d_sup12 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup12" value="valuable" id="sup12_2">
+                                                        <label for="sup12_2"></label>
+                                                    </div>
+                                                    <div class="d_sup13 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup13" value="valuable" id="sup13_2">
+                                                        <label for="sup13_2"></label>
+                                                    </div>
+                                                    <div class="d_sup14 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup14" value="valuable" id="sup14_2">
+                                                        <label for="sup14_2"></label>
+                                                    </div>
+                                                    <div class="d_sup15 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup15" value="valuable" id="sup15_2">
+                                                        <label for="sup15_2"></label>
+                                                    </div>
+                                                    <div class="d_sup16 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup16" value="valuable" id="sup16_2">
+                                                        <label for="sup16_2"></label>
+                                                    </div>
+                                                    <!--INFERIOR-->
+                                                    <div class="d_inf1 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf1" value="valuable" id="inf1_2">
+                                                        <label for="inf1_2"></label>
+                                                    </div>
+                                                    <div class="d_inf2 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf2" value="valuable" id="inf2_2">
+                                                        <label for="inf2_2"></label>
+                                                    </div>
+                                                    <div class="d_inf3 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf3" value="valuable" id="inf3_2">
+                                                        <label for="inf3_2"></label>
+                                                    </div>
+                                                    <div class="d_inf4 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf4" value="valuable" id="inf4_2">
+                                                        <label for="inf4_2"></label>
+                                                    </div>
+                                                    <div class="d_inf5 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf5" value="valuable" id="inf5_2">
+                                                        <label for="inf5_2"></label>
+                                                    </div>
+                                                    <div class="d_inf6 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf6" value="valuable" id="inf6_2">
+                                                        <label for="inf6_2"></label>
+                                                    </div>
+                                                    <div class="d_inf7 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf7" value="valuable" id="inf7_2">
+                                                        <label for="inf7_2"></label>
+                                                    </div>
+                                                    <div class="d_inf8 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf8" value="valuable" id="inf8_2">
+                                                        <label for="inf8_2"></label>
+                                                    </div>
+                                                    <div class="d_inf9 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf9" value="valuable" id="inf9_2">
+                                                        <label for="inf9_2"></label>
+                                                    </div>
+                                                    <div class="d_inf10 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf10" value="valuable" id="inf10_2">
+                                                        <label for="inf10_2"></label>
+                                                    </div>
+                                                    <div class="d_inf11 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf11" value="valuable" id="inf11_2">
+                                                        <label for="inf11_2"></label>
+                                                    </div>
+                                                    <div class="d_inf12 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf12" value="valuable" id="inf12_2">
+                                                        <label for="inf12_2"></label>
+                                                    </div>
+                                                    <div class="d_inf13 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf13" value="valuable" id="inf13_2">
+                                                        <label for="inf13_2"></label>
+                                                    </div>
+                                                    <div class="d_inf14 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf14" value="valuable" id="inf14_2">
+                                                        <label for="inf14_2"></label>
+                                                    </div>
+                                                    <div class="d_inf15 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf15" value="valuable" id="inf15_2">
+                                                        <label for="inf15_2"></label>
+                                                    </div>
+                                                    <div class="d_inf16 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf16" value="valuable" id="inf16_2">
+                                                        <label for="inf16_2"></label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                                        
+                                        <div class="form-group" style="overflow: hidden;">
+                                            <label class="col-sm-2 col-sm-offset-1 control-label border-l">拔除牙位:</label>
+                                            <div id="img_pz_3" class="col-md-offset-1 col-md-11">
+                                                <div id="pz_dentales_3">
+                                                    <div class="d_sup1 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup1" value="valuable" id="sup1_3">
+                                                        <label for="sup1_2"></label>
+                                                    </div>
+                                                    <div class="d_sup2 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup2" value="valuable" id="sup2_3">
+                                                        <label for="sup2_3"></label>
+                                                    </div>
+                                                    <div class="d_sup3 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup3" value="valuable" id="sup3_3">
+                                                        <label for="sup3_3"></label>
+                                                    </div>
+                                                    <div class="d_sup4 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup4" value="valuable" id="sup4_3">
+                                                        <label for="sup4_3"></label>
+                                                    </div>
+                                                    <div class="d_sup5 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup5" value="valuable" id="sup5_3">
+                                                        <label for="sup5_3"></label>
+                                                    </div>
+                                                    <div class="d_sup6 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup6" value="valuable" id="sup6_3">
+                                                        <label for="sup6_3"></label>
+                                                    </div>
+                                                    <div class="d_sup7 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup7" value="valuable" id="sup7_3">
+                                                        <label for="sup7_3"></label>
+                                                    </div>
+                                                    <div class="d_sup8 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup8" value="valuable" id="sup8_3">
+                                                        <label for="sup8_3"></label>
+                                                    </div>
+                                                    <div class="d_sup9 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup9" value="valuable" id="sup9_3">
+                                                        <label for="sup9_3"></label>
+                                                    </div>
+                                                    <div class="d_sup10 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup10" value="valuable" id="sup10_3">
+                                                        <label for="sup10_3"></label>
+                                                    </div>
+                                                    <div class="d_sup11 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup11" value="valuable" id="sup11_3">
+                                                        <label for="sup11_3"></label>
+                                                    </div>
+                                                    <div class="d_sup12 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup12" value="valuable" id="sup12_3">
+                                                        <label for="sup12_3"></label>
+                                                    </div>
+                                                    <div class="d_sup13 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup13" value="valuable" id="sup13_3">
+                                                        <label for="sup13_3"></label>
+                                                    </div>
+                                                    <div class="d_sup14 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup14" value="valuable" id="sup14_3">
+                                                        <label for="sup14_3"></label>
+                                                    </div>
+                                                    <div class="d_sup15 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup15" value="valuable" id="sup15_3">
+                                                        <label for="sup15_3"></label>
+                                                    </div>
+                                                    <div class="d_sup16 diente">
+                                                        <input type="checkbox" class="diente_sup" name="sup16" value="valuable" id="sup16_3">
+                                                        <label for="sup16_3"></label>
+                                                    </div>
+                                                    <!--INFERIOR-->
+                                                    <div class="d_inf1 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf1" value="valuable" id="inf1_3">
+                                                        <label for="inf1_3"></label>
+                                                    </div>
+                                                    <div class="d_inf2 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf2" value="valuable" id="inf2_3">
+                                                        <label for="inf2_3"></label>
+                                                    </div>
+                                                    <div class="d_inf3 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf3" value="valuable" id="inf3_3">
+                                                        <label for="inf3_3"></label>
+                                                    </div>
+                                                    <div class="d_inf4 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf4" value="valuable" id="inf4_3">
+                                                        <label for="inf4_3"></label>
+                                                    </div>
+                                                    <div class="d_inf5 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf5" value="valuable" id="inf5_3">
+                                                        <label for="inf5_3"></label>
+                                                    </div>
+                                                    <div class="d_inf6 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf6" value="valuable" id="inf6_3">
+                                                        <label for="inf6_3"></label>
+                                                    </div>
+                                                    <div class="d_inf7 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf7" value="valuable" id="inf7_3">
+                                                        <label for="inf7_3"></label>
+                                                    </div>
+                                                    <div class="d_inf8 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf8" value="valuable" id="inf8_3">
+                                                        <label for="inf8_3"></label>
+                                                    </div>
+                                                    <div class="d_inf9 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf9" value="valuable" id="inf9_3">
+                                                        <label for="inf9_3"></label>
+                                                    </div>
+                                                    <div class="d_inf10 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf10" value="valuable" id="inf10_3">
+                                                        <label for="inf10_3"></label>
+                                                    </div>
+                                                    <div class="d_inf11 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf11" value="valuable" id="inf11_3">
+                                                        <label for="inf11_3"></label>
+                                                    </div>
+                                                    <div class="d_inf12 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf12" value="valuable" id="inf12_3">
+                                                        <label for="inf12_3"></label>
+                                                    </div>
+                                                    <div class="d_inf13 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf13" value="valuable" id="inf13_3">
+                                                        <label for="inf13_3"></label>
+                                                    </div>
+                                                    <div class="d_inf14 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf14" value="valuable" id="inf14_3">
+                                                        <label for="inf14_3"></label>
+                                                    </div>
+                                                    <div class="d_inf15 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf15" value="valuable" id="inf15_3">
+                                                        <label for="inf15_3"></label>
+                                                    </div>
+                                                    <div class="d_inf16 diente">
+                                                        <input type="checkbox" class="diente_inf" name="inf16" value="valuable" id="inf16_3">
+                                                        <label for="inf16_3"></label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">附加建议</label>
+                                            <br>
+                                            <br>
+                                            <br>
+                                            <div class="col-sm-11 col-sm-offset-1">
+                                                <textarea class="step7note" name="step7note" id="" cols="30" rows="10"></textarea>
+                                            </div>
+                                        </div>
+                                
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </div>
+                            
+                            <!-- step8// -->
+                            <div class="iviews-order-content iviews-order-step8" v-show="stepArr[7].show">
+
+                                <div class="ibox-content iviews-order-form">
+                                    <form action="" class="form-horizontal">
+                                
+                                        <div class="form-group">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">上传口内及面向照片</label>
+                                        </div>
+
+                                        <div class="row form-group-file">
+                                            <div class="col-sm-11 col-sm-offset-1">
+                                                <div class="clearfix">
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>正面开口微笑照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>正面闭合照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>侧位照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>上颌照片</span>
+                                                    </div>
+                                                    <div class="form-file-box form-file-empty"></div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>下颌照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>咬合左侧位照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>咬合正面照片</span>
+                                                    </div>
+                                                    <div class="form-file-box">
+                                                        <div class="form-file-image"></div>
+                                                        <input type="file">
+                                                        <span>咬合右侧位照片</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                
+                                        <div class="form-group iviews-actions">
+                                            <div class="col-sm-3 col-sm-offset-1">
+                                                <button type="button" class="btn btn-primary btn-block">下一步</button>
+                                            </div>
+                                        </div>
+                                
+                                    </form>
+                                </div>
+
+
+                            </div>
+
+                            <!-- step9// -->
+                            <div class="iviews-order-content iviews-order-step9" v-show="stepArr[8].show">
+
+                                <div class="ibox-content iviews-order-form">
+                                    <form action="" class="form-horizontal">
+                                        
+                                        <div class="form-group">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">上传X(X-Ray)光片</label>
+                                            <div class="col-sm-12">
+                                                <img src="" alt="">
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>    
+
+                            </div>
+
+                            <!-- step10// -->
+                            <div class="iviews-order-content iviews-order-step10" v-show="stepArr[9].show">
+                                
+                                <div class="ibox-content iviews-order-form">
+                                    <form id='autoform' method="post" action="http://192.168.0.2:7003/index.php?s=/Admin/Test/upload.html" enctype="multipart/form-data" class="form-horizontal" id="">
+
+                                        <div class="form-group">
+                                            <label class="col-sm-11 col-sm-offset-1 control-label border-l">上传CBCT数据</label>
+                                        </div>
+
+                                        <div class="form-group form-group-cbct" id="drop-zone">
+                                            <div class="col-sm-11 col-sm-offset-1">
+                                                <div class="form-group-cbct-file">
+                                                    上传文件夹
+                                                    <input type='file' name='filesToUpload[]' id='filesToUpload' multiple="multiple" webkitdirectory directory/>
+                                                </div>
+                                                <div class="row" id="drop-show">
+                                                    <!-- <div class="col-sm-12  form-group-cbct-item">
+                                                        <span class="folder-name">文件夹名称</span>
+                                                        <span class="folder-length">共340个文件</span>
+                                                        <span class="folder-size">1.2GB</span>
+                                                        <span class="folder-see">[查看]</span>
+                                                        <span class="folder-del">[删除]</span>
+                                                    </div> -->
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- step11// -->
+                            <div class="iviews-order-content iviews-order-step11" v-show="stepArr[10].show"></div>
+
+
+                        </div>
+
+                        <!-- content -->
+
+
+                    </div>
+                </div>
+
+            </div>
+            <!-- content end -->
+
+            <div class="footer">
+                <div>
+                    <strong>Copyright</strong> 该美牙科 &copy; 2018-2019
+                </div>
+            </div>
+
+            <div class="iviews-order-mask">
+
+                <div class="iviews-order-list"></div>
+
+                <div class="iviews-order-load">
+                    <span>正在上传</span>
+
+                    <strong>正在上传: PATH_WEEWE_sdfaf_sdf_DCM</strong>
+
+                    <div class="folder-list">
+                        <div class="folder-size">大小: 1.2GB</div>
+                        <div class="folder-progress">已上传: <small>120</small>/340</div>
+                    </div>
+                    <div class="tips">提示: 请勿关闭页面以免影响文件上传</div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="../js/jquery-2.1.1.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="../js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Scojs -->
+    <!-- modal confirm message用的 可以放在base -->
+    <script src="../js/plugins/scojs/js/sco.modal.js"></script>
+    <script src="../js/plugins/scojs/js/sco.confirm.js"></script>
+    <script src="../js/plugins/scojs/js/sco.message.js"></script>
+
+    <!-- plugin -->
+    <!-- chosen跟icheck是全局用的 有对应的css-->
+    <script src="../js/plugins/chosen/chosen.jquery.js"></script>
+    <script src="../js/plugins/iCheck/icheck.min.js"></script>
+
+    <!-- 编辑器 有对应的css-->
+    <script src="../js/plugins/ckeditor/ckeditor.js"></script>
+    <script src="../js/plugins/ckeditor/adapters/jquery.js"></script>
+
+    <!-- 日历插件 有对应的css -->
+    <script src="../js/plugins/datapicker/bootstrap-datepicker.js"></script>
+    <script src="../js/plugins/daterangepicker/daterangepicker.js"></script>
+
+    <!-- 抓取局部截图 目前只有本页面用了-->
+    <script src="../js/plugins/html2canvas/html2canvas.js"></script>
+    <!-- 文件上传 目前只有本页面用了 有对应的css -->
+    <script src="../js/plugins/dropzone/dropzone.js"></script>
+
+    <!-- vue -->
+    <!-- 数据渲染模板 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+    
+        // jquery
+        // 算高
+        $(function(){
+            var $minHeight = 0,
+                $winHeight = $(window).height(),
+                $navHeight = $('.navbar').height(),
+                $fooHeight = $('.footer').height(),
+                $padHeight = 120,
+                $pahHeight = $('.page-heading').height();
+
+            $('#page-wrapper').css('min-height', $winHeight);
+            $('.iviews-order').css('min-height', $winHeight - $navHeight - $fooHeight - $padHeight - $pahHeight);
+
+            // step2
+            $('.iviews-order-step2 input[name="step2type"]').on('ifChecked', function () {
+                order.step2.type.push($(this).val());
+            })
+            $('.iviews-order-step2 input[name="step2Urgent"]').on('ifChecked', function () {
+                order.step2.urgent = $(this).val();
+            })
+            
+
+            function removeByValue(arr, val) {
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i] == val) {
+                        arr.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            $('.iviews-order-step2 .iviews-type li').on('click', function(){
+                $(this).toggleClass('active');
+                if ( $(this).hasClass('active') ) {
+                    removeByValue(order.step2.other,$(this).text())
+                } else {
+                    order.step2.other.push($(this).text())
+                }
+                console.log(order.step2.other);
+            })
+            
+            // file
+            $('#filesToUpload').change(function(){
+                // $("#autoform").ajaxSubmit({
+                //     url: "{:U('Test/upload')}",
+                //     type: 'POST',
+                //     dataType: 'json',
+                //     success: function (data) {
+                //         if (data.done) {
+
+                //         }
+                //     },
+                //     error: function (data) {
+                //     }
+                // });
+            })
+            function handleDragOver(evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+            }
+            var dropZone = document.getElementById('drop-zone');
+            dropZone.addEventListener('dragover', handleDragOver, false);
+
+            function handleFileSelect(evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                var files = [], folder = '',
+                    items = evt.dataTransfer.items;
+                function folderRead(entry,ordername) {
+                    var folderObj = { name: entry.name, id: ordername, file: [] }
+                    
+                    order.step10.folder.map((item,index)=>{
+                        if( item.name == entry.name || item.id == ordername ) {
+                            return false;
+                        }
+                    })
+
+                    entry.createReader().readEntries(function (entries) {
+                        folderObj.length = entries.length;
+                        for (var i = 0; i < entries.length; i++) {
+                            var entrys = entries[i];
+                            
+                            if (entrys.isFile) {
+                                entrys.file(function (file) {
+                                    var fileObj = { name: file.name, size: file.size }
+                                    xhr = new XMLHttpRequest();
+                                    xhr.open("post", "http://192.168.0.2:7003/index.php?s=/Admin/Test/upload.html", true);
+                                    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+                                    var fd = new FormData();
+                                    fd.append('mypic', file);
+                                    xhr.send(fd);
+                                    
+                                    // 这样没问题
+                                    // folderObj.file.push(fileObj)
+
+                                    // 这个待测试
+                                    if (xhr.readyState == 4) {
+                                        if (xhr.status == 200) {
+                                            folderObj.file.push(fileObj)
+                                        }
+                                    }
+                                })
+                            } else {
+                                folder = entrys.name;
+                            }
+                        }
+                    });
+                    
+                    order.step10.folder.push(folderObj)
+                }
+                for (var i = 0; i < items.length; i++) {
+                    var entry = items[i].webkitGetAsEntry();
+                    if (!entry) {
+                        return;
+                    }
+                    if (entry.isFile) {
+                        alert("请上传文件夹");
+                    } else {
+                        folderRead(entry, 'esc0001');
+                    }
+                }
+            }
+            dropZone.addEventListener('drop', handleFileSelect, false);
+        })
+
+        // data.step1Type = order.step4.note.patient;
+        // vue
+        var order = new Vue({
+            el: '#app',
+            data () {
+                return {
+                    stepArr: [
+                        { name: '1.选择服务类型', show: false, error: false, active: true } ,
+                        { name: '2.选择服务内容', show: false, error: false, active: true },
+                        { name: '3.填写客户信息', show: false, error: false, active: true },
+                        { name: '4.填写患者信息', show: false, error: false, active: true },
+                        { name: '5.临床诊断', show: false, error: false, active: true },
+                        { name: '6.方案设计建议', show: false, error: false, active: true },
+                        { name: '7.方案附件建议', show: false, error: false, active: true },
+                        { name: '8.口内照及面相', show: false, error: false, active: true },
+                        { name: '9.X-Ray光片', show: false, error: false, active: true },
+                        { name: '10.CBCT数据', show: true, error: false, active: true  },
+                        { name: '11.提交订单', show: false, error: false, active: false }
+                    ],
+                    stepIndex: 1,
+                    step1: {
+                        type: 1          // 1.种植  2.固定正畸  3.隐形正畸
+                    },
+                    step2: {
+                        type: [],         // true 设计方案 false 模型方案
+                        typeActive: 1,
+                        urgent: 1,       // true 加急  false 未加急
+                        server: '单齿种植', // 普通服务内容 默认值可以取serverArr[0]
+                        // serverArr: ['单齿种植','多齿种植'], // 普通服务内容选项
+                        serverArr: [
+                            { key: '1', value: '单齿种植' },
+                            { key: '2', value: '多齿种植' }
+                        ],
+                        other: [], // 其他服务内容 默认值可以取otherArr[0]
+                        otherArr: [
+                            { key: '1', value: '拔牙导板1' },
+                            { key: '2', value: '拔牙导板2' },
+                            { key: '3', value: '拔牙导板3' },
+                            { key: '4', value: '拔牙导板4' },
+                            { key: '5', value: '拔牙导板5' },
+                            { key: '6', value: '拔牙导板6' }
+                        ] // 其他服务内容选项
+                    },
+                    step3: {
+                        clinic: {
+                            name: '诊所名字',       //  诊所名字
+                            address: '山东青岛'     //  诊所地址
+                        },
+                        mailing: {
+                            name: '马老师',         //  医生名字
+                            phone: '15544332214',  //  医生电话
+                            address: '山东青岛'     //  医生地址
+                        },
+                        team: {
+                            doctor: '',            //  主治医师
+                            doctorAssistant: '',   //  医生助理
+                            referralDoctor: '',    //  转诊医生
+                            referralAssistant: ''  //  转诊助理
+                        }
+                    },
+                    step4: {
+                    },
+                    step5: {
+                    },
+                    step6: {
+                        checkedArr: [
+                            { name: '上颌中线', checked: 1, value: 1, type: 's6f1' },
+                            { name: '下颌中线', checked: 2, value: 1, type: 's6f2' },
+                            { name: '前牙覆盖', checked: 3, value: 1, type: 's6f3' },
+                            { name: '前牙覆合', checked: 1, value: 1, type: 's6f4' },
+                            { name: '牙弓形态', checked: 2, value: 1, type: 's6f5' },
+                            { name: '尖牙关系', checked: 3, value: 1, type: 's6f6' },
+                            { name: '磨牙关系', checked: 3, value: 1, type: 's6f7' },
+                            { name: '反颌', checked: 2, value: 1, type: 's6f8' },
+                            { name: '前倾', checked: 2, value: 1, type: 's6f9' },
+                            { name: '扩弓', checked: 3, value: 1, type: 's6f10' },
+                            { name: '邻间去釉', checked: 1, value: 1, type: 's6f11' },
+                            { name: '关闭所有缝隙', checked: 1, value: 1, type: 's6f12' },
+                        ],
+                        checked: [],
+                        note: ''
+                    },
+                    step7: {},
+                    step8: {},
+                    step9: {},
+                    step10: {
+                        folder: [
+                            // {
+                            //     name: '',
+                            //     file: []
+                            // }
+                        ]
+                    },
+                    step11: {}
+                }
+            },
+            filters: {
+                servetype (val) {
+                    switch (val) {
+                        case 1:
+                            return '种植';
+                            break;
+                        case 2:
+                            return '固定正畸';
+                            break
+                        case 3:
+                            return '隐形正畸';
+                            break;
+                    }
+                },
+                inflafilter (val) {
+                    switch (val) {
+                        case 1:
+                            return '重度';
+                            break;
+                        case 2:
+                            return '轻度';
+                            break;
+                        case 3:
+                            return '无';
+                            break;
+                    }
+                },
+                pinefilter (val) {
+                    switch (val) {
+                        case 1:
+                            return 'Ⅰ°';
+                            break;
+                        case 2:
+                            return 'Ⅱ°';
+                            break;
+                        case 3:
+                            return 'Ⅲ°';
+                            break;
+                    }
+                }
+            },
+            mounted () {
+                // plugin init
+                $('.i-checks').iCheck({
+                    checkboxClass: 'icheckbox_square-green',
+                    radioClass: 'icheckbox_square-green',
+                });
+
+                // datepicker
+                $('#birthday .date , #surgery .date').datepicker({
+                    todayBtn: "linked",
+                    keyboardNavigation: false,
+                    forceParse: false,
+                    calendarWeeks: false,
+                    autoclose: true,
+                    format: 'yyyy-mm-dd'
+                });
+
+                // ckeditor
+                // CKEDITOR.replace('note1');
+                // CKEDITOR.replace('note2');
+
+                $('.iviews-order-step4 .iviews-actions .btn').on('click', function(){
+                    // order.step4.note.patient = CKEDITOR.instances.note1.getData()
+                    // order.step4.note.case = CKEDITOR.instances.note2.getData()
+                })
+
+                // step6// 
+                CKEDITOR.replace('step6note');
+                $('.iviews-order-step6 .s6f input[type="radio"]').on('ifChecked', function(){
+                    var $this   =   $(this),
+                        $vals   =   $this.val(),
+                        $parent =   $this.closest('.form-group'),
+                        $class  =   $parent.attr('data-class');
+                    
+                    order.step6.checkedArr.map((item,index)=>{
+                        if ( item.type == $class ) {
+                            item.checked = $vals;
+                        }
+                    })
+                })
+
+                // step7
+                CKEDITOR.replace('step7note');
+
+                // step8
+
+            },
+            methods: {
+                tab(index) {
+                    console.log(index);
+                    if ( index === 0 ) {
+                        return false;
+                    }
+                    if (this.stepArr[index].active) {
+                        this.stepArr.map((item, $index) => {
+                            item.show = false;
+                        })
+                        this.stepArr[index].show = true;
+                    }
+                },
+                rclass (ele) {
+                    console.log(ele.target.className);
+                    if ( $('input[name="' + ele.target.name + '"]').val().length >= 1 ) {
+                        $('input[name="'+ele.target.name+'"]').closest('.form-group').removeClass('has-error');
+                    }
+                },
+                // step1
+                step1Type (index) {
+                    this.step1.type = index;
+                    this.stepArr[0].show = false;
+                    this.stepArr[1].show = true;
+                    this.stepArr[1].active = true;
+                },
+                // step2
+                step2Server (ele) {
+                    this.step2.server = ele.target.value;
+                },
+                step2Other (name) {
+                    this.step2.other.push(name);
+                },
+                step2submit () {
+                    this.stepArr[1].show = false;
+                    this.stepArr[2].show = true;
+                    this.stepArr[2].active = true;
+                },
+                // step3
+                step3submit() {
+                    if ( this.step3.team.doctor === '' ) {
+                        $('.iviews-order-step3 input[name="doctor"]').closest('.form-group').addClass('has-error');
+                        return false;
+                    }
+                    if (this.step3.team.doctorAssistant === '') {
+                        $('.iviews-order-step3 input[name="doctorAssistant"]').closest('.form-group').addClass('has-error');
+                        return false;
+                    }
+                    if (this.step3.team.referralDoctor === '') {
+                        $('.iviews-order-step3 input[name="referralDoctor"]').closest('.form-group').addClass('has-error');
+                        return false;
+                    }
+                    if (this.step3.team.referralAssistant === '') {
+                        $('.iviews-order-step3 input[name="referralAssistant"]').closest('.form-group').addClass('has-error');
+                        return false;
+                    }
+                    this.stepArr[2].show = false;
+                    this.stepArr[3].show = true;
+                    this.stepArr[3].active = true;
+                },
+            }
+        })
+
+    </script>
+
+
+</body>
+
+</html>

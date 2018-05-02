@@ -1,0 +1,124 @@
+<extend name="Public/base_choose"/>
+<block name="body">
+    <link rel="stylesheet" href="__THEME__/default/task.css" type="text/css" media="screen">
+    <script>
+        $(function () {
+            $('#submit').click(function () {
+                var obj_m = $("div[id^='s_check_']");
+                var mids = [];
+                obj_m.each(function(i){
+                    var t = $(this);
+                    if(t.hasClass("c-selected")){
+                        var mid = t.find('input').val();
+                        var next_key = t.attr('next');
+                        var option = $("div[id^='check_"+next_key+"_']");
+                        var ids = [];
+                        option.each(function(i){
+                            if($(this).hasClass("c-selected")){
+                                var id = $(this).find('input').val();
+                                ids.push(id);
+                            }
+                        });
+                        mids.push({"id":mid,"sub":ids});
+                    }
+                });
+
+                var mids = JSON.stringify(mids);
+
+                if (mids == undefined || mids == null || mids == "") {
+                    alert('请选择任务');
+                    return false;
+                }
+                $('#mids').val(mids);
+                var param = $("#config_form").serialize();
+                var ajaxurl = '/index.php?s=/Admin/ProjectConfig/config';
+                $.ajax({
+                    type: 'post',
+                    url: ajaxurl,
+                    data: param,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done==true) {
+                            window.parent.close_config();
+                        }else{
+                            alert(response.msg);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <div class="container mw-700px">
+        <form action="{:U('config')}" method="post" class="form-condensed mw-700px" id="config_form">
+            <div class="aiui">
+                <div class="ai-treenav">
+                    <ul>
+                        <li>
+                            <ul class="nav-trunk">
+                                <input type="hidden" name="item" id="mids" value=""/>
+                                <input type="hidden" name="pj_id" id="pj_id" value="{$pj_id}"/>
+                                <foreach  name="list" item="fm" key="k">
+                                    <li >
+                                        <a  class="item-name c-f"><i></i>
+                                            <span class="pull-left">
+                                                <div class="all_checkbox" id="all_check_{$k}" item="{$k}">
+                                                    <input type="checkbox">
+                                                </div>
+                                            </span>
+                                            <span class="pull-left filename">{$fm.name}</span>
+                                        </a>
+                                        <ul class="nav-trunk fold ">
+                                            <if condition="$fm['item'] neq ''">
+                                                <foreach name="fm['item']" item="m" key="mk">
+                                                    <li >
+                                                        <a  class="item-name c-f" title=""><i></i>
+                                                            <span class="pull-left">
+                                                                <div class="s_checkbox <eq name='m.check' value='1'>c-selected</eq>" sg="{$m.sg}" id="s_check_{$k}_{$mk}" item="{$k}" next="{$k}_{$mk}">
+                                                                    <input type="checkbox" value="{$m.mid}">
+                                                                </div>
+                                                            </span>
+                                                            <span class="pull-left filename" >{$m.name}</span>
+                                                        </a>
+                                                        <ul class="nav-trunk fold">
+                                                            <if condition="$m['sub'] neq ''">
+                                                                <foreach name="m['sub']" item="s" key="sk">
+                                                                    <li>
+                                                                        <a  class="item-name item-name-last c-f"><i></i>
+                                                                            <span class="pull-left">
+                                                                                <div class="checkbox <eq name='s.check' value='1'>c-selected</eq>" filter="<eq name='s.required' value='1'>1<else/>0</eq>" group="{$s.sign}" id="check_{$k}_{$mk}_{$sk}" item="{$k}_{$mk}">
+                                                                                    <input type="checkbox" value="{$s.sid}">
+                                                                                </div>
+                                                                            </span>
+                                                                            <span class="pull-left filename">{$s.s_name}</span>
+                                                                            <input type="text" name="days[{$m.mid}][{$s.sid}]" value="{$s.days}" placeholder="请输入标准工时">
+                                                                            <textarea name="description[{$m.mid}][{$s.sid}]" placeholder="请输入任务说明">{$s.description}</textarea>
+                                                                        </a>
+                                                                    </li>
+                                                                </foreach>
+                                                            </if>
+                                                        </ul>
+                                                    </li>
+                                                </foreach>
+                                            </if>
+                                        </ul>
+                                    </li>
+                                </foreach>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <a href="javascript:;" id="submit" class="btn btn-primary" data-loading="稍候...">保存</a>
+                <a href="javascript:history.go(-1);" class="btn btn-back">返回</a>
+            </div>
+    </form>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script src="__JSNEW__/config.js"></script>
+</block>

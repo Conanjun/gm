@@ -1,0 +1,954 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+use Admin\Common\Super\Task;
+
+/**
+ * 后台首页控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class IndexController extends AdminController
+{
+
+	private $meta_title;
+
+	/**
+	 * 后台首页
+	 *
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index()
+	{
+		if (UID) {
+			$this->meta_title = '首页';
+
+			//首页模块数据
+			$blocks = array();
+			$blocks = M("Block")->where("uid='" . UID . "'")->order("sort_order asc")->select();
+			if ($blocks) {
+				foreach ($blocks as $k => $v) {
+					if ($v['source'] == "dealt") {
+						$blocks[$k]["morelink"] = U("Dealt/index");
+						$blocks[$k]["addlink"] = U("Dealt/add");
+						$blocks[$k]["showadd"] = 1;
+					}
+					if ($v['source'] == "task") {
+						$blocks[$k]["morelink"] = U("Task/index");
+						$timestr = time();
+						$day = date('w', $timestr);
+						$tday = date('Y/m/d', $timestr);
+						$taytims = strtotime($tday);
+						$one_day = $taytims - ($day - 1) * 86400;
+						$end_day = $one_day + 7 * 86400;
+						$end_day1 = $taytims + 86400;
+
+						$taskz = M('Task')->where("(petime between $one_day and $end_day) and deleted = 0 and assigneduid =" . UID . " and (t.state=2 or t.state=6 or t.state=1  or t.state=4) ")->count();
+						$taskz1 = M('Task')->where("(petime between $taytims and $end_day1) and deleted = 0 and assigneduid =" . UID . " and (t.state=2 or t.state=6 or t.state=1  or t.state=4) ")->count();
+						$taskz = empty($taskz) ? 0 : $taskz;
+						$taskz1 = empty($taskz1) ? 0 : $taskz1;
+						$blocks[$k]['tasklog'] = "<span>本周 <span class='textr'>$taskz</span>个任务&nbsp;&nbsp;&nbsp;&nbsp;今日 <span  class='textr'>$taskz1</span>个任务</span>  ";
+					}
+					if ($v['source'] == "html") {
+						$blocks[$k]["hidemore"] = 1;
+					}
+					if ($v['source'] == "dynamic") {
+						$blocks[$k]["morelink"] = U("Demo3/index");
+					}
+					if ($v['source'] == "project") {
+						$blocks[$k]["morelink"] = U("ProjectNew/index");
+						$project = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 ")->count();
+						$project1 = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 and p.state =2")->count();
+						$project2 = M('Project')->alias('p')->where("(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 and p.state =1")->count();
+
+						$blocks[$k]['projectlog'] = "<span>参与 <span class='textr'>$project</span><span>个项目</span>
+&nbsp;&nbsp;&nbsp;&nbsp;已完成<span class='textr'>$project1</span><span>个项目</span>
+&nbsp;&nbsp;&nbsp;&nbsp;进行中<span class='textr'>$project2</span><span>个项目</span></span>  ";
+					}
+					if ($v['source'] == "maproject") {
+						$blocks[$k]["morelink"] = U("ProjectNewFromMe/index");
+						$project = M('Project')->alias('p')->where(" p.del = 0 and p.pmuid=" . UID)->count();
+						$project1 = M('Project')->alias('p')->where(" p.del = 0 and p.pmuid=" . UID . " and p.state = 1")->count();
+						$project2 = M('Project')->alias('p')->where("p.del = 0 and p.pmuid=" . UID . " and p.state = 2")->sum('p.money');
+						$project2 = fomatprice($project2);
+
+						$project3 = M('Project')->alias('p')->where("p.del = 0 and p.pmuid=" . UID)->sum('p.amount');
+						$project3 = fomatprice($project3);
+
+						$blocks[$k]['mprojectlog'] = "<span>管理项目 <span class='textr'>$project</span><span>个</span>
+&nbsp;&nbsp;&nbsp;&nbsp;进行中项目<span class='textr'>$project1</span><span>个</span>
+&nbsp;&nbsp;&nbsp;&nbsp;完成项目金额<span class='textr'>$project2</span><span></span></span>
+			            &nbsp;&nbsp;&nbsp;&nbsp;项目挣值<span class='textr'>$project3</span><span></span></span>  ";
+					}
+					if ($v['source'] == "notice") {
+						$blocks[$k]["morelink"] = U("Affiche/index");
+					}
+					if ($v['source'] == "cal") {
+						$blocks[$k]['mprojectlog'] = "<div style='float: right;margin-left: 20px;font-size='12px;'>
+<div style='width: 13px;height: 13px;background: #21841d;float: left;margin-right: 5px;margin-top: 2px;border-radius: 100%'></div>我的待办</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 13px;height: 13px;background: #fc6161;float: left;margin-right: 5px;margin-top: 2px;border-radius: 100%'></div>已延期任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 13px;height: 13px;background: #39b3d7;float: left;margin-right: 5px;margin-top: 2px;border-radius: 100%'></div>已提交任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 13px;height: 13px;background: #7865c7;float: left;margin-right: 5px;margin-top: 2px;border-radius: 100%'></div>进行中任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 13px;height: 13px;background: #b2b2b2;float: left;margin-right: 5px;margin-top: 2px;border-radius: 100%'></div>未开始任务</div><div style='clear: both'></div>";
+						$blocks[$k]["hidemore"] = 1;
+					}
+					if ($v[params]) {
+						$blocks[$k]["params"] = json_decode($v[params], true);
+					}
+				}
+			}
+
+			$root_mbx = array();
+			$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+			$this->assign('root_mbx', $root_mbx);
+
+			$this->assign('blocks', $blocks);
+
+			$this->display();
+		} else {
+			$this->redirect('Public/login');
+		}
+	}
+
+	public function indexTotal()
+	{
+		//统计审批数和待办数及转阅数
+		//审批数
+		$dexa_map['checkid'] = UID;
+		$dexa_map['ot_exprocess.state'] = 0;
+		$dexa_map ['_string'] = "IF(ot_exprocess.type='报价单审核' AND ot_offer.oid is NULL,FALSE,TRUE) AND IF(ot_exprocess.type='报销单审核' AND ot_expense.eid is NULL,FALSE,TRUE) and not EXISTS (select ee.id from ot_exprocess ee where ee.exid=ot_exprocess.exid and ee.order<ot_exprocess.order and (ee.state=0 or ee.state=-1) AND ee.type=ot_exprocess.type )";
+		$count_dexa = M("Exprocess")
+		->join("ot_offer on ot_offer.oid=ot_exprocess.exid", "left")
+		->join("ot_task on ot_task.tid=ot_exprocess.exid", "left")
+		->join("ot_project on ot_project.pid=ot_task.pid", "left")
+		->join("ot_expense on ot_expense.eid=ot_exprocess.exid", "left")
+		->join("ot_project p1 on p1.pid=ot_expense.pid", "left")
+		->join("ot_customer on ot_customer.cid=ot_offer.cid", "left")
+		->field("ot_offer.*,ot_exprocess.*,ot_exprocess.type as stype,ot_customer.shortsign,ot_task.title as tasktitle,ot_project.name as proname")
+		->where($dexa_map)->count();
+		//待办数
+		$day = date('Ymd', time());
+		$stime = strtotime($day);
+		$etime = $stime + 86399;
+		$count_dealt = M('Todo')->where("toid=" . UID . "  and state <> '已完成'")->count();
+		//转阅数
+		$needread_map['r.touid'] = UID;
+		$needread_map['_string'] = "(r.content='' or r.content is null)";
+		$count_needread = M("Toread")->alias('r')->join("ot_task t on t.tid=r.tid")->join("ot_project p on p.pid=r.pid")
+		->field("r.*,t.title as tasktitle,p.name as pname")
+		->where($needread_map)->count();
+		$data['Dexa'] = $count_dexa ?: "";
+		$data['Dealt'] = $count_dealt ?: "";
+		$data['Needread'] = $count_needread ?: "";
+		$this->ajaxReturn(['total' => $data]);
+	}
+
+	public function printblock()
+	{
+
+		$id = I("id", '');
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+
+		if (empty($block)) return false;
+
+		$html = '';
+		if ($block['source'] == 'html') {
+			$params = json_decode($block['params']);
+			$html = "<div class='article-content' style='margin:0 20px;'>" . htmlspecialchars_decode($params->html) . '</div>';
+		} elseif ($block['source'] == 'dealt') {
+			$this->dealt($id);
+		} elseif ($block['source'] == 'project') {
+			$this->project($id);
+		} elseif ($block['source'] == 'maproject') {
+			$this->maproject($id);
+		} elseif ($block['source'] == 'dynamic') {
+			$this->dynamic($id);
+		} elseif ($block['source'] == 'task') {
+			$this->task($id);
+		} elseif ($block['source'] == 'notice') {
+			$this->notice($id);
+		} elseif ($block['source'] == 'cal') {
+			$this->calshow($id);
+		}
+		die($html);
+	}
+
+
+	function cal($id)
+	{
+		$this->assign('id', $id);
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$limit = 20;
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+
+		$list = array();
+		$taskmod = M("Task");
+		$list = $taskmod->alias('t')
+		->field("t.tid as id,t.title as name,'task' as type,t.pstime as stime,t.petime as etime")
+		->union("SELECT td.todoid as id,td.title as name,'todo' as type,td.stime as stime,td.etime as etime FROM ot_todo td where td.toid='" . UID . "' and state!='已完成'")
+		->limit($limit)->select();
+
+		if ($list) {
+			foreach ($list as $k => $v) {
+				$list[$k]['stime'] = date('Y-m-d H:i', $v['stime']);
+				$list[$k]['etime'] = date('Y-m-d H:i', $v['etime']);
+				if ($v['type'] == "task") {
+					$list[$k]['url'] = U("Task/index");
+				} else {
+					$list[$k]['url'] = U("Dealt/view?id=" . $v['id']);
+				}
+			}
+		}
+
+
+		$this->assign("list", json_encode($list));
+
+		$this->display("calshow");
+	}
+
+	function calshow($id)
+	{
+		//$id=I("get.id","");
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$limit = 20;
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+		$map = array();
+		$map['t.assigneduid'] = UID;
+		$map['_string'] = " (t.state=2 or t.state=6 or t.state=1  or t.state=4) ";
+
+		$taskmod = M("Task");
+		$list = $taskmod->alias('t')
+		->field("t.tid as id,t.title as name,'task' as type,t.pstime as stime,petime as etime,t.state as state")
+		->union("SELECT td.todoid as id,td.title as name,'todo' as type,td.stime as stime,td.etime as etime,0 as state FROM ot_todo td where td.toid='" . UID . "' and state!='已完成'")
+		->where($map)->limit($limit)->select();
+
+		$oplist = array();
+
+		if ($list) {
+			$nowDate = date('Ymd');
+			foreach ($list as $k => $v) {
+
+				// 我的日历状态是已延期的用红色标出 : LGW
+				if ($v['state'] != Task::FINISHED && $v['state'] != Task::CLOSE && $v['etime']) {
+					$petime = date("Ymd", $v['etime']);
+					if ($nowDate > $petime) {
+						$v['state'] = 6;
+					}
+				}
+				if ($v['type'] == "task") {
+					$v['url'] = U("Task/view?id=" . $v['id']);
+
+					if ($v['stime'] && $v['etime']) {
+						$days = ceil(($v['etime'] - $v['stime']) / 86400);
+						if ($days && $days > 0) {
+							for ($i = 1; $i < $days; $i++) {
+								$temp = $v;
+								$temp['stime'] = $v['stime'] + 86400 * $i;
+								$temp['stime'] = date('Y-m-d H:i', $temp['stime']);
+								$temp['etime'] = "";
+								$oplist[] = $temp;
+							}
+						}
+					}
+					$v['etime'] = "";
+				} else {
+					$v['url'] = U("Dealt/view?id=" . $v['id']);
+				}
+				$v['stime'] = date('Y-m-d H:i', $v['stime']);
+				$v['etime'] = date('Y-m-d H:i', $v['etime']);
+				$oplist[] = $v;
+			}
+		}
+
+		$oplist = array_values($oplist);
+		$this->assign("list", json_encode($oplist));
+
+		$this->display("calshow");
+	}
+
+	/**
+	 * 待办事项
+	 *
+	 * @param int $id
+	 */
+	function dealt($id = 0)
+	{
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$order = "addtime desc";
+		$limit = 20;
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+		if ($params->orderBy) {
+			$order = $params->orderBy;
+		}
+		$dblist = M("Todo")->where("(toid='" . UID . "' and state!='已完成')")->order($order)->limit($limit)->select();
+
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$dblist[$k]['link'] = U("Dealt/view?id={$v['todoid']}");
+			}
+		}
+
+		$this->assign('_dblist', $dblist);
+		$this->display("dealt");
+	}
+
+	/**
+	 * 项目
+	 *
+	 * @param int $id
+	 */
+	function project($id = 0)
+	{
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$order = "p.addtime desc";
+		$limit = 20;
+		$map = array();
+		//     	if(!is_administrator(UID)){
+		//     		$map['pmid']=UID;
+		//     	}
+		//$map['t.uid']=UID;
+		/*$map["_string"]=" (p.state=1 or p.state=4 or p.state=0) and (exists (select pid from ot_takepart where uid='".UID."' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 ";*/
+		$map["_string"] = "(exists (select pid from ot_takepart where uid='" . UID . "' and pid=p.pid) or EXISTS(select 1 from ot_task t where t.pid = p.pid and t.uid=" . UID . ")) and p.del=0 ";
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+		//     	if($params->type=='1'){
+		//     		//进行中
+		//     		$map['state']=1;
+		//     	}elseif($params->type=='2'){
+		//     		$map['_string']="state<>2";
+		//     	}elseif($params->type=='all'){
+		//     		unset($map['state']);
+		//     	}
+		$dblist = M("Project")->field("p.*,c.shortsign,if(p.stime is null or p.stime=0,p.pstime,p.stime) as mtime,d.d_key")
+		->alias('p')
+		->join("ot_dictionary d on d.d_value = p.state and d_code='project_state'", 'LEFT')
+		->join('ot_customer c on c.cid = p.cid', 'LEFT')->where($map)->order($order)->limit($limit)->select();
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$dblist[$k]['link'] = U("ProjectView/view?id={$v['pid']}");
+				if ($v['money'] != '0.00') {
+					if ($v['money'] != '0.00') {
+						$duty = round((float)$v['amount'] / (float)$v['money'] * 100);
+						if ($duty > 100) {
+							$dblist[$k]['duty'] = 100;
+						} else {
+							$dblist[$k]['duty'] = $duty;
+						}
+					} else {
+						$dblist[$k]['duty'] = 0;
+					}
+				} else {
+					$dblist[$k]['duty'] = 0;
+				}
+			}
+		}
+
+		$this->assign('_projectlist', $dblist);
+		$this->display("project");
+	}
+
+	/**
+	 * 我管理的项目
+	 *
+	 * @param int $id
+	 */
+	function maproject($id = 0)
+	{
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$order = "p.addtime desc";
+		$limit = 20;
+		$map = array();
+		//     	if(!is_administrator(UID)){
+		//     		$map['pmid']=UID;
+		//     	}
+		$map['_string'] = "  (p.state=1 or p.state=4 or p.state=0) and p.del = 0 and p.pmuid=" . UID . " ";
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+		//     	if($params->type=='1'){
+		//     		//进行中
+		//     		$map['state']=1;
+		//     	}elseif($params->type=='2'){
+		//     		$map['_string']="state<>2";
+		//     	}elseif($params->type=='all'){
+		//     		unset($map['state']);
+		//     	}
+
+		$dblist = array();
+		$dblist = M("Project")->field("p.*,c.shortsign,if(p.stime is null or p.stime=0,p.pstime,p.stime) as mtime,d.d_key")
+		->alias('p')
+		->join("ot_dictionary d on d.d_value = p.state and d_code='project_state'", 'LEFT')
+		->join('ot_customer c on c.cid = p.cid', 'LEFT')->where($map)->order($order)->limit($limit)->select();
+
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$dblist[$k]['link'] = U("ProjectView/view?id={$v['pid']}");
+				if ($v['money'] != '0.00') {
+					if ($v['money'] != '0.00') {
+						$duty = round((float)$v['amount'] / (float)$v['money'] * 100);
+						if ($duty > 100) {
+							$dblist[$k]['duty'] = 100;
+						} else {
+							$dblist[$k]['duty'] = $duty;
+						}
+					} else {
+						$dblist[$k]['duty'] = 0;
+					}
+				} else {
+					$dblist[$k]['duty'] = 0;
+				}
+
+				if ($v['costh'] > 0) {
+					$duty1 = round((float)$v['costh'] / (float)$v['cost'] * 100, 0);
+					if ($duty1 > 100) {
+						$dblist[$k]['duty1'] = 100;
+					} else {
+						$dblist[$k]['duty1'] = $duty1;
+					}
+				} else {
+					$dblist[$k]['duty1'] = 0;
+				}
+			}
+		}
+		$this->assign('_projectlist', $dblist);
+		$this->display("maproject");
+	}
+
+	/**
+	 * 最新动态
+	 *
+	 * @param int $id
+	 */
+	function notice($id = 0)
+	{
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$order = "addtime desc";
+		$limit = 20;
+		if ($params->num > 0) {
+			$limit = $params->num;
+		}
+
+		$dblist = M("Notice")->where("1=1")->order($order)->limit($limit)->select();
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$c = '';
+				if ($v['level'] == 3) {
+					$c = 'class="textr"';
+				}
+				$v['addtime'] = date('Y/m/d H:i', $v['addtime']);
+				$dblist[$k]['html'] = "<a $c href='" . U('Affiche/view?id=' . $v['id']) . "'>{$v['title']}</a>&nbsp;&nbsp;&nbsp;&nbsp;<em>{$v['uname']}</em> <em>{$v['addtime']}</em>";
+			}
+		}
+
+		$this->assign('_notice', $dblist);
+		$this->display("notice");
+
+	}
+
+	/**
+	 * 最新动态
+	 *
+	 * @param int $id
+	 */
+	function dynamic($id = 0)
+	{
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		$order = "addtime desc";
+		$limit = 20;
+
+		$dblist = M("Log")->where("uid='" . UID . "'")->order($order)->limit($limit)->select();
+
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$dblist[$k]['html'] = "";
+
+				switch ($v['outtype']) {
+
+					case "ot_project_config":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("ProjectConfig")->where("pid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 标准项目 <a href='" . U('ProjectConfig/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("ProjectConfig")->where("pid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 标准项目 <a href='" . U('ProjectConfig/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 标准项目。";
+								break;
+						}
+						break;
+					case "ot_service":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Service")->where("sid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 服务内容 <a href='" . U('Service/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Service")->where("sid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 服务内容 <a href='" . U('Service/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 服务内容。";
+								break;
+						}
+						break;
+					case "ot_module":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Module")->where("mid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 标准模块 <a href='" . U('Module/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Module")->where("mid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 标准模块 <a href='" . U('Module/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 标准模块。";
+								break;
+						}
+						break;
+					case "ot_module_help":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Module")->where("mid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 标准模块 <a href='" . U('Module/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Module")->where("mid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 标准模块 <a href='" . U('Module/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 标准模块。";
+								break;
+						}
+						break;
+					case "ot_offer_sub":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("OfferSub")->where("osid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 报价单明细 <a href='" . U('Offer/subedit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("OfferSub")->where("osid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 报价单明细 <a href='" . U('Offer/subedit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 报价单明细。";
+								break;
+						}
+						break;
+					case "ot_service_doc":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 关联文档类型 <a href='" . U('Offer/subedit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("OfferSub")->where("osid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 关联文档类型 <a href='" . U('Offer/subedit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 关联文档类型。";
+								break;
+						}
+						break;
+					case "ot_offer":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Offer")->where("oid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 报价单 <a href='" . U('Offer/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$r = M("Offer")->where("oid='{$v['outkey']}'")->find();
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 报价单 <a href='" . U('Offer/edit?id=' . $v['outkey']) . "'>{$r['name']}</a>。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 报价单。";
+								break;
+						}
+						break;
+					case "ot_file":
+						switch ($v['action']) {
+							case "create":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>创建</em> 附件。";
+								break;
+							case "edit":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>编辑</em> 附件。";
+								break;
+							case "delete":
+								$time = date('Y-m-d H:i', $v['addtime']);
+								$dblist[$k]['html'] = "{$time}, {$v['uname']} <em>删除</em> 附件。";
+								break;
+						}
+						break;
+				}
+
+			}
+		}
+
+		$this->assign('_dynamic', $dblist);
+		$this->display("dynamic");
+	}
+
+	/**
+	 * 任务
+	 *
+	 * @param int $id
+	 */
+	function task($id = 0)
+	{
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$params = json_decode($block['params']);
+		/*$order="ms desc,level desc,t.assignedtime desc";*/
+		$order = "addtime desc";
+
+		$limit = 20;
+
+		$map = array();
+		$md = time() - 3600 * 24 * 3;
+		$map['assigneduid'] = UID;
+		$map['deleted'] = 0;
+		//$map['_string']="t.assignedtime>='{$md}'";
+		$map['_string'] = "1=1 ";
+		$map['_string'] .= " and (t.state=2 or t.state=6 or t.state=1  or t.state=4) ";
+
+		//     	if($params->num>0){
+		//     		$limit=$params->num;
+		//     	}
+		//     	if($params->orderBy){
+		//     		$order=$params->orderBy;
+		//     	}
+
+		//     	if($params->type=='1'){
+		//     		//指派给我
+		//     		$map['assigneduid']=UID;
+		//     	}elseif($params->type=='2'){
+		//     		//由我创建
+		//     		$map['uid']=UID;
+		//     	}
+		//     	elseif($params->type=='3'){
+		//     		//由我完成
+		//     		$map['lastedituid']=UID;
+		//     	}
+		//     	elseif($params->type=='4'){
+		//     		//由我关闭
+		//     		$map['closeuid']=UID;
+		//     	}else{
+		//     		$map['uid']=0;
+		//     	}
+		$dblist = M("Task")->field("t.*,p.name as pname,d.d_key,if(p.state=4,'1','0') as ms,d1.d_key as statestr")
+		->alias('t')
+		->join('ot_project p on p.pid = t.pid', 'LEFT')
+		->join("ot_dictionary d on d.d_value = t.level and d.d_code='task_level'", 'LEFT')
+		->join("ot_dictionary d1 on d1.d_value = t.state and d1.d_code='taskstatus'", 'left')
+		->where($map)->order($order)->limit($limit)->select();
+		//echo(M()->getLastSql());
+		if ($dblist) {
+			foreach ($dblist as $k => $v) {
+				$dblist[$k]['link'] = U("Task/view?id=" . $v['tid']);
+			}
+		}
+
+		$this->assign('_tasklist', $dblist);
+		$this->display("task");
+	}
+
+
+	/**
+	 * Resize block
+	 *
+	 * @param int    $id
+	 * @param string $type
+	 * @param string $data
+	 */
+	public function resize($id = 0, $type = '', $data = '')
+	{
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		if ($block) {
+			$field = '';
+			if ($type == 'vertical') $field = 'height';
+			if ($type == 'horizontal') $field = 'grid';
+			if (empty($field)) $this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+
+
+			if (D("Block")->save(array('bid' => $id, $field => $data)) === false) {
+				$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+			}
+
+			$this->ajaxReturn(array('result' => 'success'));
+		} else {
+			$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+		}
+	}
+
+	/**
+	 * Delete block
+	 *
+	 * @param int $id
+	 */
+	public function delete($id = 0)
+	{
+		$map = [];
+		$map ['bid'] = $id;
+		$map['uid'] = UID;
+		if (M('Block')->where($map)->delete() !== false) {
+			$this->ajaxReturn(array('result' => 'success'));
+		} else {
+			$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+		};
+	}
+
+	/**
+	 * Sort block.
+	 *
+	 * @param $orders
+	 */
+	public function sort($orders)
+	{
+		$orders = explode(',', $orders);
+
+		$bm = D('Block');
+		M("Block")->where("uid='" . UID . "'")->order("sort_order asc")->select();
+
+		foreach ($orders as $order => $blockID) {
+			if ($bm->save(array('bid' => $blockID, 'sort_order' => $order + 1)) === false) {
+				$this->ajaxReturn(array('result' => 'fail', 'code' => 404));
+			}
+		}
+
+		$this->ajaxReturn(array('result' => 'success'));
+	}
+
+
+	public function admin($id = 0)
+	{
+		$slist = M("Dictionary")->where("d_code='blockresource'")->order("d_order asc")->select();
+		$this->assign('slist', $slist);
+		$this->assign('blockID', $id);
+		if ($id) {
+			$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+			$this->assign('b', $block);
+		}
+		$this->display();
+	}
+
+	/**
+	 * Set params when type is rss or html.
+	 *
+	 * @param  int    $id
+	 * @param  string $type
+	 *
+	 * @access public
+	 * @return void
+	 */
+	public function set($id = 0, $type = '')
+	{
+		if (IS_POST) {
+			if (empty($id)) {
+				//添加
+				$title = I("post.title", '');
+				$params = I("post.params", '');
+				$grid = I("post.grid", 4);
+				$height = I("post.height", 0);
+
+				if ($title && $type) {
+
+					$last = M("Block")->where("uid='" . UID . "'")->order("sort_order desc")->find();
+					if ($last['sort_order']) {
+						$order = $last['sort_order'] + 1;
+					} else {
+						$order = 1;
+					}
+
+					$data = array("title" => $title, "uid" => UID, "source" => $type, "params" => json_encode($params), "grid" => $grid, "height" => $height, "sort_order" => $order);
+					if (D("Block")->add($data) === false) {
+						//保存失败
+					};
+				}
+				echo "<script>window.parent.renovate()</script>";
+				exit();
+
+			} else {
+				//编辑
+				$title = I("post.title", '');
+				$params = I("post.params", '');
+				$grid = I("post.grid", 4);
+				$height = I("post.height", 0);
+				if ($title && $type) {
+
+					$data = array("bid" => $id, "title" => $title, "uid" => UID, "source" => $type, "params" => json_encode($params), "grid" => $grid, "height" => $height);
+					if (D("Block")->save($data) === false) {
+						//保存失败
+					};
+				}
+				echo "<script>window.parent.renovate()</script>";
+				exit();
+			}
+		}
+
+		$block = M("Block")->where("uid='" . UID . "' and bid='{$id}'")->find();
+		$this->assign('id', $id);
+
+		if ($block['params']) {
+			$block['params'] = json_decode($block['params'], true);
+		}
+
+		$this->assign('block', ($block) ? $block : array("grid" => "6", "params" => array("num" => 20)));
+
+
+		//     	if($block['source']){
+		//     		$type=$block['source'];
+		//     	}
+
+		if ($type == "project") {
+
+			$this->display("projectform");
+
+		}
+		if ($type == "maproject") {
+
+			$this->display("maprojectform");
+
+		} elseif ($type == "html") {
+
+			$this->display("htmlform");
+
+		} elseif ($type == "task") {
+
+			$orders = array();
+			$orders = M("Dictionary")->where("d_code='taskorder'")->order("d_order asc")->select();
+			$this->assign('orders', $orders);
+			$this->display("taskform");
+
+		} elseif ($type == "dealt") {
+
+			$this->display("dealtform");
+
+		} elseif ($type == "dynamic") {
+
+			$this->display("dynamicform");
+
+		} elseif ($type == "notice") {
+
+			$this->display("noticeform");
+
+		} elseif ($type == "cal") {
+
+			$this->display("calform");
+
+		}
+
+	}
+
+	public function loadfile($files=""){
+		try{
+			$p=C('DOWNLOAD_UPLOAD');
+
+			$p['subName']='';
+
+			$uploader = new \Think\Upload($p);// 实例化上传类
+			$uploader->maxSize = 500 * 1024 * 1024;
+			$method = $_SERVER["REQUEST_METHOD"];
+
+			if ($method == "POST") {
+				header("Content-Type: text/plain");
+
+				$info = $uploader->upload();
+				
+				if (!$info) {
+					//throw new \Think\Exception($info);
+				} else {
+					foreach ($info as $key => $value) {
+						$a = explode('.', $value['name']);
+						$name = $a[0];
+
+						$file['name'] = $name;
+						$c = C('DOWNLOAD_UPLOAD');
+						$file['savepath'] = $c['rootPath'] . $value['savepath'] . $value['savename'];
+						$file['ext'] = $value['ext'];
+						$file['size'] = $value['size'];
+						$file['addtime'] = time();
+						$file['uid'] = UID;
+						$file['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+						$fileid = M('File')->add($file);
+
+						if (file_exists($file['savepath'])){
+							$img_info = getimagesize($file['savepath']);
+						}else{
+							$img_info[0]=0;
+							$img_info[1]=0;
+						}
+					}
+				}
+				$m['done']=true;
+				$m['path']=U('doc/view?fid='.$fileid);
+				$m['w']=$img_info[0];
+				$m['h']=$img_info[1];
+				echo json_encode($m);
+				exit();
+			}else {
+				header("HTTP/1.0 405 Method Not Allowed");
+			}
+		}
+		catch (Exception $e){
+			$m['done']=false;
+			$m['msg']=$e->getMessage();
+			echo json_encode($m);
+			exit();
+		}
+	}
+
+}

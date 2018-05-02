@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/Application/Studio/Controller/OrderTaskSwController.class.php" line="92" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" readonly="true" id="0366f4bc-1def-42e4-9b7d-64ab113f1bd9" name="Default" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="CostplanController.class.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/CostplanController.class.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1175">
+              <caret line="53" column="78" lean-forward="false" selection-start-line="53" selection-start-column="78" selection-end-line="53" selection-end-column="78" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="userlist.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/AuthRule/userlist.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3150">
+              <caret line="126" column="47" lean-forward="false" selection-start-line="126" selection-start-column="47" selection-end-line="126" selection-end-column="47" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="OrderTaskSgController.class.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/OrderTaskSgController.class.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4175">
+              <caret line="168" column="47" lean-forward="false" selection-start-line="168" selection-start-column="32" selection-end-line="168" selection-end-column="47" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2150">
+              <caret line="86" column="97" lean-forward="false" selection-start-line="86" selection-start-column="93" selection-end-line="86" selection-end-column="97" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/AuthRule/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2175">
+              <caret line="87" column="40" lean-forward="false" selection-start-line="87" selection-start-column="40" selection-end-line="87" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="add.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/add.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2275">
+              <caret line="91" column="156" lean-forward="false" selection-start-line="91" selection-start-column="150" selection-end-line="91" selection-end-column="156" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="edit.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/User/edit.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4500">
+              <caret line="180" column="166" lean-forward="false" selection-start-line="180" selection-start-column="120" selection-end-line="180" selection-end-column="166" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="edit.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/edit.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2375">
+              <caret line="95" column="204" lean-forward="false" selection-start-line="95" selection-start-column="197" selection-end-line="95" selection-end-column="204" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="UserController.class.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/UserController.class.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AuthRuleController.class.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/AuthRuleController.class.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4825">
+              <caret line="201" column="75" lean-forward="false" selection-start-line="201" selection-start-column="75" selection-end-line="201" selection-end-column="75" />
+              <folding>
+                <marker date="1524627910913" expanded="true" signature="7195:7471" ph="select um.id... ot_auth_group_access" />
+                <marker date="1524627910913" expanded="true" signature="8656:8932" ph="select um.id... ot_auth_group_access" />
+                <marker date="1524627910913" expanded="true" signature="15574:15777" ph="select um.id... ot_auth_group_access" />
+                <marker date="1524627910913" expanded="true" signature="17986:19508" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="18136:18185" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18199:18251" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="18252:18436" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18347:18376" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="18377:18429" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18450:18502" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="18503:18712" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18596:18625" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="18651:18705" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18726:18778" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="18940:18969" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19042:19094" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19187:19216" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19292:19344" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19439:19468" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="19666:21083" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="19759:19807" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19821:19873" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="19874:20034" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="19937:20027" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="19966:19995" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20048:20100" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="20101:20310" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20194:20223" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20324:20376" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="20377:20578" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="20482:20571" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20511:20540" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20592:20644" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20737:20766" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20841:20893" ph="..." />
+                <marker date="1524627910913" expanded="false" signature="20988:21017" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="36024:36086" ph="..." />
+                <marker date="1524627910913" expanded="true" signature="37853:37916" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>SW</find>
+      <find>feename</find>
+      <find>feeitem</find>
+      <find>access</find>
+      <find>group.rules</find>
+      <find>rules</find>
+      <find>this_group</find>
+      <find>$this_group</find>
+      <find>register</find>
+      <find>col-sm-10</find>
+      <find>menuList</find>
+      <find>AuthDefault</find>
+      <find>delete</find>
+      <find>check_mobile</find>
+      <find>check_email</find>
+      <find>PASSWORD_NOT_EMPTY</find>
+      <find>v</find>
+      <find>费用信息</find>
+      <find>chec</find>
+      <find>disabled</find>
+      <find>config</find>
+      <find>che</find>
+      <find>username</find>
+      <find>title</find>
+      <find>json</find>
+      <find>uploadPic</find>
+      <find>$orderext</find>
+      <find>orderext</find>
+      <find>regionid</find>
+      <find>userlist</find>
+    </findStrings>
+    <replaceStrings>
+      <replace />
+    </replaceStrings>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/AdminController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/AuthRule/view.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Info/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/OrderTaskSw/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/OrderTaskGj/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/AuthRule/add.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/AuthRule/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Dentist/Controller/InfoController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/InfoController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/OrderTaskSjs/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Dentist/add.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/User/add.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/AuthDefault/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/AuthDefault/add.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/User/add.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/AuthManager/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/AuthManager/add.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/OrderTaskSg/index.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/PlatOrder/view.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/PlatOrder/view.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/Controller/PlatOrderController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Dentist/Controller/OrderController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Dentist/View/Order/view.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/Public/base.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Index/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/PublicController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Dentist/Controller/PublicController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Dentist/View/Index/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/IndexController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/OrderTaskSjsController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Public/base.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Model/MessageModel.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/MessageController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/User/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/User/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/Controller/StudioController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Admin/Controller/AuthDefaultController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Dentist/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/Studio/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/View/Studio/add.html" />
+        <option value="$PROJECT_DIR$/Application/Admin/Controller/TagController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/DentistController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Admin/Controller/AuthManagerController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Costplan/add.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Costplan/edit.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/Costplan/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/CostplanController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/AuthRule/userlist.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/OrderTaskSgController.class.php" />
+        <option value="$PROJECT_DIR$/Application/Studio/View/AuthRule/index.html" />
+        <option value="$PROJECT_DIR$/Application/Studio/Controller/AuthRuleController.class.php" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="240" />
+    <option name="y" value="130" />
+    <option name="width" value="1440" />
+    <option name="height" value="780" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="View" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="View" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="AuthRule" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="View" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Costplan" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="View" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="OrderTaskSw" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+            <path>
+              <item name="gm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="gm" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Application" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="Studio" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="View" type="2a2b976b:PhpTreeStructureProvider$1" />
+              <item name="User" type="2a2b976b:PhpTreeStructureProvider$1" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="SvnConfiguration" cleanupOnStartRun="true">
+    <configuration>C:\Users\Administrator\AppData\Roaming\Subversion</configuration>
+    <supportedVersion>125</supportedVersion>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0366f4bc-1def-42e4-9b7d-64ab113f1bd9" name="Default" comment="" />
+      <created>1520220391849</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1520220391849</updated>
+      <workItem from="1520220393079" duration="1258000" />
+      <workItem from="1520228876423" duration="1337000" />
+      <workItem from="1520234004604" duration="7000" />
+      <workItem from="1522031777215" duration="2271000" />
+      <workItem from="1522115054029" duration="10976000" />
+      <workItem from="1522201505402" duration="18223000" />
+      <workItem from="1522287701678" duration="8588000" />
+      <workItem from="1522308975044" duration="3765000" />
+      <workItem from="1522374682311" duration="24641000" />
+      <workItem from="1522634340587" duration="16872000" />
+      <workItem from="1522718521047" duration="14031000" />
+      <workItem from="1522805457795" duration="22082000" />
+      <workItem from="1523150792110" duration="26014000" />
+      <workItem from="1523236817977" duration="4816000" />
+      <workItem from="1523244925456" duration="5484000" />
+      <workItem from="1523323171165" duration="266740000" />
+      <workItem from="1524623900168" duration="281000" />
+      <workItem from="1524624260721" duration="1624000" />
+      <workItem from="1524626520773" duration="1667000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="430677000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <layout>
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20833333" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.05720339" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.05720339" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20833333" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="3" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/CostplanController.class.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1175">
+          <caret line="53" column="78" lean-forward="false" selection-start-line="53" selection-start-column="78" selection-end-line="53" selection-end-column="78" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/AuthRule/userlist.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3150">
+          <caret line="126" column="47" lean-forward="false" selection-start-line="126" selection-start-column="47" selection-end-line="126" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/OrderTaskSgController.class.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4175">
+          <caret line="168" column="47" lean-forward="false" selection-start-line="168" selection-start-column="32" selection-end-line="168" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2150">
+          <caret line="86" column="97" lean-forward="false" selection-start-line="86" selection-start-column="93" selection-end-line="86" selection-end-column="97" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/add.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2275">
+          <caret line="91" column="156" lean-forward="false" selection-start-line="91" selection-start-column="150" selection-end-line="91" selection-end-column="156" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/AuthRule/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2175">
+          <caret line="87" column="40" lean-forward="false" selection-start-line="87" selection-start-column="40" selection-end-line="87" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/User/edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4500">
+          <caret line="180" column="166" lean-forward="false" selection-start-line="180" selection-start-column="120" selection-end-line="180" selection-end-column="166" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/View/Costplan/edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2375">
+          <caret line="95" column="204" lean-forward="false" selection-start-line="95" selection-start-column="197" selection-end-line="95" selection-end-column="204" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/UserController.class.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Application/Studio/Controller/AuthRuleController.class.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4825">
+          <caret line="201" column="75" lean-forward="false" selection-start-line="201" selection-start-column="75" selection-end-line="201" selection-end-column="75" />
+          <folding>
+            <marker date="1524627910913" expanded="true" signature="7195:7471" ph="select um.id... ot_auth_group_access" />
+            <marker date="1524627910913" expanded="true" signature="8656:8932" ph="select um.id... ot_auth_group_access" />
+            <marker date="1524627910913" expanded="true" signature="15574:15777" ph="select um.id... ot_auth_group_access" />
+            <marker date="1524627910913" expanded="true" signature="17986:19508" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="18136:18185" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18199:18251" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="18252:18436" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18347:18376" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="18377:18429" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18450:18502" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="18503:18712" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18596:18625" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="18651:18705" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18726:18778" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="18940:18969" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19042:19094" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19187:19216" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19292:19344" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19439:19468" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="19666:21083" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="19759:19807" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19821:19873" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="19874:20034" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="19937:20027" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="19966:19995" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20048:20100" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="20101:20310" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20194:20223" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20324:20376" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="20377:20578" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="20482:20571" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20511:20540" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20592:20644" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20737:20766" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20841:20893" ph="..." />
+            <marker date="1524627910913" expanded="false" signature="20988:21017" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="36024:36086" ph="..." />
+            <marker date="1524627910913" expanded="true" signature="37853:37916" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

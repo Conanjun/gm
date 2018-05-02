@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="renderer" content="webkit">
+	<link rel="stylesheet" href="__THEME__/default/zh-cn.default.css"
+		  type="text/css" media="screen">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+
+</head>
+<body>
+<style>
+	.outer {
+		position: relative;
+		text-align: left;
+		background: #fff;
+		border: 1px solid #cfcfcf;
+		-webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+		padding: 20px;
+	}
+    .info_table{
+        line-height: 28px;
+    }
+	 .tablesorter thead tr th{font-weight: normal;color: #888}
+	.content{margin-bottom: 30px}
+
+</style>
+<div class="outer" style="min-height: 777px;width:1200px;margin: 0px auto">
+
+
+<div id="titlebar">
+  <div class="heading" style="padding-right: 277px;">
+    <strong>
+       {$week.title}
+    </strong>
+      </div>
+</div>
+<div class="row-table">
+  <div class="col-main">
+    <div class="main" style="margin-left: 0;">
+      <fieldset>
+        <legend>Key Point</legend>
+        <div class="content">
+			<ul>
+				<li>
+					项目：本周参与 {$week['pznum']} 个项目，参与项目金额 {$week['pmoney']|fomatprice}元	</br>
+					- 本周新增项目{$week['panum']} 个（{$week['pamoney']|fomatprice}）	</br>
+					- 在进行的项目{$week['pwnum']} 个（{$week['pwmoney']|fomatprice}）</br>
+				</li>
+				</br>
+				<li>
+					任务：项目相关任务{$week['tznum']} 项，本周任务挣值（{$week['tzmoney']|fomatprice}），登记工时{$week['tzhours']} 小时	</br>
+					- 完成项目直接交付任务{$week['tdnum']}个，挣值（{$week['tdmoney']|fomatprice}），时间占比{$week['tdduty']}%</br>
+					- 其他项目管理相关任务{$week['tnnum']}个，时间占比{$week['tnduty']}%</br>
+					- 参与会议{$week['mnum']}次，时间占比{$week['mduty']}%
+				</li>
+				</br>
+				<li>
+					下周已规划任务{$week['nnum']}项，涉及项目{$week['npnum']}个，预计时间{$week['nhours']}小时
+				</li>
+				</br>
+				<li>
+					问题/建议/补充
+					<if condition="$e">
+						<form action="{:U('view',array('id'=>$week['weekid']))}" method="post">
+						<textarea id="content" name="content" style="width: 78%;height: 150px" class="ckeditor" >{$week['content']}</textarea>
+
+						</form>
+					<else/>
+					{$week['content']}
+					</if>
+				</li>
+			</ul>
+			<if condition="$e"><a href="javascript:;"  class="btn btn-primary" onclick=" $('form').submit();" data-loading="稍候..." style="margin-left: 20px">保存</a></if>
+        </div>
+	  </fieldset>
+		<legend>项目明细</legend>
+		<div class="content">
+			<div class="data-table table-striped">
+				<table
+						class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+						style="text-align: center">
+					<thead>
+					<tr>
+						<th width="10px"></th>
+						<th style="text-align: left">客户-项目</th>
+						<th  style="text-align: left">服务类型</th>
+						<th   style="text-align: left">参与角色</th>
+						<th   style="width: 80px">状态</th>
+						<th   style="width: 80px;text-align: right">金额(万)</th>
+						<th   style="width: 100px">进度%</th>
+					</tr>
+					</thead>
+					<tbody>
+					<notempty name="week_project">
+						<volist name="week_project" id="vo">
+							<tr>
+								<td class="cell-id"></td>
+								<td style="text-align: left">{$vo['pname']}</td>
+								<td style="text-align: left">{$vo['sname']}</td>
+								<td  style="text-align: left">{$vo['role']}</td>
+								<td>{$vo['dname']}</td>
+								<td style="text-align: right">{$vo['money']}</td>
+								<td>{$vo['progress']}%</td>
+							</tr>
+						</volist>
+						<tr>
+							<td></td>
+							<td style="text-align: left">{$p_zj['pzum']}</td>
+							<td style="text-align: left">{$p_zj['fuwu1']}</td>
+							<td style="text-align: left">{$p_zj['role1']}</td>
+							<td>{$p_zj['renwu1']}</td>
+							<td style="text-align: right">{$p_zj['pamoney']}</td>
+							<td></td>
+						</tr>
+						<else />
+					</notempty>
+					</tbody>
+					<tfoot>
+					<tr>
+					</tr>
+					</tfoot>
+				</table></div></div>
+		<legend>任务明细</legend>
+		<div class="content">
+			<div class="data-table table-striped">
+				<table
+						class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+						style="text-align: center">
+					<thead>
+					<tr>
+						<th width="10px"></th>
+						<th style="text-align: left">任务类型</th>
+						<th  style="width: 80px">任务状态</th>
+						<th   style="width: 200px">任务数</th>
+						<th   style="width: 80px">时间(h)</th>
+						<th   style="width: 100px">占比</th>
+						<th   style="width: 100px;">挣值(万)</th>
+					</tr>
+					</thead>
+					<tbody>
+					<notempty name="week_task">
+						<volist name="week_task" id="vo">
+							<tr>
+								<td class="cell-id"></td>
+								<td style="text-align: left">
+									<if condition="$vo['type'] ==1">
+										直接交付型任务
+										<else/>
+										项目管理型任务(规划、资源协调等)
+									</if>
+								</td>
+								<td>
+									<if condition="$vo['state'] == 3">
+										已完成
+										<else/>
+										进行中
+									</if>
+								</td>
+								<td>{$vo['tmum']}</td>
+								<td>{$vo['days']}</td>
+								<td>{$vo['duty']}%</td>
+								<td >{$vo['money']}</td>
+							</tr>
+						</volist>
+						<tr>
+							<td></td>
+							<td>{$t_zj['hj']}</td>
+							<td></td>
+							<td>{$t_zj['num']}</td>
+							<td>{$t_zj['da']}</td>
+							<td></td>
+							<td>{$t_zj['money']}</td>
+						</tr>
+						<else />
+					</notempty>
+					</tbody>
+					<tfoot>
+					<tr>
+					</tr>
+					</tfoot>
+				</table></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+</body>

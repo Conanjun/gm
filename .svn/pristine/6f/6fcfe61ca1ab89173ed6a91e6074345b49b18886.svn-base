@@ -1,0 +1,449 @@
+<extend name="Public/base"/>
+<block name="navhead">
+    <li data-id="account"><span id="myname" style="color: #000"><a href="{:U('ProjectView/view?id='.$p['pid'])}"><i
+            class="icon-map-marker"></i> {$p.name}</a>&nbsp;<span style="font-weight: bold;"
+						<if condition="$p['state']==4"> class="textr"</if>
+						<if condition="$p['state']==2"> class="textg"</if>
+						<if condition="$p['state']==0"> class="textc"</if>
+						<if condition="$p['state']==-1"> class="textc"</if>
+						>{$p.sname}</span>&nbsp;<i class="icon-caret-down"></i>&nbsp;</span>
+    </li>
+
+</block>
+<block name="body">
+    <link href="__CSS__/newtitle.css" rel="stylesheet" type="text/css"/>
+    <link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <script language="Javascript">browseType = "unclosed";
+
+    </script>
+    <style>
+        #sonModule, #moduleBox > span > input, #moduleBox > table {
+            max-width: 1000px;
+        }
+
+        #childrenForm .col-table + .col-table .form-control {
+            /*border-left: transparent;*/
+        }
+
+        #childrenForm .chosen-single {
+            border-right: 0px;
+        }
+        #submit,#backBtn{
+            padding:6px 26px;
+            border-radius:4px;
+        }
+        #backBtn{
+            margin-left:6px;
+        }
+        .btn-block{
+
+            height: 30px;
+        }
+    </style>
+    <div id="featurebar">
+        <include file="Public:newtitle"/>
+        <div class="btn-group actions" style="float: right">
+            <a href="javascript:history.go(-1);"  class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+        </div>
+       
+    </div>
+     <div class="fnavbox">
+        <include file="Public:newfourtitle"/>
+        <div class="actions" style="float:none">
+			<div class="btn-group">
+				接下来请根据项目范围确定的任务进行人员指派，已经明确执行人的可以直接在「编辑」状态下指派给执行人，未明确执行人的可以指派给负责人，由负责人进行具体指派。<br>在这个阶段，你将完成对项目整体资源的规划，确定项目团队人员，为召开内部启动会做准备。
+		</div>
+		</div>
+    <div class="clearfix"></div></div>
+    <!-- 数据列表 -->
+
+    <div id="projectTaskForm">
+    <form id="childrenForm" class="form-condensed" method="post"
+          action="{:U('takepart',array('pid'=>$pid))}">
+        <div style="width: 720px; border:1px solid #ccc">
+            <table class="table table-form" style="border: 0">
+                <thead>
+                <tr class="text-center">
+                    <th style="width: 200px">参与人</th>
+                    <th style="width: 190px">角色</th>
+                    <th>备注</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td id="moduleBox" colspan="3">
+                        <div id="sonModule" class="pr">
+                            <a href="javascript:;" style="right: 5px" class="btn-addrow" id="btn-addrow"><i class="icon icon-plus"></i></a>
+                            <notempty name="tplist">
+                                <volist name="tplist" id="vo">
+                                  <input type="hidden" name="tpid[]" value="{$vo['tpid']}">
+                                    <div class="row-table addedItem" style="width:640px;margin-bottom: 5px">
+                                        <div class="col-table">
+                                            <div class="input-group" style="width: 200px">
+                                                <select name="uid[]" class="form-control searchSelect chosen" t="user" id="sel_{$vo['tpid']}">
+                                                    <option  value=""></option>
+                                                    <if condition="$vo['canyuren']">
+                                                        <option class="canyuren" value="{$vo['uid']}" selected>{$vo['canyuren']}</option>
+                                                    </if>
+                                                     <foreach name="res_test" item="v" key="k">
+                                                            <if condition="$vo['tpid'] eq $k">
+                                                                <foreach name="v" item="va">
+                                                                     <option   value="{$va.uid}" <if condition="$vo['uname'] eq $va['nickname']">selected</if> >
+                                                                    {$va.nickname}</option>
+                                                                </foreach>
+                                                            </if>
+                                                    </foreach>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-table">
+                                            <div class="input-group" style="width: 190px;border-left:0px">
+                                                <select name="roleid[]" class="form-control searchSelect chosen">
+                                                    <option value="">请选择角色</option>
+                                                    <foreach name="roles" item="v">
+                                                        <option  value="{$v.prid}"
+                                                        <if condition="$vo['roleid'] eq $v['prid']"> selected</if>
+                                                        >{$v.name}</option>
+                                                    </foreach>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-table" style="width: 250px">
+                                            <div class="input-group">
+                                                <input type="text" name="description[]" value="{$vo.description}"
+                                                       class="form-control" placeholder="" autocomplete="off">
+                                                <span class="input-group-btn" style="border-left:0px;">
+															<a href="javascript:;" onclick='deletedata(this,"{:U('takedelete?id='.$vo['tpid'])}")'class="btn btn-block">
+																<i class="icon icon-remove"></i>
+                                                    </a>
+														</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </volist>
+                            </notempty>
+                            <foreach name="roleUser" item="v1" key="k1">
+                                <div class="row-table addedItem" style="width:640px;margin-bottom: 5px">
+                                    <div class="col-table">
+                                        <div class="input-group" style="width: 200px">
+                                            <select name="uid[]" class="form-control searchSelect chosen" t="user" id="sel_f_{$k1}">
+                                                <option value=""></option>
+                                                <foreach name="v1" item="vo">
+                                                    <option value="{$vo.uid}" tel="{$vo.tel}">{$vo.nickname}</option>
+                                                </foreach>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-table">
+                                        <div class="input-group" style="width: 190px;border-left:0px">
+                                            <select name="roleid[]" class="form-control searchSelect chosen">
+                                                <option value="">请选择角色</option>
+                                                <foreach name="roles" item="v">
+                                                    <option value="{$v.prid}"
+                                                    <if condition="$k1 eq $v['prid']"> selected</if>
+                                                    >{$v.name}</option>
+                                                </foreach>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-table" style="width: 250px">
+                                        <div class="input-group">
+                                            <input type="text" name="description[]"
+                                                   class="form-control" placeholder="" autocomplete="off">
+                                            <span class="input-group-btn"><a
+                                                    href="javascript:;" onclick="deleteItem(this)"
+                                                    class="btn btn-block"><i class="icon icon-remove"></i>
+													</a> </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </foreach>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <div class="rightdiv">
+                            <button type="button" class="btn btn-default" id="backBtn"
+                                    onclick="history.go(-1);"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回
+                            </button>
+                        <if condition="cando('ProjectNew/takepart',array($p['uid'],$p['pmuid']))">
+                            <button type="submit" id="submit" class="btn btn-primary"><i class="icon-save"></i> 保存</button>
+                        </if>
+
+                        </div>
+                        <!--	<input type="hidden" name="parentModuleID" id="parentModuleID"
+                            value="0"> <input type="hidden" name="maxOrder"
+                            id="maxOrder" value="30"> <input type="hidden"
+                            value="0" name="parentModuleID">-->
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+    </div>
+    <script>config.onlybody = 'no';</script>
+    <script language="Javascript">
+        var ii = 1;
+        $(function(){
+            $('a.chosen-single').click(function(){
+                $(this).parent().parent().children('select').find("option.canyuren").remove();
+                $(this).parent().parent().children('select').trigger('chosen:updated');
+            });
+            $("#btn-addrow").click(function(){
+                    var obj=$("#sonModule").children().last();
+                    addItem(obj);
+                });
+
+        })
+        function choose() {
+            $.closeModal();
+        }
+
+        $(".side-body li a").click(function () {
+            $(this).attr('class').val('active');
+        });
+        $('#takepartTip').mouseover(function () {
+            $('#takepartTip').popover({"html": true, trigger: "focus"});
+            $('#takepartTip').popover('show');
+        });
+        $('#takepartTip').mouseleave(function () {
+            $('#takepartTip').popover({"html": true, trigger: "focus"});
+            $('#takepartTip').popover('hide');
+        });
+
+        function deletedata(obj, url) {
+            if (confirm("确定要删除数据吗？")) {
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    error: function () {
+                        alert('网络繁忙，请稍后再试');
+                    },
+                    success: function (response) {
+                        if (response.done == true) {
+                            deleteItem(obj);
+                        } else {
+                            alert(response.msg);
+                        }
+                    }
+                });
+            }
+        }
+        function addItem(obj) {
+            var $inputgroup = $(obj).closest('.row-table');
+            $inputgroup.after($inputgroup.clone()).next('.row-table').find('input').val('');
+            $inputgroup.next().find(".chosen").children('option').attr('selected',false);
+            $inputgroup.next().find("div.chosen-container").remove();
+            ii = ii+1
+            $inputgroup.next().find("select[name='uid[]']").attr('id','row_'+ii);
+            $inputgroup.next().find("select[name='uid[]']").attr('t','user');
+
+
+            var defaultChosenOptions = {
+                no_results_text: noResultsMatch,
+                width: '320px',
+                allow_single_deselect: true,
+                disable_search_threshold: 1,
+                placeholder_text_single: ' ',
+                placeholder_text_multiple: ' ',
+                search_contains: true
+            };
+            $inputgroup.next().find(".chosen").chosen(defaultChosenOptions).on('chosen:showing_dropdown', function () {
+                var $this = $(this);
+                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+                var $drop = $chosen.find('.chosen-drop');
+                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+            });
+        }
+
+        function insertItem(obj) {
+            var $inputgroup = $(obj).closest('.row-table');
+            var insertHtml = $('#insertItemBox').children('.row-table').clone();
+            $inputgroup.after(insertHtml).next('.row-table').find('input').val('');
+
+            updateItemOrder();
+        }
+
+        function updateItemOrder() {
+            var order = 10;
+            $('#sonModule').children('.row-table').each(function () {
+                if ($(this).find("input[name*='order']").length > 0) {
+                    console.log(order);
+                    $(this).find("input[name*='order']").val(order);
+                    order += 10;
+                }
+            });
+
+            $('#maxOrder').val(order - 10);
+        }
+
+        function deleteItem(obj) {
+
+            $(obj).closest('.row-table').remove();
+        }
+        function deleteItem1(obj) {
+            if ($(obj).closest('.row-table1').siblings('.row-table1.addedItem').find('i.icon-remove').size() <= 0) return;
+            $(obj).closest('.row-table1').remove();
+        }
+        function syncModule(rootID, type) {
+            moduleID = type == 'task' ? $('#projectModule').val() : $('#productModule').val();
+            type = type == 'task' ? 'task' : 'story';
+
+            link = createLink('tree', 'ajaxGetSonModules', 'moduleID=' + moduleID + '&rootID=' + rootID + '&type=' + type);
+            $.getJSON(link, function (modules) {
+                if (modules.length == 0) return false;
+                $('.helplink').addClass('hidden');
+                var $inputgroup = $('<div></div>').append($('.input-group .icon-remove:first').closest('.row-table').clone()).html();
+                $.each(modules, function (key, module) {
+                    $('.row-table').each(function () {
+                        moduleName = $(this).find('input[id^=modules]').val();
+                        if (moduleName == module.name) modules[key] = null;
+                        if (!moduleName) $(this).closest('.row-table').remove();
+                    })
+                });
+
+                $.each(modules, function (key, module) {
+                    if (module) {
+                        $('#sonModule').append($inputgroup);
+                        $('#sonModule .row-table:last input[id^=modules]').val(module.name);
+                        $('#sonModule .row-table:last input[id^=shorts]').val(module.short);
+                    }
+                })
+                $('#sonModule').append($inputgroup);
+            })
+        }
+
+        function syncProductOrProject(obj, type) {
+            if (type == 'product') viewType = 'story';
+            if (type == 'project') viewType = 'task';
+            link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + obj.value + "&viewType=" + viewType + "&branch=0&rootModuleID=0&returnType=json");
+            $.getJSON(link, function (modules) {
+                $('.helplink').addClass('hidden');
+                $('#' + type + 'Module').empty();
+                $.each(modules, function (key, value) {
+                    $('#' + type + 'Module').append('<option value=' + key + '>' + value + '</option')
+                });
+                $('#' + type + 'Module').trigger("chosen:updated");
+            })
+            $('#copyModule').attr('onclick', null);
+            $('#copyModule').bind('click', function () {
+                syncModule(obj.value, viewType)
+            });
+        }
+
+        function toggleCopy() {
+            var $copy = $('table.copy');
+            if ($copy.size() == 0) return false;
+            $copy.toggle();
+        }
+
+        $(document).ready(function () {
+            toggleCopy();
+            $('[data-id="create"] a').modalTrigger({type: 'iframe', width: 500});
+            $('[data-id="edit"] a').modalTrigger({type: 'iframe', width: 500});
+        });
+        $("select[name='roleid[]']").live('change',function(){
+            var role = $(this).val();
+            var that = $(this);
+            $.ajax({
+                url: "{:U('currentUser')}",
+                type: "post",
+                data: {"role": role},
+                dataType: "json",
+                success: function (response) {
+//                        console.log(response);
+                    var _html = "<option value=''></option>";
+                    $.each(response, function (k, vo) {
+                        _html += "<option value='" + vo['uid'] + "'>" + vo['nickname'] + "</option>";
+                    });
+                    //console.log(_html);
+                    that.parent().parent().prev().find("select[name='uid[]']").html(_html);
+                    that.parent().parent().prev().find("select[name='uid[]']").trigger('chosen:updated');
+
+                }
+            })
+        });
+
+
+        //当角色发生改变时改变参与人
+       /* $("select[name='roleid[]']").change(function (){
+            var role = $(this).val();
+            var that = $(this);
+            $.ajax({
+                url: "{:U('currentUser')}",
+                type: "post",
+                data: {"role": role},
+                dataType: "json",
+                success: function (response) {
+//                        console.log(response);
+                    var _html = "<option value=''></option>";
+                    $.each(response, function (k, vo) {
+                        _html += "<option value='" + vo['uid'] + "'>" + vo['nickname'] + "</option>";
+                    });
+                        console.log(_html);
+                    that.parent().parent().prev().find("select[name='uid[]']").html(_html);
+                    that.parent().parent().prev().find("select[name='uid[]']").trigger('chosen:updated');
+
+                }
+            })
+        });*/
+
+    </script>
+</block>
+<block name="script">
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{$from_url}");
+        $(function () {
+            var roleids = "{$roleids}";
+        });
+        var tempop=[];
+        function userajax(e,m){
+            var k=$(e.container).find("input").val();
+            $.get("/index.php?s=/Admin/User/jsonUnformation.html&k="+k, function(data){
+                if(data&&data.length>0){
+                    var _html = "<option value=''> 请选择... </option>";
+                    for(var i=0;i<data.length;i++){
+                        _html += "<option value='" + data[i]['uid'] + "'>" + data[i]['nickname'] + "</option>";
+                    }
+
+                    var has=false;
+                    if(tempop!=undefined){
+                        for(var i=0;i<tempop.length;i++){
+                            if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                                has=true;
+                            }
+                        }
+                    }
+                    if(!has){
+                        tempop.push({"id": $(e.form_field_jq).attr("id"), "op": $(e.form_field_jq).html()});
+                    }
+
+                    $(e.form_field_jq).html(_html);
+
+                    $(e.form_field_jq).trigger('chosen:updated');
+                    $(e.container).find("input").val(k);
+
+                    $(e.container).find(".chosen-single").click(function(){
+                        $(e.container).find(".chosen-single").unbind("click");
+                        if(tempop!=undefined){
+                            if(tempop){
+                                for(var i=0;i<tempop.length;i++){
+                                    if(tempop[i].id==$(e.form_field_jq).attr("id")){
+                                        $(e.form_field_jq).html(tempop[i].op);
+                                    }
+                                }
+
+                            }
+                            $(e.form_field_jq).trigger('chosen:updated');
+                        }
+                    });
+
+                }
+            }, "json");
+
+        }
+    </script>
+</block>

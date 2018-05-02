@@ -1,0 +1,1605 @@
+<?php
+
+namespace Admin\Controller;
+
+use Admin\Common\Super\Project;
+use Admin\Model\ProjectNewModel;
+
+/*
+ * 项目维护控制器
+ * */
+
+class ProjectAllController extends AdminController {
+	//定义数据表
+	private $db;
+	private $pro_module;
+    private $meta_title;
+	//构造函数
+	public function __construct() {
+		parent::__construct();
+		$this->db = D('Project');
+		$this->pro_module = D('ProjectConfig');
+	}
+    // 高级搜索 : LGW
+    public function advancedtSearch()
+    {
+        $actionURL = strstr(__ACTION__, '/Admin');
+        $config = array(
+            "actionURL" => $actionURL,
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(
+                0 => array('str' => '项目名称', 'fieldname' => 'p.name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '状态', 'fieldname' => 'p.state', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 2 => array('str' => '编号', 'fieldname' => 'p.code', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 3 => array('str' => '项目类型', 'fieldname' => 'p.type', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 4 => array('str' => '客户', 'fieldname' => 'P.cid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 5 => array('str' => '合同号', 'fieldname' => 'p.contract', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '报价单号', 'fieldname' => 'p.oid', 'operator' => '=', 'control' => 'input', 'values' =>'')
+            , 7 => array('str' => '关联机会', 'fieldname' => 'p.chance', 'operator' => '=', 'control' => 'input', 'values' =>"")
+            , 8 => array('str' => '项目经理', 'fieldname' => 'p.pmuid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 9 => array('str' => '所属部门', 'fieldname' => 'p.orgid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 10 => array('str' => '销售', 'fieldname' => 'p.sale', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 11 => array('str' => '优先级', 'fieldname' => 'p.level', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 12 => array('str' => '金额', 'fieldname' => 'p.money', 'operator' => '=', 'control' => 'input', 'values' => "")
+            , 13 => array('str' => '任务数', 'fieldname' => 'p.tasknum', 'operator' => '=', 'control' => 'input', 'values' =>"")
+            , 14 => array('str' => '成本', 'fieldname' => 'p.cost', 'operator' => '=', 'control' => 'input', 'values' =>"")
+            , 15 => array('str' => '合同推广费用', 'fieldname' => 'p.promotion', 'operator' => '=', 'control' => 'input', 'values' =>"")
+            , 16 => array('str' => '计划开始时间', 'fieldname' => 'p.pstime', 'operator' => '=', 'control' => 'input', 'values' =>"","class"=>"date")
+            , 17 => array('str' => '计划结束时间', 'fieldname' => 'p.petime', 'operator' => '=', 'control' => 'input', 'values' =>"","class"=>"date")
+            , 18 => array('str' => '实际开始时间', 'fieldname' => 'p.stime', 'operator' => '=', 'control' => 'input', 'values' =>"","class"=>"date")
+            , 19 => array('str' => '实际结束时间', 'fieldname' => 'p.etime', 'operator' => '=', 'control' => 'input', 'values' =>"","class"=>"date")
+            , 20 => array('str' => '顾问', 'fieldname' => 'p.adviser', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 21 => array('str' => '是否拆解', 'fieldname' => 'p.breakdown', 'operator' => '=', 'control' => 'select', 'values' => array(""=>"","0"=>'否','1'=>"是"))
+            , 22 => array('str' => '创建人', 'fieldname' => 'p.uid', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 23 => array('str' => '创建时间', 'fieldname' => 'p.addtime', 'operator' => '=', 'control' => 'input', 'values' => '','class'=>'date')
+            )
+        );
+        if ($config && $config['params']) {
+            //类型
+            $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+            //客户
+            $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+            //项目部门
+            $dept = M('Dept')->field('did,name')->select();
+            //项目经理
+            $pm = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //销售
+            $sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            //状态
+            $states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order' => 'd_order asc'));
+            //报价单
+            $offer = D('Offer')->field('oid,code')->select();
+            //优先级
+            $levels = M('dictionary')->where("d_code = 'level'")->field(true)->select(array('order' => 'd_order asc'));
+            //进度
+            $progress = M('dictionary')->where("d_code = 'progress'")->field(true)->select(array('order' => 'd_order asc'));
+
+            $mcustomer = array("" => "");
+            $mdept = array("" => "");
+            $mtypes = array("" => "");
+            $mpm = array("" => "");
+            $msales = array("" => "");
+            $mstates = array("" => "");
+            $moffer = array("" => "");
+            $mlevels = array("" => "");
+            $mprogress = array("" => "");
+            if ($customer) {
+                foreach ($customer as $v) {
+                    $mcustomer[$v['cid']] = $v['name'];
+                }
+            }
+            if ($pm) {
+                foreach ($pm as $v) {
+                    $mpm[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($dept) {
+                foreach ($dept as $v) {
+                    $mdept[$v['did']] = $v['name'];
+                }
+            }
+            if ($types) {
+                foreach ($types as $v) {
+                    $mtypes[$v['d_value']] = $v['d_value'];
+                }
+            }
+            if ($sales) {
+                foreach ($sales as $v) {
+                    $msales[$v['uid']] = $v['nickname'];
+                }
+            }
+            if ($states) {
+                foreach ($states as $v) {
+                    $mstates[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($offer) {
+                foreach ($offer as $v) {
+                    $moffer[$v['oid']] = $v['code'];
+                }
+            }
+            if ($levels) {
+                foreach ($levels as $v) {
+                    $mlevels[$v['d_value']] = $v['d_key'];
+                }
+            }
+            if ($progress) {
+                foreach ($progress as $v) {
+                    $mprogress[$v['d_value']] = $v['d_key'];
+                }
+            }
+
+            $config['params'][3]['values'] = $mtypes;
+            $config['params'][4]['values'] = $mcustomer;
+            $config['params'][9]['values'] = $mdept;
+            $config['params'][8]['values'] = $mpm;
+            $config['params'][10]['values'] = $msales;
+            $config['params'][1]['values'] = $mstates;
+            $config['params'][11]['values'] = $mlevels;
+            $config['params'][20]['values'] = $mpm;
+            $config['params'][22]['values'] = $mpm;
+        }
+
+        $this->setSearchConfig($config);
+    }
+
+    // 项目的搜索 : LGW
+    public function projectSearch()
+    {
+        // 项目状态
+        $states = M('dictionary')->where("d_code = 'project_state'")->field(true)->select(array('order' => 'd_order asc'));
+        //项目类型
+        $types = M('dictionary')->where("d_code = 'project_type'")->field(true)->select(array('order' => 'd_order asc'));
+        //项目部门 - 项目归属
+        $depts = M('Dept')->field(true)->select();
+        $depts = D('Common/Tree')->toFormatTree1($depts);
+        $depts = array_merge(array(0 => array('did' => 0, 'title_show' => '', 'grade' => 0)), $depts);
+        //客户
+        $customer = M('Customer')->field('cid,name')->where('enabled = 1')->select();
+        // 服务类型
+        $prop = D('ProjectConfig')->where('grade<5 and enabled =1')->select();
+        $prop = D('Common/Tree')->toFormatTree($prop, 'name', 'pid', 'parentid');
+        $prop = array_merge(array(
+            0 => array(
+                'pid' => '',
+                'title_show' => '',
+                'grade' => ''
+            )
+        ), $prop);
+
+        //治疗领域
+        $therapy_areas = M("Dictionary")->where("d_code='therapy_area'")->select(array('order' => 'd_order asc'));
+        // 目标科室
+        $departments = Project::department();
+
+        $this->assign('prop', $prop);
+        $this->assign('depts', $depts);
+        $this->assign('states', $states);
+        $this->assign('types', $types);
+        $this->assign('customer', $customer);
+        $this->assign('areas', $therapy_areas);
+        $this->assign('departments', $departments);
+        $c1 = " 1=1 ";
+        $c2 = "";
+        $c3 = "";
+        $c4 = "";
+        $c5 = "";
+        $c6 = "";
+        $c7 = "";
+        $c8 = "";
+        $c9 = " 1=1 ";
+        $c10 = "";
+        $c11 = "";
+        $c12 = "";
+        $c13 = "";
+        $c14 = "";
+        $c15 = "";
+        $c16 = "";
+        $c17 = "";
+        $c18 = "";
+        $c19 = "";
+
+        $field1 = 'p.name';
+        $field2 = 'p.state';
+        $field3 = 'p.type';
+        $field4 = 'p.orgid';
+        $field5 = 'p.pm';
+        $field6 = 'p.sale';
+        $field7 = 'p.adviser';
+        $field8 = 'tp.uname';
+        $field9 = 'p.contract';
+        $field10 = 'p.money';
+        $field11 = 'p.cid';
+        $field12 = 'p.path';
+        $field13 = 'p.therapy_area';
+        $field14 = 'p.department';
+        $field15 = 'p.drug_name';
+        $field16 = 'p.pstime';
+        $field17 = 'p.petime';
+        $field18 = 'p.stime';
+        $field19 = 'p.etime';
+
+        $value1 = I('get.name', '');  // 项目名称
+        $value2 = I('get.state');     // 项目状态
+        $value3 = I('get.type');      // 项目类型
+        $value4 = I('get.orgid');    // 项目归属 - 项目部门
+        $value5 = I('get.pmanager', ''); // 项目经理
+        $value6 = I('get.cmanager', ''); // 客户经理
+        $value7 = I('get.adviser', ''); // 顾问
+        $value8 = I('get.uname', '');; // 项目成员
+        $value9 = I('get.contract', ''); // 合同
+        $value10 = I('get.money', ''); // 金额
+        $value11 = I('get.cid', ''); // 客户
+        $value12 = I('get.path', ''); //服务类型
+        $value13 = I('get.therapy_area', '');   // 治疗领域 多选
+        if (is_array($value13) && !empty($value13)) {
+            $value13 = implode(',', $value13);
+        } else {
+            $value13 = '';
+        }
+        $value14 = I('get.department', '');   // 目标科室
+        $value15 = I('get.drug_name', '');   // 药品
+
+        $pstimeStart = I('get.pstime_start', ''); // 预计启动时间从
+        $pstimeEnd = I('get.pstime_end', ''); // 预计启动时间至
+        $petimeStart = I('get.petime_start', ''); // 预计结束时间至
+        $petimeEnd = I('get.petime_end', ''); // 预计结束时间至
+        $stimeStart = I('get.stime_start', ''); // 实际启动时间从
+        $stimeEnd = I('get.stime_end', ''); // 实际启动时间至
+        $etimeStart = I('get.etime_start', ''); // 实际启动时间至
+        $etimeEnd = I('get.etime_end', ''); // 实际启动时间至
+
+        $value1 and $c1 = " $field1 like '%{$value1}%' ";
+        $value2 and $c2 = " and $field2=$value2";
+        $value3 and $c3 = " and $field3='{$value3}'";
+        $value4 and $c4 = " and $field4=$value4";
+        $value5 and $c5 = "and ( $field5 like '%{$value5}%' 
+       
+        or EXISTS(  SELECT 1 FROM ot_ucenter_member m WHERE m.id=p.pmuid and ( m.email like '%{$value5}%' or m.username like '%{$value5}%' or m.mobile like '%{$value5}%') ) 
+        ) ";
+        $value6 and $c6 = "and (EXISTS(  SELECT 1 FROM ot_ucenter_member m LEFT JOIN ot_member me on m.id=me.uid WHERE m.id=$field6 and (me.nickname like  '%{$value6}%' or m.email like '%{$value6}%' or m.username like '%{$value6}%' or m.mobile like '%{$value6}%') ))";
+        $value7 and $c7 = "and ($field7 like '%{$value7}%'  
+        or EXISTS(  SELECT 1 FROM ot_ucenter_member m WHERE m.id=p.adviserid and (m.email like '%{$value7}%' or m.username like '%{$value7}%' or m.mobile like '%{$value7}%') ) 
+        )";
+        $value8 and $c8 = "and EXISTS( SELECT 1 FROM ot_takepart tp WHERE p.pid = tp.pid and $field8 like '%{$value8}%')";
+        $value9 and $c9 = "$field9 like '%{$value9}%'";
+        $value10 and $c10 = "and $field10<='{$value10}'";
+        $value11 and $c11 = "and $field11=$value11";
+        $value12 and $c12 = "and $field12 like '%{$value12}%'";
+        $value13 and $c13 = "and $field13 like '%{$value13}%'";
+        $value14 and $c14 = "and $field14 like '%{$value14}%'";
+        $value15 and $c15 = "and $field15 like '%{$value15}%'";
+        if ($pstimeStart) {
+            $start = strtotime($pstimeStart);
+            $c16 .= " and $field16 >= '{$start}'";
+        }
+        if ($pstimeEnd) {
+            $end = strtotime($pstimeEnd);
+            $c16 .= " and $field16 <= '{$end}'";
+        }
+        if ($petimeStart) {
+            $start = strtotime($petimeStart);
+            $c17 .= " and $field17 >= '{$start}'";
+        }
+        if ($petimeEnd) {
+            $end = strtotime($petimeEnd);
+            $c17 .= " and $field17 <= '{$end}'";
+        }
+        if ($stimeStart) {
+            $start = strtotime($stimeStart);
+            $c18 .= " and $field18 >= '{$start}'";
+        }
+        if ($stimeEnd) {
+            $end = strtotime($stimeEnd);
+            $c18 .= " and $field18 <= '{$end}'";
+        }
+        if ($etimeStart) {
+            $start = strtotime($etimeStart);
+            $c19 .= " and $field19 >= '{$start}'";
+        }
+        if ($etimeEnd) {
+            $end = strtotime($etimeEnd);
+            $c19 .= "and $field19 <= '{$end}'";
+        }
+        $this->assign('calculate', calculateDate()); // 本周 本月 等
+        $actionURL = strstr(__ACTION__, '/Admin');
+        $this->assign('actionURL', $actionURL);
+
+        $reset = I('get.reset');
+        if ($reset == 1) {
+            $c1 = " 1=1 ";
+            $condition ['_string'] = "(( $c1))";
+            return $condition;
+        }
+        $condition ['_string'] = "(($c1 $c2 $c3 $c4 $c5 $c6 $c7 $c8) and ($c9 $c10 $c11 $c12 $c13 $c14 $c15 $c16 $c17 $c18 $c19) )";
+
+        $this->assign('value1', $value1);
+        $this->assign('value2', $value2);
+        $this->assign('value3', $value3);
+        $this->assign('value4', $value4);
+        $this->assign('value5', $value5);
+        $this->assign('value5', $value5);
+        $this->assign('value6', $value6);
+        $this->assign('value7', $value7);
+        $this->assign('value8', $value8);
+        $this->assign('value9', $value9);
+        $this->assign('value10', $value10);
+        $this->assign('value11', $value11);
+        $this->assign('value12', $value12);
+        $this->assign('value13', $value13);
+        $this->assign('value14', $value14);
+        $this->assign('value15', $value15);
+        $this->assign('pstimeStart', $pstimeStart);
+        $this->assign('pstimeEnd', $pstimeEnd);
+        $this->assign('petimeStart', $petimeStart);
+        $this->assign('petimeEnd', $petimeEnd);
+        $this->assign('stimeStart', $stimeStart);
+        $this->assign('stimeEnd', $stimeEnd);
+        $this->assign('etimeStart', $etimeStart);
+        $this->assign('etimeEnd', $etimeEnd);
+        $pstime = I('get.pstime');
+        $petime = I('get.petime');
+        $stime = I('get.stime');
+        $etime = I('get.etime');
+        $this->assign('pstime', $pstime);
+        $this->assign('petime', $petime);
+        $this->assign('stime', $stime);
+        $this->assign('etime', $etime);
+        $show = 0;
+        $second = 0;
+        if ($value1 || $value2 || $value3 || $value4 || $value5 || $value6 || $value7 || $value8 || $value9 || $value10 || $value11 || $value12 || $value13 || $value14 || $value15 || $pstimeStart || $pstimeEnd || $petimeStart || $petimeEnd || $stimeStart || $stimeEnd || $etimeStart || $etimeEnd) $show = 1;
+        if ($value9 || $value10 || $value11 || $value12 || $value13 || $value14 || $value15 || $pstimeStart || $pstimeEnd || $petimeStart || $petimeEnd || $stimeStart || $stimeEnd || $etimeStart || $etimeEnd) $second = 1;
+        $this->assign('show', $show);
+        $this->assign('second', $second);
+
+
+        return $condition;
+
+    }
+	/**
+	 * 所有项目-进行中
+	 */
+	public function index(){
+
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+		$re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and (p.state=1 or p.state=4 or p.state=0)";
+		}
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-进行中','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display();
+	}
+	/**
+	 * 所有项目-已延期
+	 */
+	public function out(){
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+        $re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and (p.state=4)";
+		}
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-已延期','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+	/**
+	 * 所有项目-未开始
+	 */
+	public function nots(){
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+        $re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and p.state=0";
+		}
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-未开始','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+	/**
+	 * 所有项目-有所
+	 */
+	public function allindex(){
+
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+
+        $res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+	/**
+	 * 所有项目-已暂停
+	 */
+	public function pause(){
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+        $re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and p.state=3";
+		}
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-已暂停','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+	/**
+	 * 所有项目-已完成
+	 */
+	public function finished(){
+
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+        $re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and p.state=2";
+		}
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-已完成','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+	/**
+	 * 所有项目-已关闭
+	 */
+	public function closed(){
+
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'p.addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'p.addtime desc , ';
+			$order = 'p.addtime desc';
+		}
+        $advanced = I('get.advanced',0); //切换高级搜索
+        $show = I('get.show');
+
+        if($advanced == 1)
+        {
+            $this->advancedtSearch(); // 高级搜索
+            $where = $this->getCondition(); //查询条件
+            $this->assign('advanced',$advanced);
+        } else
+        {
+            $where = $this->projectSearch(); //查询条件
+            $this->assign('advanced',0);
+        }
+        $show and $this->assign('show',$show);
+
+
+        $re = strpos($where['_string'], 'p.state');
+		if (!$re) {
+			$where['_string'] .= " and p.state=-1";
+		}
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where['_string'] .= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+
+
+		if(I("get.exportexcel","")==1){
+			$pro = $this->db
+			->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+			->alias('p')
+			->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+			->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+			->join('ot_customer c on p.cid = c.cid','LEFT')
+			->join('ot_dept d on p.orgid = d.did','LEFT')
+			->join('ot_member m on p.sale = m.uid','LEFT')
+			->where($where)
+			->order($sort." ".$order)
+			->select();
+			$this->export($pro);
+			exit();
+		}
+
+		$count = $this->db
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)->count();
+		$page = new \Think\Page($count,20);
+		$pro = $this->db
+		->field('p.*,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'','LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'','LEFT')
+		->join('ot_customer c on p.cid = c.cid','LEFT')
+		->join('ot_dept d on p.orgid = d.did','LEFT')
+		->join('ot_member m on p.sale = m.uid','LEFT')
+		->where($where)
+		->order($sort." ".$order)
+		->limit($page->firstRow . ',' . $page->listRows)
+		->select();
+		
+		foreach($pro as $key => $vo){
+			if($vo['money'] !='0.00'){
+				$duty = round((float)$vo['amount']/(float)$vo['money']*100);
+				if($duty>100){
+					$pro[$key]['duty'] = 100;
+				}else{
+					$pro[$key]['duty'] = $duty;
+				}
+			}else{
+				$pro[$key]['duty'] = 0;
+			}
+		}
+		/* echo   $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('_list',$pro);
+		$this->assign('actname',ACTION_NAME);
+
+		$this->meta_title = '所有项目';
+
+		$root_mbx=array();
+		$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+		$root_mbx[]=array('title'=>'所有项目-已关闭','url'=>'');
+		$this->assign('root_mbx',$root_mbx);
+
+		Cookie('__from_route__','所有项目');
+		Cookie('__from_url__',U('ProjectAll/index'));
+		$this->display('index');
+	}
+
+
+	//查看
+	public function view() {
+		$id = I("get.id");
+		if (empty($id)) {
+			$this->error('项目不存在！');
+		}
+
+		$res= M ( 'member' )->alias ( 'm' )->field ('g.*')
+		->join('ot_auth_group_access a on m.uid=a.uid')
+		->join('ot_auth_group g on g.id=a.group_id')
+		->where ("m.uid=".UID)->find();
+		$group=0;
+		$grade=10;
+		if($res){
+			$group=$res['id'];
+			$grade=$res['grade'];
+		}
+
+		$where= " and (EXISTS(select 1 from ot_takepart tp where tp.pid = p.pid and (tp.uid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=tp.uid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")) )
+or EXISTS(select 1 from ot_task t where t.pid = p.pid and (t.assigneduid=" . UID . " or
+ EXISTS(select 1 from ot_auth_group_access a INNER JOIN ot_auth_group g on a.group_id=g.id where a.uid=t.assigneduid and g.path like CONCAT('%,','".$group."',',%') and g.grade>".$grade.")))) and p.del = 0 ";
+		 
+		 
+		$project = $this->db
+		->field('p.*,o.code oname,o.chance_code,d1.d_key sname,d2.d_key levelc,c.shortsign cname,d3.name dname,m.nickname mname')
+		->alias('p')
+		->join('ot_offer o on p.oid = o.oid', 'LEFT')
+		->join('ot_dept d3 on p.orgid = d3.did', 'LEFT')
+		->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+		->join('ot_dictionary d2 on p.level = d2.d_value and d2.d_code=\'level\'', 'LEFT')
+		->join('ot_customer c on p.cid = c.cid', 'LEFT')
+		->join('ot_member m on p.sale = m.uid', 'LEFT')
+		->where('p.pid=' . $id.$where)
+		->find();
+		   //任务清单数量
+        $count = M('projectService')->alias('s')->join('ot_module m ON m.mid = s.mid', 'LEFT')->join('ot_service s1 ON s1.sid = s.sid', 'LEFT')
+            ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+            ->where('s.pid='.$id)->count();
+        $project['taskcount']=$count;
+		if (empty($project)) {
+			$this->error('项目不存在！');
+		}
+
+		$project['description'] = htmlspecialchars_decode($project['description']);
+		$project['risk'] = htmlspecialchars_decode($project['risk']);
+		$project['feedback'] = htmlspecialchars_decode($project['feedback']);
+
+		$this->assign('p', $project);
+
+		$list = M("takepart")->alias('t')->where("t.pid={$id}")->join('ot_project_role pr on t.roleid=pr.prid', 'left')->join('ot_ucenter_member m on m.id=t.uid', 'left')->field(array(
+			't.uname',
+			't.addtime',
+			't.adduname',
+			'pr.name as  title',
+			'm.mobile',
+		))->order('addtime desc')->select();
+
+		$this->assign('tplist', $list);
+ $doc = M("doc")->where("pid=$id")->join('ot_file f on d.fileid=f.fileid and f.delete=0', 'left')->join('ot_doc_type t on d.dtid=t.dtid', 'left')->
+        field(array(
+            't.name as tname',
+            'f.name as dname',
+            'savepath',
+            'size', 'views', 'd.uname', 'd.url', 'd.urlname', 'd.addtime', 'note', 'f.fileid'
+        ))->order('addtime desc')->select(array('alias' => 'd'));
+        foreach ($doc as &$vo) {
+            $vo['size'] = ceil(intval($vo['size']) / 1024);
+            if ($vo['url']) {
+                $vo['dname'] = $vo['urlname'] ?: $vo['url'];
+            }
+        }
+        $this->assign('doc', $doc);
+			$logs = array();
+			$logs = M("Log")->where(array("pid" => $id))->order("addtime asc")->select();
+
+			if ($logs) {
+				foreach ($logs as $k => $v) {
+					$hs = M("History")->where("logid='{$v['logid']}'")->select();
+					if ($hs) {
+						foreach ($hs as $kk => $vv) {
+							$hs[$kk]['fname'] = tf_name('ot_project', $vv['field']);
+							switch ($vv['field']) {
+								case "cid":
+									$oldtemp = M("Customer")->where("cid='{$vv['olddata']}'")->find();
+									if ($oldtemp) {
+										$olddata = $oldtemp['name'];
+									}
+									if ($olddata) {
+										$hs[$kk]['olddata'] = $olddata;
+									}
+
+									$newtemp = M("Customer")->where("cid='{$vv['newdata']}'")->find();
+									if ($newtemp) {
+										$newdata = $newtemp['name'];
+									}
+									if ($newdata) {
+										$hs[$kk]['newdata'] = $newdata;
+									}
+
+									break;
+
+								case "pstime":
+								case "petime":
+								case "livetime":
+									$hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+									$hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+									break;
+								case "state":
+									$mod=M("Dictionary");
+									$orow=$mod->field("d_key")->where("d_code='project_state' and d_value='{$vv['olddata']}'")->find();
+									if($orow){
+										$hs[$kk]['olddata']=$orow["d_key"];
+									}
+									$nrow=$mod->field("d_key")->where("d_code='project_state' and d_value='{$vv['newdata']}'")->find();
+									if($orow){
+										$hs[$kk]['newdata']=$nrow["d_key"];
+									}
+									break;
+
+								default:
+									break;
+							}
+						}
+							
+						$logs[$k]['hs'] = $hs;
+					}
+				}
+			}
+			$this->assign("logs", $logs);
+
+            $list = M("projectbudget")->where("pid=$id")->field(array(
+                'type',
+                'outitem',
+                'budget',
+                'cost',
+                'cost/budget*10000/100 as bl',
+                'addtime',
+                'updatetime'
+            ))->order('updatetime desc')->select();
+
+            $budgetlog = $this->budgetlog($id);
+            if ($list) {
+                foreach ($list as $k => $V) {
+                	$list[$k]['bl']=round($list[$k]['bl'],2);
+                    if (empty($V['bl'])) {
+                        $list[$k]['bl'] = 0;
+                    } elseif ($V['bl'] > 100) {
+                        $list[$k]['bl'] = 100;
+                    }
+
+                }
+            }
+            $this->assign('budgetlog', $budgetlog);
+
+            $this->assign('blist', $list);
+			$list = M("milestone")->where("m.pid=$id")->join("ot_task t on t.tid=m.tid", "left")->field(array(
+			'm.name',
+			'm.mtime',
+			'm.addtime',
+			'm.uname',
+			'm.addtime',
+			'm.addtime',
+			't.tid',
+			't.title',
+			'm.completion'
+			))->order('m.sort_order asc')->select(array('alias' => 'm'));
+
+			$this->assign('mlist', $list);
+
+
+			$tlist = array();
+			$tlist = M("Task")->alias('t')
+			->field(array('t.*', 'm.name as o_name', 'g.name as gname', 'pc.name as pcname','d.d_key as str'))
+			->join('ot_service s ON s.sid = t.sid', 'LEFT')
+			->join('ot_project_config pc ON pc.pid = t.pcid', 'LEFT')
+			->join('ot_module m ON m.mid = s.mid', 'LEFT')
+			->join('ot_group g ON m.role = g.groupid', 'LEFT')
+			->join("ot_dictionary d ON d.d_value = t.state and d.d_code='taskstatus'", 'LEFT')
+			->where("t.pid='{$id}'  and  t.deleted=0")->select();
+			//var_dump($tlist);
+			$this->assign('tlist', $tlist);
+
+			$where['_string']="  os.oid='{$project['oid']}'";
+			$offer = M('Offer')->where("oid = '{$project['oid']}'")->find();
+			$oamount = fomatprice($offer['oamount']);
+			$oper_cost = fomatprice($offer['oper_cost']);
+			$amount_notax = fomatprice($offer['amount_notax']);
+			$oper_rate = $offer['oper_rate'].'%';
+			$rate = $offer['rate'].'%';
+			$amount_tax = fomatprice($offer['amount_tax']);
+			$disoff = $offer['disoff'].'%';
+			$amount = fomatprice($offer['amount']);
+			$days = $offer['days'];
+			$man_haur = $offer['man_haur'];
+
+			$offer_log = "<span>
+								基础报价 <span class='textr'>$oamount</span>&nbsp;
+								项目管理费<span  class='textr'>$oper_cost($oper_rate)</span>&nbsp;
+								含税<span  class='textr'>$amount_tax($rate)</span>&nbsp;
+								折扣<span  class='textr'>$disoff</span>&nbsp;
+								报价<span  class='textr'>$amount</span>&nbsp;
+								周期<span  class='textr'>$days</span>d&nbsp;
+								工时<span  class='textr'>$man_haur</span>h
+							</span> ";
+
+			 $offersub = M("OfferSub")->field(array('os.*', 'm.name as o_name',
+            'd.d_key as regroup_name',
+            'g.name as ganme',
+            'm1.name as remid_name', 'os.required as r1', 'p.name as pname', 'p.pid as pid'))->alias('os')->join('ot_service s ON s.sid = os.sid', 'LEFT')
+            ->join('ot_module m ON m.mid = s.mid', 'LEFT')
+            ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+            ->join('ot_group g ON m.role = g.groupid', 'LEFT')
+            ->join('ot_module m1 ON m1.mid = s.remid', 'LEFT')
+            ->join("LEFT join ot_dictionary d ON d.d_value = s.regroup AND d.d_code='reqgroup'")
+            ->where("  os.oid='{$project['oid']}'")->order("os.osid desc")->select();
+			foreach($offersub as $k =>$v){
+				$offersub[$k]['hour'] = (int)$v['hour']*(int)$v['quantity'];
+
+			}
+			$nlist=array();
+			if($offersub){
+				foreach ($offersub as $k=>$v){
+					$nlist[$v['mid']]['mid']=$v['mid'];
+					$nlist[$v['mid']]['mname']=$v['o_name'];
+					$nlist[$v['mid']]['list'][]=$v;
+				}
+			}
+
+			$this->assign ( 'offers', $nlist);
+			$this->assign ( 'offer_log', $offer_log);
+
+			//报销单信息获取
+			$result_expense=M('expense')
+			->field('e.type,e.code,e.uname,e.state,e.innum,e.amount,e.addtime,d.d_key,d1.d_key as states')
+			->alias('e')
+			->join('ot_dictionary d on d.d_value=e.type and d.d_code=\'expense_type\'')
+			->join('ot_dictionary d1 on d1.d_value=e.state and d1.d_code=\'Reimbursement_static\'')
+			->where(['pid'=>$id])->select();
+			$this->assign('expense',$result_expense);
+
+			$budgetlog = $this->budgetlog($id);
+
+			$this->assign('budgetlog', $budgetlog);
+            //kpi
+             $kpi = M('Project_kpi')->where('pid=' . $id)->order('kid desc')->select();
+
+             $this->assign('kpi', $kpi);
+
+			$from_route=Cookie('__from_route__')?Cookie('__from_route__'):'我的项目';
+			$from_url=Cookie('__from_url__')?Cookie('__from_url__'):U('ProjectNew/index');
+
+			$root_mbx=array();
+			$root_mbx[]=array('title'=>'项目','url'=>U('ProjectNew/index'));
+			$root_mbx[]=array('title'=>$from_route,'url'=>$from_url);
+			$root_mbx[]=array('title'=>$project['name'],'url'=>U('ProjectAll/view?id='.$project['pid']));
+			$root_mbx[]=array('title'=>'查看项目','url'=>'');
+			$this->assign('root_mbx',$root_mbx);
+
+			$this->assign('from_url',$from_url);
+
+			$this->display();
+	}
+
+	public function export($pro){
+		if(empty($pro)||!is_array($pro)||count($pro)<1){
+			$pro=array();
+		}
+		//获取想应的数据并排序
+		foreach ($pro as $key=>$val){
+			if($val['name']){
+				$project_name = $val['name'];
+			}else{
+				$project_name = $val['p_name'].'-'.$val['o_name'];
+			}
+			$arr['0'] = $project_name;
+			$arr['1'] = $val['contract'];
+			$arr['2']=$val['sname'];
+			$arr['3']=$val['cname'];
+			$arr['4']=$val['pm'];
+			$arr['5'] = $val['type'];//项目类型
+			$arr['6'] = $val['levelc'];//优先级
+            $arr['7'] = $val['petime'] ? date('Y-m-d', $val['petime']) : '';//计划 结束
+            $arr['8'] = $val['tasknum'] . "/" . $val['ftasknum'];//任务完成
+            $arr['9'] = $val['money'] . "/" . $val['amount'];// 金额/挣值
+            $arr['10'] = $val['cost'] . '/' . $val['costh'];//成本发生
+            $arr['11'] = $val['progress'] . "%";//进度
+            $arr['12'] = $val['code'];//编号
+			$datas[] = $arr;
+		}
+		$data = $datas;
+		import ( "IOFactory", "../excel/toexcel/PHPExcel", ".php" );
+		import ( "Excel5", "../excel/toexcel/PHPExcel/Reader", ".php" );
+		import ( "PHPExcel", "../excel/toexcel", ".php" );
+
+		$today      = strtotime(date('Y-m-d'));   //本地时间
+		$filename ='所有项目'. date('YmdHis');
+		$filename.=".xls";
+		header("Content-type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=$filename.xls");
+
+		$excel = new \PHPExcel();
+
+		//Excel表格式,这里简略写了8列
+        $letter = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L','M');
+		//表头数组
+		$tableheader = array('项目名称','合同号','状态','客户','项目经理','项目类型','优先级','计划结束','任务/完成','金额/挣值','成本/发生','进度','编号');
+		//填充表头信息
+		//        $excel->getActiveSheet()->getColumnDimension('A1:L1')->setWidth('13');
+		//       $excel->getActiveSheet()->getColumnDimension('A1:L1')->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+		for($i = 0;$i <count($tableheader);$i++) {;
+		$excel->getActiveSheet()->getStyle('A1:L1')->applyFromArray(array('font'=>array('bold'=>true),"width"=>array('width'=>'280px')));
+		$excel->getActiveSheet()->setCellValue("$letter[$i]1","$tableheader[$i]");
+		}
+		//表格数组
+		//填充表格信息
+		for ($i = 2; $i <= count($data) + 1; $i++) {
+			$j = 0;
+			if($i <= count($data) + 1){
+				foreach ($data[$i - 2] as $key => $value) {
+					$excel->getActiveSheet()->setTitle('参与项目');
+					$excel->getActiveSheet()->setCellValue("$letter[$j]$i", " " . "$value");
+					$j++;
+				}
+			}
+
+		}
+		//创建Excel输入对象
+		$write = new \PHPExcel_Writer_Excel5($excel);
+		header("Pragma: public");
+		header("Expires: 0");
+		header("Cache-Control:must-revalidate, post-check=0, pre-check=0");
+		header("Content-Type:application/force-download");
+		header("Content-Type:application/vnd.ms-execl");
+		header("Content-Type:application/octet-stream");
+		header("Content-Type:application/download");;
+		header('Content-Disposition:attachment;filename='.$filename.'');
+		header("Content-Transfer-Encoding:binary");
+		$write->save('php://output');
+
+	}
+	public function projectlog(){
+		$project = M('Project')->alias('p')->where(" p.del = 0 and (p.pmuid=".UID." or p.uid=".UID.") ")->count();
+		$project1 = M('Project')->alias('p')->where(" p.del = 0 and (p.pmuid=".UID." or p.uid=".UID.") and p.state = 1")->count();
+		$project2 = M('Project')->alias('p')->where("p.del = 0 and (p.pmuid=".UID." or p.uid=".UID.") and p.state = 2")->sum('p.money');
+		$project2 = fomatprice($project2);
+		$mprojectlog = "<span>管理项目 <span class='textr'>$project</span><span>个</span>
+&nbsp;进行中项目<span class='textr'>$project1</span><span>个</span>
+&nbsp;已完成项目金额<span class='textr'>$project2</span><span></span></span>  ";
+		return $mprojectlog;
+	}
+
+	public function  budgetlog($pid){
+		$but1 = M('Projectbudget')->field("sum(budget) as budget,sum(cost) as cost")->where("pid = {$pid}")->select();
+		$wfs = (float)$but1[0]['budget'] - (float)$but1[0]['cost'];
+		$but2 =  M('Projectbudget')->field("sum(budget) as budget,sum(cost) as cost")->where("pid = {$pid} and type ='人力成本'")->find();
+		$but3=  M('Projectbudget')->field("sum(budget) as budget,sum(cost) as cost")->where("pid = {$pid} and type ='现金成本'")->find();
+		$but4=  M('Projectbudget')->field("sum(budget) as budget,sum(cost) as cost")->where("pid = {$pid} and type ='第三方成本'")->find();
+
+		if($but1[0]['budget']<$but1[0]['cost']){
+			$budgetlog= "<span>预算 <span class='textg'>".fomatprice($but1[0]['budget'])."</span>
+	 		
+&nbsp;未发生 <span class='textg'>".fomatprice($wfs)."</span>
+&nbsp;已发生 <span class='textr'>".fomatprice($but1[0]['cost'])."</span>
+&nbsp;其中 人力成本 <span class='textg'>".$but2['cost']."</span>
+ &nbsp;现金成本 <span class='textg'>".$but3['cost']."</span>
+ &nbsp;第三方成本 <span class='textg'>".$but4['cost']."</span> ";
+		}else{
+			$budgetlog= "<span>预算 <span class='textg'>".fomatprice($but1[0]['budget'])."</span>
+	 		
+&nbsp;未发生<span class='textg'>".fomatprice($wfs)."</span>
+&nbsp;已发生 <span class='textg'>".fomatprice($but1[0]['cost'])."</span>
+&nbsp;其中 人力成本 <span class='textg'>".$but2['cost']."</span>
+ &nbsp;现金成本 <span class='textg'>".$but3['cost']."</span>
+ &nbsp;第三方成本 <span class='textg'>".$but4['cost']."</span> ";
+		}
+		return $budgetlog;
+	}
+}

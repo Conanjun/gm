@@ -1,0 +1,33 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Dentist\Controller;
+use User\Api\UserApi;
+use Common\Common\Super\Order;
+/**
+ * 收银台：fhc
+ */
+class CashController extends AdminController
+{
+	//构造函数
+	public function __construct()
+	{
+		parent::__construct();
+	}
+	
+	//收银台
+	public function index()
+	{
+		$oid = isset($_GET['id'])?0:$_GET['id'];
+
+		$this->display();
+	}
+}
+
+

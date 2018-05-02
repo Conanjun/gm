@@ -1,0 +1,86 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+    <!-- 数据列表 -->
+        <div class="data-table table-striped">
+        <table
+                class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable" style="text-align: center">
+            <thead>
+            <tr>
+                <th width="20px">
+                </th>
+                <th style="text-align: left;">任务</th>
+                <th style="text-align: left;">备注</th>
+                <th style="text-align: left;">执行人(单价)</th>
+                <th width="120px">完成时间</th>
+                <th width="80px">预计工时</th>
+                <th width="100px">预算金额</th>
+                <th width="80px">完成工时</th>
+                <th width="100px">成本</th>
+            </tr>
+            </thead>
+            <tbody>
+            <notempty name="files">
+                <volist name="files" id="vo">
+                    <tr>
+                        <td class="cell-id">
+                        </td>
+                        <td style="text-align: left;">{$vo.title}</td>
+                        <td style="text-align: left;" title="{$vo.description}">{$vo.description|msubstr=###,0,15}</td>
+                        <td style="text-align: left;">
+                            <if condition="$vo['finishuname']">
+                                {$vo.finishuname}
+                                <else/>
+                                {$vo.assignedname}
+                            </if>
+                            <if condition="$vo['price']">
+                                ({$vo.price|fomatprice})
+                                <elseif condition="$vo['price1']"/>
+                                ({$vo.price1|fomatprice})
+                            </if>
+
+                        </td>
+                        <td>{$vo.finishtime|time_format}</td>
+                        <td>{$vo.hours}h</td>
+                        <td>
+                            {$vo.amount1|fomatprice2}
+                        </td>
+                        <td>
+                            <if condition="$vo['finishours'] gt $vo['hours']">
+                                <span class="textr">{$vo.finishours}h</span>
+                            <else/>
+                                <if condition="$vo['finishours']">
+                                    {$vo.finishours}h
+                                </if>
+                            </if>
+                        </td>
+                        <td>
+                            {$vo.amount|fomatprice2}
+                        </td>
+                    </tr>
+                </volist>
+                <tr>
+                    <td colspan="9" class="text-right">
+                        合计：预计工时<span class="textg">{$chours}h</span>
+                     <!--   预算<span class="textg">{$amount1|fomatprice2}</span>-->
+                        完成工时<span class="textg">{$finishours}h</span>
+                      <!--  成本<span class="textg">{$amount|fomatprice2}</span>-->
+                    </td>
+                </tr>
+                <else/>
+                <td colspan="9" class="text-center table_nodata"> aOh! 暂时还没有内容!</td>
+            </notempty>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Offer/index')}");
+    </script>
+</block>

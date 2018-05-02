@@ -1,0 +1,229 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+use Common\Common\Super\Order;
+
+/**
+ * 订单管理控制器
+ */
+class PlatOrderController extends AdminController {
+	private $model;
+	
+	// 构造函数
+	public function __construct() {
+		parent::__construct ();
+		$this->model = D ( 'PlatOrder' ); // 数据字典Model
+	}
+	
+	/**
+	 * 后台字典管理首页
+	 */
+	public function index() {
+		$where = " 1=1 ";
+		$filter = '';
+		$name = I("get.name","");
+		$name && $filter .= " and (o.dename like '%{$name}%' or o.stuname like '%{$name}%' or o.pname like '%{$name}%')";
+		
+		$ordersn=I("get.order_sn","");
+		$ordersn && $filter .= " and o.order_sn like '%{$ordersn}%' ";
+		
+		$state=I("get.state","");
+		$state && $filter .= " and o.state = '{$state}' ";
+		
+		$servicetype=I("get.servicetype","");
+		$servicetype && $filter .= " and o.servicetype = '{$servicetype}' ";
+		
+		$isurgent=I("get.isurgent","");
+		if($isurgent!==""){
+			$filter .= " and o.isurgent = '{$isurgent}' ";
+		}
+		$where .= $filter;
+		
+		// 更新排序
+		if (isset ( $_GET ['sort'] ) && isset ( $_GET ['order'] )) {
+			$sort = strtolower ( trim ( $_GET ['sort'] ) );
+			$order = strtolower ( trim ( $_GET ['order'] ) );
+			if (! in_array ( $order, array (
+					'asc',
+					'desc' 
+			) )) {
+				$sort = 'o.addtime';
+				$order = 'desc';
+			}
+		} else {
+			$sort = 'o.addtime';
+			$order = 'desc';
+		}
+		
+		$count = $this->model->countNum ( $where );
+		$page = new \Think\Page ( $count, 20 );
+		$lists = $this->model->join("left join ot_dictionary d on d.d_key=o.state and d.d_code='orderstatus'")
+		->join("left join ot_dictionary d2 on d2.d_key=o.servicetype and d2.d_code='ser_type' ")
+		->alias ( 'o' )->where ( $where )->order ( "$sort $order" )->field ( "d2.d_value as dv1,o.*,d.d_value" )
+		->limit ( $page->firstRow . ',' . $page->listRows )->select ();
+		if($lists){
+			foreach ($lists as	$k=>$v){
+				$v["d_value"] && ($lists[$k]["d_value"]=L($v["d_value"]));
+				$v["dv1"] && ($lists[$k]["dv1"]=L($v["dv1"]));
+			}
+		}
+		
+		$page->setConfig ( 'theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%' );
+		$this->assign ( 'lists', $lists );
+		$this->assign ( '_page', $page->show () );
+		$this->assign ( 'filtered', $filter ? 1 : 0 ); // 是否有查询条件
+		
+		$sl = M ( "Dictionary" )->field ( "d_key,d_value" )->where ( "d_code='orderstatus'" )->order ( "d_order asc" )->select ();
+		if($sl){
+			foreach ($sl as $k=>$v){
+				$sl[$k]["d_value"]=L($v["d_value"]);
+			}
+		}
+		$this->assign ( 'statuslist', $sl );
+		
+		$st = M ( "Dictionary" )->field ( "d_key,d_value" )->where ( "d_code='ser_type'" )->order ( "d_order asc" )->select ();
+		if($st){
+			foreach ($st as $k=>$v){
+				$st[$k]["d_value"]=L($v["d_value"]);
+			}
+		}
+		$this->assign ( 'stypelist', $st );
+		
+		$this->display ();
+	}
+	
+	public function view(){
+		$id=I("get.id","");
+		if(empty($id)){
+			$this->error(L('Data_not_exist'));
+		}
+		
+		$temp="";
+		
+		$info= $this->model->join("left join ot_dictionary d on d.d_key=o.state and d.d_code='orderstatus'")
+		->join("left join ot_patient p on p.paid=o.paid")
+		->join("left join ot_dictionary d2 on d2.d_key=o.servicetype and d2.d_code='ser_type' ")
+		->alias ( 'o' )->where ( "order_id='{$id}'" )->field ( "o.*,d.d_value,p.gender as psex,d2.d_value as dv2" )->find ();
+		
+		if(empty($info)){
+			$this->error(L('Data_not_exist'));
+		}
+		
+		//服务内容相关
+		$sql="select planid from ot_order_pay where oid='{$id}' group by planid";
+		$paysub=M()->query($sql);
+		if($paysub){
+			foreach ($paysub as $v){
+				if($v["planid"]){
+					$field="zh_pname as pname";
+					getlange() && ($field="en_pname as pname");
+					$sql="select $field,type from ot_costplan where planid='{$v["planid"]}'";
+					$plan=M()->query($sql);
+					if($plan[0]){
+						if($plan[0]["type"]==1){
+							$this->assign('os',($plan[0]["pname"]));
+						}else{
+							$this->assign('ns',($plan[0]["pname"]));
+						}
+					}
+				}
+			}
+		}
+		
+		//订单扩展信息
+		$orderext=M("OrderExt")->where("oid='{$id}'")->field("*")->find();
+		$this->assign('orderext',$orderext);
+		
+		
+		if($info["dv2"]=="PLANT"){
+			//种植订单
+			$temp="view";
+			
+			$info["dv2"]=L($info["dv2"]);
+			$info["d_value"]=L($info["d_value"]);
+			
+			//种植订单明细
+			$orderext1=M("OrderExt1")->alias("o")->join("left join ot_dictionary d1 on d1.d_key=o.isxft and d1.d_code='isxft'")
+			->join("left join ot_dictionary d2 on d2.d_key=o.isyzy and d2.d_code='isyzy'")
+			->join("left join ot_dictionary d3 on d3.d_key=o.issd and d3.d_code='issd'")
+			->join("left join ot_dictionary d4 on d4.d_key=o.repairtype and d4.d_code='repairtype'")
+			->join("left join ot_dictionary d5 on d5.d_key=o.mmodel and d5.d_code='mmodel'")
+			->where("o.oid='{$id}'")->field("o.*,d1.d_value as xft,d2.d_value as yzy,d3.d_value as sd,d4.d_value as rt,d5.d_value as knmx")->find();
+			if($orderext1){
+				if($orderext1["xft"]){
+					$orderext1["xft"]=L($orderext1["xft"]);
+				}
+				if($orderext1["yzy"]){
+					$orderext1["yzy"]=L($orderext1["yzy"]);
+				}
+				if($orderext1["sd"]){
+					$orderext1["sd"]=L($orderext1["sd"]);
+				}
+				if($orderext1["rt"]){
+					$orderext1["rt"]=L($orderext1["rt"]);
+				}
+				if($orderext1["knmx"]){
+					$orderext1["knmx"]=L($orderext1["knmx"]);
+				}
+			}
+			$this->assign('orderext1',$orderext1);
+			
+			//相关文件
+			$files=M("OrderFile")->alias("of")->where("of.oid='{$id}' and of.ftype='cbct'")
+			->join("left join ot_file f on f.fileid=of.file_id")->field("f.savepath")->select();
+			$this->assign('files',$files);
+			
+			$tootharray=array();
+			$temparray=array_merge(Order::$lacktooth1,Order::$lacktooth2);
+			if($temparray){
+				foreach ($temparray as $v){
+					$tootharray[]=array("h"=>0,"value"=>$v);
+				}
+			}
+			
+			$toothposition=array();
+			$toothposition1=array();
+			$t=explode(",",$orderext1["toothposition"]);
+			$t1=explode(",",$orderext1["toothposition1"]);
+			if($tootharray&&$t){
+				foreach ($tootharray as $v){
+					foreach ($t as $vv){
+						if($vv==$v["value"]){
+							$v["h"]=1;
+						}
+					}
+					$toothposition[]=$v;
+				}
+			}
+			
+			if($tootharray&&$t1){
+				foreach ($tootharray as $v){
+					foreach ($t1 as $vv){
+						if($vv==$v["value"]){
+							$v["h"]=1;
+						}
+					}
+					$toothposition1[]=$v;
+				}
+			}
+			
+			$this->assign('t1',$toothposition1);
+			$this->assign('t',$toothposition);
+			
+			
+		}
+		
+		
+		$this->assign('info',$info);
+		$this->display($temp);
+	}
+	
+}

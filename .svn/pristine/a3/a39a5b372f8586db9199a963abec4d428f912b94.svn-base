@@ -1,0 +1,24 @@
+<?php
+return array(
+		'WELCOME_MESSAGE'=>'Welcome to the GM biology class management system.',//欢迎来到该美生物科管理系统
+		'NCBZY'=>'Nickname is occupied',//昵称被占用
+		'NCCDWZF' => 'The nickname length is 1-16 characters',//昵称长度为1-16个字符
+		'LOGIN_SUCCESSFUL' => 'Login Successful',//登录成功
+		'USER_DOES_NOT' => 'The user does not exist or is disabled',//用户不存在或被禁用
+		'PASSWORD_ERROR' => 'Password error',//密码错误
+		'UNKNOWN_ERROR' => 'Unknown error',//未知错误
+		'MODULE_NOT_RULES' => 'You do not have permission to log in to this module',//您没有权限登录此模块
+		'Data_not_exist' => 'Data does not exist',//数据不存在
+		'ADD_ERROR'=>'Add failure',//添加失败
+		'ADD_SUCCESS'=>'Add success',//添加成功
+		'EDIT_ERROR'=>'Failure of Editors',//编辑失败
+		'EDIT_SUCCESS'=>'Editor\'s success',//编辑成功
+		'DELETE_FAILED'=>'Delete failed',//删除失败
+		'DELETE_SUCCESS'=>'Delete success',//删除成功
+		'LANG_SWITCHER'=>'LangSwitcher',//切换语言
+		'ZH_CN'=>'Chinese',//汉语
+		'EN_US'=>'English',//英语
+		'LOGOUT'=>'Logout',//退出
+		'CHANGE_PASSWORD'=>'Change Password',//修改密码
+		'EDIT_PERSONAL_INFORMATION'=>'Edit Personal Information',//编辑个人信息
+);

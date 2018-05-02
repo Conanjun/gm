@@ -1,0 +1,188 @@
+<?php
+namespace Admin\Controller;
+/*费用项目模型*/
+class FeeItemController extends AdminController{
+	//定义数据表
+	private $db;
+
+	//构造函数 实例化FeeItemModel 并获得整张表的数据
+	public function __construct(){
+		parent::__construct();
+		//初始化时实例化FeeItem model
+		$this->db=M('Feeitem');
+	}
+	
+	public function index(){
+		
+		
+		$config=array(
+				"actionURL"=>"/Admin/FeeItem/index",
+				"operators"=>array("="=>"=","!="=>"!=",">"=>">",">="=>">=","<"=>"<","<="=>"<=","include"=>"包含"),
+				"params"=>array(0=>array('str'=>'名称','fieldname'=>'name','operator' => 'include',  'control' => 'input',  'values' =>'')
+				)
+		);
+		$this->setSearchConfig($config);
+		$where=$this->getCondition();
+		
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order']))
+		{
+			$sort  = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order,array('asc','desc')))
+			{
+				$sort  = 'addtime';
+				$order = 'desc';
+			}
+		}
+		else
+		{
+			$sort  = 'addtime';
+			$order = 'desc';
+		}
+		$page = new \Think\Page($this->db->count(),20);
+
+		$feeItem = $this->db
+			->field(true)
+			->where($where)
+			->order($sort." ".$order)
+			->limit($page->firstRow.','.$page->listRows)
+			->select();
+		/*echo $this->db->getLastSql();*/
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('_page', $page->show());
+		$this->assign('feeItem',$feeItem);
+		$this->display();
+	}
+
+    /**
+     * 添加项目
+     *
+     * @param string $name
+     * @param string $sort_order
+     */
+	public function add( $name = '', $sort_order = ''){
+		if(IS_POST){
+			if(!$name){
+				$this->error('请填写名称！');
+			}
+			$res = $this->db->getByName($name);
+			if($res){
+				$this->error('名称已存在！');
+			}
+
+			if(!$sort_order){
+				$this->error('排序不能为空！');
+			}
+			
+			$code = $this->get_rand_number();
+			
+			$res = $this->db->getByCode($name);
+			if($res){
+				$this->error('请重新添加！');
+			}
+			$data = array(
+				'name' => $name,
+				'sort_order' => $sort_order,
+				'addtime' =>  time(),
+				'code' => $code,
+			);
+			
+			$tmp = $this->db->add($data);
+			if(!$tmp){
+				$this->error('添加失败！');
+			}else{
+				$this->success('添加成功！',U('index'));
+			}
+		} else {
+			$this->display();
+		}
+	}
+	public function delete(){
+		$id = I('id');
+		if(!$id){
+			$this->error('请选择要操作的数据！');
+		}
+		if(is_array($id)){
+			$ids = implode(',',$id);
+		}else{
+			$ids = $id;
+		}
+		$where =array('feeid'=>array('in',$ids));
+		$tmp = $this->db->where($where)->delete();;
+		if($tmp){
+			$this->success('删除成功！',U('index'));
+		}else{
+			$this->error('删除失败！');
+		}
+	}
+
+    /**
+     * @param string $id
+     * @param string $name
+     * @param string $sort_order
+     * @param string $pid
+     */
+	public function edit($id='', $name='', $sort_order='', $pid=''){
+		if(!$id){
+			$this->error('请选择要操作的数据！');
+		}
+		if(IS_POST){
+			if(!$name){
+				$this->error('请填写名称！');
+			}
+			$res = $this->db->where('name='.$name.'and feeid !='.$id)->find();
+			if($res){
+				$this->error('名称已存在！');
+			}
+
+			if(!$sort_order){
+				$this->error('排序不能为空！');
+			}
+			$data = array(
+				'sort_order' => $sort_order,
+				'name' => $name,
+			);
+
+			$tmp = $this->db->where('feeid = '.$id)->save($data);
+			if($tmp === false){
+				$this->error('编辑失败！',U ( 'FeeItem/edit?id='.$id ) );
+			}else{
+				$this->success ( '编辑成功！',U('index'));
+			}
+			
+		}else{
+			
+			$res = $this->db->where(array('feeid'=>$id))->find();
+			$this->assign('res',$res);
+			$this->display();
+
+		}
+	}
+	public function  get_rand_number(){
+		$number = 'F';
+		for($i=1;$i<9;$i++){
+			$number .= rand(1,9);
+		}
+		return $number;
+	}
+	//异步修改数据
+	public function ajax_col()
+	{
+		$id     = empty($_GET['id']) ? 0 : intval($_GET['id']);
+		$column = empty($_GET['column']) ? '' : trim($_GET['column']);
+		$value  = isset($_GET['value']) ? trim($_GET['value']) : '';
+		$data   = array();
+
+		if (in_array($column ,array( 'sort_order')))
+		{
+			$data[$column] = $value;
+			$this->db->where('feeid='.$id)->save($data);
+		}
+		else
+		{
+			return ;
+		}
+		return ;
+	}
+}

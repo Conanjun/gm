@@ -1,0 +1,172 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+    <script src="__JSNEW__/all.fine-uploader/all.fine-uploader.min.js"></script>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-gallery.min.css" rel="stylesheet"/>
+    <link href="__JSNEW__/all.fine-uploader/fine-uploader-new.min.css" rel="stylesheet"/>
+    <style>
+        .formbtn:hover{
+            color:#333333
+        }
+        .qq-upload-button {
+            width: 192px;
+            height: 100px;
+            border: 0;
+            background: url("__ROOT__/admin/images/plus.png") no-repeat center center #efefef;
+            border: 0;
+            background-size: 50px;
+        }
+        .qq-upload-list-selector li{position: relative;}
+        .pdel {
+            background: url('__ROOT__/admin/images/cl.png') no-repeat left top;
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: -5px;
+            right:-5px;
+            z-index: 1;
+        }
+        .qq-thumbnail-selector {
+            vertical-align: middle;
+            margin-right: 0px;
+            width: 200px;
+        }
+        ul{
+            list-style-type:none;
+            margin: 0;
+            padding: 0;
+        }
+        .sitem li.lion {
+            background: #1ab394;
+            color: #fff;
+        }
+        .sitem li{
+            float: left;
+            background: #f2f2f2;
+            height: 25px;
+            line-height: 25px;
+            margin-right: 10px;
+            padding: 0 10px;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #888;
+            transition: 0.3s;
+        }
+
+    </style>
+	
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+	<link href="__CSS__/in/iviews-order.css" rel="stylesheet"  type="text/css" />
+<script>
+$(function(){
+	 $('.ibox-form .fa-plus').on('click', function(){
+         $(this).closest('.form-group').before( $("#clonemod").clone(true) );
+		 $(".ui-select1:last").chosen();
+     })
+
+     $('.ibox-form').on('click', '.fa-times', function(){
+    	 var group_id=$("[name='id']").val();
+    	 var uid=$(this).attr("item");
+    	 var subthis=this;
+    	 if(group_id&&uid){
+    		 var url="{:U('AuthRule/deleteacc')}"+"&id="+group_id+"&uid="+uid;
+    		 $.getJSON(url,function(result){
+    			 if(result.done){
+    				 $(subthis).closest('.form-group').slideUp(function(){
+    		             $(this).remove();
+    		         });
+    			 }
+    		 });
+    	 }else{
+    		 $(this).closest('.form-group').slideUp(function(){
+	             $(this).remove();
+	         });
+    	 }
+         
+     });
+});
+</script>
+
+	<div style="display: none;">
+	<div class="form-group" id="clonemod">
+                                    <label class="control-label col-sm-2">{:L('USERLIST')}</label>
+                                    <div class="col-sm-2">
+                                        <select name="pro[]"  data-placeholder="{:L('PLEASE_SELECT')}" class="ui-select1 form-control">
+	                                                <volist name="ulist" id="vo">
+                                                            <option value="{$vo.uid}">{$vo.nickname}
+													</option>
+                                                     </volist>
+                                         </select>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type="button" class="btn btn-danger btn-lg fa fa-times"></button>
+                                    </div>
+    </div></div>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                        <h5>
+                            {:L('STUDIO_ROLE')}-{$group.title}
+                            <small>{:L('USERLIST')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="row">
+                   
+					<form action="{:U('AuthRule/userlist')}" method='post' id="form">
+						<input type="hidden" name="id" value="{$group.id}">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content form-horizontal ibox-form">
+                                
+                                <volist name="lists" id="vo">
+	                                <div class="form-group">
+	                                    <label class="control-label col-sm-2">{:L('USERLIST')}</label>
+	                                    <div class="col-sm-2">
+	                                        <input readonly="readonly" type="text" value="{$vo.nickname}" class="form-control">
+	                                    </div>
+	                                    <div class="col-sm-2">
+	                                        <button item="{$vo.uid}" type="button" class="btn btn-danger btn-lg fa fa-times"></button>
+	                                    </div>
+	                                </div>
+	                             </volist>
+	                                <div class="form-group">
+	                                    <div class="col-sm-2 col-sm-offset-4">
+	                                        <button type="button" class="btn btn-primary btn-lg fa fa-plus"></button>
+	                                    </div>
+	                                </div>
+                                
+                                <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="javascript:history.go(-1);" class="btn btn-white" type="button">{:L('BACK')}</a>
+									<a href="javascript:;" id="submit" class="btn btn-primary" onclick="$('form').submit();"><i class="icon-save"></i> {:L('SAVE')}</a>
+                                </div>
+                            </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>
+<block name="script"> <script type="text/javascript">
+        //导航高亮
+        highlight_subnav("{:U('Tag/index')}");
+    </script> </block>

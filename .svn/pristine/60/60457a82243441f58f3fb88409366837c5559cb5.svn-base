@@ -1,0 +1,168 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('Studio/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('STUDIO')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Studio/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/Studio/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('CODE')}</label>
+                                                <input class="form-control" type="text" name="code" value="{$Think.get.code}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('NAME')}</label>
+                                                <input class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('STATE')}</label>
+                                                <select name="enabled" class="form-control m-b" style="width: 50px">
+                                                    <option value="">{:L('PLEASE_SELECT')}</option>
+                                                    <option value="1" <if condition="$Think.get.enabled eq 1">selected</if>>{:L('OPEN')}</option>
+                                                    <option value="2" <if condition="$Think.get.enabled eq 2">selected</if>>{:L('CLOSE')} </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <div id="region">
+                                                    <label>{:L('REGION')}</label>
+                                                    <input type="hidden" name="regionid"  value="{$Think.get.regionid}" class="mls_id" />
+                                                    <input type="hidden" name="regionname" value="{$Think.get.regionid}"  class="mls_names" />
+                                                    <select class="form-control m-b">
+                                                        <option>{:L('PLEASE_SELECT')}</option>
+                                                        <volist name="regions" id="vo">
+                                                            <option value="{$vo.region_id}" <if condition="$vo.region_id eq $Think.get.regionid">selected</if>>{$vo.region_name}</option>
+                                                        </volist>
+                                                    </select>
+                                                    <if condition="$Think.get.regionid gt 0">
+                                                        <script>
+                                                            grid={$Think.get.regionid};
+                                                        </script>
+                                                    </if>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('Studio/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                      
+                        
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="width: 80px"><span ectype="order_by" fieldname="code">{:L('CODE')} <i class="fa fa-sort"></i></span></th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="name">{:L('NAME')} <i class="fa fa-sort"></i></span></th>
+                                     <th style="width: 100px">{:L('TEL_PHONE')}</th>
+                                    <th style="width: 100px">{:L('CONTACT')}</th>
+                                    <th style="text-align: left"><span ectype="order_by" fieldname="regionname">{:L('REGION')} <i class="fa fa-sort"></i></span></th>
+                                    
+                                    <th style="text-align: left">{:L('TAG')}</th>
+                                   
+                                    <th style="width: 80px"><span ectype="order_by" fieldname="enabled">{:L('STATE')} <i class="fa fa-sort"></i></span></th>
+                                    <th style="width: 120px">操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                               <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['stuid']}" class="check"><label></label>
+                                                </div>
+                                            </td>
+                                            <td>{$vo['code']}</td>
+                                            <td style="text-align: left">{$vo['name']}</td>
+                                            <td>{$vo['tel']}</td>
+                                            <td>{$vo['contact']}</td>
+                                            <td style="text-align: left">{$vo['regionname']}</td>
+                                            
+                                            <td style="text-align: left">{$vo['tag']}</td>
+                                            
+                                            <td>
+                                                <if condition="$vo['enabled']">
+                                                    <img src="__IMG__/positive_enabled.png" ectype="inline_edit" fieldname="enabled" fieldid="{$vo.stuid}" fieldvalue="1" title="{:L('EDITABLE')}"/>
+                                                    <else/>
+                                                    <img src="__IMG__/positive_disabled.png" ectype="inline_edit" fieldname="enabled" fieldid="{$vo.stuid}" fieldvalue="0" title="{:L('EDITABLE')}"/>
+                                                </if>
+                                            </td>
+                                            <td>
+                                                <a href="{:U('Studio/edit?id='.$vo['stuid'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                <a data-trigger="confirm" data-content="是否删除内容?" data-title="删除选择内容"
+                                                data-ajax="{:U('Studio/delete?id='.$vo['stuid'])}"
+                                                data-type="get"
+                                                class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-default btn-sm">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

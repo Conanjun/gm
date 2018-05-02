@@ -1,0 +1,130 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('Costplan/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('COSTPLAN')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Costplan/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Studio/Costplan/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('SERVICE_TYPE')}</label>
+                                                <select class="form-control m-b"  name="servicetype">
+                                                    <option>{:L('PLEASE_SELECT')}</option>
+                                                    <volist name="dic" id="d">
+                                                        <option value="{$d.d_key}" <if condition=" Think.get.servicetype eq $d.d_key"> selected </if>>{$d.d_value}</option>
+                                                    </volist>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <label>{:L('NAME')}</label>
+                                                <input class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('DISCOUNT')}</label>
+                                                <input class="form-control" type="text" name="discount" value="{$Think.get.discount}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('Costplan/index')}" class="btn btn-default">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                      
+                        
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th>{:L('SERVICE_TYPE')} </th>
+                                    <th>{:L('SERVICE_NAME')} </span></th>
+									<th>{:L('DISCOUNT')} </th>
+                                    <th style="width: 120px">操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                               <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['itemid']}" class="check"><label></label>
+                                                </div>
+                                            </td>
+                                            <td>{$vo['d_value']}</td>
+                                            <td>{$vo['pname']}</td>
+											 <td>{$vo['discount']}</td>
+                                            <td>
+                                                <a href="{:U('Costplan/edit?id='.$vo['planid'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                <a href="{:U('Costplan/delete?id='.$vo['planid'])}" class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-default btn-sm">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

@@ -1,0 +1,304 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 客户管理控制器
+ */
+class CustomerController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     *客户管理首页
+     *
+     */
+    public function index()
+    {
+
+
+        $config = array(
+            "actionURL" => "/Admin/Customer/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '简称', 'fieldname' => 'shortsign', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 2 => array('str' => '类型', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 3 => array('str' => '行业', 'fieldname' => 'trade', 'operator' => '=', 'control' => 'select', 'values' => array())
+            , 4 => array('str' => '联系人', 'fieldname' => 'contact', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 5 => array('str' => '联系电话', 'fieldname' => 'phone', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 6 => array('str' => '座机', 'fieldname' => 'tel', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 7 => array('str' => '传真', 'fieldname' => 'fax', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 8 => array('str' => '网址', 'fieldname' => 'site', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 9 => array('str' => '地址', 'fieldname' => 'address', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 10 => array('str' => '母公司', 'fieldname' => 'pcompany', 'operator' => 'include', 'control' => 'input', 'values' => '')
+
+            )
+        );
+        if ($config && $config['params']) {
+
+            $mtypes = array("" => "");
+            $mcs = array("" => "");
+            $states = M("Dictionary")->where("d_code='customer_type'")->select(array('order' => 'd_order asc'));
+            $chans = M("Dictionary")->where("d_code='customer_trade'")->select(array('order' => 'd_order asc'));
+            if ($states) {
+                foreach ($states as $v) {
+                    $mtypes[$v['d_value']] = $v['d_key'];
+                }
+            }
+
+            if ($chans) {
+                foreach ($chans as $v) {
+//					$mcs[$v['d_key']]=$v['d_value'];
+                    $mcs[$v['d_value']] = $v['d_key'];
+                }
+            }
+            $config['params'][2]['values'] = $mtypes;
+            $config['params'][3]['values'] = $mcs;
+        }
+        $this->setSearchConfig($config);
+
+        $order = "";
+        $map = $this->getCondition();
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+
+        $list = $this->lists('Customer', $map, $order);
+        foreach ($list as &$value) {
+            foreach ($states as $vo) {
+                if ($value['type'] == $vo['d_value']) {
+                    $value['type'] = $vo['d_key'];
+                }
+            }
+        }
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '客户', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('_list', $list);
+        $this->meta_title = '客户管理';
+        $this->display();
+    }
+
+    /**
+     * 删除数据
+     */
+    public function deletedata()
+    {
+        $id = array_unique(( array )I('id', 0));
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        //检测客户是否在项目和报价单中引用
+        $msg = "";
+        foreach ($id as $vo) {
+            $where = "c.cid={$vo}  and ( exists(select 1 from ot_project ps where ps.cid={$vo}) or exists(select 1 from ot_offer f where f.cid={$vo}))";
+            $result = M('customer')->alias('c')->field('c.name')->where($where)->find();
+            if ($result) {
+                $msg .= "『{$result['name']}』删除失败 : 客户报价单或项目中被引用。\n";
+            } else {
+                $res = M('customer')->field('name')->where(array('cid' => $vo))->find();
+                if (M('Customer')->where(array('cid' => $vo))->delete() !== false) {
+                    $msg .= "『{$res['name']}』删除成功。\n";
+
+                } else {
+                    $msg .= "『{$res['name']}』删除失败 : 客户报价单或项目中被引用。\n";
+                };
+            }
+        }
+        $this->ajaxReturn(array('done' => true, 'msg' => "{$msg}"));
+    }
+
+    /**
+     * 新增客户
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $name = I("post.name", '');
+            $shortsign = I('post.shortsign');
+            $tel = I("post.tel", '');
+            $trade = I("post.trade", '');
+            $type = I("post.type", '');
+            $contact = I("post.contact", '');
+            $phone = I("post.phone", '');
+            $owner = I("post.owner", '');
+            $fax = I("post.fax", '');
+            $pcompany = I("post.pcompany");
+            $site = I("post.site");
+            $note = I("post.note", '');
+            $address = I("post.address");
+            $employees = I("post.employees");
+            if (empty ($name)) {
+                $this->error('客户名称不能为空');
+            }
+            if (empty ($contact)) {
+                $this->error('联系人名称不能为空');
+            }
+            /*if (empty ($phone)) {
+                $this->error('联系人电话不能为空');
+            }
+            if (empty ($shortsign)) {
+                $this->error('客户简称不能为空');
+            }*/
+            $row = M('Customer')->where("name='" . $name . "'")->select();
+            if ($row) {
+                $this->error('此客户名称已存在，换个名称吧');
+            }
+            $code = $this->_getcode();
+            $data = array(
+                'name' => $name,
+                'shortsign' => $shortsign,
+                'tel' => $tel,
+                'trade' => $trade,
+                'type' => $type,
+                'contact' => $contact,
+                'phone' => $phone,
+                'owner' => $owner,
+                'fax' => $fax,
+                'pcompany' => $pcompany,
+                'site' => $site,
+                'note' => $note,
+                'address' => $address,
+                'employees' => $employees,
+                'code' => $code,
+                'addtime' => time(),
+                'uid' => is_login(),
+                'uname' => get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login()),
+            );
+            if (!M('Customer')->add($data)) {
+                $this->error('客户添加失败！');
+            } else {
+                $this->redirect('Customer/index');
+//                $this->success('客户添加成功！', U('index'));
+            }
+        } else {
+            $owner = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('owner', $owner);
+            $this->meta_title = '新增客户';
+            $type = M("Dictionary")->where("d_code='customer_type'")->select(array('order' => 'd_order asc'));
+            $this->assign('type', $type);
+            $trade = M("Dictionary")->where("d_code='customer_trade'")->select(array('order' => 'd_order asc'));
+            $this->assign('trade', $trade);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '客户', 'url' => U('Customer/index'));
+            $root_mbx[] = array('title' => '添加客户', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑客户
+     */
+    public function edit()
+    {
+        $id = I("get.id", '');
+        if (empty($id)) {
+            $this->error('客户信息不存在！');
+        }
+        if (IS_POST) {
+            $name = I("post.name", '');
+            $shortsign = I('post.shortsign');
+            $tel = I("post.tel", '');
+            $trade = I("post.trade", '');
+            $type = I("post.type", '');
+            $contact = I("post.contact", '');
+            $phone = I("post.phone", '');
+            $owner = I("post.owner", '');
+            $fax = I("post.fax", '');
+            $pcompany = I("post.pcompany");
+            $site = I("post.site");
+            $note = I("post.note", '');
+            $address = I("post.address");
+            $employees = I("post.employees");
+
+            if (empty ($name)) {
+                $this->error('客户名称不能为空');
+            }
+          /*  if (empty ($contact)) {
+                $this->error('联系人名称不能为空');
+            }
+            if (empty ($phone)) {
+                $this->error('联系人电话不能为空');
+            }*/
+
+//			$row=M ( 'Customer' )->where("name='".$name."' and cid<>'{$id}'")->select();
+//			if($row){
+//				$this->error ( '此客户名称已存在，换个名称吧' );
+//			}
+//
+            $data = array(
+                'name' => $name,
+                'shortsign' => $shortsign,
+                'tel' => $tel,
+                'trade' => $trade,
+                'type' => $type,
+                'contact' => $contact,
+                'phone' => $phone,
+                'owner' => $owner,
+                'fax' => $fax,
+                'pcompany' => $pcompany,
+                'site' => $site,
+                'note' => $note,
+                'address' => $address,
+                'employees' => $employees,
+                'addtime' => time(),
+                'uid' => is_login(),
+                'uname' => get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login()),
+            );
+
+            if (D('Customer')->where(['cid' => $id])->save($data) === false) {
+                $this->error('客户编辑失败！', U('index'));
+            } else {
+                $this->redirect('Customer/index');
+//				$this->success ( '客户编辑成功！', U ('index') );
+            }
+        } else {
+            $this->meta_title = '编辑客户';
+            $data = array();
+            $data = M('Customer')->where("cid='" . $id . "'")->find();
+            if (empty($data)) {
+                $this->error('客户数据不存在！');
+            }
+            $owner = M('Member')->field('uid,nickname')->where('status = 1')->select();
+            $this->assign('owner', $owner);
+            $this->assign('id', $id);
+            $this->assign('data', $data);
+            $type = M("Dictionary")->where("d_code='customer_type'")->select(array('order' => 'd_order asc'));
+            $this->assign('type', $type);
+            $trade = M("Dictionary")->where("d_code='customer_trade'")->select(array('order' => 'd_order asc'));
+            $this->assign('trade', $trade);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '客户', 'url' => U('Customer/index'));
+            $root_mbx[] = array('title' => '编辑客户', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+    }
+
+    /**
+     * 生成客户编码
+     */
+
+    private function _getcode()
+    {
+        $code = "C" . mt_rand(10000000, 99999999);
+        $data = M('Customer')->where("code='" . $code . "'")->find();
+        if ($data) {
+            $this->_getcode();
+        } else {
+            return $code;
+        }
+    }
+}

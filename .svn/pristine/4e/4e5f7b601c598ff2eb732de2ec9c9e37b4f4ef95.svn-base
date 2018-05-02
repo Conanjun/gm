@@ -1,0 +1,63 @@
+<extend name="Public/base_choose" />
+<block name="body">
+	<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+	<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <style>
+        #cke_content{
+            width:640px !important;
+        }
+    </style>
+         <form action="" class="form-condensed mw-980px">
+			<table align="center" class=" table-form iframeContentop" style="border:0px">
+				<tbody>
+				<tr>
+					<th width="100px" class="thtop">备注</th>
+					<td  colspan="2">
+						<textarea id="content" name="content" style="width: 550px;height: 200px"  class="ckeditor"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td colspan="2">
+						<div class="rightdiv">
+							<a href="javascript:;" style="width: 81.36px;" class=" btn btn-primary ajax-post confirm" onclick="choose()" ><i style="margin-right: 5px" class="icon-upload-alt"></i>提交</a>
+						</div>
+					</td>
+					<td>
+
+					</td>
+				</tr>
+				</tbody>
+			</table>
+   </form>
+
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+	<script type="text/javascript">
+		function choose() {
+            var content=CKEDITOR.instances.content.getData();
+            var eid = "{$eid}";
+            if(content){
+                $.ajax({
+                    type: "POST",
+                    url: "{:U('Expense/expensefinish')}",
+                    data: {content:content,eid:eid},
+                    dataType: "json",
+                    success: function(data){
+                        if(data.done){
+                            window.parent.choose();
+                        }else {
+                            alert(data.msg);
+                        }
+                    }
+                });
+
+			}else{
+                $("#cke_content").css('border','1px solid red');
+			}
+		}
+	</script>
+</block>

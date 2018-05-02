@@ -1,0 +1,72 @@
+[ 2018-05-02T09:44:06+08:00 ] 127.0.0.1 /index.php?s=/Admin/Dictionary/index.html
+SQL: SHOW COLUMNS FROM `ot_menu` [ RunTime:0.003906s ]
+SQL: SELECT * FROM `ot_menu` WHERE ( `pid` = 0 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000977s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 1 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 1 ) AND ( `hide` = 0 )  [ RunTime:0.001953s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 1 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000976s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 50 )  [ RunTime:0.000000s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 50 ) AND ( `hide` = 0 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 50 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000976s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 58 )  [ RunTime:0.001953s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 58 ) AND ( `hide` = 0 )  [ RunTime:0.000000s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 58 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000977s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 66 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 66 ) AND ( `hide` = 0 )  [ RunTime:0.000977s ]
+NOTIC: [8] Undefined variable: replace D:\work\gm\Application\Admin\Controller\AdminController.class.php 第 76 行.
+NOTIC: [8] Undefined variable: replace D:\work\gm\Application\Admin\Controller\AdminController.class.php 第 77 行.
+SQL: SHOW COLUMNS FROM `ot_dictionary` [ RunTime:0.002930s ]
+SQL: SELECT COUNT(*) AS tp_count FROM ot_dictionary d WHERE (  1=1  ) LIMIT 1   [ RunTime:0.000977s ]
+SQL: SELECT * FROM ot_dictionary d WHERE (  1=1  ) ORDER BY d.d_tid desc LIMIT 0,20   [ RunTime:0.000977s ]
+INFO: [ view_parse ] --START--
+INFO: [ template_filter ] --START--
+INFO: Run Behavior\ContentReplace [ RunTime:0.000000s ]
+INFO: [ template_filter ] --END-- [ RunTime:0.000977s ]
+NOTIC: [8] Undefined index: code D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 283 行.
+NOTIC: [8] Undefined index: name D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 287 行.
+NOTIC: [8] Undefined index: d_del D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 293 行.
+NOTIC: [8] Undefined index: d_del D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 294 行.
+INFO: Run Behavior\ParseTemplate [ RunTime:0.062500s ]
+INFO: [ view_parse ] --END-- [ RunTime:0.062500s ]
+INFO: [ view_filter ] --START--
+INFO: Run Behavior\WriteHtmlCache [ RunTime:0.000977s ]
+INFO: [ view_filter ] --END-- [ RunTime:0.000977s ]
+INFO: [ app_end ] --START--
+INFO: Run Behavior\ShowPageTrace [ RunTime:0.001953s ]
+INFO: [ app_end ] --END-- [ RunTime:0.001953s ]
+
+[ 2018-05-02T09:44:09+08:00 ] 127.0.0.1 /index.php?s=/Admin/Dictionary/index.html
+SQL: SHOW COLUMNS FROM `ot_menu` [ RunTime:0.003907s ]
+SQL: SELECT * FROM `ot_menu` WHERE ( `pid` = 0 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000000s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 1 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 1 ) AND ( `hide` = 0 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 1 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000976s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 50 )  [ RunTime:0.001953s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 50 ) AND ( `hide` = 0 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 50 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000976s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 58 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 58 ) AND ( `hide` = 0 )  [ RunTime:0.000977s ]
+SQL: SELECT `id`,`pid`,`title`,`url`,`tip` FROM `ot_menu` WHERE ( `pid` = 58 ) AND ( `hide` = 0 ) AND ( `module` = 'Admin' ) ORDER BY sort asc  [ RunTime:0.000977s ]
+SQL: SELECT DISTINCT  `module` FROM `ot_menu` WHERE ( pid = 66 )  [ RunTime:0.001953s ]
+SQL: SELECT `id`,`url` FROM `ot_menu` WHERE ( `pid` = 66 ) AND ( `hide` = 0 )  [ RunTime:0.000976s ]
+NOTIC: [8] Undefined variable: replace D:\work\gm\Application\Admin\Controller\AdminController.class.php 第 76 行.
+NOTIC: [8] Undefined variable: replace D:\work\gm\Application\Admin\Controller\AdminController.class.php 第 77 行.
+SQL: SHOW COLUMNS FROM `ot_dictionary` [ RunTime:0.003906s ]
+SQL: SELECT COUNT(*) AS tp_count FROM ot_dictionary d WHERE (  1=1  ) LIMIT 1   [ RunTime:0.000000s ]
+SQL: SELECT * FROM ot_dictionary d WHERE (  1=1  ) ORDER BY d.d_tid desc LIMIT 0,20   [ RunTime:0.000977s ]
+INFO: [ view_parse ] --START--
+INFO: [ template_filter ] --START--
+INFO: Run Behavior\ContentReplace [ RunTime:0.000977s ]
+INFO: [ template_filter ] --END-- [ RunTime:0.000977s ]
+NOTIC: [8] Undefined index: code D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 283 行.
+NOTIC: [8] Undefined index: name D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 287 行.
+NOTIC: [8] Undefined index: d_del D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 293 行.
+NOTIC: [8] Undefined index: d_del D:\work\gm\Runtime\Cache\Admin\f7269cc34e3079a67f5d4f9cfdf689b5.php 第 294 行.
+INFO: Run Behavior\ParseTemplate [ RunTime:0.059570s ]
+INFO: [ view_parse ] --END-- [ RunTime:0.060546s ]
+INFO: [ view_filter ] --START--
+INFO: Run Behavior\WriteHtmlCache [ RunTime:0.000000s ]
+INFO: [ view_filter ] --END-- [ RunTime:0.000977s ]
+INFO: [ app_end ] --START--
+INFO: Run Behavior\ShowPageTrace [ RunTime:0.000976s ]
+INFO: [ app_end ] --END-- [ RunTime:0.000976s ]
+

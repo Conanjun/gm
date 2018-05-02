@@ -1,0 +1,54 @@
+<extend name="Public/base_choose" />
+<block name="body">
+<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+<script>
+    $(function(){
+    	$("#nr").focus();
+        $("#refuse").click(function(){
+            var type='refuse';
+            var id="{$id}";
+            var nr=CKEDITOR.instances.nr.getData();
+            if(nr)
+            {
+            	 $.post("{:U('warn?id='.$id)}",{id:id,type:type,nr:nr},function(result){
+                    if(result.done)
+                    {
+                        window.parent.renovate();
+                    }
+                    else
+                    {
+                        alert(result.msg);
+                    }
+                },"json");
+            }
+            else
+            {
+            	 $("#cke_content").css('border','1px solid red');
+                alert("请填写提醒内容");
+                return;
+            }
+
+        });
+
+
+    });
+
+</script>
+<style>
+
+
+</style>
+<center>
+<div style="padding: 15px;">
+<textarea placeholder="请填写提醒内容" style="width:100%;height:100px;" name="nr" class="ckeditor"></textarea>
+<div style="clear: both;"></div>
+    <div style="height: 30px; width: 70px; margin-top: 16px;margin-right: 27px;" class="form-condensed rightdiv">
+<a id="refuse" href="javascript:;" class="btn btn-primary" data-loading="稍候..."><i class="icon-project-close icon-info-sign"></i> 提醒</a>
+    </div>
+
+</div>
+</center>
+</block>
+
+

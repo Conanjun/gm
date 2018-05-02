@@ -1,0 +1,71 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com>
+// +----------------------------------------------------------------------
+
+namespace Studio\Model;
+
+use Think\Model;
+
+/**
+ * 付款模式模型 : LGW
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class FeedbackModel extends Model
+{
+    protected $pk = 'id';
+
+    /**
+     * 获取全部收费模式信息 带分页
+     *
+     * @param $where
+     * @param $page
+     *
+     * @return mixed
+     */
+    public function getList($where, $page)
+    {
+        $list = $this
+            ->field('f.code,f.state,f.stuid,f.uid,f.denid,f.type,f.content,f.pic,f.addtime,f.backcontent,f.backtime,f.backuid')
+            ->alias('f')
+            ->where($where)
+            ->order("addtime desc")
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        return $list;
+    }
+    /**
+     * 获取总条数
+     *
+     * @param
+     * @param
+     *
+     * @return mixed
+     */
+    public function countNum($where){
+        return $this->alias('f')->where($where)->count();
+    }
+
+    /**
+     * 按条件查询一条数据
+     *
+     * @param $where
+     *
+     * @return mixed
+     */
+    public function getOne($where)
+    {
+        $one = $this->field('f.code,f.state,f.stuid,f.uid,f.denid,f.type,f.content,f.pic,f.addtime,f.backcontent,f.backtime,f.backuid')
+            ->alias('f')
+            ->where($where)
+            ->find();
+        return $one;
+    }
+
+
+}

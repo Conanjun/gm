@@ -1,0 +1,245 @@
+<extend name="Public/base" />
+
+<block name="body">
+<script src="__JSNEW__/ckeditor/ckeditor.js"></script>
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+    <script>
+        $(function(){
+             $('#updatetip').mouseover(function(){
+                 $('#updatetip').popover({"html": true, trigger: "focus"});
+                    $('#updatetip').popover('show');
+        })
+         $('#updatetip').mouseleave(function(){
+                $('#updatetip').popover({"html": true, trigger: "focus"});
+                    $('#updatetip').popover('hide');
+        })
+        })
+
+
+    </script>
+<style>
+    .info_table{
+        line-height: 28px;
+    }
+	 .tablesorter thead tr th{font-weight: normal;color: #888}
+	.content{margin-bottom: 30px}
+    .btn-group .btn+.btn {
+         margin-left: 0;
+
+    .popover{
+       left:0;
+    }
+</style>
+       
+     <div style="min-height: 777px;">
+<div id="titlebar">
+  <div class="heading" style="padding-right: 277px;">
+    <strong>
+       {$week.title}
+    </strong>
+      </div>
+  <div class="actions">
+   <div class="btn-group">
+	   <a data-height="200" href="{:U('Review/reply?id='.$week['weekid'])}" class="btn iframe"><i class="icon-project-close icon-chat-dot"></i>评论</a><a href="{:U('Review/update?id='.$id)}" data-toggle="popover" id="updatetip" data-placement="left" data-content="上次更新时间：{$week['retime']|time_format=###,'y-m-d H:i'}"  class="btn"><i class="icon-project-putoff icon-cloud "></i>更新</a><a href="{:U('Review/printpage?id='.$id)}"  data-width="1200"
+		  data-height="700" title=" {$week.title}-预览" class="btn iframe"><i class="icon-project-putoff icon-eye-open"></i>预览</a>
+	   <a href="{:U('Review/download',array('id'=>$id,'title'=>$week['title']))}" class="btn" title="下载"><i class="icon-project-putoff icon-download-alt"></i>下载</a>
+   </div><a href="{:U('Review/view?e=1&id='.$week['weekid'])}" class="btn " title="编辑"><i class="icon-common-edit icon-pencil"></i>编辑</a><a href="javascript:history.go(-1);"  class="btn" title="返回"><i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> 返回</a>
+  </div>
+</div>
+<div class="row-table">
+  <div class="col-main">
+    <div class="main" style="margin-left: 0;">
+      <fieldset>
+        <legend>Key Point</legend>
+        <div class="content">
+			<ul>
+				<li>
+					项目：本周参与 {$week['pznum']} 个项目，参与项目金额 {$week['pmoney']|fomatprice}元	</br>
+					- 本周新增项目{$week['panum']} 个（{$week['pamoney']|fomatprice}）	</br>
+					- 在进行的项目{$week['pwnum']} 个（{$week['pwmoney']|fomatprice}）</br>
+				</li>
+				</br>
+				<li>
+					任务：项目相关任务{$week['tznum']} 项，本周任务挣值（{$week['tzmoney']|fomatprice}），登记工时{$week['tzhours']} 小时	</br>
+					- 完成项目直接交付任务{$week['tdnum']}个，挣值（{$week['tdmoney']|fomatprice}），时间占比{$week['tdduty']}%</br>
+					- 其他项目管理相关任务{$week['tnnum']}个，时间占比{$week['tnduty']}%</br>
+					- 参与会议{$week['mnum']}次，时间占比{$week['mduty']}%</br>
+					- 本周延期任务{$week['dtnum']}项，占比{$week['dtduty']}%
+				</li>
+				</br>
+				<li>
+					下周已规划任务{$week['nnum']}项，涉及项目{$week['npnum']}个，预计时间{$week['nhours']}小时
+				</li>
+				</br>
+				<li>
+					问题/建议/补充
+					<if condition="$e">
+						<form action="{:U('view',array('id'=>$week['weekid']))}" method="post">
+						<textarea id="content" name="content" style="width: 78%;height: 150px"  class="ckeditor">{$week['content']}</textarea>
+						</form>
+					<else/>
+					{$week['content']}
+					</if>
+				</li>
+			</ul>
+			<if condition="$e"><div class="form-condensed" style="float: right"><a href="javascript:;"  class="btn btn-primary" onclick=" $('form').submit();" data-loading="稍候..." style="margin-left: 20px"><i class="icon-save"></i>保存</a></div></if>
+        </div>
+	  </fieldset>
+			  <legend>项目明细</legend>
+		  <div class="content">
+		  <div class="data-table table-striped">
+			  <table
+					  class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+					  style="text-align: center">
+				  <thead>
+				  <tr>
+					  <th width="10px"></th>
+					  <th style="text-align: left">客户-项目</th>
+					  <th  style="text-align: left">服务类型</th>
+					  <th   style="text-align: left">参与角色</th>
+					  <th   style="width: 80px">状态</th>
+					  <th   style="width: 80px;text-align: right">金额(万)</th>
+					  <th   style="width: 100px">进度%</th>
+				  </tr>
+				  </thead>
+				  <tbody>
+				  <notempty name="week_project">
+					  <volist name="week_project" id="vo">
+					  <tr>
+						  <td class="cell-id"></td>
+						  <td style="text-align: left">{$vo['pname']}</td>
+						  <td style="text-align: left">{$vo['sname']}</td>
+						  <td  style="text-align: left">{$vo['role']}</td>
+						  <td>{$vo['dname']}</td>
+						  <td style="text-align: right">{$vo['money']}</td>
+						  <td>{$vo['progress']}%</td>
+					  </tr>
+				  </volist>
+						  <tr>
+							  <td></td>
+							  <td style="text-align: left">{$p_zj['pzum']}</td>
+							  <td style="text-align: left">{$p_zj['fuwu1']}</td>
+							  <td style="text-align: left">{$p_zj['role1']}</td>
+							  <td>{$p_zj['renwu1']}</td>
+							  <td style="text-align: right">{$p_zj['pamoney']}</td>
+							  <td></td>
+						  </tr>
+					  <else />
+				  </notempty>
+				  </tbody>
+				  <tfoot>
+				  <tr>
+				  </tr>
+				  </tfoot>
+			  </table></div></div>
+			  <legend>任务明细</legend>
+			  <div class="content">
+				  <div class="data-table table-striped">
+					  <table
+							  class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+							  style="text-align: center">
+						  <thead>
+						  <tr>
+							  <th width="10px"></th>
+							  <th style="text-align: left">任务类型</th>
+							  <th  style="width: 80px">任务状态</th>
+							  <th   style="width: 200px">任务数</th>
+							  <th   style="width: 80px">时间(h)</th>
+							  <th   style="width: 100px">占比</th>
+							  <th   style="width: 100px;">挣值(万)</th>
+						  </tr>
+						  </thead>
+						  <tbody>
+						  <notempty name="week_task">
+							  <volist name="week_task" id="vo">
+							  <tr>
+								  <td class="cell-id"></td>
+								  <td style="text-align: left">
+								  		<if condition="$vo['type'] ==1">
+											直接交付型任务
+											<else/>
+											项目管理型任务(规划、资源协调等)
+										</if>
+								  </td>
+								  <td>
+									  <if condition="$vo['state'] == 3">
+										  已完成
+										  <else/>
+										  进行中
+									  </if>
+								  </td>
+								  <td>{$vo['tmum']}</td>
+								  <td>{$vo['days']}</td>
+								  <td>{$vo['duty']}%</td>
+								  <td >{$vo['money']}</td>
+							  </tr>
+						  </volist>
+							  <tr>
+								  <td></td>
+								  <td>{$t_zj['hj']}</td>
+								  <td></td>
+								  <td>{$t_zj['num']}</td>
+								  <td>{$t_zj['da']}</td>
+								  <td></td>
+								  <td>{$t_zj['money']}</td>
+							  </tr>
+							  <else />
+						  </notempty>
+						  </tbody>
+						  <tfoot>
+						  <tr>
+						  </tr>
+						  </tfoot>
+					  </table></div></div>
+		<legend>评论列表</legend>
+		<div class="content">
+
+			<div class="data-table table-striped"><table
+					class="table table-condensed table-hover table-striped tablesorter table-fixed table-selectable"
+					style="text-align: center">
+				<thead>
+				<tr>
+					<th width="10px"></th>
+					<th style="text-align: left">评论内容</th>
+					<th width="80">评论人</th>
+					<th width="90">评论时间</th>
+					<th width="60">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				<notempty name="rlist"> <volist name="rlist" id="vo">
+					<tr>
+						<td class="cell-id"></td>
+						<td style="text-align: left">{$vo.content}</td>
+						<td>{$vo.uname}</td>
+						<td>{$vo.addtime|date='m-d H:i',###}</td>
+						<td>
+							<if condition="$uid eq $vo['uid']">
+								<a href="{:U('Review/delete?id='.$vo['wcid'])}"  class="confirm ajax-get">删除</a>
+							</if>
+						</td>
+					</tr>
+				</volist> <else />
+				</notempty>
+				</tbody>
+				<tfoot>
+				<tr>
+				</tr>
+				</tfoot>
+			</table></div></div>
+    </div>
+  </div>
+</div>
+  </div>
+       
+       
+</block>
+
+<block name="script"> <script type="text/javascript">
+    //导航高亮
+    highlight_subnav("{:U('Review/index')}");
+    function renovate(){
+        $.closeModal();
+        location.reload(true);
+    }
+</script> </block>

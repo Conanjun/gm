@@ -1,0 +1,30 @@
+<table class="table tablesorter table-data table-hover block-todo table-fixed">
+	<thead style="visibility: visible;">
+		<tr>
+			<th class='text-left'>任务名称</th>
+			<th width="70">优先级</th>
+			<th width="70">指派人</th>
+			<th width="80">计划结束</th>
+			<th width="60">状态</th>
+			<th width="80">预计工时</th>
+		</tr>
+	</thead>
+	<tbody>
+		<volist name="_tasklist" id="vo">
+           <tr class="text-center" data-url="{$vo.link}">
+		      <td class='text-left' title="{$vo.pname}-{$vo.title}"><a href="{$vo.link}" title="{$vo.pname}-{$vo.title}">{$vo.pname}-{$vo.title}</a></td>
+		      <td <if condition="$vo['level']==2">style="color:red"</if>>{$vo.d_key}</td>
+		      <td>{$vo.manageruname}</td>
+		      <td>{$vo.petime|date="m-d",###}</td>
+		       <td 
+		       class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'>textc</eq><eq name='vo.state' value='2'></eq><eq name='vo.state' value='3'>textg</eq><eq name='vo.state' value='4'></eq><eq name='vo.state' value='5'></eq><eq name='vo.state' value='6'>textr</eq><eq name='vo.state' value='-1'>textc</eq>"
+		       >
+		      	{$vo.statestr}
+		      </td>
+		     <td>{$vo.hours}</td>
+  			 </tr> 
+        </volist>
+	</tbody>
+</table>
+
+<notempty name="_tasklist">  <else/><div class="text-center table_nodata" style="margin-top:1px"></div></notempty >

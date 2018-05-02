@@ -1,0 +1,78 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                         <h5>
+                            {:L('MESSAGE_MANAGE')}
+                            <small>{:L('VIEW')}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+
+                        <form action="" method='post' id="form" class="form-horizontal">
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('SENDER')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['nickname']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('RECIPIENT')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['mname']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('THEME')}</label>
+                                <div id="region" class="col-sm-10">
+                                    <p class="form-control-static">{$list['title']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('CONTENT')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['content']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('MESS_TYPE')}</label>
+                                <div class="col-sm-3">
+                                    <p class="form-control-static">{$list['outtype']}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('IS_READ')}</label>
+                                <div class="col-sm-10">
+                                    <if condition="$list.enabled eq 1">{:L('YES')}</if>
+                                    <if condition="$list.enabled eq 0">{:L('NO')}</if>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">{:L('ADDTIME')}</label>
+                                <div class="col-sm-10">
+                                   <if condition="$list.addtime neq 0"> {$list['addtime']|date="Y-m-d H:i:s",###}</if>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

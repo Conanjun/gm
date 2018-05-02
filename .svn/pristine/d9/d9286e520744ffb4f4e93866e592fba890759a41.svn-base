@@ -1,0 +1,289 @@
+<?php
+
+namespace Admin\Controller;
+
+use Vendor\PHPTree;
+
+/**
+ * 组织结构控制器
+ */
+class DeptController extends AdminController
+{
+    private $meta_title;
+
+    public function index()
+    {
+
+        $DeptM = M('Dept');
+        //更新排序
+        if (isset($_GET['sort']) && isset($_GET['order'])) {
+            $sort = strtolower(trim($_GET['sort']));
+            $order = strtolower(trim($_GET['order']));
+            if (!in_array($order, array('asc', 'desc'))) {
+                $sort = 'did';
+                $order = 'asc';
+            }
+        } else {
+            $sort = 'did';
+            $order = 'asc';
+        }
+        //查询条件
+        $name = I('name');
+        $did = I('did');
+        if ($name || $did) {
+            $where['d.name'] = array('LIKE', '%' . $name . '%');
+            $where['d.did'] = array('eq', $did);
+        } else {
+            $where = "1=1";
+        }
+        $Dept = M('Dept')->select();
+        if (!$did) {
+            $did = $Dept [0] ['did'];
+        }
+        $this->assign('did', $did);
+        $page = new \Think\Page($DeptM->count(), 20);
+        $dept = $DeptM
+            ->field('d.*,d1.name parent_name')
+            ->alias('d')
+            ->join('ot_dept d1 on d.parent = d1.did', 'LEFT')
+            ->where($where)
+            ->order($sort . " " . $order)
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $menuList = $this->getpro();
+        $menuList = "<ul class='tree tree-lines'>" . substr($menuList, 4);
+        $this->assign('menuList', $menuList);
+        $page->setConfig('theme', '%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+        $this->assign('_page', $page->show());
+        $this->assign('Dept', $dept);
+        //添加部门
+        $deptList = M('Dept')->field(true)->select();
+        $deptList = D('Common/Tree')->toFormatTree1($deptList);
+        $deptList = array_merge(array(0 => array('did' => 0, 'title_show' => '顶级部门', 'grade' => 0)), $deptList);
+        $this->assign('depts', $deptList);
+        $did = I('get.did');
+        $this->assign('did', $did);
+        $members = M('Member')->field(true)->select();
+        $members = array_merge(array(0 => array('uid' => '', 'nickname' => '请选择...')), $members);
+        $this->assign('members', $members);
+        //项目组
+//        $where= "not exists( select 1 from ot_dept od where  od.groupid=g.groupid)";
+        $res_group = M('group')->field(true)
+            ->alias('g')
+            ->order('sort_order desc')
+            ->select();
+        $this->assign('groupList', $res_group);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '部门', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        // 记录当前列表页的cookie
+        Cookie('__forward__', $_SERVER['REQUEST_URI']);
+        $this->meta_title = '部门维护';
+        $this->display();
+    }
+
+    /**
+     * 添加项目
+     */
+    public function add()
+    {
+        if (IS_POST) {
+            $dept = D('Dept');
+            $data = $dept->create();
+            $res = $dept->getByName($data['name']);
+            if ($res) {
+                $this->error('部门已存在！');
+            }
+            if ($data) {
+                $res_grade = $this->getGrade($data['parent']);
+                $data['grade'] = (int)$res_grade['grade'] + 1;
+                if(!empty($data['groupids'])){
+	                $data['groupids'] = implode(',',$data['groupids']);
+                }
+                $data['grade'] = (int)$res_grade['grade'] + 1;
+                $id = $dept->add($data);
+                if ($id) {
+                    $path = $this->getDeptPid($id);
+                    $dept->where('did = ' . $id)->save(array('path' => $path));
+                    Cookie('__forward__');
+                    $this->redirect('Admin/Dept/index', array('did' => $data['parent']));
+//                    $this->success('添加成功',U('dept/index?did='.$data['parent']));
+                } else {
+                    $this->error('添加失败');
+                }
+            } else {
+                $this->error($dept->getError());
+            }
+        } else {
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $depts = array_merge(array(0 => array('did' => 0, 'title_show' => '顶级部门', 'grade' => 0)), $depts);
+            $this->assign('depts', $depts);
+            $did = I('get.did');
+            $members = M('Member')->field(true)->select();
+            $members = array_merge(array(0 => array('uid' => '', 'nickname' => '请选择...')), $members);
+            $this->assign('members', $members);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '部门', 'url' => U('Dept/index'));
+            $root_mbx[] = array('title' => '添加部门', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->meta_title = '新增项目';
+            $this->assign('did', $did);
+            $this->display();
+
+        }
+    }
+
+    /**
+     * 编辑
+     */
+    public function edit()
+    {
+        if (IS_POST) {
+            $did = I('post.did');
+            $dept = D('Dept');
+            $data = $dept->create();
+            $res = $dept->where('did !=' . $did)->getByName($data['name']);
+            if ($res) {
+                $this->error('部门已存在！');
+            }
+            if ($data) {
+                $res_grade = $this->getGrade($data['parent']);
+                $data['grade'] = (int)$res_grade['grade'] + 1;
+	            if(!empty($data['groupids'])){
+		            $data['groupids'] = implode(',',$data['groupids']);
+	            }
+                if ($dept->where('did = ' . $did)->save($data) !== false) {
+                    // S('DB_CONFIG_DATA',null);
+                    $path = $this->getDeptPid($did);
+                    $dept->where('did = ' . $did)->save(array('path' => $path));
+                    Cookie('__forward__');
+                    $this->redirect('Admin/dept/edit', array('did' => $did));
+//                    $this->success('编辑成功',U('dept/edit?did='.$did));
+                } else {
+                    $this->error('编辑失败');
+                }
+            } else {
+                $this->error($dept->getError());
+            }
+        } else {
+            $did = I('get.did');
+            $menuList = $this->getpro();
+            $menuList = "<ul class='tree tree-lines'>" . substr($menuList, 4);
+            $this->assign('menuList', $menuList);
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $depts = array_merge(array(0 => array('did' => 0, 'title_show' => '顶级部门', 'grade' => 0)), $depts);
+            $this->assign('depts', $depts);
+            $members = M('Member')->field(true)->select();
+            $members = array_merge(array(0 => array('uid' => '', 'nickname' => '请选择...')), $members);
+            $this->assign('members', $members);
+            //项目组
+//          $where= "not exists( select 1 from ot_dept od where  od.groupid=g.groupid and did!=".$did.")";
+            $res_group = M('group')->field(true)
+                ->alias('g')
+                ->order('sort_order desc')
+                ->select();
+            $this->assign('groupList', $res_group);
+            $dep = M('Dept')->where('did = ' . $did)->field(true)->find();
+            $this->assign('dep', $dep);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '部门', 'url' => U('Dept/index'));
+            $root_mbx[] = array('title' => '编辑部门', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->meta_title = '编辑部门';
+            $this->assign('did', $did);
+            $this->display('edit');
+        }
+    }
+
+    /**
+     * 删除
+     */
+    public function del()
+    {
+        $id = array_unique((array)I('did', 0));
+        if (empty($id)) {
+            $this->json_error('请选择要操作的数据!',false);
+            return  false;
+        }
+        $did = I('get.did');
+        $filter['path'] = array('like', "%$did%");;
+        //检测部门下和参与项目中是否有人员
+        $res_depts = M('dept')->field('did')->where("path like CONCAT('%,',{$did},',%')")->select();
+        foreach ($res_depts as $vo) {
+            $where = "d.did={$vo['did']}  and ( exists(select 1 from ot_project p where p.orgid={$vo['did']}) or exists(select 1 from ot_member m where m.dept=d.did) )";
+            $res_check = M('dept')->alias('d')->where($where)->find();
+            if ($res_check) {
+                $this->json_error('删除失败：部门有参与项目或部门下有成员',false);
+	            return false;
+            }
+        }
+        $res = M('dept')->where($filter)->delete();
+        if ($res) {
+//             $this->success('删除成功');
+            $this->json_result('index','',false);
+        } else {
+            $this->json_error('删除失败',false);
+        }
+    }
+
+    public function getDeptPid($id)
+    {
+        static $res = '';
+        $dept = M('dept')->find($id);
+        $res = $dept['did'] . ',' . $res;
+        if ($dept['parent'] != 0) {
+            return $this->getDeptPid($dept['parent']);
+        }
+        return ',' . $res;
+    }
+
+    public function getGrade($id)
+    {
+        $res = M('dept')->field('grade')->find($id);
+        return $res;
+    }
+
+    //异步修改数据
+    public function ajax_col()
+    {
+        $id = empty($_GET['did']) ? 0 : intval($_GET['did']);
+        $column = empty($_GET['column']) ? '' : trim($_GET['column']);
+        $value = isset($_GET['value']) ? trim($_GET['value']) : '';
+        $data = array();
+
+        if (in_array($column, array('sort_order'))) {
+            $data[$column] = $value;
+            M('Dept')->where('did=' . $id)->save($data);
+        } else {
+            return;
+        }
+        return;
+    }
+
+    public function getpro($id = 0)
+    {
+        global $lastMenu;
+        $where = 'parent = ' . $id;
+        $deptList = M('dept')->where($where)->order('sort_order asc')->select();
+        if ($deptList) {
+            $lastMenu .= "<ul>";
+            foreach ($deptList as $key => $value) {
+                if (M('dept')->where('parent=' . $value['did'])->find()) {
+                    $lastMenu .= "<li> <i class='list-toggle icon'></i>" . "<a id='list" . $value ['did'] . "' href=" . U('dept/edit?did=' . $value['did']) . " >" . $value['name'] . "</a><span style='display:inline-block;padding-left:3px;font-size:1px;'>" . "<a href=" . U('dept/index?did=' . $value['did']) . " style='color: rgba(97, 9, 232, 0.4);'><i class=\"icon-plus\"></i></a></span><span style='display:inline-block;padding-left:3px;font-size:1px;'>" . "<a href='javascript:;' style='color: rgba(97, 9, 232, 0.4);' onclick=' dele(".$value['did'].")'><i class=\"icon-remove\"></i></a></span>";
+                    $this->getpro($value['did']);
+                    $lastMenu .= "</li>";
+                } else {
+                    $lastMenu .= "<li>" . "<a id='list" . $value ['did'] . "' href=" . U('dept/edit?did=' . $value['did']) . ">" . $value['name'] . " </a><span style='display:inline-block;padding-left:3px;font-size:1px;'>" . "<a href=" . U('dept/index?did=' . $value['did']) . " style='color: rgba(97, 9, 232, 0.4);'><i class=\"icon-plus\"></i></a></span><span style='display:inline-block;padding-left:3px;font-size:1px;'>" . "<a href='javascript:;' style='color: rgba(97, 9, 232, 0.4);' onclick=' del(". $value['did'].")'><i class=\"icon-remove\"></i></a></span></li>";
+                }
+            }
+            $lastMenu .= "</ul>";
+        }
+        return $lastMenu;
+    }
+}
+

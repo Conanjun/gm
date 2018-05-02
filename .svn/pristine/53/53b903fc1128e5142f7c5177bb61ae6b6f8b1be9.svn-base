@@ -1,0 +1,72 @@
+$.extend({
+    menu: function () {
+        return $('#side-menu li > ul > li.active').closest('ul').addClass('in').parent().closest('li').addClass('active');
+    },
+
+    mask: {
+        open: function (e) {
+            var $mask = '<div class="modal-backdrop fade in"><div class="loader-inner pacman"><div></div><div></div><div></div><div></div><div></div></div></div>';
+            return $('body').append($mask);
+        },
+        close: function () {
+            return $('body').find('.modal-backdrop').fadeOut(function(){
+                $(this).remove();
+            })
+        }
+    },
+
+    full: {
+        open: function() {
+            $('.iviews-order-mask').css({
+                'width': $(window).width(),
+                'height': $(window).height(),
+                'left': -$('.navbar-default').width(),
+                'top': -$('#page-wrapper > .border-bottom').eq(0).height()
+            })
+            $('body').addClass('hasMask');
+            $('#page-wrapper > .border-bottom').eq(0).addClass('hasMask');
+            $('#page-wrapper > .wrapper').eq(0).addClass('hasMask');
+        },
+        close: function() {
+            $('body').removeClass('hasMask');
+            $('#page-wrapper > .border-bottom').eq(0).removeClass('hasMask');
+            $('#page-wrapper > .wrapper').eq(0).removeClass('hasMask');
+        }
+    },
+
+    del: {
+
+        arr: function (ele) {
+            var delArr = [];
+            
+            $(ele).find('input[name="check"]:checked').each(function () {
+                delArr.push($(this).val());
+            });
+            
+            return delArr;
+        },
+
+        all: function (ele, url) {
+            console.log(this.arr(ele))
+            $.ajax({
+                url: url,
+                method: 'post',
+                type: 'json',
+                data: {
+                    id: this.arr(ele)
+                },
+                success: function(res) {
+                    console.log(res);
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            })
+        },
+
+        sin: function () {
+
+        }
+
+    }
+})

@@ -1,0 +1,30 @@
+<?php
+return array(
+     'STUDIO_EXIST'=>'The studio has already existed',//工作室已存在
+     'STUDIO_NOT_EMPTY'=>'The name of the studio can not be empty',//工作室名称不能为空
+	 'PLEASE_SELECT_DATA'=>'Please select the data to operate',//请选择要操作的数据
+	 'NAME_NOT_EMPTY'=>'Name can not be empty',//名称不能为空
+	 'NAME_EXISTED'=>'The name has already existed',//名称不能为空
+	 'CODE_NOT_EMPTY'=>'Code can not be empty',//编码不能为空
+	 'CODE_EXISTED'=>'The encoding has already existed',//编码已存在
+	 'PLUPONFORM'=>'Pluponform',//平台管理
+	 'STUDIO'=>'Studio',//工作室
+	 'PLATFORM_ROLE'=>'Platform Role',//平台角色
+	 'PLATFORM_PERSONNEL'=>'Platform Personnel',//平台人员
+	 'DATA_DICTIONARY'=>'Data Dictionary',//数据字典
+	 'REGION_MAINTAIN'=>'Region Maintain',//区域维护
+	 'TAG_LIBRARY'=>'Tag Library',//标签库
+	 'STUDIO_ROLE'=>'Studio Character',//工作室角色
+	 'LOG_VIEW'=>'Log View',//工作室角色
+	 'RETURN_TABLE'=>'Return Tracking Table',//回访跟踪表
+	 'DATA_BACKUP'=>'Data Backup',//数据备份
+	 'DATA_MANAGE'=>'Data Manage',//数据管理
+	 'Order'=>'Order',//订单
+	 'DENTIST'=>'Dentist',//牙医
+	 'PATIENT'=>'Patient',//患者
+	 'DENTAL_FEEDBACK'=>'Dental Feedback',//牙医意见反馈
+	 'PATIENT_FEEDBACK'=>'Patient Feedback',//患者术后反馈
+	 'FINANCIAL_SETTLEMENT'=>'Financial Settlement',//财务结算
+	 'STUDIO_SETTLEMENT'=>'Studio Settlement',//工作室结算
+	 'STATISTICAL_ANALYSIS'=>'Statistical Analysis',//统计分析
+);

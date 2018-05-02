@@ -1,0 +1,131 @@
+<extend name="Public/base"/>
+<block name="body">
+    <script type="text/javascript">
+        var grid = 0;
+        var ajaxurl = "{:U('Feeitem/ajax_col')}";
+        $(function(){
+            regionInit("region");
+        });
+    </script>
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- ibox begin -->
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{:L('FEEITEM')}</h5>
+                        <div class="ibox-button">
+                            <a href="{:U('Feeitem/add')}" class="btn btn-primary btn-sm">{:L('ADD')}</a>
+                        </div>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <form method="get" class="form-horizontal">
+                                    <input type="hidden" name="s" value="/Admin/Feeitem/index"/>
+                                    <table>
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>{:L('NAME')}</label>
+                                                <input class="form-control" type="text" name="name" value="{$Think.get.name}">
+                                            </td>
+                                            <td>
+                                                <label>{:L('FEE_CODE')}</label>
+                                                <input class="form-control" type="text" name="code" value="{$Think.get.code}">
+                                            </td>
+                                            <td>
+                                                <input type="submit" class="btn btn-primary" value="{:L('QUERY')}">
+                                                <if condition="$filtered neq 0">
+                                                    <a href="{:U('Feeitem/index')}" class="btn btn-white">{:L('BACKOUT')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                      
+                        
+                        <div class="table-responsive">
+                            <table class="table table-center">
+                                <thead>
+                                <tr>
+                                    <th style="width: 30px"><div class="checkbox checkbox-success"><input type="checkbox" class="check-all"><label></label></div></th>
+                                    <th style="width: 80px;text-align: left">{:L('FEE_CODE')} </th>
+                                    <th style="text-align: left">{:L('FEE_NAME')} </span></th>
+                                    <th style="width: 140px">{:L('ADD_TIME')}</th>
+                                    <th style="width: 100px">{:L('ADD_USER')}</th>
+                                    <th style="width: 120px">{:L('HANDLE')}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <notempty name="lists">
+                                    <volist name="lists" id="vo">
+                                        <tr>
+                                            <td>
+                                            <if condition="$vo.isprive neq 1">
+                                               <div class="checkbox checkbox-success">
+                                                    <input type="checkbox" name="check" value="{$vo['itemid']}" class="check"><label></label>
+                                                </div></if>
+                                            </td>
+                                            <td style="text-align: left">{$vo['feecode']}</td>
+                                            <td style="text-align: left">{$vo['feename']}</td>
+                                            <td>{$vo['addtime']|date="Y-m-d H:i",###}</td>
+                                            <td>{$vo['nickname']}</td>
+                                            <td style="text-align: right">
+                                            <if condition="$vo.isprive neq 1">
+                                                <a href="{:U('Feeitem/edit?id='.$vo['itemid'])}" class="btn btn-xs btn-primary">{:L('EDIT')}</a>
+                                                <a data-trigger="confirm" data-content="{:L('DATANDEL')}" data-title="{:L('DELTITILE')}"
+                                                data-ajax="{:U('Feeitem/delete?id='.$vo['itemid'])}"
+                                                data-type="get"
+                                                data-n1="{:L('DOCANCEL')}" 
+                                                data-n2="{:L('CONFIRM')}" 
+                                                class="btn btn-xs btn-default confirm ajax-get">{:L('DELETE')}</a>
+                                                </if>
+                                            </td>
+                                        </tr>
+                                    </volist>
+                                <else />
+                                   <tr>
+                                       <td colspan="9">{:L('NOCONCENT')}</td>
+                                   </tr>
+                                </notempty>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="iviews-pager clearfix">
+                            <div class="pull-left">
+                                <input type="hidden" id="checkBoxArr" value="" name="ids">
+                                <button type="button" id="del" class="btn btn-white btn-sm">{:L('DELETE')}</button>
+                            </div>
+                            <div class="btn-group pull-right">
+                                {$_page}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- ibox end -->
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+    <script>
+        $(document).ready(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        });
+    </script>
+</block>
+

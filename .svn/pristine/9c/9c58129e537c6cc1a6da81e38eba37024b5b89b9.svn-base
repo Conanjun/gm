@@ -1,0 +1,42 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: yangweijie <yangweijiester@gmail.com> <code-tech.diandian.com>
+// +----------------------------------------------------------------------
+
+namespace Admin\Model;
+
+use Think\Model;
+
+/**
+ * 插件模型
+ *
+ * @author yangweijie <yangweijiester@gmail.com>
+ */
+class ProjectModel extends Model
+{
+
+    protected $_validate = array(
+        array('name', 'require', '名称不能为空'), //默认情况下用正则进行验证
+    );
+
+    /**
+     * 按照项目id获取项目
+     *
+     * @param $pid
+     */
+    public function getProject($pid)
+    {
+        $map = [];
+        $map['p.pid'] = $pid;
+        $project = $this->alias('p')
+            ->field('p.pid,p.name,p.state,d1.d_key sname,p.uid,p.pmuid')
+            ->join('ot_dictionary d1 on p.state = d1.d_value and d1.d_code=\'project_state\'', 'LEFT')
+            ->where($map)
+            ->find();
+        return $project;
+    }
+}

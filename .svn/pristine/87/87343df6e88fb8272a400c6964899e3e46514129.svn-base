@@ -1,0 +1,88 @@
+<extend name="Public/base_choose"/>
+<block name="body">
+    <div class="outer" style="min-height: 500px;">
+        <!-- 数据列表 -->
+        <div class="data-table table-striped">
+            <table class="table table-condensed table-striped tablesorter" style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th r="1" width="10px"></th>
+                    <th r="1" style="width: 160px;text-align: left">主题</th>
+                    <th r="1" style="width: 100px;text-align: center">类型</th>
+                    <th r="1" style="width: 60px;text-align: center">状态</th>
+                    <th r="1" style="width: 60px;text-align: center">优先级</th>
+                    <th r="1" style="width: 80px;text-align: center">影响程度</th>
+                    <th r="1" style="width: 80px;text-align: center">发生概率</th>
+                    <th  r="1" style="text-align: left">详细</th>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="risks">
+                    <volist name="risks" id="vo">
+                        <tr>
+                            <td r="1" class="cell-id"></td>
+                            <td class="text-left">{$vo.title}</td>
+                            <td>{$vo.type}</td>
+                            <td>{$vo.state}</td>
+                            <td>{$vo.level}</td>
+                            <td>{$vo.grade}</td>
+                            <td>{$vo.probability}</td>
+                            <td style="text-align: left">{$vo.note}</td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr>
+                        <td r="1" colspan="8" class="text-center table_nodata" id="colspan_2"> aOh! 暂时还没有内容!</td>
+                    </tr>
+                </notempty>
+                </tbody>
+                <notempty name="risks">
+                    <tfoot class="scrolled">
+                    <tr>
+                        <td r="1" colspan='8' id="colspan_1">
+                            <div style="float: right; clear: none;margin-right: 10px" class="pager form-inline">
+                                {$_page}
+                            </div>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </notempty>
+            </table>
+        </div>
+    </div>
+</block>
+
+<block name="script">
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+
+            $("[id^='reason_']").mouseover(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('show');
+            });
+            $("[id^='reason_']").mouseleave(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('hide');
+            });
+            $("[id^='descripttion_']").mouseover(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('show');
+            });
+            $("[id^='descripttion_']").mouseleave(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('hide');
+            });
+            $("[id^='plan_']").mouseover(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('show');
+            });
+            $("[id^='plan_']").mouseleave(function () {
+                $(this).popover({"html": true, trigger: "focus"});
+                $(this).popover('hide');
+            });
+
+        });
+    </script>
+</block>

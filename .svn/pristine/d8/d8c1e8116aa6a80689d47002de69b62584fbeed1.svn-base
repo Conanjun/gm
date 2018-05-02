@@ -1,0 +1,92 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+/**
+ * 后台首页控制器
+ */
+class Demo2Controller extends AdminController {
+
+	/**
+	 * 后台首页
+	 * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+	 */
+	public function index(){
+		$this->display('demo1/index');
+	}
+	public function index1(){
+		$this->display('index');
+	}
+	public function index2(){
+		$this->display('index');
+	}
+
+	public function getpath(){
+		$path = "../Uploads/Picture/gannt/";
+		$prefix='gannt_';
+		$output_file = $prefix.time().rand(10000,99999).'.jpg';
+		$path = $path.$output_file;
+		return $path;
+	}
+	
+	public function download(){
+		$base_img1=$_REQUEST['base_img1'];
+		$base_img1 = str_replace('data:image/png;base64,', '', $base_img1);
+		$path1 = $this->getpath();
+		$ifp = fopen($path1, "wb");
+		fwrite($ifp, base64_decode($base_img1));
+		fclose($ifp );
+		
+		$base_img=$_REQUEST['base_img'];
+		$base_img = str_replace('data:image/png;base64,', '', $base_img);
+		$path = $this->getpath();
+		$ifp = fopen($path, "wb");
+		fwrite($ifp, base64_decode( $base_img));
+		fclose($ifp );
+		
+		$p=$this->pin($path1,$path);
+		echo $p;
+	}
+
+	public function pin($p1,$p2){
+		$imgs    = array();
+		$imgs[0] = $p1;
+		$imgs[1] = $p2;
+		$target  = './bg.jpg';
+		$target_img = Imagecreatefromjpeg($target);
+			
+		$source = array();
+		foreach ($imgs as $k => $v) {
+			$source[$k]['source'] = Imagecreatefromjpeg($v);
+			$source[$k]['size'] = getimagesize($v);
+		}
+			
+		$num  = 1;
+		$tmp  = 0;
+		$tmpy = 0; //图片之间的间距
+		for ($i = 0; $i < 2; $i++) {
+			imagecopy($target_img, $source[$i]['source'], $tmp, $tmpy, 0, 0, $source[$i]['size'][0], $source[$i]['size'][1]);
+
+			$tmp = $tmp + $source[$i]['size'][0];
+			$tmp = $tmp + 5;
+			if ($i == $num) {
+				$tmpy = $tmpy + $source[$i]['size'][1];
+				$tmpy = $tmpy + 5;
+				$tmp  = 2;
+				$num  = $num + 3;
+			}
+		}
+		
+		$path = $this->getpath();
+		Imagejpeg($target_img, $path);
+		
+		return $path; 
+	}
+}

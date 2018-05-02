@@ -1,0 +1,353 @@
+<extend name="Public/base"/>
+
+<block name="btnarea">
+</block>
+
+<block name="body">
+<div class='panel-footer' style="position: fixed; bottom: 0px; right: 0px; padding-right: 30px;background: none;
+    z-index: 1040; border: 0;width:450px">
+        <div style='float: right;margin-left: 20px;'>
+        <span class="pri6" style='float: left;margin-right: 5px;'></span>未到期任务</div>
+        <div style='float: right;margin-left: 20px;'><span class="pri5" style='float: left;margin-right: 5px;'></span>今日待办任务</div>
+        <div style='float: right;margin-left: 20px;'><span class="pri1" style='float: left;margin-right: 5px;'></span>已延期任务</div>
+        <div style='clear: both'></div>
+    </div>
+<style>
+.outer .side {
+    width: 192px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+.panel-sm .panel-heading {
+    padding: 11px 10px;
+}
+.panel{border: 0;}.outer .side-handle {
+                      line-height: 39px;
+                  }
+    .cankao{
+        background: #7865c7;
+        color: #fff;
+        font-weight: normal;
+        line-height: 15px;
+        border-radius: 100%;
+        min-width: 15px;
+        height: 15px;
+        padding: 0 4px;
+        text-align: center;
+        font-size: 12px;
+    }
+</style>
+    <script language="Javascript">browseType = "unclosed";</script>
+    <style>
+
+        #childrenForm .col-table + .col-table .form-control {
+            border-left: transparent;
+        }
+
+        #sonModule .row-table .input-group input {
+            border-right: none;
+        }
+
+        .oop em {
+            font-style: normal;
+        }
+    </style>
+    <div id="featurebar">
+        <ul class="nav">
+            <if condition="cando('Task/index')">
+                <li class="<eq name='actname' value='index'>active</eq>"><a href="{:U('Task/index?pid='.$pid)}">未完成</a>
+                </li>
+            </if>
+            <if condition="cando('Task/finished')">
+                <li class="<eq name='actname' value='finished'>active</eq>"><a
+                        href="{:U('Task/finished?pid='.$pid)}">已完成</a></li>
+            </if>
+            <if condition="cando('Task/out')">
+                <li class="<eq name='actname' value='out'>active</eq>"><a href="{:U('Task/out?pid='.$pid)}">已延期</a>
+                </li>
+            </if>
+            <if condition="cando('Task/closed')">
+                <li class="<eq name='actname' value='closed'>active</eq>"><a
+                        href="{:U('Task/closed?pid='.$pid)}">已关闭</a></li>
+            </if>
+              <if condition="cando('Task/pause')">
+                <li class="<eq name='actname' value='pause'>active</eq>"><a
+                        href="{:U('Task/pause?pid='.$pid)}">已暂停</a></li>
+            </if>
+            <if condition="cando('Task/allindex')">
+                <li class="<eq name='actname' value='allindex'>active</eq>"><a
+                        href="{:U('Task/allindex?pid='.$pid)}">全部</a>
+                </li>
+            </if>
+            <li id="bysearchTab" class=""><a href="#"><i class="icon-search icon"></i>&nbsp;搜索</a></li>
+            <div class="" style="float: right;margin-right: 10px">
+
+                <div class="actions">
+                    <if condition="cando('TaskFromMe/add')">
+                        <a href="{:U('TaskFromMe/add',array('pid'=>$pid))}" class="btn"><i
+                                class="icon-plus"></i>创建任务</a>
+                    </if>
+                </div>
+            </div>
+        </ul>
+        <include file="Task/search"/>
+    </div>
+    <div style="position: relative;">
+        <div class="side">
+            <a class="side-handle" data-id="companyTree">
+                <i class="icon-caret-left"></i>
+            </a>
+            <div class="side-body">
+                <div class="panel panel-sm">
+                    <div class="panel-heading nobr">
+                        <strong>我参与的项目</strong>
+                    </div>
+                    <ul id="report-list" class="list-group"  style="overflow:auto;height:100%;position: absolute;width: 100%;left: 0px;
+padding-bottom: 35px">
+                        <notempty name="pro">
+                            <a style="white-space:nowrap;overflow: hidden;padding-right: 20px;
+width: 190px;" title="所有项目" href="{:U('Task/'.$actname)}"
+                            <if condition="$pid">class="list-group-item"
+                                <else/>
+                                class="list-group-item active"
+                            </if>
+                            class="list-group-item ">所有项目</a>
+                            <volist name="pro" id="vo">
+                                <a style="white-space:nowrap;overflow: hidden;padding-right: 20px;
+width: 190px;    text-overflow: ellipsis;" title="{$vo.shortsign}_{$vo['name']}"
+                                   href="{:U('Task/'.$actname,array('pid'=>$vo['pid']))}"
+                                <if condition="$vo['pid'] == $pid">class="list-group-item active"
+                                    <else/>
+                                    class="list-group-item "
+                                </if>
+                                class="list-group-item "><if condition="$vo['shortsign']">{$vo.shortsign}-</if>{$vo['name']}</a>
+                            </volist>
+                        </notempty>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="main" id="projectTaskForm">
+            <script>
+                if("{$pid}" ==0 || "{$pid}" == ''){
+                    setTreeBox('aa');
+                    hideTreeBox();
+                }else{
+                    setTreeBox();
+                }
+            </script>
+            <table
+                    class="table table-condensed table-hover table-striped tablesorter table-fixed"
+                    style="text-align: center" id="taskList">
+                <thead>
+                <tr>
+                    <th style="width: 10px"></th>
+
+                    <th r="1" style="text-align: left;padding-left: 20px"><span class="sort" ectype="order_by"
+                                                              fieldname="t.title">任务</span></th>
+
+                    <th r="1" style="text-align: left;"><span class="sort" ectype="order_by" fieldname="pid">项目</span>
+                    <th r="1" style="width:60px ;">进程</th>
+                    </th>
+                    <th r="1" style="width: 60px"><span class="sort" ectype="order_by" fieldname="t.state">状态</span>
+                    </th>
+                    <th r="1" style="width: 80px"><span class="sort" ectype="order_by" fieldname="t.manageruid">指派人</span></th>
+                    <th style="width: 80px"><span class="sort" ectype="order_by" fieldname="t.addtime">创建时间</span></th>
+                    <th r="1" style="width: 80px"><span class="sort" ectype="order_by" fieldname="t.petime">要求时间</span>
+                    </th>
+                    <th r="1" style="width: 80px"><span class="sort" ectype="order_by" fieldname="t.finishtime">完成时间</span>
+                    </th>
+                    <th style="width: 70px"><span class="sort" ectype="order_by" fieldname="t.level">优先级</span></th>
+                    <th r="1" style="width: 50px"><span class="sort" ectype="order_by" fieldname="t.hours">工时</span></th>
+                    <th style="width: 100px"><span class="sort" ectype="order_by" fieldname="t.amount">挣值</span></th>
+                    <th r="1" class="oop" style="width: 180px">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <notempty name="_list">
+                    <volist name="_list" id="vo">
+                        <tr >
+
+                        <td class="cell-id">
+                            <!--<input class="ids" type="checkbox" name="id[]" value="{$vo.sid}" />--></td>
+                        <td r="1" style="text-align: left;" <if condition="$vo.mname != ''">title="{$vo['mname']}-{$vo['title']}"<else/>{$vo['title']}</if>><a
+                                href="{:U('Task/view?id='.$vo['tid'])}">
+                            <if condition="$vo.mname != ''">{$vo['mname']}-</if>{$vo['title']}</a></td>
+
+                        <td r="1" style="text-align: left;" title="{$vo['pname']}">{$vo['pname']}</td>
+                            <td r="1">
+                                <if condition="$vo['state'] eq 0 || $vo['state'] eq 1 || $vo['state'] eq 2 || $vo['state'] eq 4">
+                                <if condition="$vo['color'] eq 'red'">
+                                    <span class="pri1" title="已延期{$vo['num1']}天">{$vo['num']}</span>
+                                    <elseif condition="$vo['color'] eq 'green'"/>
+                                    <span class="pri6" title="距要求时间{$vo['num1']}天">{$vo['num']}</span>
+                                    <elseif condition="$vo['color'] eq 'yellow'"/>
+                                    <span class="pri5"></span>
+                                </if>
+                                </if>
+                            </td>
+                        <td r="1" title="{$vo['statestr']}"
+                            class="<eq name='vo.state' value='0'>textc</eq><eq name='vo.state' value='1'>textc</eq><eq name='vo.state' value='2'></eq><eq name='vo.state' value='3'>textg</eq><eq name='vo.state' value='4'></eq><eq name='vo.state' value='5'></eq><eq name='vo.state' value='6'>textr</eq><eq name='vo.state' value='-1'>textc</eq>">
+                            {$vo.statestr}
+                        </td>
+                        <td r="1" title="{$vo['manageruname']}">{$vo['manageruname']}</td>
+                        <td title="{$vo['addtime']|time_format}">{$vo['addtime']|time_format=###,'m-d'}</td>
+                        <td r="1" title="{$vo['petime']|time_format}">{$vo['petime']|time_format=###,'m-d'}</td>
+                        <td r="1" title="{$vo['finishtime']|time_format}">{$vo['finishtime']|time_formatnew}</td>
+                        <td title="{$vo['level_name']}"
+                        <if condition="$vo.level_name eq '高'">class="textr"</if>
+                        >{$vo['level_name']}</td>
+                        <td r="1" title="{$vo['hours']}h">{$vo['hours']}h</td>
+                        <td class="text-right" title="{$vo['amount']|fomatprice}">
+                            <if condition="$vo['state'] == 3 && $vo['amount']">
+                                {$vo['amount']|fomatprice}
+                            </if>
+                        </td>
+                        <td r="1" class="oop"><em>
+                            <!--  转阅人多个 摆出任务内容
+                             -->
+                            <if condition="cando('Task/start')">
+                                <eq name="vo.state" value="1"><a href="{:U('Task/start?id='.$vo[tid])}"
+                                                                 id="finish1" class="iframe"
+                                                                 data-width="800" data-title="{$vo.title} - 开始"
+                                                                 data-height="400">开始</a>
+                                </eq>
+                            </if>
+                            <if condition="cando('Task/finish')">
+                                <if condition="$vo['state'] != 3&&$vo['state'] != -1&&$vo['state'] != 5&&$vo['state'] != 4">
+                                    <a href="{:U('Task/finish?id='.$vo[tid])}"
+                                       id="finish1" class="iframe"
+                                       data-width="1100" data-title="{$vo.title} - 完成"
+                                       data-height="600">完成</a>
+                                </if>
+                            </if>
+                            <if condition="cando('Task/oppause')">
+                                <if condition="$vo['state'] == 2"><a href="{:U('Task/oppause?id='.$vo['tid'])}"
+                                                                     data-width="800"
+                                                                     data-height="400" class="iframe"
+                                                                     data-title="{$vo.title} - 暂停">暂停</a>
+                                </if>
+                            </if>
+                            <if condition="cando('Task/opcontinue')">
+                                <if condition="$vo['state'] == 5"><a href="{:U('Task/opcontinue?id='.$vo['tid'])}"
+                                                                     data-width="800"
+                                                                     data-height="400" class="iframe"
+                                                                     data-title="{$vo.title} - 继续">继续</a>
+                                </if>
+                            </if>
+                            <if condition="cando('Task/send')">
+                                <if condition="$vo['state'] == 1 || $vo['state'] == 2 || $vo['state'] == 0">
+                                    <a href="{:U('Task/send?id='.$vo['tid'])}" data-width="800"
+                                       data-height="450" data-title="{$vo['title']}-转派" class="iframe">转派</a>
+                                </if>
+                            </if>
+                            <if condition="cando('Offer/module_file')">
+                                <if condition="$vo['sdc']">
+                                    <a style="position: relative" class="iframe" class="iframe textc"
+                                       href="{:U('Offer/module_file?id='.$vo['mid'])}" data-title="{$vo.title} - 参考">
+                                        <span class="cankao">{$vo['sdc']}</span>
+                                    </a>
+                                </if>
+                            </if>
+                        </em>
+                        </td>
+                        </tr>
+                    </volist>
+                    <else/>
+                    <tr>
+                        <td r="1" colspan="12" class="text-center table_nodata" id="colspan_1"> aOh! 暂时还没有内容!</td>
+                    </tr>
+                </notempty>
+
+                </tbody>
+            <notempty name="_list">
+                <tfoot>
+                <tr>
+                    <td r="1" colspan='12' id="colspan_2">
+                        <div class="table-actions clearfix">
+                            <!--  <div class="checkbox btn">
+                                  <label><input type="checkbox" data-scope=""
+                                                class="rows-selector"> 选择</label>
+                              </div>-->
+                        </div>
+                        <div style="float: right; clear: none;" class="pager form-inline">{$_page}</div>
+                    </td>
+                </tr>
+                </tfoot>
+            </notempty>
+            </table>
+        </div>
+</div>
+</block>
+
+<block name="script">
+
+    <script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+
+    <script type="text/javascript">
+        function resizetable() {
+            var w = $(window).width();
+            if (w < 1400) {
+                $("#taskList").find("th[r!=1]").hide();
+                $("#taskList").find("td[r!=1]").hide();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th[r=1]").size());
+            } else {
+                $("#taskList").find("th[r!=1]").show();
+                $("#taskList").find("td[r!=1]").show();
+                $("td[id^='colspan_']").attr("colspan", $("#taskList").find("th").size());
+            }
+        }
+
+        $(function () {
+            setTimeout(function () {
+                fixedTfootAction('#projectTaskForm')
+            }, 100);
+            setTimeout(function () {
+                fixedTheadOfList('#taskList')
+            }, 100);
+
+            resizetable();
+
+            $(window).resize(function () {
+                resizetable();
+            });
+
+            var max = 0;
+            $(".oop").each(function () {
+                if ($(this).find("em").size() > 0) {
+                    var www = $(this).find("em").width();
+                    if (www < 40) {
+                        www = 40;
+                    }
+
+                    if (max < www + 10) {
+                        max = www + 10;
+                    }
+                    $(this).width(www + 10);
+                }
+            });
+            if ($(".oop").size() == 1) {
+                $(".oop").width("40px");
+            } else {
+                $(".oop").each(function () {
+                    if ($(this).find("em").size() == 0) {
+                        $(this).width(max);
+                    }
+                });
+            }
+        });
+
+        function choose(r) {
+            $.closeModal();
+            if (r) {
+                location.replace(location.href);
+            }
+        }
+        //导航高亮
+        highlight_subnav("{:U('Task/index')}");
+    </script>
+</block>

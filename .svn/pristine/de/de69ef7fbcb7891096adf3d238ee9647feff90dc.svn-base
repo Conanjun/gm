@@ -1,0 +1,67 @@
+<extend name="Public/base" />
+<block name="btnarea">
+ <div class="" style="float: right;margin:10px  10px">
+
+            <div class="actions">
+                <if condition="cando('TaskFromMe/add')">
+                    <a href="{:U('TaskFromMe/add',array('pid'=>$pid))}" ><i class="icon-plus"></i>创建任务</a>
+                </if>
+
+            </div>
+            </div>
+</block>
+
+<block name="body">
+	<iframe id='calendar' name='calendar' src="{:U('Task/mycal')}" frameborder='no' allowtransparency='true' scrolling='auto' hidefocus='' style='width: 100%; min-height: 760px; left: 0px;'></iframe>
+	<div class='panel-footer' style="position: fixed;
+    bottom: 0px;
+    left: 0;
+    right: 0px;
+    padding-right: 30px;
+    background: none;
+    z-index: 9999;
+    border: 0;"><div style='float: right;margin-left: 20px;'>
+<div style='width: 18px;height: 18px;background: #21841d;float: left;margin-right: 5px;border-radius: 100%;'></div>我的待办</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 18px;height: 18px;background: #fc6161;float: left;margin-right: 5px;border-radius: 100%;'></div>已延期任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 18px;height: 18px;background: #39b3d7;float: left;margin-right: 5px;border-radius: 100%;'></div>已提交任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 18px;height: 18px;background: #7865c7;float: left;margin-right: 5px;border-radius: 100%;'></div>进行中任务</div>
+<div style='float: right;margin-left: 20px;'><div style='width: 18px;height: 18px;background: #b2b2b2;float: left;margin-right: 5px;border-radius: 100%;'></div>未开始任务</div><div style='clear: both'></div></div>
+    <!-- 对话框触发按钮 -->
+    <button type="button" class="btn btn-lg btn-primary" data-width="450" data-height="250" data-toggle="modal" data-target="#myModal" style="display: none"></button>
+
+    <!-- 对话框HTML -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog modal-sm" style="width: 450px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+                    <h4 class="modal-title">创建任务/待办，请选择：</h4>
+                </div>
+                <div class="modal-body" style="text-align: right">
+                    <a href="javascript:;" id="a1" class="btn btn-primary" style="width:120px ">创建任务</a>
+                    <a href="javascript:;" id="a2" class="btn btn-primary"  style="width:120px ">创建待办</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="item">
+</block>
+<block name="script">
+<script>
+    function tanchaung(item){
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true
+        });
+        $("input[name='item']").val(item);
+    }
+    $("#a1").click(function(){
+        var item =  $("input[name='item']").val();
+        window.location.href= 'index.php?s=/Admin/TaskFromMe/add&item='+item;
+    });
+    $("#a2").click(function(){
+        var item =  $("input[name='item']").val();
+        window.location.href= 'index.php?s=/Admin/Dealt/add&item='+item;
+    });
+</script>
+</block>

@@ -1,0 +1,46 @@
+<extend name="Public/base"/>
+<block name="body">
+    <!-- content begin -->
+    <div class="wrapper wrapper-content">
+
+        <!-- in+ dom -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <!-- title -->
+                    <div class="ibox-title">
+                         <h5>
+                            {$list['title']}
+                            <small>{$list['nickname']} {$list['addtime']|date="Y-m-d H:i:s",###}</small>
+                        </h5>
+                        <div class="ibox-button">
+                            <a href="javascript:history.go(-1);" class="btn btn-primary btn-sm" type="button">{:L('BACK')}</a>
+                        </div>
+                    </div>
+                    <!-- content -->
+                    <div class="ibox-content">
+			{$list['content']}
+				<div style="margin-top: 20px;color: #aaa">
+                                    <if condition="$list.isread eq 1">{:L('YESREAD')} {$list['readtime']|date="Y-m-d H:i:s",###}</if>
+                                    
+                                    <switch name="list['outtype']" >
+										<case value="client_order"><a href="{:U('Order/view?id='.$list['outkey'])}"><p class="form-control-static">{:L('MSGVIEW')}</p></a></case>
+										<case value="studio_dept"><a href="{:U('Order/view?id='.$list['outkey'])}"><p class="form-control-static">{:L('MSGVIEW')}</p></a></case>
+										<case value="feed_back"><a href="{:U('Feedback/view?id='.$list['outkey'])}"><p class="form-control-static">{:L('MSGVIEW')}</p></a></case>
+										<default />
+										
+									</switch>
+                                </div>
+                        <form action="" method='post' id="form" class="form-horizontal">
+
+                           
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- content end -->
+</block>

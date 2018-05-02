@@ -1,0 +1,1138 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+use Admin\Common\Super\Api;
+
+/**
+ * 待办管理控制器
+ */
+class DealtController extends AdminController
+{
+	private $meta_title;
+
+	/**
+	 * 删除数据
+	 */
+	public function deletedata()
+	{
+		$ids = (array)I('id');
+		$ids = array_filter($ids);
+		if (empty($ids)) {
+			$this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+		}
+		$msg = "";
+		foreach ($ids as $id) {
+			$map ['todoid'] = $id;
+			$map['uid'] = UID;
+			$res = M('Todo')->field('title')->where(array('todoid' => $id))->find();
+			$res_del = M('Todo')->where($map)->delete();
+			if ($res_del) {
+				$msg .= "『{$res['title']}』删除成功。\n";
+			} else {
+				$msg .= "『{$res['title']}』删除失败:非本人创建。\n";
+			}
+		}
+		return $this->ajaxReturn(array('done' => 'true', 'msg' => $msg));
+
+	}
+
+	/**
+	 * 新增待办
+	 */
+	public function add()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		if (IS_POST) {
+			$title = I("post.title", '');
+			$stime = I("post.stime", '');
+			$etime = I("post.etime", '');
+			$state = I("post.state", '未开始');
+			$type = I("post.type", '');
+			$toid = I("post.toid", '');
+			$description = I("post.description", '');
+
+			if (empty ($title)) {
+				$this->error('标题不能为空');
+			}
+			if (empty ($stime)) {
+				$this->error('开始时间不能为空');
+			}
+			if (empty ($etime)) {
+				$this->error('结束时间不能为空');
+			}
+			if (empty ($state)) {
+				$this->error('状态不能为空');
+			}
+			if (empty ($type)) {
+				$this->error('优先级不能为空');
+			}
+			if (empty ($toid)) {
+				$this->error('待办人不能为空');
+			}
+
+			$tr = M("Member")->where("uid='{$toid}'")->find();
+			$toname = $tr['nickname'];
+			$data = array(
+                'title' => $title,
+                'stime' => strtotime($stime),
+                'etime' => strtotime($etime),
+                'state' => $state,
+                'type' => $type,
+                'description' => $description,
+                'addtime' => time(),
+                'uid' => is_login(),
+                'uname' => get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login()),
+                'toid' => $toid,
+                'toname' => $toname,
+			);
+			$tid = M('Todo')->add($data);
+			if ($tid) {
+				// 发给待办人 时间点：新增待办  LGW
+				$dynamic = [
+                    'a' => $toname,
+                    'b' => $title,
+                    'email' => get_email($toid),
+				];
+				$url = "Dealt/view/id/".$tid;
+				$cost = sendTemplate($dynamic, 'dealt_to',$url);
+				$costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给待办人 : LGW
+				action_log_new(array('outtype' => 'ot_todo', 'outkey' => $tid, 'action' => 'create', 'comment' => ''));
+				//附件添加
+				$res_file = array_filter($_FILES['files']['tmp_name']);
+				if (!empty($res_file)) {
+					$file_ids = $this->file_uplode();
+					if (!empty($file_ids)) {
+						$sql = 'insert into ot_todo_file (todoid,fileid) values  ';
+						foreach ($file_ids as $key => $vo) {
+							$sql .= "($tid,$vo),";
+						}
+						$sql = substr($sql, 0, -1);
+						M('todo_file')->execute($sql);
+					}
+				}
+				$this->redirect('Dealt/view?id=' . $tid);
+			} else {
+				$this->error('待办添加失败！');
+			}
+		} else {
+			$this->meta_title = '新增待办事项';
+			$item = I('get.item');
+			if ($item) {
+				$w = date('Y-m-d', $item - 28800);
+				$stime = strtotime($w);
+				$sstime = (int)$stime + 32400;
+				$etime = (int)$stime + 86399;
+				$this->assign('now', date(('Y/m/d H:i'), $sstime));
+				$this->assign('petime', date(('Y/m/d H:i'), $etime));
+			} else {
+				$this->assign('now', date('Y/m/d H:i'), time() + 32400);
+			}
+
+
+			$types = M("Dictionary")->where("d_code='dbtype'")->select(array('order' => 'd_order asc'));
+			$this->assign('types', $types);
+
+			$state = M("Dictionary")->where("d_code='dbstate'")->select(array('order' => 'd_order asc'));
+			$this->assign('states', $state);
+
+			$us = M("Member")->where("1=1")->select();
+			$this->assign('us', $us);
+
+			$this->assign('uid', UID);
+
+			$bottomnav = Cookie('__bottomnav__') ?: '需要我办理的';
+			$bottomnurl = Cookie('__bottomurl__') ?: U('Dealt/needrun');
+			$root_mbx = array();
+			$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+			$root_mbx[] = array('title' => '待办事项', 'url' => U('Dealt/needrun'));
+			$root_mbx[] = array('title' => '新建待办事项', 'url' => '');
+			$this->assign('root_mbx', $root_mbx);
+
+			$this->display();
+		}
+	}
+
+
+	public function view()
+	{
+		$id = I("id");
+		if (IS_POST) {
+			$data = array('psid' => I('post.psid'), 'assigneduid' => I('post.assigneduid'), 'checkuid' => I('post.checkuid'));
+			if (is_array($data)) {
+				$new_data = array();
+				foreach ($data as $key => $vo) {
+					foreach ($vo as $K => $v) {
+						$new_data[$K][$key] = $v;
+					}
+				}
+			}
+
+			/*      foreach ($new_data as $vo) {
+			 if (empty($vo['assigneduid'])) {
+			 $this->error('请指定任务执行人！');
+			 }
+			 }*/
+			$content = '';
+
+			foreach ($new_data as $vo) {
+				if (empty($vo['assigneduid'])) {
+					if ($vo['checkuid']) {
+						$vo['checkuname'] = get_nickname($vo['checkuid']) ?: get_username($vo['checkuid']);
+					}
+					$vo['assignedname'] = '';
+					M('ProjectService')->save($vo);
+					continue;
+				}
+				$vo['assignedname'] = get_nickname($vo['assigneduid']) ?: get_username($vo['assigneduid']);
+				if ($vo['checkuid']) {
+					$vo['checkuname'] = get_nickname($vo['checkuid']) ?: get_username($vo['checkuid']);
+				}
+				M('ProjectService')->save($vo);
+				workbreak_alter(0, $vo['psid']);
+				M('TodoPs')->where('psid=' . $vo['psid'])->save(array('state' => 1));
+				$res = M('ProjectService')->where(array('psid' => $vo['psid']))->find();
+				$content .= '将任务 ' . $res['title'] . ' 指派给 ' . $vo['assignedname'] . '</br>';
+			}
+			$state = M('Todo')->where("todoid='" . $id . "'")->getfield('state');
+			//检测所有的内容都已完成指派
+			$map = "tp.tid={$id} and  ps.assigneduid=0";
+			$res_state = M('TodoPs')->alias('tp')->field('ps.psid')->join('ot_project_service ps on ps.psid=tp.psid', 'left')
+			->where($map)->count();
+			if (empty($res_state)) {
+				M('Todo')->where("todoid='" . $id . "'")->save(array('state' => '已完成'));
+				$pid = M('ProjectService')->where('psid=' . $new_data[0]['psid'])->getfield('pid');
+				action_log_new(array('outtype' => 'ot_todo', 'outkey' => $id, 'pid' => $pid, 'action' => 'transactor1', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => $state, 'newdata' => '已完成'))));
+			}
+
+			$res = M('todo')->where(array('todoid' => $id))->find();
+			$dynamic = [
+                'a' => $res['title'],
+                'email' => get_email($res['uid']),
+			];
+			$url = 'Dealt/view/id/'.$id;
+			$cost = sendTemplate($dynamic, 'dealt_from',$url);
+			$costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给待办人 : LGW
+
+			$this->redirect('Dealt/view?id=' . $id);
+		} else {
+			if (empty($id)) {
+				$this->error('待办数据不存在！');
+			}
+			$this->assign('id', $id);
+			$data = array();
+			$data = M('Todo')->where("todoid='" . $id . "'")->find();
+			if (empty($data)) {
+				$this->error('待办数据不存在！');
+			}
+			$this->assign('cname', CONTROLLER_NAME);
+			$this->assign('d', $data);
+
+
+			$array = M('TodoPs')->where('tid=' . $id)->select();
+			if ($array) {
+				;
+				$psid = '';
+				foreach ($array as $v) {
+					$psid .= $v['psid'] . ',';
+				}
+				//                dump($array);exit;
+				if ($data['state'] == '已完成') {
+					$state = 1;
+				}
+				if ($data['toid'] != UID) {
+					$state = '1';
+				}
+
+				$this->assign('state', $state);
+				$psid = trim($psid, ',');
+				$where = ' psid in (' . $psid . ')';
+				$psids = explode(',', $psid);
+				//项目内容psid
+				$dept_list = array();
+				//执行人搜索相关部门的执行人
+				foreach ($psids as $psid) {
+					//查找相关的groupid
+					$groupid = M('project_service')->field('groupid')->where(['psid' => $psid])->find();
+					//查找相关部门
+					$deptids = M('dept')->field('did')->where(['groupid' => $groupid['groupid']])->select();
+					//                var_dump($deptids);
+					if (empty($deptids)) {
+						$dept_list[$psid]['dept'][] = '';
+					}
+					foreach ($deptids as $deptid) {
+						$deptss = M('dept')->field('did')->where(['parent' => $deptid['did']])->select();
+						$dept_list[$psid]['dept'][] = $deptid['did'];
+						foreach ($deptss as $vo) {
+							$dept_list[$psid]['dept'][] = $vo['did'];
+						}
+					}
+				}
+				foreach ($dept_list as $k => &$vo) {
+					foreach ($vo as &$v) {
+						$v = array_unique($v);
+					}
+				}
+
+				//            查找部门成员
+				$sales = M('Member')
+				->field('uid,nickname')
+				->where('status = 1')
+				->select();
+				$m = array();
+				foreach ($dept_list as $key => $value) {
+					$deptDid = implode(',', $value['dept']);
+					$m[$key] = M('member')->field('nickname,uid')->where('status=1 and dept in (' . $deptDid . ')')->select();
+					if (empty($m[$key])) {
+						$m[$key] = $sales;
+					}
+				}
+				$this->assign('sale', $m);
+				$arr = array();
+				foreach ($m as $key => $vo) {
+					foreach ($vo as $v) {
+						$arr[$key][] = $v['nickname'];
+					}
+				}
+
+				//审核人
+				$auditor = M('member')->field('nickname,uid')->where('status=1')->select();
+				$this->assign('sales', $auditor);
+
+
+				$service = M('ProjectService')->where($where)->select();
+				foreach ($service as $key => $vo) {
+					if (!in_array($vo['assignedname'], $arr[$vo['psid']])) {
+						$service[$key]['canyuren'] = $vo['assignedname'];
+					}
+				}
+
+				$this->assign("_list", $service);
+			}
+			if ($state == 1) {
+				$list = M('project_service')->alias('s')->field(array(
+                    's.*',
+                    'm.name as o_name',
+                    'g.name as gname',
+                    's1.name as sname',
+                    's1.description as s_description', 'p.name as pname', 'p.pid as pid',
+                    '(select count(1) from ot_service_doc sd where sd.sid = s.sid) as sdc'
+                    ))->join('ot_module m ON m.mid = s.mid', 'LEFT')
+                    ->join('ot_project_config p ON m.pid = p.pid', 'LEFT')
+                    ->join('ot_service s1 ON s1.sid = s.sid', 'LEFT')
+                    ->join('ot_group g ON s.groupid = g.groupid', 'LEFT')
+                    ->where($where)->select();
+                    $nlist = array();
+                    if ($list) {
+                    	foreach ($list as $k => $v) {
+                    		if ($v['s_description']) {
+                    			$str = strip_tags(htmlspecialchars_decode($v['s_description']));
+                    			$list[$k]['title_show'] = $str;
+                    		} else {
+                    			if ($v['gname']) {
+                    				$list[$k]['title_show'] = $v['gname'] . '-' . $v['o_name'] . '-' . $v['sname'];
+                    			} else {
+                    				if ($v['o_name'] || $v['sname']) {
+                    					$list[$k]['title_show'] = $v['o_name'] . '-' . $v['sname'];
+                    				} else {
+                    					$list[$k]['title_show'] = $v['title'];
+                    				}
+                    			}
+                    		}
+                    	}
+                    	foreach ($list as $k => $v) {
+                    		$listpid = $v['pid'] ?: 'xx';
+                    		$nlist[$listpid]['mid'] = $listpid;
+                    		$nlist[$listpid]['mname'] = $v['pname'];
+                    		$nlist[$listpid]['list'][] = $v;
+                    	}
+                    }
+                    $this->assign("_list", $nlist);
+			}
+			//待办附件
+			$res_files = M('todo_file')->alias('tf')->field('tf.todoid,f.name,f.fileid,t.uid,f.ext')->join('ot_todo t on t.todoid=tf.todoid')->join('ot_file f on f.fileid=tf.fileid')->where(array('tf.todoid' => $id, 'f.delete=0'))->select();
+			$this->assign('file', $res_files);
+			$this->assign('loginid', UID);
+
+			$map = [];
+			$map['outtype'] = 'ot_todo';
+			$map['outkey'] = $id;
+			$map['action'] = [['in', 'start,finish']];
+			$logs = M("Log")->where(array("outtype" => "ot_todo", "outkey" => $id))->order("addtime asc")->select();
+
+			if ($logs) {
+				foreach ($logs as $k => $v) {
+					$hs = M("History")->where("logid='{$v['logid']}'")->select();
+					if ($hs) {
+						foreach ($hs as $kk => $vv) {
+							$hs[$kk]['fname'] = tf_name('ot_todo', $vv['field']);
+							switch ($vv['field']) {
+								case "stime":
+									$hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+									$hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+									break;
+								case "etime":
+									$hs[$kk]['olddata'] = date('Y/m/d H:i', $hs[$kk]['olddata']);
+									$hs[$kk]['newdata'] = date('Y/m/d H:i', $hs[$kk]['newdata']);
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					$logs[$k]['hs'] = $hs;
+				}
+			}
+
+			$this->assign('logs', $logs);
+			$bottomnav = Cookie('__bottomnav__') ?: '需要我办理的';
+			$bottomnurl = Cookie('__bottomurl__') ?: U('Dealt/needrun');
+			$root_mbx = array();
+			$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+			//			$root_mbx[]=array('title'=>'待办事项','url'=>U('Dealt/index'));
+			$root_mbx[] = array('title' => $bottomnav, 'url' => $bottomnurl);
+			$root_mbx[] = array('title' => $data['title'], 'url' => '');
+			$this->assign('root_mbx', $root_mbx);
+
+			$this->display();
+		}
+
+	}
+
+	/**
+	 * 编辑
+	 */
+	public function edit()
+	{
+		$id = I("id");
+		$this->assign('cname', CONTROLLER_NAME);
+		if (empty($id)) {
+			$this->error('待办数据不存在！');
+		}
+		$m = I('get.m');
+		$this->assign('type', $m);
+		if (IS_POST) {
+			$todos = M('Todo')->field(true)->where('todoid = ' . $id)->find();
+			if (empty($todos)) {
+				$this->error('待办数据不存在！');
+			}
+			$title = I("post.title", '');
+			$stime = I("post.stime", '');
+			$etime = I("post.etime", '');
+			//			$state=I("post.state",'');
+			$type = I("post.type", '');
+			$description = I("post.description", '');
+			$toid = I("post.toid", '');
+
+			if (empty ($title)) {
+				$this->error('标题不能为空');
+			}
+			if (empty ($stime)) {
+				$this->error('开始时间不能为空');
+			}
+			if (empty ($etime)) {
+				$this->error('结束时间不能为空');
+			}
+			//			if (empty ( $state)) {
+			//				$this->error ( '状态不能为空' );
+			//			}
+			if (empty ($type)) {
+				$this->error('优先级不能为空');
+			}
+			if (empty ($toid)) {
+				$this->error('待办人不能为空');
+			}
+
+			$tr = M("Member")->where("uid='{$toid}'")->find();
+			$toname = $tr['nickname'];
+
+			$data = array(
+                'todoid' => $id,
+                'title' => $title,
+			//				'state' => $state,
+                'stime' => strtotime($stime),
+                'etime' => strtotime($etime),
+                'type' => $type,
+                'description' => $description,
+                'toname' => $toname,
+			);
+			$history = array();
+			foreach ($data as $key => $vo) {
+				if ($vo != $todos[$key]) {
+					$history[] = array(
+                        'field' => $key,
+                        'olddata' => $todos[$key],
+                        'newdata' => $vo,
+					);
+				}
+			}
+			$data['toid'] = $toid;
+			//附件添加
+			$res_file = array_filter($_FILES['files']['tmp_name']);
+			if (!empty($res_file)) {
+				$file_ids = $this->file_uplode();
+				if (!empty($file_ids)) {
+					$sql = 'insert into ot_todo_file (todoid,fileid) values  ';
+					foreach ($file_ids as $key => $vo) {
+						$sql .= "($id,$vo),";
+					}
+					$sql = substr($sql, 0, -1);
+					M('todo_file')->execute($sql);
+				}
+			}
+			if (D('Todo')->save($data) === false) {
+				$this->error('待办事项编辑失败！', U('Dealt/edit?id=' . $id));
+			} else {
+				// 发给待办人 时间点：变更待办人  LGW
+				if ($toid != $todos['toid']) {
+					$dynamic = [
+                        'a' => $toname,
+                        'b' => $title,
+                        'email' => get_email($toid),
+					];
+					$url = "Dealt/view/id/".$id;
+					$cost = sendTemplate($dynamic, 'dealt_to',$url);
+					$costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给待办人 : LGW
+				}
+				action_log_new(array('history' => $history, 'outtype' => 'ot_todo', 'outkey' => $id, 'action' => 'edit', 'comment' => ''));
+				$this->redirect("Dealt/view", array('id' => $id));;
+				//				$this->success ( '待办编辑成功！', U ( 'Dealt/edit?id='.$id ) );
+				/*  if($m=='design'){
+				 $url='designall';
+				 $this->redirect ("$url");
+				 }else{
+				 $this->redirect ( 'Dealt/needall');
+				 }*/
+
+			}
+		} else {
+			$this->meta_title = '编辑待办事项';
+
+			$data = M('Todo')->where("todoid='" . $id . "' and uid='" . is_login() . "'")->find();
+			if (empty($data)) {
+				$this->error('待办数据不存在！');
+			}
+			$this->assign('id', $id);
+
+			$data['stime'] = date('Y/m/d H:i', $data['stime']);
+			$data['etime'] = date('Y/m/d H:i', $data['etime']);
+
+			$types = M("Dictionary")->where("d_code='dbtype'")->select(array('order' => 'd_order asc'));
+			$this->assign('types', $types);
+
+			$state = M("Dictionary")->where("d_code='dbstate'")->select(array('order' => 'd_order asc'));
+			$this->assign('states', $state);
+
+			$us = M("Member")->where("1=1")->select();
+			$this->assign('us', $us);
+
+			$this->assign('d', $data);
+			$bottomnav = Cookie('__bottomnav__') ?: '需要我办理的';
+			$bottomnurl = Cookie('__bottomurl__') ?: U('Dealt/needrun');
+			$root_mbx = array();
+			$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+			$root_mbx[] = array('title' => $bottomnav, 'url' => $bottomnurl);
+			$root_mbx[] = array('title' => $data['title'], 'url' => U("Dealt/view?id=" . $data['todoid'] . '&m=' . $m));
+			$root_mbx[] = array('title' => '编辑待办', 'url' => '');
+			$this->assign('root_mbx', $root_mbx);
+
+			$this->display();
+		}
+	}
+
+	/*
+	 * 待办事项文件上传
+	 * */
+	public function file_uplode($files = '')
+	{
+		$upload = new \Think\Upload(C('DOWNLOAD_UPLOAD'));// 实例化上传类
+		// 上传文件
+		$info = $upload->upload($files);
+		if (!$info) {// 上传错误提示错误信息
+			$this->error($upload->getError());
+		} else {// 上传成功 获取上传文件信息
+			$filelids = array();
+			foreach ($info as $key => $value) {
+				$a = explode('.', $value['name']);
+				$name = $a[0];
+				$file['name'] = $_POST['labels'][$key] ? $_POST['labels'][$key] : $name;
+				$c = C('DOWNLOAD_UPLOAD');
+				$file['savepath'] = $c['rootPath'] . $value['savepath'] . $value['savename'];
+				$file['ext'] = $value['ext'];
+				$file['size'] = $value['size'];
+				$file['addtime'] = time();
+				$file['uid'] = UID;
+				$file['uname'] = get_nickname(is_login()) ? get_nickname(is_login()) : get_username(is_login());
+				$filelid = M('File')->add($file);
+				$filelids[$key] = $filelid;
+			}
+			return $filelids;
+		}
+	}
+
+	/*
+	 * 待办事项文件删除
+	 * */
+	public function delFile()
+	{
+		$id = I('get.fid');
+		if (empty($id)) {
+			return $this->ajaxReturn(array('done' => '0', 'msg' => "请选择要操作的数据"));
+		}
+		$res = M('file')->where(array('fileid' => $id))->save(array('delete' => 1));
+		if ($res) {
+			M('offer_file')->where(array('fileid' => $id))->delete();
+			return $this->ajaxReturn(array('done' => true, 'msg' => "删除成功"));
+		}
+	}
+
+	//  待办事项开始
+	public function start()
+	{
+		$id = I("get.id", "");
+		if (empty($id)) {
+			$this->error("待办事项不存在", 'javascript:window.parent.choose();');
+		}
+		$res = M('todo')->where(array('todoid' => $id))->find();
+		if ($res['state'] != '未开始') {
+			$this->error("此待办事项现在不能进行开始操作", 'javascript:window.parent.choose();');
+		}
+		if (IS_POST) {
+			$data = array("state" => '已开始');
+			$renew = M('todo')->where(array('todoid' => $id))->save($data);
+			if (empty($renew)) {
+				$this->error("操作失败，请重试", 'javascript:window.parent.choose();');
+			};
+			$content = I("post.content", "");
+			action_log_new(array('outtype' => 'ot_todo', 'outkey' => $id, 'action' => 'start', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => '未开始', 'newdata' => '已开始'))));
+			echo "<script>window.parent.chooses(true);</script>";
+		} else {
+			$this->assign('id', $id);
+			$this->display();
+		}
+	}
+
+	//  待办事项完成
+	public function finish()
+	{
+		$id = I("get.id", "");
+		if (empty($id)) {
+			$this->error("待办事项不存在", 'javascript:window.parent.choose();');
+		}
+		if (IS_POST) {
+			$res = M('todo')->where(array('todoid' => $id))->find();
+			$data = array("state" => '已完成');
+			$renew = M('todo')->where(array('todoid' => $id))->save($data);
+			if (empty($renew)) {
+				$this->error("操作失败，请重试", 'javascript:window.parent.choose();');
+			};
+			// 发给指派人 时间点：待办完成  LGW
+			$dynamic = [
+                'a' => $res['title'],
+                'email' => get_email($res['uid']),
+			];
+			$url = 'Dealt/view/id/'.$id;
+			$cost = sendTemplate($dynamic, 'dealt_from',$url);
+			$costTypes = apiRead(Api::S_SEND, Api::DXY_S, $cost);  // 发给待办人 : LGW
+
+			$content = I("post.content", "");
+			action_log_new(array('outtype' => 'ot_todo', 'outkey' => $id, 'action' => 'finish', 'comment' => $content, 'history' => array(array('field' => "state", 'olddata' => $res['state'], 'newdata' => '已完成'))));
+			echo "<script>window.parent.chooses(true);</script>";
+		} else {
+			$this->assign('id', $id);
+			$this->display();
+		}
+	}
+
+	/*
+	 * 需要我办理的全部
+	 */
+	public function needall()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/needall",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+
+		$map = $this->getCondition();
+		/*if($map['_string'] =='(( 1=1   ) AND ( 1=1   ))' or $map['_string'] =='(( 1=1   ) and ( 1=1   ))'){
+		 $map['_string'].=" and state != '已完成'";
+		 }*/
+
+		$map['_string'] .= " and toid='" . UID . "' ";
+
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'need');
+		Cookie('__bottomnav__', '需要我办理的');
+		Cookie('__bottomurl__', U('Dealt/needall'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '需要我办理的', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+		$this->assign('actname', "needall");
+		$this->display('index');
+	}
+
+	/*
+	 * 需要我办理的进行中
+	 */
+	public function needrun()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/needrun",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+
+		$map = $this->getCondition();
+		if ($map['_string'] == '(( 1=1   ) AND ( 1=1   ))' or $map['_string'] == '(( 1=1   ) and ( 1=1   ))') {
+			$map['_string'] .= " and state != '已完成'";
+		}
+
+		$map['_string'] .= " and toid='" . UID . "' ";
+
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'need');
+		Cookie('__bottomnav__', '需要我办理的');
+		Cookie('__bottomurl__', U('Dealt/needrun'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '需要我办理的', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+		$this->assign('actname', "needrun");
+		$this->display('index');
+	}
+
+	/*
+	 * 需要我办理的已完成
+	 */
+	public function needfinish()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/needfinish",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+
+		$map = $this->getCondition();
+		if ($map['_string'] == '(( 1=1   ) AND ( 1=1   ))' or $map['_string'] == '(( 1=1   ) and ( 1=1   ))') {
+			$map['_string'] .= " and state  like '%已完成%'";
+		}
+		$map['_string'] .= " and toid='" . UID . "' ";
+
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'need');
+		Cookie('__bottomnav__', '需要我办理的');
+		Cookie('__bottomurl__', U('Dealt/needfinish'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '需要我办理的', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+		$this->assign('actname', "needfinish");
+		$this->display('index');
+	}
+
+	/*
+	 * 我按排办理的全部*/
+	public function designall()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/designall",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+		$map = $this->getCondition();
+
+		$map['_string'] .= " and uid='" . UID . "' ";
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'design');
+		Cookie('__bottomnav__', '我安排的待办');
+		Cookie('__bottomurl__', U('Dealt/designall'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '我安排的待办', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display('index');
+	}
+
+	/*
+	 * 我按排办理的进行中*/
+	public function designrun()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/designrun",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+		$map = $this->getCondition();
+		if ($map['_string'] == '(( 1=1   ) AND ( 1=1   ))' or $map['_string'] == '(( 1=1   ) and ( 1=1   ))') {
+			$map['_string'] .= " and state  != '已完成'";
+		}
+		$map['_string'] .= " and uid='" . UID . "' ";
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'design');
+		Cookie('__bottomnav__', '我安排的待办');
+		Cookie('__bottomurl__', U('Dealt/designrun'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '我安排的待办', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display('index');
+	}
+
+	/*
+	 * 我按排办理的已完成*/
+	public function designfinish()
+	{
+		$this->assign('cname', CONTROLLER_NAME);
+		$config = array(
+            "actionURL" => "/Admin/Dealt/designfinish",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '标题', 'fieldname' => 'title', 'operator' => 'include', 'control' => 'input', 'values' => '')
+		, 1 => array('str' => '优先级', 'fieldname' => 'type', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 2 => array('str' => '状态', 'fieldname' => 'state', 'operator' => '=', 'control' => 'select', 'values' => '')
+		, 3 => array('str' => '发起人', 'fieldname' => 'uid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 4 => array('str' => '待办人', 'fieldname' => 'toid', 'operator' => 'include', 'control' => 'select', 'values' => '')
+		, 5 => array('str' => '添加时间', 'fieldname' => 'addtime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 6 => array('str' => '开始时间', 'fieldname' => 'stime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		, 7 => array('str' => '结束时间', 'fieldname' => 'etime', 'operator' => '<=', 'control' => 'input', 'values' => '', 'class' => 'date')
+		)
+		);
+
+		if ($config && $config['params']) {
+			$types = M('dictionary')->where("d_code = 'dbtype'")->field(true)->select();
+			$states = M('dictionary')->where("d_code = 'dbstate'")->field(true)->select();
+			$sales = M('Member')->field('uid,nickname')->where('status = 1')->select();
+			$mtypes = array("" => "");
+			$mstates = array("" => "");
+			$msales = array("" => "");
+			if ($types) {
+				foreach ($types as $v) {
+					$mtypes[$v['d_value']] = $v['d_value'];
+				}
+			}
+			if ($states) {
+				foreach ($states as $v) {
+					$mstates[$v['d_value']] = $v['d_key'];
+				}
+			}
+			if ($sales) {
+				foreach ($sales as $v) {
+					$msales[$v['uid']] = $v['nickname'];
+				}
+			}
+			$config['params'][1]['values'] = $mtypes;
+			$config['params'][2]['values'] = $mstates;
+			$config['params'][3]['values'] = $msales;
+			$config['params'][4]['values'] = $msales;
+		}
+
+		$this->setSearchConfig($config);
+		$map = $this->getCondition();
+		if ($map['_string'] == '(( 1=1   ) AND ( 1=1   ))' or $map['_string'] == '(( 1=1   ) and ( 1=1   ))') {
+			$map['_string'] .= " and state  like '%已完成%'";
+		}
+		$map['_string'] .= " and uid='" . UID . "' ";
+		if (I('sort', '') && I('order', '')) {
+			$order = I("sort") . " " . I("order");
+		} else {
+			$order = "addtime desc,state desc";
+		}
+
+		$list = $this->lists('Todo', $map, $order);
+		foreach ($list as &$value) {
+			$value['format_etime'] = date('Ymd', $value['etime']);
+		}
+		$this->assign('_list', $list);
+		$this->assign('nowDate', date('Ymd'));
+		$this->meta_title = '待办事项';
+		$this->assign('uid', UID);
+		$this->assign('actname', ACTION_NAME);
+		$this->assign('type', 'design');
+		Cookie('__bottomnav__', '我安排的待办');
+		Cookie('__bottomurl__', U('Dealt/designfinish'));
+		$root_mbx = array();
+		$root_mbx[] = array('title' => '我的看板', 'url' => U('Index/index'));
+		$root_mbx[] = array('title' => '我安排的待办', 'url' => '');
+		$this->assign('root_mbx', $root_mbx);
+
+		$this->display('index');
+	}
+}

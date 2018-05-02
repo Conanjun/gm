@@ -1,0 +1,117 @@
+<extend name="Public/base_choose" />
+<block name="body">
+    <style>
+        .error{
+            border:1px solid red;
+        }
+    </style>
+<link href="__CSS__/n.css" rel="stylesheet"  type="text/css" />
+
+
+		<div class="container mw-700px" style="border: 0px">
+	<!-- 修改密码表单 -->
+	<form action="{:U('User/submitpassword')}" method="post" class="form-condensed mw-700px">
+		
+		
+		
+		
+		<table align="center" class="table table-form mytable ntable">
+		<tbody>
+			<tr>
+                    <th class="w-120px">原密码 <span class="required"></span></th>
+                    <td class="w-p50">
+                        <input type="password" name="old"  value="" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <th class="w-120px">新密码<span class="required"></th>
+                    <td class="w-p50">
+                        <input type="password" name="password"  value="" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <th class="w-120px">确认密码<span class="required"></th>
+                    <td class="w-p50">
+                        <input type="password" name="repassword"  value="" class="form-control" autocomplete="off">
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr>
+                    <th></th>
+                    <td>
+                    <div style="float: right">
+                    	
+                        	<!--<a href="javascript:window.parent.choose();" class="btn btn-back">返回</a>-->
+                        <a  href="javascript:void(0);" class="btn btn-primary" onclick="conserve(this)"><i class="icon-save"></i> 保存</a>
+                    </div>
+                    </td>
+                    <td></td>
+                </tr>
+		
+		</tbody>
+		
+		</table>
+		
+	</form></div>
+</block>
+
+<block name="script">
+	<script src="__STATIC__/thinkbox/jquery.thinkbox.js"></script>
+    <script>
+        $("[name='old']").live('change', function () {
+            var old=$(this).val();
+            if (old == '' || old == undefined || old == null) {
+                $(this).addClass('error');
+            } else {
+                $(this).removeClass('error');
+            }
+        });
+         $("[name='password']").live('change', function () {
+             var pwd=$(this).val();
+            if (pwd == '' || pwd == undefined || pwd == null) {
+                $(this).addClass('error');
+            } else {
+                $(this).removeClass('error');
+            }
+        });
+         $("[name='repassword']").live('change', function () {
+             var repwd=$(this).val();
+            if (repwd == '' || repwd == undefined || repwd == null) {
+                $(this).addClass('error');
+            } else {
+                $(this).removeClass('error');
+            }
+        });
+        function conserve(){
+            t=true;
+            var old=$("[name='old']").val();
+            if(old==''|| old==undefined||old==null){
+                t=false;
+                $("[name='old']").addClass('error');
+            }
+            var pwd=$("[name='password']").val();
+              if(pwd==''|| pwd==undefined||pwd==null){
+                t=false;
+                $("[name='password']").addClass('error');
+            }
+             var repwd=$("[name='repassword']").val();
+              if(repwd==''|| repwd==undefined||repwd==null){
+                t=false;
+                $("[name='repassword']").addClass('error');
+            }
+            if(pwd!==repwd){
+                  t=false;
+                $("[name='repassword']").addClass('error');
+            }
+
+            if(t){
+                $('form').submit();
+            }
+        }
+    </script>
+</block>

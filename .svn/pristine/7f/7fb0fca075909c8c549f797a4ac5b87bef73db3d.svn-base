@@ -1,0 +1,442 @@
+<?php
+
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+namespace Admin\Controller;
+
+/**
+ * 审核流管理控制器
+ */
+class ExamineController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     * 审核流管理管理首页
+     */
+    public function index()
+    {
+        $config = array(
+            "actionURL" => "/Admin/Examine/index",
+            "operators" => array("=" => "=", "!=" => "!=", ">" => ">", ">=" => ">=", "<" => "<", "<=" => "<=", "include" => "包含"),
+            "params" => array(0 => array('str' => '审批流名称', 'fieldname' => 'name', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 1 => array('str' => '添加人', 'fieldname' => 'uname', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            , 2 => array('str' => '备注', 'fieldname' => 'enote', 'operator' => 'include', 'control' => 'input', 'values' => '')
+            )
+        );
+        $this->setSearchConfig($config);
+        $where = $this->getCondition();
+        $order = "";
+        if (I('sort', '') && I('order', '')) {
+            $order = I("sort") . " " . I("order");
+        }
+
+        $list = $this->lists('Examine', $where, $order);
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+        $root_mbx[] = array('title' => '审批流', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+        $this->assign('_list', $list);
+        $this->meta_title = '审批流管理';
+        $this->display();
+    }
+
+    /**
+     * 删除数据
+     */
+    public function deletedata()
+    {
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map ['eid'] = array(
+            'in',
+            $id
+        );
+        if (M('Examine')->where($map)->delete() !== false) {
+            $map ['es_eid'] = array(
+                'in',
+                $id
+            );
+            if (M('ExamineSub')->where($map)->delete() !== false) {
+                $this->success("删除成功", U('index'));
+            } else {
+                $this->error("删除失败");
+            }
+        } else {
+            $this->error("删除失败");
+        };
+
+    }
+
+    /**
+     * 删除数据
+     */
+    public function deletedatasub()
+    {
+        $eid = I("eid");
+        $id = array_unique(( array )I('id', 0));
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty ($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map ['esid'] = array(
+            'in',
+            $id
+        );
+        if (M('ExamineSub')->where($map)->delete() !== false) {
+            $this->success('删除成功！', U('Examine/edit?id=' . $eid));
+        } else {
+            $this->error("删除失败");
+        };
+    }
+
+    public function deletesub()
+    {
+        $esid = I('get.id');
+        if (!$esid) {
+            $this->json_error('请选择要操作的数据!', false);
+        }
+        if (is_array($esid)) {
+            $ids = implode(',', $esid);
+        } else {
+            $ids = $esid;
+        }
+        $where = array('esid' => array('in', $ids));
+        $tmp = M("ExamineSub")->where($where)->delete();;
+        if ($tmp) {
+            $this->ajaxReturn(array('done' => true, 'msg' => '删除成功'));
+        } else {
+            $this->json_error('删除失败!', false);
+        }
+    }
+
+    /**
+     *
+     *
+     * @param string $d_code
+     * @param string $d_key
+     * @param string $d_value
+     * @param string $d_order
+     * @param string $d_del
+     */
+    /**
+     * 新增字典
+     *
+     */
+    public function add()
+    {
+        if (IS_POST) {
+
+            $name = I("post.name", '');
+            $enote = I("post.enote", '');
+            if (empty ($name)) {
+                $this->error('审批流名称不能为空');
+            }
+
+            $data = array(
+                'name' => $name,
+                'addtime' => time(),
+                'uid' => UID,
+                'uname' => get_nickname(UID) ? get_nickname(UID) : get_username(UID),
+                'enote' => $enote
+            );
+
+            if (M("Examine")->where("name='{$name}'")->select()) {
+                $this->error('审批流名称已存在');
+            }
+
+            if (!M('Examine')->add($data)) {
+                $this->error('审批流添加失败！');
+            } else {
+                $this->success('审批流添加成功！', U('index'));
+            }
+        } else {
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '审批流', 'url' => U('Examine/index'));
+            $root_mbx[] = array('title' => '添加审批流', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->meta_title = '新增审批流';
+            $this->display();
+        }
+    }
+
+    public function addsub()
+    {
+        $es_eid = I("es_eid");
+        if (empty ($es_eid)) {
+            $this->error('审批流数据不存在！');
+        }
+        if (IS_POST) {
+            $es_eid = I("post.es_eid");
+            $name = I("post.esname", '');
+            $esnote = I("post.esnote", '');
+            $checkid = I("post.uid", '');
+            $sort_order = I("post.sort_order", '1');
+            if (empty ($name)) {
+                $this->error('审批流程名称不能为空');
+            }
+            if (empty ($sort_order) || !preg_match("/^[1-9][0-9]*$/", $sort_order) || $sort_order <= 0) {
+                $this->error('审核顺序号填写不正确');
+            }
+            if (empty ($checkid)) {
+                $this->error('审核人不能为空');
+            }
+
+            $data = array(
+                'es_eid' => $es_eid,
+                'esname' => $name,
+                'uid' => $checkid,
+                'uname' => get_nickname($checkid) ? get_nickname($checkid) : get_username($checkid),
+                'esnote' => $esnote,
+                'sort_order' => $sort_order
+            );
+
+            if (M("ExamineSub")->where("name='{$name}' and es_eid='{$es_eid}'")->select()) {
+                $this->error('审批流程名称已存在');
+            }
+
+            if (!M('ExamineSub')->add($data)) {
+                $this->error('审批流程添加失败！');
+            } else {
+                $this->success('审批流程添加成功！', U('Examine/edit?id=' . $es_eid));
+            }
+        } else {
+            $this->assign('es_eid', $es_eid);
+            $this->meta_title = '新增审批流程';
+
+            $mdata = M("UcenterMember")->join("ot_member on ot_member.uid=ot_ucenter_member.id")->select();
+            $this->assign('mdata', $mdata);
+
+            $this->display();
+        }
+    }
+
+    /**
+     * 编辑折扣
+     */
+    public function edit()
+    {
+        $id = I("id");
+        if (empty ($id)) {
+            $this->error('审批流数据不存在！');
+        }
+        if (IS_POST) {
+
+            $name = I("post.name", '');
+            $enote = I("post.enote", '');
+            if (empty ($name)) {
+                $this->error('审批流名称不能为空');
+            }
+
+            $data = array(
+                'eid' => $id,
+                'name' => $name,
+                'enote' => $enote
+            );
+
+            if (M("Examine")->where("name='{$name}' and eid<>'{$id}'")->select()) {
+                $this->error('审批流名称已存在');
+            }
+
+            if (D('Examine')->save($data) === false) {
+                $this->error('审批流编辑失败！', U('Examine/edit?id=' . $id));
+            } else {
+                $this->success('审批流编辑成功！', U('Examine/edit?id=' . $id));
+            }
+        } else {
+            $this->meta_title = '编辑审批流';
+            $data = array();
+            $data = M('Examine')->where("eid=" . $id)->find();
+            if (empty ($data)) {
+                $this->error('审批流数据不存在！');
+            }
+            $this->assign('id', $id);
+            $this->assign('d', $data);
+
+            $Model = M('ExamineSub');
+            $count = $Model->where("es_eid='{$id}'")->count();
+            $Page = new \Think\Page ($count, 20);
+
+            if (I('sort', '') && I('order', '')) {
+                $order = I("sort") . " " . I("order");
+            } else {
+                $order = "sort_order asc";
+            }
+            $list = $Model->where("es_eid='{$id}'")->order($order)->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '审批流', 'url' => U('Examine/index'));
+            $root_mbx[] = array('title' => '编辑审批流', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('_list', $list);
+            $show = $Page->show();
+            $this->assign('_page', $show);
+            $this->display();
+        }
+    }
+
+    public function editsub()
+    {
+        $es_eid = I("es_eid");
+        if (empty ($es_eid)) {
+            $this->error('审批流数据不存在！');
+        }
+        $id = I("id");
+        if (empty ($id)) {
+            $this->error('审批流程数据不存在！');
+        }
+        if (IS_POST) {
+            $es_eid = I("post.es_eid");
+            $name = I("post.esname", '');
+            $esnote = I("post.esnote", '');
+            $checkid = I("post.uid", '');
+            $sort_order = I("post.sort_order", '1');
+            if (empty ($name)) {
+                $this->error('审批流程名称不能为空');
+            }
+            if (empty ($sort_order) || !preg_match("/^[1-9][0-9]*$/", $sort_order) || $sort_order <= 0) {
+                $this->error('审核顺序号填写不正确');
+            }
+            if (empty ($checkid)) {
+                $this->error('审核人不能为空');
+            }
+
+            $data = array(
+                'esid' => $id,
+                'es_eid' => $es_eid,
+                'esname' => $name,
+                'uid' => $checkid,
+                'uname' => get_nickname($checkid) ? get_nickname($checkid) : get_username($checkid),
+                'esnote' => $esnote,
+                'sort_order' => $sort_order
+            );
+
+            if (M("ExamineSub")->where("name='{$name}' and esid<>'{$id}' and es_eid='{$es_eid}'")->select()) {
+                $this->error('审批流程名称已存在');
+            }
+
+            if (M('ExamineSub')->save($data) === false) {
+                $this->error('审批流程编辑失败！');
+            } else {
+                $this->success('审批流程编辑成功！', U('Examine/edit?id=' . $es_eid));
+            }
+        } else {
+            $this->assign('es_eid', $es_eid);
+            $this->assign('id', $id);
+            $this->meta_title = '编辑审批流程';
+
+            $mdata = M("UcenterMember")->join("ot_member on ot_member.uid=ot_ucenter_member.id")->select();
+            $this->assign('mdata', $mdata);
+
+            $data = M('ExamineSub')->where("esid=" . $id)->find();
+            $this->assign('d', $data);
+            $this->display();
+        }
+    }
+
+    function sub()
+    {
+        $id = I("get.id", "");
+        if (empty($id)) {
+            $this->error("审批流数据不存在");
+        }
+
+        $row = M("Examine")->where("eid='{$id}'")->find();
+        if (empty($row)) {
+            $this->error("审批流数据不存在");
+        }
+
+        $this->assign('name', $row['name'] . " 流程详情");
+
+        $Model = M('ExamineSub');
+
+        $list = $Model->where("es_eid='{$id}'")->order("esid asc")->select();
+        $this->assign('list', $list);
+
+        $mdata = M("Member")->where("status=1")->select();
+        $this->assign('uids', $mdata);
+
+        $root_mbx = array();
+        $root_mbx[] = array('title' => '管理', 'url' => U('Index/index'));
+        $root_mbx[] = array('title' => '审批流', 'url' => U('Examine/index'));
+        $root_mbx[] = array('title' => '流程详请', 'url' => '');
+        $this->assign('root_mbx', $root_mbx);
+
+        $this->assign('eid', $id);
+
+        $this->display();
+
+    }
+
+    public function subedit()
+    {
+
+        $eid = I("get.eid", "");
+        if (empty($eid)) {
+            $this->error("审核流程数据不存在");
+        }
+
+        $model = M("ExamineSub");
+        if (IS_POST) {
+            $newdata = array();
+            $data = $_POST;
+            foreach ($data as $key => $value) {
+                foreach ($value as $k => $v) {
+                    $newdata[$k][$key] = $v;
+                }
+            }
+            $editdata = array();
+            $adddata = array();
+            foreach ($newdata as $key => $value) {
+                if (empty($value['esid'])) {
+                    if (!empty($value['esname']) && !empty($value['uid']) && !empty($value['sort_order']) && is_numeric($value['sort_order'])) {
+                        $adddata[] = $value;
+                    }
+                } else {
+                    if (!empty($value['esname']) && !empty($value['uid']) && !empty($value['sort_order']) && is_numeric($value['sort_order'])) {
+                        $editdata[] = $value;
+                    }
+
+                }
+            }
+            if (is_array($editdata)) {
+                foreach ($editdata as $key => $vo) {
+
+                    if (!M("ExamineSub")->where("esname='{$vo['esname']}' and es_eid='{$eid}' and esid<>'{$vo['esid']}'")->find()) {
+                        $row = M("Member")->where("uid='{$vo['uid']}'")->find();
+                        $vo['uname'] = $row['nickname'];
+                        $model->save($vo);
+                    }
+                }
+            }
+            if (is_array($adddata)) {
+                foreach ($adddata as $key => $vo) {
+                    $row = M("Member")->where("uid='{$vo['uid']}'")->find();
+                    if ($row) {
+                        $vo['uname'] = $row['nickname'];
+                        $vo['es_eid'] = $eid;
+
+                        if (!M("ExamineSub")->where("esname='{$vo['esname']}' and es_eid='{$eid}'")->find()) {
+                            $model->add($vo);
+                        }
+
+
+                    }
+
+                }
+            }
+            $this->success('编辑成功！', U('sub?id=' . $eid));
+        }
+
+    }
+
+}

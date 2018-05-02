@@ -1,0 +1,882 @@
+<?php
+// +----------------------------------------------------------------------
+// | OneThink [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2013 http://www.onethink.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://www.zjzit.cn>
+// +----------------------------------------------------------------------
+
+namespace Admin\Controller;
+
+use User\Api\UserApi;
+
+/**
+ * 后台用户控制器
+ *
+ * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+ */
+class UserController extends AdminController
+{
+    private $meta_title;
+
+    /**
+     * 用户管理首页
+     *
+     * @author 麦当苗儿 <zuojiazi@vip.qq.com>
+     */
+    public function index()
+    {
+
+
+        $where = " 1=1 and ot_member.module = 'Admin'";
+		$filter= '';
+		$name = empty($_GET['mname'])?'':trim($_GET['mname']);//姓名
+		if($name){
+			$filter .= " and ot_member.nickname like '%{$name}%'";
+		}
+		$dname = empty($_GET['dname'])?'':trim($_GET['dname']);//部门
+		if($dname){
+			$filter .= " and d.name like '%{$dname}%'";
+		}
+		$uname = empty($_GET['uname'])?'':trim($_GET['uname']);//用户名
+		if($uname){
+			$filter .= " and um.username like '%{$uname}%'";
+		}
+		$mobile = empty($_GET['mobile'])?'':trim($_GET['mobile']);//手机号
+		if($mobile){
+			$filter .= " and um.mobile like '%{$mobile}%'";
+		}
+		$email = empty($_GET['email'])?'':trim($_GET['email']);//邮箱
+		if($email){
+			$filter .= " and um.email like '%{$email}%'";
+		}
+		$role_name = empty($_GET['role_name'])?'':trim($_GET['role_name']);//角色
+		if($role_name){
+			$filter .= " and aga.group_id = {$role_name}";
+		}
+		$status = empty($_GET['status'])?'':trim($_GET['status']);//是否可用
+		$status == 1 and  $filter .= " and ot_member.status = 1";
+		$status == 2 and  $filter .= " and ot_member.status = 0";
+		$where .= $filter;
+		
+		//更新排序
+		if (isset($_GET['sort']) && isset($_GET['order'])) {
+			$sort = strtolower(trim($_GET['sort']));
+			$order = strtolower(trim($_GET['order']));
+			if (!in_array($order, array('asc', 'desc'))) {
+				$sort = 'uid';
+				$order = 'desc';
+			}
+		}else {
+			$sort = 'uid';
+			$order = 'desc';
+		}
+		
+		$count = M("Member")->join("left join ot_dept d on d.did=ot_member.dept")
+            ->join("left join ot_ucenter_member um on um.id=ot_member.uid ")
+            ->join("left join ot_auth_group_access aga on aga.uid=ot_member.uid")
+            ->join('left join ot_auth_group ag on  ag.id=aga.group_id')->count($where);
+		$page = new \Think\Page($count, 20);
+		$lists = M("Member")->join("left join ot_dept d on d.did=ot_member.dept")
+            ->join("left join ot_ucenter_member um on um.id=ot_member.uid")
+            ->join("left join ot_auth_group_access aga on aga.uid=ot_member.uid")
+            ->join('left join ot_auth_group ag on  ag.id=aga.group_id')
+			->field('ot_member.*,d.name as dname,um.mobile,um.email,um.username,um.reg_time,um.password,d.path,aga.group_id,ag.title ')
+				->where($where)
+				->order("$sort $order")
+				->limit($page->firstRow . ',' . $page->listRows)
+				->select();		
+		 foreach ($lists as $key => $vo) {
+            $did = substr($vo['path'], 1, -1);
+            if ($did) {
+                $dname = M('Dept')->field('name')->where("did in ($did)")->select();
+                $dname1 = array();
+                foreach ($dname as $k => $v) {
+                    $dname1[$k] = $v['name'];
+                }
+                $dname = implode('-', $dname1);
+                $lists[$key]['dname'] = $dname;
+            }
+        }
+		
+		$roles = M('Auth_group')->where("module='admin'")->field(true)->select();
+        $this->assign('roles', $roles);
+			
+		$page->setConfig('theme','%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END% %HEADER%');
+		$this->assign('lists', $lists);
+		$this->assign('_page', $page->show());
+		$this->assign('regions', D("region")->get_options(0));
+		$this->assign('filtered', $filter ? 1 : 0); //是否有查询条件
+		$this->display();
+		
+    }
+
+
+    /**
+     * 会员状态修改
+     *
+     * @param null $method
+     */
+    public function changeStatus($method = null)
+    {
+        $id = array_unique((array)I('id', 0));
+        if (in_array(C('USER_ADMINISTRATOR'), $id)) {
+            $this->error("不允许对超级管理员执行该操作!");
+        }
+        $id = is_array($id) ? implode(',', $id) : $id;
+        if (empty($id)) {
+            $this->error('请选择要操作的数据!');
+        }
+        $map['uid'] = array('in', $id);
+        switch (strtolower($method)) {
+            case 'forbiduser':
+                $this->forbid('Member', $map);
+                break;
+            case 'resumeuser':
+                $this->resume('Member', $map);
+                break;
+            case 'deleteuser':
+                $this->delete('Member', $map);
+                break;
+            default:
+                $this->error('参数非法');
+        }
+    }
+
+    public function add($username = '', $password = '', $repassword = '', $email = '', $mobile = '')
+    {
+        if (IS_POST) {
+            $nickname = I("post.nickname", '');
+            $deptid = I("post.dept", 0);
+            $roleid = I("post.roles", 0);
+            $sex = I("post.sex", 0);
+            $birthday = I("post.birthday");
+            $userpassword = I('post.password');
+            $job_num = I('post.jobnum');
+            if (empty($nickname)) {
+                $nickname = $username;
+            }
+            
+            if(empty($username)){
+            	$this->error(L('USERNAME_NOT_EMPTY'));
+            }
+            if(empty($password)){
+            	$this->error(L('PASSWORD_NOT_EMPTY'));
+            }
+
+            /* 检测密码 */
+            /*  if($password != $repassword){
+                  $this->error('密码和重复密码不一致！');
+              }*/
+            /* 调用注册接口注册用户 */
+            $User = new UserApi;
+            $uid = $User->register($username, $userpassword, $email, $mobile);
+
+            if (0 < $uid) { //注册成功
+                $user = array('uid' => $uid, 'nickname' => $nickname, 'status' => 1, 'dept' => $deptid, 'sex' => $sex, 'birthday' => $birthday, 'job_num' => $job_num,'module'=>'Admin');
+				if($roleid){
+                    if (!M('Auth_group_access')->add(['uid'=>$uid,'group_id'=>$roleid])) {
+                        $this->error(L('NAME_NOT_EMPTY'));
+                    }
+                }
+                if (!M('Member')->add($user)) {
+                     $this->error(L('NAME_NOT_EMPTY'));
+                } else {
+                    $this->redirect('Admin/User/index');
+                }
+            } else { //注册失败，显示错误信息
+                $this->error($this->showRegError($uid));
+            }
+        } else {
+
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $this->assign('depts', $depts);
+			$roles = M('Auth_group')->field(true)->select();
+            $this->assign('roles', $roles);
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '人员', 'url' => U('User/index'));
+            $root_mbx[] = array('title' => '添加人员', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+    }
+
+    /**
+     * 获取用户注册错误信息
+     *
+     * @param  integer $code 错误编码
+     *
+     * @return string        错误信息
+     */
+    private function showRegError($code = 0)
+    {
+        switch ($code) {
+            case -1:
+                $error = '用户名长度必须在16个字符以内！';
+                break;
+            case -2:
+                $error = '用户名被禁止注册！';
+                break;
+            case -3:
+                $error = '用户名被占用！';
+                break;
+            case -4:
+                $error = '密码长度必须在6-30个字符之间！';
+                break;
+            case -5:
+                $error = '邮箱格式不正确！';
+                break;
+            case -6:
+                $error = '邮箱长度必须在1-32个字符之间！';
+                break;
+            case -7:
+                $error = '邮箱被禁止注册！';
+                break;
+            case -8:
+                $error = '邮箱被占用！';
+                break;
+            case -9:
+                $error = '手机格式不正确！';
+                break;
+            case -10:
+                $error = '手机被禁止注册！';
+                break;
+            case -11:
+                $error = '手机号被占用！';
+                break;
+            default:
+                $error = '未知错误';
+        }
+        return $error;
+    }
+
+    public function edit()
+    {
+        $id = I("get.id", 0);
+        $module = M('UcenterMember');
+        if (IS_POST) {
+            $id = I("post.id", 0);
+            $nickname = I("post.nickname", '');
+            $deptid = I("post.dept", 0);
+			$roleid = I("post.roles", 0);
+            $sex = I("post.sex", 0);
+            $birthday = I("post.birthday", 0);
+            $email = I("post.email", '');
+            $mobile = I("post.mobile", '');
+            $username = I("post.username", '');
+            $pwd['password'] = I('post.password');
+            $job_num = I('post.jobnum');
+            if ($pwd['password'] != '') {
+//		        $password=think_ucenter_md5($pwd);
+                $api = new UserApi();
+                $api->updatepassword($id, $pwd);
+            }
+
+            if (!$nickname) {
+                $this->error(L('MNAME_NOT_EMPTY'));
+            }
+            /*if (!$deptid) {
+                $this->error(L('PLEASE_SELECT_DNAME'));
+            }*/
+           /* if (!$email) {
+                $this->error(L('EMAIL_NOT_EMPTY'));
+            } else {
+                $tmp = $module->field('id')->where("id != $id and email = '{$email}'")->find();
+                if ($tmp) {
+                    $this->error(L('EMAIL_EXISTED'));
+                }
+            }*/
+            /*if (!$mobile) {
+                $this->error(L('MOBILE_NOT_EMPTY'));
+            } else {
+                $tmp = $module->field('id')->where("id != $id and mobile = '{$mobile}'")->find();
+                if ($tmp) {
+                    $this->error(L('MOBILE_EXISTED'));
+                }
+            }*/
+			/*
+            if ($job_num) {
+                $map['job_num'] = $job_num;
+                $map['uid'] = array('neq', $id);
+                $res_jobNum = M('member')->where($map)->find();
+                if ($res_jobNum) {
+                    $this->error('工号已被占用');
+                }
+            }*/
+            $data = array(
+                'username' => $username,
+                'mobile' => $mobile,
+                'email' => $email,
+            );
+            $date1 = array(
+                'dept' => $deptid,
+                'nickname' => $nickname,
+                'sex' => $sex,
+                'birthday' => $birthday,
+                'job_num' => $job_num
+            );
+            $res = $module->where('id = ' . $id)->save($data);
+            if ($res !== false) {
+				$role = M('Auth_group_access')->where('uid = ' . $id)->save(['group_id'=>$roleid]);
+				if ($role === false) {
+                     $this->error(L('EDIT_ROLE_ERROR'));
+                }
+                $re = M('Member')->where('uid = ' . $id)->save($date1);
+                if ($re !== false) {
+                    $this->redirect('Admin/User/index');
+                } else {
+                    $this->error(L('EDIT_ERROR'));
+                }
+            } else {
+                $this->error(L('EDIT_ERROR'));
+            }
+        } else {
+            if (!$id) {
+                $this->error(L('PLEASE_SELECT_DATA'));
+            }
+            $m = $module->alias('uc')->field('uc.username,uc.email,uc.mobile,m.nickname,m.sex,m.birthday,uc.id,m.dept,aga.group_id')->join('ot_member m on m.uid = uc.id')->join("left join ot_auth_group_access aga on aga.uid= uc.id")-> where('uc.id=' . $id)->find();
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $this->assign('depts', $depts);
+			
+			$roles = M('Auth_group')->field(true)->select();
+            $this->assign('roles', $roles);
+			
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '人员', 'url' => U('User/index'));
+            $root_mbx[] = array('title' => '编辑人员', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->assign('m', $m);
+            $this->meta_title = '编辑人员';
+            $this->display();
+        }
+    }
+	
+	//删除数据
+	public function delete()
+	{
+		$id = I('get.id');
+		if (!$id) {
+			$this->error(L('Data_not_exist'));
+		}
+		
+		M('Member')->where('uid = ' . $id)->delete();
+		M('auth_group_access')->where('uid = ' . $id)->delete();
+		$res= M('UcenterMember')->where('id = ' . $id)->delete();
+		if($res === false){
+			$this->error(L('DELETE_FAILED'));
+		}else{
+			$this->success(L('DELETE_SUCCESS'), U('index'));
+		}
+	}
+
+    public function ajax_col()
+    {
+        $id = empty ($_GET ['id']) ? 0 : intval($_GET ['id']);
+        $column = empty ($_GET ['column']) ? '' : trim($_GET ['column']);
+        $value = isset ($_GET ['value']) ? trim($_GET ['value']) : '';
+        $data = array(
+            $column => $value,
+        );
+        M('UcenterMember')->where('id=' . $id)->save($data);
+        M('Member')->where('uid=' . $id)->save($data);
+        /*if (in_array ( $column, array (
+            'sort_order',
+            'enabled'
+        ) )) {
+            $tmep = M('UcenterMember')->field ( true )->find ( $id );
+            $data [$column] = $value;
+            $history = array ();
+            foreach ( $data as $key => $vo ) {
+                if ($vo != $tmep [$key]) {
+                    $history [] = array (
+                        'field' => $key,
+                        'olddata' => $tmep [$key],
+                        'newdata' => $vo
+                    );
+                }
+            }
+
+        } else {
+            echo 'true';
+            return;
+        }*/
+        echo 'true';
+        return;
+    }
+
+    public function update()
+    {
+        $id = UID;
+        $module = M('UcenterMember');
+        if (IS_POST) {
+            $id = I("post.id", 0);
+            $nickname = I("post.nickname", '');
+            $deptid = I("post.dept", 0);
+            $qq = I("post.qq", 0);
+            $sex = I("post.sex", 0);
+            $birthday = I("post.birthday", 0);
+            $email = I("post.email", 0);
+            $mobile = I("post.mobile", 0);
+            $job_num = I("post.jobnum");
+//            if (!$username) {
+//                $this->error('用户名不能为空');
+//            } else {
+//                $tmp = $module->field('id')->where("id != $id and username = '{$username}'")->find();
+//                if ($tmp) {
+//                    $this->error('用户名被占用');
+//                }
+//            }
+            if (!$nickname) {
+                $this->error('姓名不能为空');
+            }
+            if (!$deptid) {
+                $this->error('请选择部门');
+            }
+            if (!$email) {
+                $this->error('邮箱不能为空');
+            } else {
+                $tmp = $module->field('id')->where("id != $id and email = '{$email}'")->find();
+                if ($tmp) {
+                    $this->error('邮箱被占用');
+                }
+            }
+            if (!$mobile) {
+                //$this->error('手机不能为空');
+            } else {
+                $tmp = $module->field('id')->where("id != $id and mobile = '{$mobile}'")->find();
+                if ($tmp) {
+                    $this->error('手机号被占用');
+                }
+            }
+            if ($job_num) {
+                $map['job_num'] = $job_num;
+                $map['uid'] = array('neq', $id);
+                $res_jobNum = M('member')->where($map)->find();
+                if ($res_jobNum) {
+                    $this->error('工号已被占用');
+                }
+            }
+            $data = array(
+                'mobile' => $mobile,
+                'email' => $email,
+            );
+            $date1 = array(
+                'dept' => $deptid,
+                'nickname' => $nickname,
+                'qq' => $qq,
+                'sex' => $sex,
+                'birthday' => $birthday,
+                'job_num' => $job_num
+            );
+            $res = $module->where('id = ' . $id)->save($data);
+            if ($res !== false) {
+            	
+                $re = M('Member')->where('uid = ' . $id)->save($date1);
+                if ($re !== false) {
+                    echo "<script>
+							 window.parent.choose();
+							</script>";
+                } else {
+                    $this->error('编辑失败');
+                }
+            } else {
+                $this->error('编辑失败');
+            }
+        } else {
+            if (!$id) {
+                $this->error('请选择要操作的数据');
+            }
+            $m = $module->alias('uc')->field('uc.username,uc.email,uc.mobile,m.nickname,m.sex,m.birthday,m.qq,uc.id,m.dept,m.job_num')->join('ot_member m on m.uid = uc.id')->where('uc.id=' . $id)->find();
+            $depts = M('Dept')->field(true)->select();
+            $depts = D('Common/Tree')->toFormatTree1($depts);
+            $this->assign('depts', $depts);
+            $this->assign('m', $m);
+            $this->meta_title = '编辑人员';
+            $this->display();
+        }
+    }
+
+    public function check_user()
+    {
+        $username = $_POST['username'];
+        $id = $_POST['id'];
+        if ($id) {
+            if (M('UcenterMember')->where("username='{$username}' and id !=" . $id)->find())
+                echo 'false';
+            else
+                echo 'true';
+        } else {
+            if (M('UcenterMember')->where(['username' => $username])->find())
+                echo 'false';
+            else {
+                echo 'true';
+            }
+
+        }
+
+    }
+
+    public function check_email()
+    {
+        $email = $_POST['email'];
+        $id = $_POST['id'];
+        if ($id) {
+            if (M('UcenterMember')->where("email='{$email}' and id !=" . $id)->find())
+                echo 'false';
+            else
+                echo 'true';
+        } else {
+            if (M('UcenterMember')->where(['email' => $email])->find())
+                echo 'false';
+            else
+                echo 'true';
+
+        }
+        die();
+    }
+
+    public function check_mobile()
+    {
+        $id = $_POST['id'];
+        $mobile = $_POST['mobile'];
+        if ($id) {
+            if (M('UcenterMember')->where("mobile='{$mobile}' and id !=" . $id)->find())
+                echo 'false';
+            else
+                echo 'true';
+        } else {
+            if (M('UcenterMember')->where(['mobile' => $mobile])->find())
+                echo 'false';
+            else
+                echo 'true';
+        }
+        die();
+    }
+
+    public function userimport()
+    {
+        if (IS_POST) {
+            //判断是否符合文件格式
+            $allowedExts = array("xls", "xlsx", "csv");
+            $temp = explode(".", $_FILES["f"]["name"]);
+            $extension = end($temp);     // 获取文件后缀名
+            if (!in_array($extension, $allowedExts)) {
+                $this->error('文件类型不允许,请重新操作');
+            }
+            $upload = new \Think\Upload();
+            $info = $upload->upload();
+            $c = C('DOWNLOAD_UPLOAD');
+            $filePath = $c['rootPath'] . $info['f']['savepath'] . $info['f']['savename'];
+            import("IOFactory", "../excel/toexcel/PHPExcel", ".php");
+            import("Excel5", "../excel/toexcel/PHPExcel/Reader", ".php");
+            import("PHPExcel", "../excel/toexcel", ".php");
+
+            $PHPExcel = \PHPExcel_IOFactory::load($filePath);
+            $date = new \PHPExcel_Shared_Date();
+//        $PHPExcel = $reader->load($filePath);
+//            //读取excel文件中的第一个工作表
+            $sheet = $PHPExcel->getSheet(0);
+//            //取得最大的行号
+            $allRow = $sheet->getHighestRow();
+            $count = 0;
+            $error_note = '';
+            for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
+                $name = $PHPExcel->getActiveSheet()->getCell('A' . $currentRow)->getValue();//工号
+                $password = $PHPExcel->getActiveSheet()->getCell('B' . $currentRow)->getValue();
+                $nickname = $PHPExcel->getActiveSheet()->getCell('C' . $currentRow)->getValue();
+                $dept = $PHPExcel->getActiveSheet()->getCell('D' . $currentRow)->getValue();
+                $email = $PHPExcel->getActiveSheet()->getCell('E' . $currentRow)->getValue();
+                $mobile = $PHPExcel->getActiveSheet()->getCell('F' . $currentRow)->getValue();
+                $weixin = $PHPExcel->getActiveSheet()->getCell('G' . $currentRow)->getValue();
+                $birthday = $PHPExcel->getActiveSheet()->getCell('H' . $currentRow)->getValue();
+                $sex = $PHPExcel->getActiveSheet()->getCell('I' . $currentRow)->getValue();
+                $roles = $PHPExcel->getActiveSheet()->getCell('J' . $currentRow)->getValue();//角色
+                $role_ls = $PHPExcel->getActiveSheet()->getCell('K' . $currentRow)->getValue();//角色等级
+                //生日
+                if ($birthday) {
+                    $birth = $date::ExcelToPHP($birthday);
+                    $birthdays = date('Y-m-d', $birth);
+                } else {
+                    $birthdays = "";
+                }
+                if ($sex == '男') {
+                    $sex = 1;
+                } elseif ($sex == '女') {
+                    $sex = 2;
+                } else {
+                    $sex = 0;
+                }
+                //密码
+                if (empty($password)) {
+                    $password = '123456';
+                }
+
+
+                /* //邮箱
+                if(empty($email)){
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '邮箱不能为空;' . "</br>";
+                    continue;
+                }
+                $ucem = M('UcenterMember')->where('email = '.$email)->getfield('email');
+                if($ucem){
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '邮箱已存在;' . "</br>";
+                    continue;
+                }
+               //手机
+                if(empty($mobile)){
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '手机号不能为空;' . "</br>";
+                    continue;
+                }
+                $mobile = M('UcenterMember')->where('mobile = '.$mobile)->getfield('email');
+                if($mobile){
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '手机号已存在;' . "</br>";
+                    continue;
+                }*/
+                //部门
+                if (empty($dept)) {
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '部门不能为空;' . "</br>";
+                    continue;
+                }
+                $depts = explode('/', $dept);
+                //专业服务部 / 商业项目 / 项目一组
+                $pid = 0;
+                foreach ($depts as $vo) {
+                    static $pid = 0;
+                    $deptids = M('dept')->field('did,parent')->where(array('name' => trim($vo), 'parent' => $pid))->find();
+                    if ($deptids) {
+                        $deptid = $deptids['did'];
+                        $pid = $deptids['did'];
+                    } else {
+                        $deptid = 0;
+                        break;
+                    }
+                }
+                if (empty($deptid)) {
+                    $error_note .= '第' . $currentRow . '行，导入失败:' . '部门不存在;' . "</br>";
+                    continue;
+                }
+                /*  //工号
+                  if (empty($name)) {
+                      $error_note .= '第' . $currentRow . '行，导入失败:' . '工号不能为空;' . "</br>";
+                      continue;
+                  }*/
+                //姓名
+                if (empty($nickname)) {
+                    $nickname = $email;
+                }
+                //微信
+                if (empty($weixin)) {
+                    $weixin = '';
+                }
+	            //角色
+	            $parent = 0;
+	            $roleid = 0;
+	            if (!empty($roles)) {
+		            $roles = explode('/', $roles);
+		            $vo = end($roles);
+		            $roleid = M('AuthGroup')->where(array('title' => trim($vo)))->getField('id');
+		            /*foreach ($roles as $vo) {
+						static $parent = 0;
+						$authgroup = M('AuthGroup')->field('id,parent')->where(array('title' => trim($vo), 'parent' => $parent))->find();
+					   //header("Content-type:text/html;charset=utf-8");
+						   // echo M()->getlastsql();echo "</br>";
+						if ($authgroup) {
+							$roleid = $authgroup['id'];
+							$parent = $authgroup['id'];
+						} else {
+							$roleid = 0;
+							break;
+						}
+					}*/
+	            }
+                //角色等级
+                $rlid = 0;
+                if (!empty($role_ls) && $roleid) {
+                    $rlid = M('RoleLevel')->where(array('agid' => $roleid, 'name' => trim($role_ls)))->getfield('rlid');
+                }
+
+
+                $api = new UserApi();
+                $res_insert = $api->register($email, $password, $email, $mobile);
+                if ($res_insert > 0) {
+                    $count++;
+                    $info = array('uid' => $res_insert, 'nickname' => $nickname, 'sex' => $sex, 'job_num' => $name,
+                        'birthday' => $birthdays, 'qq' => $weixin, 'reg_time' => time(), 'status' => 1, 'dept' => $deptid, 'rlid' => $rlid);
+                    $uid = M('member')->add($info);
+                    if ($uid) {
+	                    M('auth_group_access')->add(array('uid' => $uid, 'group_id' => $roleid, 'rlid' => $rlid));
+	                    /* if ($rlid) {
+							 M('auth_group_access')->add(array('uid' => $uid, 'group_id' => $roleid, 'rlid' => $rlid));
+							 echo M()->getlastsql();die;
+						 }*/
+                        $block_list = $this->block_list();
+                        $sql = '';
+                        foreach($block_list as $vo){
+                        	$sql .= "({$uid},'{$vo['source']}','{$vo['title']}','{$vo['params']}','{$vo['sort_order']}','{$vo['grid']}','{$vo['height']}'),";
+                        }
+                        $sql = substr($sql,0,-1);
+                        $sqls = "insert into ot_block (uid,source,title,params,sort_order,grid,height) VALUES $sql";
+                        M()->execute($sqls);
+                    } else {
+                        $error_note .= '第' . $currentRow . '行，导入失败' . "</br>";
+                    }
+                } else {
+                    $error_note .= '第' . $currentRow . '行，导入失败,' . $this->showRegError($res_insert) . "</br>";
+
+                }
+            }
+            if ($error_note) {
+                $this->error($error_note, U('User/index'));
+            } else {
+                $this->success('导入成功' . $count . '条数据', U('User/index'));
+            }
+        } else {
+
+            $root_mbx = array();
+            $root_mbx[] = array('title' => '管理', 'url' => U('ProjectConfig/index'));
+            $root_mbx[] = array('title' => '人员', 'url' => U('User/index'));
+            $root_mbx[] = array('title' => '导入文件', 'url' => '');
+            $this->assign('root_mbx', $root_mbx);
+            $this->display();
+        }
+
+    }
+
+    public function changeuser()
+    {
+//			if(!cando1(array(UID))){
+//				$this->error("您没有权限操作！");
+//			}
+        $login_uid = I('get.uid');
+        $check_user = M('ucenter_member')->field('status')->where(array('id' => $login_uid))->find();
+        if (!empty($check_user['status'])) {
+            $Member = D('Member');
+            if ($Member->login($login_uid, $expiry)) {
+                $change_uname = get_nickname(UID) ? get_nickname(UID) : get_username(UI);
+                session('change_uid', UID);
+                session('change_uname', $change_uname);
+                $this->redirect("Admin/Index/index");
+            }
+        } else {
+            $this->error("此用户已禁用");
+        }
+    }
+
+    public function restoreuser()
+    {
+        $login_uid = session('change_uid');;
+        $Member = D('Member');
+        if ($Member->login($login_uid, $expiry)) {
+            session('change_uid', null);
+            session('change_uname', null);
+            $this->redirect("Admin/Index/index");
+        }
+    }
+
+    public function check_jobnum()
+    {
+        $id = $_POST['id'];
+        $jobnum = $_POST['jobnum'];
+        if ($id) {
+            $map['job_num'] = $jobnum;
+            $map['uid'] = array('neq', $id);
+            if (M('member')->where($map)->find()) {
+                echo 'false';
+            } else {
+                echo 'true';
+            }
+
+        } else {
+            $res_jobnum = M('member')->where(array('job_num' => $jobnum))->find();
+            if (M('member')->where(['job_num' => $jobnum])->find()) {
+
+                echo 'false';
+            } else {
+                echo 'true';
+            }
+
+        }
+        die();
+    }
+
+    /**通过传过来的关键字查询用户ID 用户名 用户实名
+     *
+     * @return string
+     */
+    public function jsonUnformation()
+    {
+        $_REQUEST['k'] = trim($_REQUEST['k']);
+        $keywords = empty($_REQUEST['k']) ? ' ' : trim($_REQUEST['k']);
+
+        $c1 = " 1=1 ";
+        $c2 = "and (m.nickname like '%" . $keywords . "%')";
+        $map['_string'] = "(($c1 $c2))";
+        $data = M('Ucenter_member')->alias('um')
+            ->field('m.uid,um.username,m.nickname')
+            ->join('ot_member m on um.id =m.uid')
+            ->where($map)
+            ->select();
+
+        echo json_encode($data);
+    }
+    private function block_list(){
+	    
+		$data   =    array(
+		        0 => array(
+		            'source' => 'project',
+		            'title' => '我参与的项目',
+		            'params' => '{"color":"","type":"2","num":"20"}',
+		            'sort_order' => '5',
+		            'grid' => '6',
+		            'height' => '0'
+			    ),
+			    1 => array(
+				    'source' => 'maproject',
+				    'title' => '我管理的项目',
+				    'params' => '{"color":"","type":"2","num":"20"}',
+				    'sort_order' => '4',
+				    'grid' => '6',
+				    'height' => '241'
+			    ),
+			    2 => array(
+				    'source' => 'cal',
+				    'title' => '日历',
+				    'params' => '{"color":"","type":"1","num":"20"}',
+				    'sort_order' => '6',
+				    'grid' => '12',
+				    'height' => '582'
+			    ),
+			    3 => array(
+				    'source' => 'task',
+				    'title' => '我的任务',
+				    'params' => '{"color":"","type":"1","num":"20"}',
+				    'sort_order' => '3',
+				    'grid' => '6',
+				    'height' => '0'
+			    ),
+			    4 => array(
+				    'source' => 'dealt',
+				    'title' => '待办事项',
+				    'params' => '{"color":"","num":"20"}',
+				    'sort_order' => '2',
+				    'grid' => '6',
+				    'height' => '252'
+			    ),
+			    5 => array(
+				    'source' => 'notice',
+				    'title' => '公告',
+				    'params' => '{"color":"","type":"1","num":"20"}',
+				    'sort_order' => '1',
+				    'grid' => '12',
+				    'height' => '215'
+			    ),
+		    );
+		return $data;
+	}
+
+}
